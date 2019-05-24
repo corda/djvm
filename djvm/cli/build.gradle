@@ -14,7 +14,7 @@ ext {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
-    implementation "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"
+    runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"
     implementation "org.apache.logging.log4j:log4j-core:$log4j_version"
     implementation "com.jcabi:jcabi-manifests:$jcabi_manifests_version"
 
