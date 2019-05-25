@@ -2,7 +2,7 @@ package sandbox.java.lang;
 
 import net.corda.djvm.SandboxRuntimeContext;
 
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings("unused")
 public final class System extends Object {
 
     private System() {}
