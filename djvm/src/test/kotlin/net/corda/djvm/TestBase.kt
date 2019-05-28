@@ -24,6 +24,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.fail
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Type
@@ -71,7 +72,7 @@ abstract class TestBase {
 
         @JvmField
         val DETERMINISTIC_RT: Path = Paths.get(
-                System.getProperty("deterministic-rt.path") ?: throw AssertionError("deterministic-rt.path property not set"))
+                System.getProperty("deterministic-rt.path") ?: fail("deterministic-rt.path property not set"))
 
         private lateinit var parentConfiguration: SandboxConfiguration
         lateinit var parentClassLoader: SandboxClassLoader
@@ -156,7 +157,7 @@ abstract class TestBase {
      */
     fun sandbox(
         vararg options: Any,
-        pinnedClasses: Set<java.lang.Class<*>> = emptySet(),
+        pinnedClasses: Set<Class<*>> = emptySet(),
         minimumSeverityLevel: Severity = Severity.WARNING,
         enableTracing: Boolean = true,
         action: SandboxRuntimeContext.() -> Unit

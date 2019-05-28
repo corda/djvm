@@ -40,14 +40,24 @@ class SandboxExecutorTest : TestBase() {
         //TODO: Transaction should not be a pinned class! It needs to be marshalled into and out of the sandbox.
         val tx = Transaction(1)
         assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<Contract>(tx) }
+                .isThrownBy { contractExecutor.run<ContractWrapper>(tx) }
                 .withCauseInstanceOf(IllegalArgumentException::class.java)
-                .withMessageContaining("Contract constraint violated")
+                .withMessageContaining("Contract constraint violated: txId=${tx.id}")
     }
 
-    class Contract : Function<Transaction, Unit> {
+    interface Contract {
+        fun verify(tx: Transaction)
+    }
+
+    class ContractImplementation : Contract {
+        override fun verify(tx: Transaction) {
+            throw IllegalArgumentException("Contract constraint violated: txId=${tx.id}")
+        }
+    }
+
+    class ContractWrapper : Function<Transaction, Unit> {
         override fun apply(input: Transaction) {
-            throw IllegalArgumentException("Contract constraint violated")
+            ContractImplementation().verify(input)
         }
     }
 
@@ -757,6 +767,22 @@ class SandboxExecutorTest : TestBase() {
     class ArrayOfIntArrays : Function<Int, Array<IntArray>> {
         override fun apply(input: Int): Array<IntArray> {
             return arrayOf(intArrayOf(input))
+        }
+    }
+
+    @Test
+    fun `test class with protection domain`() = parentedSandbox {
+        val contractExecutor = DeterministicSandboxExecutor<Int, String>(configuration)
+        assertThatExceptionOfType(SandboxException::class.java)
+            .isThrownBy { contractExecutor.run<AccessClassProtectionDomain>(0) }
+            .withCauseInstanceOf(RuleViolationError::class.java)
+            .withMessageContaining("Disallowed reference to API;")
+            .withMessageContaining("java.lang.Class.getProtectionDomain")
+    }
+
+    class AccessClassProtectionDomain : Function<Int, String> {
+        override fun apply(input: Int): String {
+            return input::class.java.protectionDomain.codeSource.toString()
         }
     }
 }

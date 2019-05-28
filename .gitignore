@@ -1,3 +1,8 @@
+# General build files
+**/build/*
+
+.gradle
+
 # DJVM-specific files
 **/tmp/
 *.log
@@ -11,3 +16,7 @@
 
 **/out/
 
+# vim
+*.swp
+*.swn
+*.swo
