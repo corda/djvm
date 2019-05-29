@@ -1,5 +1,6 @@
 package sandbox.java.lang;
 
+import org.jetbrains.annotations.NotNull;
 import sandbox.java.util.function.Supplier;
 
 /**
@@ -37,6 +38,7 @@ public class ThreadLocal<T> extends Object {
         isSet = false;
     }
 
+    @NotNull
     public static <V> ThreadLocal<V> withInitial(Supplier<? extends V> supplier) {
         return new SuppliedThreadLocal<>(supplier);
     }

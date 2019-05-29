@@ -2,6 +2,7 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
 import net.corda.djvm.WithJava;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
@@ -10,10 +11,10 @@ import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class SandboxObjectHashCodeJavaTest extends TestBase {
+class SandboxObjectHashCodeJavaTest extends TestBase {
 
     @Test
-    public void testHashForArray() {
+    void testHashForArray() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, ArrayHashCode.class, null);
@@ -23,7 +24,7 @@ public class SandboxObjectHashCodeJavaTest extends TestBase {
     }
 
     @Test
-    public void testHashForObjectInArray() {
+    void testHashForObjectInArray() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, ObjectInArrayHashCode.class, null);
@@ -33,7 +34,7 @@ public class SandboxObjectHashCodeJavaTest extends TestBase {
     }
 
     @Test
-    public void testHashForNullObject() {
+    void testHashForNullObject() {
         assertThatExceptionOfType(NullPointerException.class)
             .isThrownBy(() -> new HashCode().apply(null));
 
@@ -46,7 +47,7 @@ public class SandboxObjectHashCodeJavaTest extends TestBase {
     }
 
     @Test
-    public void testHashForWrappedInteger() {
+    void testHashForWrappedInteger() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, HashCode.class, 1234);
@@ -56,7 +57,7 @@ public class SandboxObjectHashCodeJavaTest extends TestBase {
     }
 
     @Test
-    public void testHashForWrappedString() {
+    void testHashForWrappedString() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, HashCode.class, "Burble");
@@ -84,7 +85,7 @@ public class SandboxObjectHashCodeJavaTest extends TestBase {
 
     public static class HashCode implements Function<Object, Integer> {
         @Override
-        public Integer apply(Object obj) {
+        public Integer apply(@Nullable Object obj) {
             return obj.hashCode();
         }
     }

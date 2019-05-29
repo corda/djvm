@@ -60,11 +60,12 @@ public class Object {
         }
     }
 
-    static java.util.Locale fromDJVM(sandbox.java.util.Locale locale) {
+    static java.util.Locale fromDJVM(@NotNull sandbox.java.util.Locale locale) {
         return java.util.Locale.forLanguageTag(locale.toLanguageTag().fromDJVM());
     }
 
-    static java.nio.charset.Charset fromDJVM(sandbox.java.nio.charset.Charset charset) {
+    @NotNull
+    static java.nio.charset.Charset fromDJVM(@NotNull sandbox.java.nio.charset.Charset charset) {
         return java.nio.charset.Charset.forName(charset.name().fromDJVM());
     }
 }

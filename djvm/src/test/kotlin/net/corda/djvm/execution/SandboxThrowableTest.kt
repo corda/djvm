@@ -93,3 +93,5 @@ class TriggerJVMException : Function<Int, String> {
 
 open class MyBaseException(message: String) : Exception(message)
 class MyExampleException(message: String) : MyBaseException(message)
+class MyOtherException(message: String) : MyBaseException(message)
+class BigTroubleException(message: String): RuntimeException(message)

@@ -2,10 +2,12 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
 import net.corda.djvm.WithJava;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static net.corda.djvm.messages.Severity.*;
 
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.LinkedList;
@@ -13,31 +15,122 @@ import java.util.List;
 import java.util.function.Function;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class SandboxThrowableJavaTest extends TestBase {
+class SandboxThrowableJavaTest extends TestBase {
 
     @Test
-    public void testUserExceptionHandling() {
+    void testUserExceptionHandling() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<String, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String[]> output = WithJava.run(executor, ThrowAndCatchJavaExample.class, "Hello World!");
             assertThat(output.getResult())
-                    .isEqualTo(new String[]{ "FIRST FINALLY", "BASE EXCEPTION", "Hello World!", "SECOND FINALLY" });
+                .isEqualTo(new String[]{ "FIRST FINALLY", "BASE EXCEPTION", "Hello World!", "SECOND FINALLY" });
             return null;
         });
     }
 
     @Test
-    public void testCheckedExceptions() {
+    void testCheckedExceptions() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            assertAll(
+                () -> {
+                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, JavaWithCheckedExceptions.class, "http://localhost:8080/hello/world");
+                    assertThat(success.getResult()).isEqualTo("/hello/world");
+                },
+                () -> {
+                    ExecutionSummaryWithResult<String> failure = WithJava.run(executor, JavaWithCheckedExceptions.class, "nasty string");
+                    assertThat(failure.getResult()).isEqualTo("CATCH:Illegal character in path at index 5: nasty string");
+                }
+            );
+            return null;
+        });
+    }
 
-            ExecutionSummaryWithResult<String> success = WithJava.run(executor, JavaWithCheckedExceptions.class, "http://localhost:8080/hello/world");
-            assertThat(success.getResult()).isEqualTo("/hello/world");
+    @Disabled
+    @Test
+    void testMultiCatchExceptions() {
+        parentedSandbox(WARNING, true, ctx -> {
+            SandboxExecutor<Integer, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            assertAll(
+                () -> {
+                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, JavaWithMultiCatchExceptions.class, 1);
+                    assertThat(success.getResult()).isEqualTo("sandbox.net.corda.djvm.execution.MyExampleException:1");
+                },
+                () -> {
+                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, JavaWithMultiCatchExceptions.class, 2);
+                    assertThat(success.getResult()).isEqualTo("sandbox.net.corda.djvm.execution.MyOtherException:2");
+                },
+                () -> {
+                    Throwable exception = assertThrows(RuntimeException.class,
+                        () -> WithJava.run(executor, JavaWithMultiCatchExceptions.class, 3)
+                    );
+                    assertThat(exception)
+                        .isExactlyInstanceOf(RuntimeException.class)
+                        .hasMessage("sandbox.net.corda.djvm.execution.BigTroubleException -> 3")
+                        .hasCauseExactlyInstanceOf(Exception.class);
+                    assertThat(exception.getCause())
+                        .hasMessage("sandbox.net.corda.djvm.execution.MyBaseException -> sandbox.net.corda.djvm.execution.BigTroubleException=3");
+                },
+                () -> {
+                    Throwable exception = assertThrows(IllegalArgumentException.class,
+                        () -> WithJava.run(executor, JavaWithMultiCatchExceptions.class, 4)
+                    );
+                    assertThat(exception)
+                        .hasMessage("4")
+                        .hasCauseExactlyInstanceOf(Exception.class);
+                    assertThat(exception.getCause())
+                        .hasMessage("sandbox.net.corda.djvm.execution.MyBaseException -> sandbox.java.lang.IllegalArgumentException=4");
+                },
+                () -> {
+                    Throwable exception = assertThrows(UnsupportedOperationException.class,
+                        () -> WithJava.run(executor, JavaWithMultiCatchExceptions.class, 1000)
+                    );
+                    assertThat(exception)
+                        .hasMessage("Unknown")
+                        .hasNoCause();
+                }
+            );
+            return null;
+        });
+    }
 
-            ExecutionSummaryWithResult<String> failure = WithJava.run(executor, JavaWithCheckedExceptions.class, "nasty string");
-            assertThat(failure.getResult()).isEqualTo("CATCH:Illegal character in path at index 5: nasty string");
+    @Test
+    void testSuppressedJvmExceptions() {
+        parentedSandbox(WARNING, true, ctx -> {
+            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            Throwable exception = assertThrows(IllegalArgumentException.class,
+                () -> WithJava.run(executor, WithSuppressedJvmExceptions.class, "Hello World!")
+            );
+            assertThat(exception)
+                .hasCauseExactlyInstanceOf(IOException.class)
+                .hasMessage("READ=Hello World!");
+            assertThat(exception.getCause())
+                 .hasMessage("READ=Hello World!");
+            assertThat(exception.getCause().getSuppressed())
+                .hasSize(1)
+                .allMatch(t -> t instanceof IOException && t.getMessage().equals("CLOSING"));
+            return null;
+        });
+    }
 
+    @Test
+    void testSuppressedUserExceptions() {
+        parentedSandbox(WARNING, true, ctx -> {
+            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            Throwable exception = assertThrows(IllegalArgumentException.class,
+                () -> WithJava.run(executor, WithSuppressedUserExceptions.class, "Hello World!")
+            );
+            assertThat(exception)
+                .hasMessage("THROW: Hello World!")
+                .hasCauseExactlyInstanceOf(Exception.class);
+            assertThat(exception.getCause())
+                .hasMessage("sandbox.net.corda.djvm.execution.MyExampleException -> THROW: Hello World!");
+            assertThat(exception.getCause().getSuppressed())
+                .hasSize(1)
+                .allMatch(t -> t instanceof RuntimeException
+                        && t.getMessage().equals("sandbox.net.corda.djvm.execution.BigTroubleException -> BadResource: Hello World!"));
             return null;
         });
     }
@@ -73,6 +166,90 @@ public class SandboxThrowableJavaTest extends TestBase {
             } catch (URISyntaxException e) {
                 return "CATCH:" + e.getMessage();
             }
+        }
+    }
+
+    public static class JavaWithMultiCatchExceptions implements Function<Integer, String> {
+        @Override
+        public String apply(Integer input) {
+            try {
+                switch(input) {
+                    case 1: throw new MyExampleException("1");
+                    case 2: throw new MyOtherException("2");
+                    case 3: throw new BigTroubleException("3");
+                    case 4: throw new IllegalArgumentException("4");
+                    default: throw new UnsupportedOperationException("Unknown");
+                }
+            } catch (MyExampleException | MyOtherException e) {
+                // Common exception type is MyBaseException
+                return e.getClass().getName() + ':' + e.getMessage();
+            } catch (BigTroubleException | IllegalArgumentException e) {
+                // Common exception type is RuntimeException
+                e.initCause(new MyBaseException(e.getClass().getName() + '=' + e.getMessage()));
+                throw e;
+            }
+        }
+    }
+
+    public static class WithSuppressedJvmExceptions implements Function<String, String> {
+        @Override
+        public String apply(String input) {
+            try (BadReader reader = new BadReader(input)) {
+                throw new IOException("READ=" + reader.getName());
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e.getMessage(), e);
+            }
+        }
+    }
+
+    public interface MyResource extends AutoCloseable {
+        String getName();
+    }
+
+    public static class BadReader implements MyResource {
+        private final String name;
+
+        BadReader(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public void close() throws IOException {
+            throw new IOException("CLOSING");
+        }
+    }
+
+    public static class WithSuppressedUserExceptions implements Function<String, String> {
+        @Override
+        public String apply(String input) {
+            try (MyResource resource = new BadResource(input)) {
+                throw new MyExampleException("THROW: " + resource.getName());
+            } catch (Exception e) {
+                throw new IllegalArgumentException(e.getMessage(), e);
+            }
+        }
+    }
+
+    public static class BadResource implements MyResource {
+        private final String name;
+
+        BadResource(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public void close() {
+            throw new BigTroubleException("BadResource: " + getName());
         }
     }
 }

@@ -11,11 +11,11 @@ import static java.util.Collections.singleton;
 import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class SandboxExecutorJavaTest extends TestBase {
+class SandboxExecutorJavaTest extends TestBase {
     private static final int TX_ID = 101;
 
     @Test
-    public void testTransaction() {
+    void testTransaction() {
         //TODO: Transaction should not be a pinned class! It needs
         //      to be marshalled into and out of the sandbox.
         Set<Class<?>> pinnedClasses = singleton(Transaction.class);
