@@ -13,6 +13,7 @@ import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
+import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.Type
 
 /**
@@ -224,7 +225,7 @@ class SandboxClassLoader private constructor(
             if (!analysisConfiguration.whitelist.matches(readClassName)) {
                 logger.trace("Class {} does not match with the whitelist", request.qualifiedClassName)
                 logger.trace("Analyzing class {}...", request.qualifiedClassName)
-                analyzer.analyze(reader, context)
+                analyzer.analyze(reader, context, SKIP_FRAMES)
             }
 
             // Check if any errors were found during analysis.

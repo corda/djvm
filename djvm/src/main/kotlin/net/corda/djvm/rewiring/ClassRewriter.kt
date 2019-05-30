@@ -10,7 +10,9 @@ import net.corda.djvm.references.Member
 import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 
@@ -34,7 +36,7 @@ open class ClassRewriter(
      */
     fun rewrite(reader: ClassReader, context: AnalysisContext): ByteCode {
         logger.debug("Rewriting class {}...", reader.className)
-        val writer = SandboxClassWriter(reader, classLoader)
+        val writer = SandboxClassWriter(reader, classLoader, options = COMPUTE_FRAMES)
         val classRemapper = SandboxClassRemapper(
             ClassExceptionRemapper(SandboxStitcher(writer)),
             analysisConfig
@@ -45,7 +47,7 @@ open class ClassRewriter(
             configuration.definitionProviders,
             configuration.emitters
         )
-        visitor.analyze(reader, context, options = ClassReader.EXPAND_FRAMES)
+        visitor.analyze(reader, context, options = SKIP_FRAMES)
         return ByteCode(writer.toByteArray(), visitor.hasBeenModified)
     }
 

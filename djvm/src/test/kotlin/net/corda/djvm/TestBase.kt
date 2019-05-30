@@ -142,7 +142,7 @@ abstract class TestBase {
         ).use { analysisConfiguration ->
             val validator = RuleValidator(ALL_RULES, analysisConfiguration)
             val context = AnalysisContext.fromConfiguration(analysisConfiguration)
-            validator.analyze(reader, context)
+            validator.analyze(reader, context, 0)
             block(validator, context)
         }
     }
