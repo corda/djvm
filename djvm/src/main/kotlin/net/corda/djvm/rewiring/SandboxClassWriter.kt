@@ -19,12 +19,12 @@ import org.objectweb.asm.Type
  * @param flags Option flags that can be used to modify the default behaviour of this class. Must be zero or a
  * combination of [COMPUTE_MAXS] and [COMPUTE_FRAMES]. These option flags do not affect methods that are copied as is
  * in the new class. This means that neither the maximum stack size nor the stack frames will be computed for these
- * methods.
+ * methods. Note that [COMPUTE_FRAMES] implies [COMPUTE_MAXS].
  */
 open class SandboxClassWriter(
         classReader: ClassReader,
         private val cloader: SourceClassLoader,
-        flags: Int = COMPUTE_FRAMES or COMPUTE_MAXS
+        flags: Int = COMPUTE_FRAMES
 ) : ClassWriter(classReader, flags) {
 
     override fun getClassLoader(): SourceClassLoader = cloader

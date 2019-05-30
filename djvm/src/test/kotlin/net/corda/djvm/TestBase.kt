@@ -269,9 +269,9 @@ abstract class TestBase {
     /**
      * Stub visitor.
      */
-    protected class Writer : ClassWriter(COMPUTE_FRAMES or COMPUTE_MAXS) {
+    protected class Writer : ClassWriter(COMPUTE_FRAMES) {
         init {
-            assertEquals(ClassAndMemberVisitor.API_VERSION, api)
+            assertEquals(ClassAndMemberVisitor.API_VERSION, api, "Incorrect ASM API version")
         }
     }
 

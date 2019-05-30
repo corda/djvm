@@ -591,7 +591,7 @@ open class ClassAndMemberVisitor(
         /**
          * The API version of ASM.
          */
-        const val API_VERSION: Int = Opcodes.ASM6
+        const val API_VERSION: Int = Opcodes.ASM7
 
     }
 
