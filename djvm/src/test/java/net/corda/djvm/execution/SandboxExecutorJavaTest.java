@@ -2,6 +2,7 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
 import net.corda.djvm.WithJava;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -36,7 +37,7 @@ class SandboxExecutorJavaTest extends TestBase {
 
     public static class ContractImplementation implements Contract {
         @Override
-        public void verify(Transaction tx) {
+        public void verify(@NotNull Transaction tx) {
             throw new IllegalArgumentException("Contract constraint violated: txId=" + tx.getId());
         }
     }

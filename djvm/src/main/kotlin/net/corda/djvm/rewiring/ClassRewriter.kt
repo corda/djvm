@@ -36,7 +36,7 @@ open class ClassRewriter(
      */
     fun rewrite(reader: ClassReader, context: AnalysisContext): ByteCode {
         logger.debug("Rewriting class {}...", reader.className)
-        val writer = SandboxClassWriter(reader, classLoader, options = COMPUTE_FRAMES)
+        val writer = SandboxClassWriter(reader, classLoader, analysisConfig, options = COMPUTE_FRAMES)
         val classRemapper = SandboxClassRemapper(
             ClassExceptionRemapper(SandboxStitcher(writer)),
             analysisConfig

@@ -1,12 +1,12 @@
 package net.corda.djvm.rewiring
 
+import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
 import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
-import org.objectweb.asm.Type
 
 /**
  * Class writer for sandbox execution, with a configurable classloader to ensure correct deduction of the used class
@@ -24,6 +24,7 @@ import org.objectweb.asm.Type
 open class SandboxClassWriter(
         classReader: ClassReader,
         private val cloader: SourceClassLoader,
+        private val configuration: AnalysisConfiguration,
         options: Int
 ) : ClassWriter(classReader, options) {
 
@@ -57,7 +58,11 @@ open class SandboxClassWriter(
                 do {
                     clazz = clazz.superclass
                 } while (!clazz.isAssignableFrom(class2))
-                Type.getInternalName(clazz)
+
+                // Return name of a common superclass within the sandbox.
+                // ASM will also use these values to compute class method
+                // stack frames, e.g. for exception handling.
+                configuration.toSandboxClassName(clazz)
             }
         }
     }
