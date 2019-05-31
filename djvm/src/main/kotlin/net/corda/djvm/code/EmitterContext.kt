@@ -16,7 +16,6 @@ import net.corda.djvm.references.MemberModule
  * @property configuration The configuration to used for the analysis.
  * @property emitterModule A module providing code generation functionality that can be used from within an emitter.
  */
-@Suppress("unused")
 open class EmitterContext(
         private val analysisContext: AnalysisRuntimeContext,
         private val configuration: AnalysisConfiguration,
@@ -56,8 +55,16 @@ open class EmitterContext(
     /**
      * Utilities for dealing with members.
      */
+    @Suppress("unused")
     val memberModule: MemberModule
         get() = analysisContext.configuration.memberModule
+
+    /**
+     * Return the runtime data associated with both this member and this emitter.
+     */
+    fun getMemberContext(emitter: Emitter): Any? {
+        return (member ?: return null).runtimeContext.computeIfAbsent(emitter) { emitter.createMemberContext() }
+    }
 
     /**
      * Resolve the sandboxed name of a class or interface.
@@ -73,4 +80,8 @@ open class EmitterContext(
         action(emitterModule)
     }
 
+}
+
+inline fun <reified T> Emitter.getMemberContext(context: EmitterContext): T? {
+    return context.getMemberContext(this) as T?
 }

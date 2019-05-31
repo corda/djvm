@@ -18,6 +18,14 @@ interface Emitter {
     fun emit(context: EmitterContext, instruction: Instruction)
 
     /**
+     * Emitters are immutable and shared. The member context represents an arbitrary
+     * object that will exist only for the lifetime of the current member which the
+     * [Emitter] instance can use to store "state".
+     */
+    @JvmDefault
+    fun createMemberContext(): Any = Void.TYPE
+
+    /**
      * Determines the order in which emitters are executed within the sandbox.
      */
     @JvmDefault

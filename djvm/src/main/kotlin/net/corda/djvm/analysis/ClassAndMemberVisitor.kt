@@ -541,7 +541,7 @@ open class ClassAndMemberVisitor(
         /**
          * Helper function used to streamline the access to an instruction and to catch any related processing errors.
          */
-        private inline fun visit(instruction: Instruction, defaultFirst: Boolean = false, defaultAction: () -> Unit) {
+        private fun visit(instruction: Instruction, defaultFirst: Boolean = false, defaultAction: () -> Unit) {
             val emitterModule = EmitterModule(mv ?: StubMethodVisitor())
             if (defaultFirst) {
                 defaultAction()
