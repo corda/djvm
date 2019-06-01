@@ -21,7 +21,7 @@ typealias MethodBody = (EmitterModule) -> Unit
  * @property exceptions The names of the exceptions that the member can throw.
  * @property value The default value of a field.
  * @property body One or more handlers to replace the method body with new byte-code.
- * @property runtimeContext
+ * @property runtimeContext Local runtime "state" objects for each [Emitter].
  */
 data class Member(
     override val access: Int,

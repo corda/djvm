@@ -10,14 +10,17 @@ import org.objectweb.asm.Label
  * at the beginning of either a catch block or a finally block.
  */
 object HandleExceptionUnwrapper : Emitter {
-    override fun createMemberContext() = mutableMapOf<Label, String>()
+    override fun createMemberContext() = mutableMapOf<Label, MutableSet<String>>()
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
-        val exceptionHandlers: MutableMap<Label, String> = getMemberContext(context) ?: return
+        val exceptionHandlers: MutableMap<Label, MutableSet<String>> = getMemberContext(context) ?: return
         when (instruction) {
-            is TryBlock -> exceptionHandlers[instruction.handler] = instruction.typeName
+            is TryBlock -> {
+                exceptionHandlers.computeIfAbsent(instruction.handler) { linkedSetOf() }.add(instruction.typeName)
+            }
             is CodeLabel -> {
-                exceptionHandlers[instruction.label]?.also { exceptionType ->
+                exceptionHandlers[instruction.label]?.also { exceptionTypes ->
+                    val exceptionType = commonThrowableClassOf(exceptionTypes)
                     if (exceptionType.isNotEmpty()) {
                         /**
                          * This is a catch block; the wrapping function is allowed to throw exceptions.
@@ -28,7 +31,9 @@ object HandleExceptionUnwrapper : Emitter {
                          * When catching exceptions, we also need to tell the verifier which
                          * which kind of [sandbox.java.lang.Throwable] to expect this to be.
                          */
-                        castObjectTo(exceptionType)
+                        if (exceptionType != THROWABLE_NAME) {
+                            castObjectTo(exceptionType)
+                        }
                     } else {
                         /**
                          * This is a finally block; the wrapping function MUST NOT throw exceptions.

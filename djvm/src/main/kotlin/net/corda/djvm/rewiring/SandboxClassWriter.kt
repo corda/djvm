@@ -1,6 +1,7 @@
 package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.code.OBJECT_NAME
 import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.ClassReader
@@ -35,42 +36,37 @@ open class SandboxClassWriter(
      */
     override fun getCommonSuperClass(type1: String, type2: String): String {
         // Need to override [getCommonSuperClass] to ensure that we use SourceClassLoader.loadSourceClass().
-        when {
-            type1 == OBJECT_NAME -> return type1
-            type2 == OBJECT_NAME -> return type2
-        }
-        val class1 = try {
-            classLoader.loadSourceClass(type1.asPackagePath)
-        } catch (exception: Exception) {
-            throw TypeNotPresentException(type1, exception)
-        }
-        val class2 = try {
-            classLoader.loadSourceClass(type2.asPackagePath)
-        } catch (exception: Exception) {
-            throw TypeNotPresentException(type2, exception)
-        }
         return when {
-            class1.isAssignableFrom(class2) -> type1
-            class2.isAssignableFrom(class1) -> type2
-            class1.isInterface || class2.isInterface -> OBJECT_NAME
+            type1 == OBJECT_NAME -> type1
+            type2 == OBJECT_NAME -> type2
             else -> {
-                var clazz = class1
-                do {
-                    clazz = clazz.superclass
-                } while (!clazz.isAssignableFrom(class2))
+                val class1 = try {
+                    classLoader.loadSourceClass(type1.asPackagePath)
+                } catch (exception: Exception) {
+                    throw TypeNotPresentException(type1, exception)
+                }
+                val class2 = try {
+                    classLoader.loadSourceClass(type2.asPackagePath)
+                } catch (exception: Exception) {
+                    throw TypeNotPresentException(type2, exception)
+                }
+                when {
+                    class1.isAssignableFrom(class2) -> type1
+                    class2.isAssignableFrom(class1) -> type2
+                    class1.isInterface || class2.isInterface -> OBJECT_NAME
+                    else -> {
+                        var clazz = class1
+                        do {
+                            clazz = clazz.superclass
+                        } while (!clazz.isAssignableFrom(class2))
 
-                // Return name of a common superclass within the sandbox.
-                // ASM will also use these values to compute class method
-                // stack frames, e.g. for exception handling.
-                configuration.toSandboxClassName(clazz)
+                        // Return name of a common superclass within the sandbox.
+                        // ASM will also use these values to compute class method
+                        // stack frames, e.g. for exception handling.
+                        configuration.toSandboxClassName(clazz)
+                    }
+                }
             }
         }
     }
-
-    private companion object {
-
-        private const val OBJECT_NAME = "java/lang/Object"
-
-    }
-
 }

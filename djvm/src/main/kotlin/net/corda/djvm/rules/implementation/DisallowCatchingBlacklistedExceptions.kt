@@ -33,7 +33,7 @@ object DisallowCatchingBlacklistedExceptions : Emitter {
          * Any of [ThreadDeath] and [VirtualMachineError]'s throwable
          * super-classes also need explicit checking.
          */
-        "java/lang/Throwable",
+        THROWABLE_NAME,
         "java/lang/Error"
     )
 

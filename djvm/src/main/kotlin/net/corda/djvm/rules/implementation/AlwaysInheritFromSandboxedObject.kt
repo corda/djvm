@@ -1,10 +1,7 @@
 package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.analysis.AnalysisRuntimeContext
-import net.corda.djvm.code.ClassDefinitionProvider
-import net.corda.djvm.code.Emitter
-import net.corda.djvm.code.EmitterContext
-import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.*
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import net.corda.djvm.code.instructions.TypeInstruction
 import net.corda.djvm.references.ClassRepresentation
@@ -16,8 +13,6 @@ import java.lang.reflect.Modifier
  * deterministic `hashCode()` method.
  */
 object AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
-
-    private const val OBJECT_NAME = "java/lang/Object"
 
     private const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"
 

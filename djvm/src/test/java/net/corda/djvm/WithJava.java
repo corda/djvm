@@ -17,7 +17,11 @@ public interface WithJava {
             return executor.run(ClassSource.fromClassName(task.getName(), null), input);
         } catch (Exception e) {
             if (e instanceof SandboxException) {
-                throw asRuntime(e.getCause());
+                Throwable cause = e.getCause();
+                if (cause instanceof Error) {
+                    throw (Error) cause;
+                }
+                throw asRuntime(cause);
             } else {
                 throw asRuntime(e);
             }

@@ -1,17 +1,22 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.Utilities;
 import net.corda.djvm.WithJava;
-import org.junit.jupiter.api.Disabled;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import sandbox.net.corda.djvm.rules.RuleViolationError;
 
+import static net.corda.djvm.Utilities.CANNOT_CATCH;
 import static net.corda.djvm.messages.Severity.*;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -48,23 +53,22 @@ class SandboxThrowableJavaTest extends TestBase {
         });
     }
 
-    @Disabled
     @Test
     void testMultiCatchExceptions() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Integer, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> {
-                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, JavaWithMultiCatchExceptions.class, 1);
+                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, WithMultiCatchExceptions.class, 1);
                     assertThat(success.getResult()).isEqualTo("sandbox.net.corda.djvm.execution.MyExampleException:1");
                 },
                 () -> {
-                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, JavaWithMultiCatchExceptions.class, 2);
+                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, WithMultiCatchExceptions.class, 2);
                     assertThat(success.getResult()).isEqualTo("sandbox.net.corda.djvm.execution.MyOtherException:2");
                 },
                 () -> {
                     Throwable exception = assertThrows(RuntimeException.class,
-                        () -> WithJava.run(executor, JavaWithMultiCatchExceptions.class, 3)
+                        () -> WithJava.run(executor, WithMultiCatchExceptions.class, 3)
                     );
                     assertThat(exception)
                         .isExactlyInstanceOf(RuntimeException.class)
@@ -75,7 +79,7 @@ class SandboxThrowableJavaTest extends TestBase {
                 },
                 () -> {
                     Throwable exception = assertThrows(IllegalArgumentException.class,
-                        () -> WithJava.run(executor, JavaWithMultiCatchExceptions.class, 4)
+                        () -> WithJava.run(executor, WithMultiCatchExceptions.class, 4)
                     );
                     assertThat(exception)
                         .hasMessage("4")
@@ -85,10 +89,33 @@ class SandboxThrowableJavaTest extends TestBase {
                 },
                 () -> {
                     Throwable exception = assertThrows(UnsupportedOperationException.class,
-                        () -> WithJava.run(executor, JavaWithMultiCatchExceptions.class, 1000)
+                        () -> WithJava.run(executor, WithMultiCatchExceptions.class, 1000)
                     );
                     assertThat(exception)
                         .hasMessage("Unknown")
+                        .hasNoCause();
+                }
+            );
+            return null;
+        });
+    }
+
+    @Test
+    void testMultiCatchWithDisallowedExceptions() {
+        Set<Class<?>> pinnedClasses = Collections.singleton(Utilities.class);
+        sandbox(new Object[0], pinnedClasses, WARNING, true, ctx -> {
+            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            assertAll(
+                () -> {
+                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, WithMultiCatchDisallowedExceptions.class, "Hello World!");
+                    assertThat(success.getResult()).isEqualTo("sandbox.net.corda.djvm.execution.MyExampleException:Hello World!");
+                },
+                () -> {
+                    Throwable exception = assertThrows(RuleViolationError.class,
+                        () -> WithJava.run(executor, WithMultiCatchDisallowedExceptions.class, "")
+                    );
+                    assertThat(exception)
+                        .hasMessage(CANNOT_CATCH)
                         .hasNoCause();
                 }
             );
@@ -169,9 +196,9 @@ class SandboxThrowableJavaTest extends TestBase {
         }
     }
 
-    public static class JavaWithMultiCatchExceptions implements Function<Integer, String> {
+    public static class WithMultiCatchExceptions implements Function<Integer, String> {
         @Override
-        public String apply(Integer input) {
+        public String apply(@NotNull Integer input) {
             try {
                 switch(input) {
                     case 1: throw new MyExampleException("1");
@@ -187,6 +214,22 @@ class SandboxThrowableJavaTest extends TestBase {
                 // Common exception type is RuntimeException
                 e.initCause(new MyBaseException(e.getClass().getName() + '=' + e.getMessage()));
                 throw e;
+            }
+        }
+    }
+
+    public static class WithMultiCatchDisallowedExceptions implements Function<String, String> {
+        @Override
+        public String apply(@NotNull String input) {
+            try {
+                if (!input.isEmpty()) {
+                    throw new MyExampleException(input);
+                } else {
+                    Utilities.throwRuleViolationError();
+                    return "FAIL";
+                }
+            } catch (MyExampleException | ThreadDeath e) {
+                return e.getClass().getName() + ':' + e.getMessage();
             }
         }
     }

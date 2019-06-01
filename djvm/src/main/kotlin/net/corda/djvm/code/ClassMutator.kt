@@ -83,7 +83,7 @@ class ClassMutator(
         if (initializers.isNotEmpty()) {
             classVisitor.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null)?.also { mv ->
                 mv.visitCode()
-                EmitterModule(mv).writeByteCode(initializers)
+                EmitterModule(mv, configuration).writeByteCode(initializers)
                 mv.visitInsn(RETURN)
                 mv.visitMaxs(-1, -1)
                 mv.visitEnd()

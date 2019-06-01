@@ -81,7 +81,3 @@ open class EmitterContext(
     }
 
 }
-
-inline fun <reified T> Emitter.getMemberContext(context: EmitterContext): T? {
-    return context.getMemberContext(this) as T?
-}

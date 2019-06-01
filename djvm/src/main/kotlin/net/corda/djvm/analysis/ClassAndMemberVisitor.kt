@@ -527,7 +527,7 @@ open class ClassAndMemberVisitor(
 
         private fun tryReplaceMethodBody() {
             if (method.body.isNotEmpty() && (mv != null)) {
-                EmitterModule(mv).apply {
+                EmitterModule(mv, configuration).apply {
                     for (body in method.body) {
                         body(this)
                     }
@@ -542,7 +542,7 @@ open class ClassAndMemberVisitor(
          * Helper function used to streamline the access to an instruction and to catch any related processing errors.
          */
         private fun visit(instruction: Instruction, defaultFirst: Boolean = false, defaultAction: () -> Unit) {
-            val emitterModule = EmitterModule(mv ?: StubMethodVisitor())
+            val emitterModule = EmitterModule(mv ?: StubMethodVisitor(), configuration)
             if (defaultFirst) {
                 defaultAction()
             }

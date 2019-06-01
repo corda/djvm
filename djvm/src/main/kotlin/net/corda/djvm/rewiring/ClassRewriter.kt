@@ -83,7 +83,7 @@ open class ClassRewriter(
                 with(method) {
                     visitMethod(access, memberName, signature, genericsDetails.emptyAsNull, exceptions.toTypedArray())?.also { mv ->
                         mv.visitCode()
-                        EmitterModule(mv).writeByteCode(body)
+                        EmitterModule(mv, analysisConfig).writeByteCode(body)
                         mv.visitMaxs(-1, -1)
                         mv.visitEnd()
                     }

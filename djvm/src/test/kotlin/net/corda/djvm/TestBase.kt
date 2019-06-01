@@ -33,6 +33,7 @@ import org.objectweb.asm.Type
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.Collections.unmodifiableList
 import kotlin.concurrent.thread
 import kotlin.reflect.jvm.jvmName
 
@@ -42,29 +43,30 @@ abstract class TestBase {
 
         // We need at least these emitters to handle the Java API classes.
         @JvmField
-        val BASIC_EMITTERS: List<Emitter> = listOf(
+        val BASIC_EMITTERS: List<Emitter> = unmodifiableList(listOf(
             AlwaysInheritFromSandboxedObject,
             ArgumentUnwrapper,
+            DisallowCatchingBlacklistedExceptions,
             HandleExceptionUnwrapper,
             ReturnTypeWrapper,
             RewriteClassMethods,
             RewriteObjectMethods,
             StringConstantWrapper,
             ThrowExceptionWrapper
-        )
+        ))
 
         // We need at least these providers to handle the Java API classes.
         @JvmField
-        val BASIC_DEFINITION_PROVIDERS: List<DefinitionProvider> = listOf(
+        val BASIC_DEFINITION_PROVIDERS: List<DefinitionProvider> = unmodifiableList(listOf(
             AlwaysInheritFromSandboxedObject,
             StaticConstantRemover
-        )
+        ))
 
         @JvmField
         val BLANK = emptySet<Any>()
 
         @JvmField
-        val DEFAULT = (ALL_RULES + ALL_EMITTERS + ALL_DEFINITION_PROVIDERS).distinctBy(Any::javaClass)
+        val DEFAULT: List<Any> = unmodifiableList((ALL_RULES + ALL_EMITTERS + ALL_DEFINITION_PROVIDERS).distinctBy(Any::javaClass))
 
         @JvmField
         val DETERMINISTIC_RT: Path = Paths.get(
