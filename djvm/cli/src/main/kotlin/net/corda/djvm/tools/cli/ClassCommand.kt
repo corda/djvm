@@ -7,8 +7,9 @@ import net.corda.djvm.execution.*
 import net.corda.djvm.references.ClassModule
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.SourceClassLoader
-import net.corda.djvm.utilities.Discovery
 import djvm.org.objectweb.asm.ClassReader
+import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
+import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
 import picocli.CommandLine.Option
 import java.nio.file.Files
 import java.nio.file.Path
@@ -103,7 +104,7 @@ abstract class ClassCommand : CommandBase() {
     }
 
     private fun findDiscoverableRunnables(filters: Array<String>): List<Class<*>> {
-        val classes = find<java.util.function.Function<*,*>>()
+        val classes = find<java.util.function.Function<*,*>>("net/corda/sandbox")
         val applicableFilters = filters
                 .filter { !isJarFile(it) && !isFullClassName(it) }
         val filteredClasses = applicableFilters
@@ -176,9 +177,9 @@ abstract class ClassCommand : CommandBase() {
     private fun getConfiguration(whitelist: Whitelist): SandboxConfiguration {
         return SandboxConfiguration.of(
                 profile = profile,
-                rules = if (ignoreRules) { emptyList() } else { Discovery.find() },
+                rules = if (ignoreRules) { emptyList() } else { ALL_RULES },
                 emitters = ignoreEmitters.emptyListIfTrueOtherwiseNull(),
-                definitionProviders = if (ignoreDefinitionProviders) { emptyList() } else { Discovery.find() },
+                definitionProviders = if (ignoreDefinitionProviders) { emptyList() } else { ALL_DEFINITION_PROVIDERS },
                 enableTracing = !disableTracing,
                 analysisConfiguration = AnalysisConfiguration.createRoot(
                         whitelist = whitelist,

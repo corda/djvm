@@ -8,7 +8,7 @@ import net.corda.djvm.validation.RuleContext
 /**
  * Rule that checks for invalid dynamic invocations.
  */
-class DisallowDynamicInvocation : InstructionRule() {
+object DisallowDynamicInvocation : InstructionRule() {
 
     override fun validate(context: RuleContext, instruction: Instruction) = context.validate {
         fail("Disallowed dynamic invocation in method") given (instruction is DynamicInvocationInstruction)

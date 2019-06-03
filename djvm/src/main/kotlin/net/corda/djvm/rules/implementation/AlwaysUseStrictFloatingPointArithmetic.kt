@@ -14,7 +14,7 @@ import java.lang.reflect.Modifier
  *
  * Note: Future JVM releases may make this pass obsolete; https://bugs.openjdk.java.net/browse/JDK-8175916.
  */
-class AlwaysUseStrictFloatingPointArithmetic : MemberRule(), MemberDefinitionProvider {
+object AlwaysUseStrictFloatingPointArithmetic : MemberRule(), MemberDefinitionProvider {
 
     override fun validate(context: RuleContext, member: Member) = context.validate {
         if (isConcrete(context.clazz)) {

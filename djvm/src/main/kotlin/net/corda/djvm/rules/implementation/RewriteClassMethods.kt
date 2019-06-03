@@ -16,7 +16,7 @@ import sandbox.net.corda.djvm.rules.RuleViolationError
  * The [java.security.ProtectionDomain] object is also untransformable into sandbox
  * objects.
  */
-class RewriteClassMethods : Emitter {
+object RewriteClassMethods : Emitter {
     private val memberFormatter = MemberFormatter()
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {

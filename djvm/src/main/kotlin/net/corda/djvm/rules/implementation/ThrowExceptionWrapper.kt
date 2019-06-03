@@ -9,7 +9,7 @@ import org.objectweb.asm.Opcodes.ATHROW
  * Converts a [sandbox.java.lang.Throwable] into a [java.lang.Throwable]
  * so that the JVM can throw it.
  */
-class ThrowExceptionWrapper : Emitter {
+object ThrowExceptionWrapper : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         when (instruction.operation) {
             ATHROW -> {

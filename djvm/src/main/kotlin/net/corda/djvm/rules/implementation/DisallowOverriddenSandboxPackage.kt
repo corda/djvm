@@ -7,7 +7,7 @@ import net.corda.djvm.validation.RuleContext
 /**
  * Disallow loading of classes that have been defined in the 'sandbox' root package.
  */
-class DisallowOverriddenSandboxPackage : ClassRule() {
+object DisallowOverriddenSandboxPackage : ClassRule() {
 
     override fun validate(context: RuleContext, clazz: ClassRepresentation) = context.validate {
         fail("Cannot load class explicitly defined in the 'sandbox' root package; ${clazz.name}") given

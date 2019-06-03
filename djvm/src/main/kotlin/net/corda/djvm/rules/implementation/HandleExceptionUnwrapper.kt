@@ -12,7 +12,7 @@ import org.objectweb.asm.Label
  * Converts an exception from [java.lang.Throwable] to [sandbox.java.lang.Throwable]
  * at the beginning of either a catch block or a finally block.
  */
-class HandleExceptionUnwrapper : Emitter {
+object HandleExceptionUnwrapper : Emitter {
     private val handlers = mutableMapOf<Label, String>()
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {

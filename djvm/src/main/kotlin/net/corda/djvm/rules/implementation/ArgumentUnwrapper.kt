@@ -12,7 +12,7 @@ import net.corda.djvm.code.instructions.MemberAccessInstruction
  * There are lots of rabbits in this hole because method arguments are
  * theoretically arbitrary. However, in practice WE control the whitelist.
  */
-class ArgumentUnwrapper : Emitter {
+object ArgumentUnwrapper : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && context.whitelist.matches(instruction.owner)) {
             fun unwrapString() = invokeStatic("sandbox/java/lang/String", "fromDJVM", "(Lsandbox/java/lang/String;)Ljava/lang/String;")

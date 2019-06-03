@@ -9,8 +9,7 @@ import org.objectweb.asm.Opcodes.ATHROW
 /**
  * Emitter that will instrument the byte code such that all throws get recorded.
  */
-@Suppress("unused")
-class TraceThrows : Emitter {
+object TraceThrows : Emitter {
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction.operation == ATHROW) {

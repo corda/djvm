@@ -10,7 +10,7 @@ import net.corda.djvm.code.instructions.MemberAccessInstruction
  * functions, e.g. [java.lang.Object.toString]. So always explicitly
  * invoke [sandbox.java.lang.String.toDJVM] after these.
  */
-class ReturnTypeWrapper : Emitter {
+object ReturnTypeWrapper : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && context.whitelist.matches(instruction.owner)) {
             fun invokeMethod() = invokeVirtual(instruction.owner, instruction.memberName, instruction.signature)

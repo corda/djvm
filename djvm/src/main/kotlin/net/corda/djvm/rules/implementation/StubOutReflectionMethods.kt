@@ -10,7 +10,7 @@ import sandbox.net.corda.djvm.rules.RuleViolationError
 /**
  * Replace reflection APIs with stubs that throw exceptions. Only for unpinned classes.
  */
-class StubOutReflectionMethods : MemberDefinitionProvider {
+object StubOutReflectionMethods : MemberDefinitionProvider {
 
     override fun define(context: AnalysisRuntimeContext, member: Member): Member = when {
         isConcreteApi(member) && isReflection(member) -> member.copy(body = member.body + ::writeMethodBody)

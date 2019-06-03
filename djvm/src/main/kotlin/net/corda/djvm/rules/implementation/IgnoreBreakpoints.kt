@@ -8,7 +8,7 @@ import net.corda.djvm.code.Instruction.Companion.OP_BREAKPOINT
 /**
  * Rule that deletes invalid breakpoint instructions.
  */
-class IgnoreBreakpoints : Emitter {
+object IgnoreBreakpoints : Emitter {
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         when (instruction.operation) {

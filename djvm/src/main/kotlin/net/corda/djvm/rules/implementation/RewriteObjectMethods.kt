@@ -11,7 +11,7 @@ import org.objectweb.asm.Opcodes.*
  * use the non-deterministic [java.lang.Object.hashCode] by default. Therefore we intercept
  * these invocations and redirect them to our [sandbox.java.lang.DJVM] object.
  */
-class RewriteObjectMethods : Emitter {
+object RewriteObjectMethods : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && instruction.owner == "java/lang/Object") {
             when (instruction.operation) {

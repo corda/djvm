@@ -9,8 +9,7 @@ import net.corda.djvm.code.instructions.BranchInstruction
 /**
  * Emitter that will instrument the byte code such that all jumps get recorded.
  */
-@Suppress("unused")
-class TraceJumps : Emitter {
+object TraceJumps : Emitter {
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is BranchInstruction) {

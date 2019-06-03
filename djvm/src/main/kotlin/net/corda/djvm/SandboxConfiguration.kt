@@ -7,7 +7,8 @@ import net.corda.djvm.code.Emitter
 import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rules.Rule
-import net.corda.djvm.utilities.Discovery
+import net.corda.djvm.rules.implementation.*
+import net.corda.djvm.rules.implementation.instrumentation.*
 
 /**
  * Configuration to use for the deterministic sandbox.
@@ -27,19 +28,56 @@ class SandboxConfiguration private constructor(
         val analysisConfiguration: AnalysisConfiguration,
         val parentClassLoader: SandboxClassLoader?
 ) {
-    @Suppress("unused")
     companion object {
+        val ALL_RULES: List<Rule> = listOf(
+            AlwaysUseNonSynchronizedMethods,
+            AlwaysUseStrictFloatingPointArithmetic,
+            DisallowDynamicInvocation,
+            DisallowOverriddenSandboxPackage,
+            DisallowUnsupportedApiVersions
+        )
+
+        val ALL_DEFINITION_PROVIDERS: List<DefinitionProvider> = listOf(
+            AlwaysInheritFromSandboxedObject,
+            AlwaysUseNonSynchronizedMethods,
+            AlwaysUseStrictFloatingPointArithmetic,
+            StaticConstantRemover,
+            StubOutFinalizerMethods,
+            StubOutNativeMethods,
+            StubOutReflectionMethods
+        )
+
+        val ALL_EMITTERS: List<Emitter> = listOf(
+            AlwaysInheritFromSandboxedObject,
+            AlwaysUseExactMath,
+            ArgumentUnwrapper,
+            DisallowCatchingBlacklistedExceptions,
+            DisallowNonDeterministicMethods,
+            HandleExceptionUnwrapper,
+            IgnoreBreakpoints,
+            IgnoreSynchronizedBlocks,
+            ReturnTypeWrapper,
+            RewriteClassMethods,
+            RewriteObjectMethods,
+            StringConstantWrapper,
+            ThrowExceptionWrapper,
+            TraceAllocations,
+            TraceInvocations,
+            TraceJumps,
+            TraceThrows
+        )
+
         /**
          * Default configuration for the deterministic sandbox.
          */
         @JvmField
-        val DEFAULT = SandboxConfiguration.of()
+        val DEFAULT = of()
 
         /**
          * Configuration with no emitters, rules, meta-data providers or runtime thresholds.
          */
         @JvmField
-        val EMPTY = SandboxConfiguration.of(
+        val EMPTY = of(
                 ExecutionProfile.UNLIMITED, emptyList(), emptyList(), emptyList()
         )
 
@@ -48,16 +86,16 @@ class SandboxConfiguration private constructor(
          */
         fun of(
                 profile: ExecutionProfile = ExecutionProfile.DEFAULT,
-                rules: List<Rule> = Discovery.find(),
+                rules: List<Rule> = ALL_RULES,
                 emitters: List<Emitter>? = null,
-                definitionProviders: List<DefinitionProvider> = Discovery.find(),
+                definitionProviders: List<DefinitionProvider> = ALL_DEFINITION_PROVIDERS,
                 enableTracing: Boolean = true,
                 analysisConfiguration: AnalysisConfiguration = AnalysisConfiguration.createRoot(),
                 parentClassLoader: SandboxClassLoader? = null
         ) = SandboxConfiguration(
                 executionProfile = profile,
                 rules = rules,
-                emitters = (emitters ?: Discovery.find()).filter {
+                emitters = (emitters ?: ALL_EMITTERS).filter {
                     enableTracing || it.priority > EMIT_TRACING
                 },
                 definitionProviders = definitionProviders,

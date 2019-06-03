@@ -12,7 +12,10 @@ import sandbox.net.corda.djvm.rules.RuleViolationError
  * Some non-deterministic APIs belong to pinned classes and so cannot be stubbed out.
  * Replace their invocations with exceptions instead.
  */
-class DisallowNonDeterministicMethods : Emitter {
+object DisallowNonDeterministicMethods : Emitter {
+
+    private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
+    private val CLASSLOADING_METHODS = setOf("defineClass", "loadClass", "findClass")
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && isForbidden(instruction)) {
@@ -43,8 +46,4 @@ class DisallowNonDeterministicMethods : Emitter {
 
     private val memberFormatter = MemberFormatter()
 
-    private companion object {
-        private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
-        private val CLASSLOADING_METHODS = setOf("defineClass", "loadClass", "findClass")
-    }
 }

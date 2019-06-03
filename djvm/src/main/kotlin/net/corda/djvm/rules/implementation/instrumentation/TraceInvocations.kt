@@ -9,8 +9,7 @@ import net.corda.djvm.code.instructions.MemberAccessInstruction
 /**
  * Emitter that will instrument the byte code such that all method invocations get recorded.
  */
-@Suppress("unused")
-class TraceInvocations : Emitter {
+object TraceInvocations : Emitter {
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && instruction.isMethod) {
