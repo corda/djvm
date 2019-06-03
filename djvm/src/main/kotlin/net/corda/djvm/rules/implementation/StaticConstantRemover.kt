@@ -9,7 +9,7 @@ import net.corda.djvm.references.Member
  * Removes static constant objects that are initialised directly in the byte-code.
  * Currently, the only use-case is for re-initialising [String] fields.
  */
-class StaticConstantRemover : MemberDefinitionProvider {
+object StaticConstantRemover : MemberDefinitionProvider {
 
     override fun define(context: AnalysisRuntimeContext, member: Member): Member = when {
         isConstantField(member) -> member.copy(body = listOf(StringFieldInitializer(member)::writeInitializer), value = null)

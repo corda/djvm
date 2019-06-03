@@ -11,7 +11,7 @@ import java.lang.reflect.Modifier
 /**
  * Rule that replaces a native method with a stub that throws an exception.
  */
-class StubOutNativeMethods : MemberDefinitionProvider {
+object StubOutNativeMethods : MemberDefinitionProvider {
 
     override fun define(context: AnalysisRuntimeContext, member: Member) = when {
         isNative(member) -> member.copy(

@@ -92,7 +92,7 @@ val userClassPath: String = System.getProperty("java.class.path")
 /**
  * Get a reference of each concrete class that implements interface or class [T].
  */
-inline fun <reified T> find(scanSpec: String = "net/corda/sandbox"): List<Class<*>> {
+inline fun <reified T> find(scanSpec: String): List<Class<*>> {
     return ClassGraph()
             .whitelistPaths(scanSpec)
             .enableAllInfo()

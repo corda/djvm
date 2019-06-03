@@ -9,7 +9,7 @@ import org.objectweb.asm.Opcodes.*
  * An emitter that rewrites monitoring instructions to [POP]s, as these replacements will remove
  * the object references that [MONITORENTER] and [MONITOREXIT] anticipate to be on the stack.
  */
-class IgnoreSynchronizedBlocks : Emitter {
+object IgnoreSynchronizedBlocks : Emitter {
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         when (instruction.operation) {

@@ -15,7 +15,13 @@ import java.lang.reflect.Modifier
  * Definition provider that ensures that all objects inherit from a sandboxed version of [java.lang.Object], with a
  * deterministic `hashCode()` method.
  */
-class AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
+object AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
+
+    private const val OBJECT_NAME = "java/lang/Object"
+
+    private const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"
+
+    private const val CONSTRUCTOR_NAME = "<init>"
 
     override fun define(context: AnalysisRuntimeContext, clazz: ClassRepresentation) = when {
         isDirectSubClassOfObject(context.clazz) -> clazz.copy(superClass = SANDBOX_OBJECT_NAME)
@@ -51,15 +57,5 @@ class AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
     }
 
     private fun isObject(superClass: String) = superClass.isBlank() || superClass == OBJECT_NAME
-
-    companion object {
-
-        private const val OBJECT_NAME = "java/lang/Object"
-
-        private const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"
-
-        private const val CONSTRUCTOR_NAME = "<init>"
-
-    }
 
 }

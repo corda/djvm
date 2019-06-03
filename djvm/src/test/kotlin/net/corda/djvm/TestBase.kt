@@ -1,6 +1,9 @@
 package net.corda.djvm
 
 import foo.bar.sandbox.Callable
+import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
+import net.corda.djvm.SandboxConfiguration.Companion.ALL_EMITTERS
+import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor
@@ -18,7 +21,6 @@ import net.corda.djvm.rules.implementation.*
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.SourceClassLoader
-import net.corda.djvm.utilities.Discovery
 import net.corda.djvm.validation.RuleValidator
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -38,30 +40,24 @@ abstract class TestBase {
 
     companion object {
 
-        val ALL_RULES = Discovery.find<Rule>()
-
-        val ALL_EMITTERS = Discovery.find<Emitter>()
-
         // We need at least these emitters to handle the Java API classes.
         @JvmField
         val BASIC_EMITTERS: List<Emitter> = listOf(
-            AlwaysInheritFromSandboxedObject(),
-            ArgumentUnwrapper(),
-            HandleExceptionUnwrapper(),
-            ReturnTypeWrapper(),
-            RewriteClassMethods(),
-            RewriteObjectMethods(),
-            StringConstantWrapper(),
-            ThrowExceptionWrapper()
+            AlwaysInheritFromSandboxedObject,
+            ArgumentUnwrapper,
+            HandleExceptionUnwrapper,
+            ReturnTypeWrapper,
+            RewriteClassMethods,
+            RewriteObjectMethods,
+            StringConstantWrapper,
+            ThrowExceptionWrapper
         )
-
-        val ALL_DEFINITION_PROVIDERS = Discovery.find<DefinitionProvider>()
 
         // We need at least these providers to handle the Java API classes.
         @JvmField
         val BASIC_DEFINITION_PROVIDERS: List<DefinitionProvider> = listOf(
-            AlwaysInheritFromSandboxedObject(),
-            StaticConstantRemover()
+            AlwaysInheritFromSandboxedObject,
+            StaticConstantRemover
         )
 
         @JvmField

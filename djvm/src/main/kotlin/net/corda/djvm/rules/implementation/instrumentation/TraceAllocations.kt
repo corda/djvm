@@ -11,8 +11,7 @@ import org.objectweb.asm.Opcodes.*
 /**
  * Emitter that will instrument the byte code such that all memory allocations get recorded.
  */
-@Suppress("unused")
-class TraceAllocations : Emitter {
+object TraceAllocations : Emitter {
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is TypeInstruction) {

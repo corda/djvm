@@ -12,7 +12,7 @@ import org.objectweb.asm.Opcodes.*
  * robust. The outcome of enabling this rule is that arithmetical overflows for addition and multiplication operations
  * will be thrown instead of silenced.
  */
-class AlwaysUseExactMath : Emitter {
+object AlwaysUseExactMath : Emitter {
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (context.clazz.name == "java/lang/Math") {

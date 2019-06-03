@@ -31,11 +31,11 @@ dependencies {
     implementation "org.ow2.asm:asm:$asm_version"
     implementation "org.ow2.asm:asm-commons:$asm_version"
 
-    // ClassGraph: classpath scanning
-    shadow "io.github.classgraph:classgraph:$class_graph_version"
-
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+
+    // ClassGraph: classpath scanning
+    testImplementation "io.github.classgraph:classgraph:$class_graph_version"
 
     // Test utilities
     testImplementation "org.assertj:assertj-core:$assertj_version"

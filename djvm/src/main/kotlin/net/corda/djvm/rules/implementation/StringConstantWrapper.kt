@@ -9,7 +9,7 @@ import net.corda.djvm.code.instructions.ConstantInstruction
  * Ensure that [String] constants loaded from the Constants
  * Pool are wrapped into [sandbox.java.lang.String].
  */
-class StringConstantWrapper : Emitter {
+object StringConstantWrapper : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is ConstantInstruction) {
             when (instruction.value) {

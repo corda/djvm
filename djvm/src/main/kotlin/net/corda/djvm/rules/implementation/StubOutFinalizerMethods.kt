@@ -9,7 +9,7 @@ import java.lang.reflect.Modifier
 /**
  * Rule that replaces a finalize() method with a simple stub.
  */
-class StubOutFinalizerMethods : MemberDefinitionProvider {
+object StubOutFinalizerMethods : MemberDefinitionProvider {
 
     override fun define(context: AnalysisRuntimeContext, member: Member) = when {
         /**
