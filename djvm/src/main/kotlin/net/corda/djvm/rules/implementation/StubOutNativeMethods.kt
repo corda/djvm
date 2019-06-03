@@ -14,7 +14,7 @@ import java.lang.reflect.Modifier
 object StubOutNativeMethods : MemberDefinitionProvider {
 
     override fun define(context: AnalysisRuntimeContext, member: Member) = when {
-        isNative(member) -> member.copy(
+        member.isMethod && isNative(member) -> member.copy(
             access = member.access and ACC_NATIVE.inv(),
             body = member.body + if (isForStubbing(member)) ::writeStubMethodBody else ::writeExceptionMethodBody
         )

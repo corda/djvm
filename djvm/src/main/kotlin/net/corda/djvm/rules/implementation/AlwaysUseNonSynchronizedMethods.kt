@@ -15,13 +15,13 @@ import java.lang.reflect.Modifier
 object AlwaysUseNonSynchronizedMethods : MemberRule(), MemberDefinitionProvider {
 
     override fun validate(context: RuleContext, member: Member) = context.validate {
-        if (isConcrete(context.clazz)) {
+        if (member.isMethod && isConcrete(context.clazz)) {
             trace("Synchronization specifier will be ignored") given ((member.access and ACC_SYNCHRONIZED) == 0)
         }
     }
 
     override fun define(context: AnalysisRuntimeContext, member: Member) = when {
-        isConcrete(context.clazz) -> member.copy(access = member.access and ACC_SYNCHRONIZED.inv())
+        member.isMethod && isConcrete(context.clazz) -> member.copy(access = member.access and ACC_SYNCHRONIZED.inv())
         else -> member
     }
 
