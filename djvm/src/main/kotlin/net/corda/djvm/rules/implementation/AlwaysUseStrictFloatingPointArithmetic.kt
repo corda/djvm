@@ -17,13 +17,13 @@ import java.lang.reflect.Modifier
 object AlwaysUseStrictFloatingPointArithmetic : MemberRule(), MemberDefinitionProvider {
 
     override fun validate(context: RuleContext, member: Member) = context.validate {
-        if (isConcrete(context.clazz)) {
+        if (member.isMethod && isConcrete(context.clazz)) {
             trace("Strict floating-point arithmetic will be applied") given ((member.access and ACC_STRICT) == 0)
         }
     }
 
     override fun define(context: AnalysisRuntimeContext, member: Member) = when {
-        isConcrete(context.clazz) -> member.copy(access = member.access or ACC_STRICT)
+        member.isMethod && isConcrete(context.clazz) -> member.copy(access = member.access or ACC_STRICT)
         else -> member
     }
 

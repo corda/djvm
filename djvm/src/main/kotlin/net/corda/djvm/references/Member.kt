@@ -31,4 +31,6 @@ data class Member(
         val exceptions: MutableSet<String> = mutableSetOf(),
         val value: Any? = null,
         val body: List<MethodBody> = emptyList()
-) : MemberInformation, EntityWithAccessFlag
+) : MemberInformation, EntityWithAccessFlag {
+    val isMethod: Boolean = signature[0] == '('
+}

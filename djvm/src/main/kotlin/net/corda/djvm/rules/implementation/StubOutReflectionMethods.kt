@@ -13,7 +13,7 @@ import sandbox.net.corda.djvm.rules.RuleViolationError
 object StubOutReflectionMethods : MemberDefinitionProvider {
 
     override fun define(context: AnalysisRuntimeContext, member: Member): Member = when {
-        isConcreteApi(member) && isReflection(member) -> member.copy(body = member.body + ::writeMethodBody)
+        member.isMethod && isConcreteApi(member) && isReflection(member) -> member.copy(body = member.body + ::writeMethodBody)
         else -> member
     }
 
