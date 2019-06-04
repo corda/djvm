@@ -2,6 +2,7 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
 import net.corda.djvm.WithJava;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -11,11 +12,11 @@ import static java.util.Collections.singleton;
 import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class SandboxExecutorJavaTest extends TestBase {
+class SandboxExecutorJavaTest extends TestBase {
     private static final int TX_ID = 101;
 
     @Test
-    public void testTransaction() {
+    void testTransaction() {
         //TODO: Transaction should not be a pinned class! It needs
         //      to be marshalled into and out of the sandbox.
         Set<Class<?>> pinnedClasses = singleton(Transaction.class);
@@ -36,7 +37,7 @@ public class SandboxExecutorJavaTest extends TestBase {
 
     public static class ContractImplementation implements Contract {
         @Override
-        public void verify(Transaction tx) {
+        public void verify(@NotNull Transaction tx) {
             throw new IllegalArgumentException("Contract constraint violated: txId=" + tx.getId());
         }
     }

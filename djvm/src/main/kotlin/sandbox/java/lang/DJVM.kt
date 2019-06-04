@@ -40,6 +40,47 @@ fun Any.sandbox(): Any {
     }
 }
 
+fun kotlin.Throwable.escapeSandbox(): kotlin.Throwable {
+    val sandboxed = (this as? DJVMException)?.getThrowable() ?: sandboxedExceptions.remove(this)
+    return sandboxed?.escapeSandbox() ?: this
+}
+
+fun Throwable.escapeSandbox(): kotlin.Throwable {
+    val sandboxedName = javaClass.name
+    return try {
+        val escaping = if (Type.getInternalName(javaClass) in JVM_EXCEPTIONS) {
+            // We map these exceptions to their equivalent JVM classes.
+            @Suppress("unchecked_cast")
+            val escapingType = Class.forName(sandboxedName.fromSandboxPackage()) as Class<out kotlin.Throwable>
+            try {
+                escapingType.getDeclaredConstructor(kotlin.String::class.java).newInstance(String.fromDJVM(message))
+            } catch (e: NoSuchMethodException) {
+                escapingType.newInstance()
+            }
+        } else {
+            val escapingMessage = "$sandboxedName -> $message"
+            val sourceType = loadSandboxClass(getDJVMException(sandboxedName))
+            when {
+                RuntimeException::class.java.isAssignableFrom(sourceType) -> RuntimeException(escapingMessage)
+                Exception::class.java.isAssignableFrom(sourceType) -> Exception(escapingMessage)
+                Error::class.java.isAssignableFrom(sourceType) -> Error(escapingMessage)
+                else -> Throwable(escapingMessage)
+            }
+        }
+        escaping.apply {
+            this@escapeSandbox.cause?.also {
+                initCause(it.escapeSandbox())
+            }
+            stackTrace = copyFromDJVM(this@escapeSandbox.stackTrace)
+            this@escapeSandbox.suppressed.forEach {
+                addSuppressed(it.escapeSandbox())
+            }
+        }
+    } catch (e: Exception) {
+        RuleViolationError(e.message).sanitise()
+    }
+}
+
 private fun Array<*>.fromDJVMArray(): Array<*> = Object.fromDJVM(this)
 
 /**
@@ -48,10 +89,12 @@ private fun Array<*>.fromDJVMArray(): Array<*> = Object.fromDJVM(this)
  * might belong to a shared parent classloader.
  */
 @Throws(ClassNotFoundException::class)
-internal fun Class<*>.toDJVMType(): Class<*> = Class.forName(name.toSandboxPackage(), false, SandboxRuntimeContext.instance.classLoader)
+internal fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(name.toSandboxPackage())
 
 @Throws(ClassNotFoundException::class)
-internal fun Class<*>.fromDJVMType(): Class<*> = Class.forName(name.fromSandboxPackage(), false, SandboxRuntimeContext.instance.classLoader)
+internal fun Class<*>.fromDJVMType(): Class<*> = loadSandboxClass(name.fromSandboxPackage())
+
+private fun loadSandboxClass(name: kotlin.String): Class<*> = Class.forName(name, false, SandboxRuntimeContext.instance.classLoader)
 
 private fun kotlin.String.toSandboxPackage(): kotlin.String {
     return if (startsWith(SANDBOX_PREFIX)) {
@@ -145,13 +188,11 @@ private val allEnumDirectories: sandbox.java.util.Map<Class<out Enum<*>>, sandbo
  * (i.e. arrays) cannot be replaced by [sandbox.java.lang.Object].
  */
 fun hashCode(obj: Any?): Int {
-    return if (obj is Object) {
-        obj.hashCode()
-    } else if (obj != null) {
-        System.identityHashCode(obj)
-    } else {
-        // Throw the same exception that the JVM would throw in this case.
-        throw NullPointerException().sanitise()
+    return when {
+        obj is Object -> obj.hashCode()
+        obj != null -> System.identityHashCode(obj)
+        else -> // Throw the same exception that the JVM would throw in this case.
+            throw NullPointerException().sanitise()
     }
 }
 
@@ -200,18 +241,20 @@ fun fromDJVM(t: Throwable?): kotlin.Throwable {
         t.fromDJVM()
     } else {
         try {
+            val sandboxClass = t!!.javaClass
+
             /**
              * Someone has created a [sandbox.java.lang.Throwable]
              * and is (re?)throwing it.
              */
-            val sandboxedName = t!!.javaClass.name
-            if (Type.getInternalName(t.javaClass) in JVM_EXCEPTIONS) {
+            if (Type.getInternalName(sandboxClass) in JVM_EXCEPTIONS) {
                 // We map these exceptions to their equivalent JVM classes.
-                SandboxRuntimeContext.instance.classLoader.loadClass(sandboxedName.fromSandboxPackage())
-                        .createJavaThrowable(t)
+                val throwable = sandboxClass.fromDJVMType().createJavaThrowable(t)
+                sandboxedExceptions[throwable] = t
+                throwable
             } else {
                 // Whereas the sandbox creates a synthetic throwable wrapper for these.
-                SandboxRuntimeContext.instance.classLoader.loadClass(getDJVMException(sandboxedName))
+                loadSandboxClass(getDJVMException(sandboxClass.name))
                     .getDeclaredConstructor(sandboxThrowable)
                     .newInstance(t) as kotlin.Throwable
             }
@@ -228,7 +271,9 @@ fun fromDJVM(t: Throwable?): kotlin.Throwable {
  * exception. The finally block only needs to be able to re-throw the
  * original exception when it finishes.
  */
-fun finally(t: kotlin.Throwable): Throwable = DJVMThrowableWrapper(t)
+fun finally(t: kotlin.Throwable): Throwable {
+    return sandboxedExceptions.remove(t) ?: DJVMThrowableWrapper(t)
+}
 
 /**
  * Converts a [java.lang.Throwable] into a [sandbox.java.lang.Throwable].
@@ -259,7 +304,9 @@ private fun <T: kotlin.Throwable> T.sanitise(): T {
  * Worker functions to convert [java.lang.Throwable] into [sandbox.java.lang.Throwable].
  */
 private fun kotlin.Throwable.toDJVMThrowable(): Throwable {
-    return (this as? DJVMException)?.getThrowable() ?: javaClass.toDJVMType().createDJVMThrowable(this)
+    return (this as? DJVMException)?.getThrowable() ?:
+               sandboxedExceptions.remove(this) ?:
+               javaClass.toDJVMType().createDJVMThrowable(this)
 }
 
 /**
@@ -276,6 +323,9 @@ private fun Class<*>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
             initCause(it.toDJVMThrowable())
         }
         stackTrace = sanitiseToDJVM(t.stackTrace)
+        t.suppressed.forEach {
+            addSuppressed(it.toDJVMThrowable())
+        }
     }
 }
 
@@ -289,6 +339,9 @@ private fun Class<*>.createJavaThrowable(t: Throwable): kotlin.Throwable {
             initCause(fromDJVM(it))
         }
         stackTrace = copyFromDJVM(t.stackTrace)
+        t.suppressed.forEach {
+            addSuppressed(fromDJVM(it))
+        }
     }
 }
 
@@ -319,11 +372,12 @@ private fun copyFromDJVM(source: Array<StackTraceElement>): Array<java.lang.Stac
     return source.map(::fromDJVM).toTypedArray()
 }
 
-private fun fromDJVM(elt: StackTraceElement) = java.lang.StackTraceElement(
+private fun fromDJVM(elt: StackTraceElement): java.lang.StackTraceElement = StackTraceElement(
     String.fromDJVM(elt.className),
     String.fromDJVM(elt.methodName),
     String.fromDJVM(elt.fileName),
     elt.lineNumber
 )
 
+private val sandboxedExceptions: MutableMap<kotlin.Throwable, Throwable> = HashMap()
 private val sandboxThrowable: Class<*> = Throwable::class.java

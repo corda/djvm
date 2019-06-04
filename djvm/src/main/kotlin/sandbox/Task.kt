@@ -1,12 +1,13 @@
 @file:JvmName("TaskTypes")
 package sandbox
 
+import sandbox.java.lang.escapeSandbox
 import sandbox.java.lang.sandbox
 import sandbox.java.lang.unsandbox
 
 typealias SandboxFunction<TInput, TOutput> = sandbox.java.util.function.Function<TInput, TOutput>
 
-internal fun isEntryPoint(elt: java.lang.StackTraceElement): Boolean {
+internal fun isEntryPoint(elt: StackTraceElement): Boolean {
     return elt.className == "sandbox.Task" && elt.methodName == "apply"
 }
 
@@ -21,7 +22,12 @@ class Task(private val function: SandboxFunction<in Any?, out Any?>?) : SandboxF
      * Strings and Enums, as well as for arrays of these types.
      */
     override fun apply(input: Any?): Any? {
-        return function?.apply(input?.sandbox())?.unsandbox()
+        val value = try {
+            function?.apply(input?.sandbox())
+        } catch (t: Throwable) {
+            throw t.escapeSandbox()
+        }
+        return value?.unsandbox()
     }
 
 }

@@ -9,6 +9,7 @@ import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.rules.implementation.*
 import net.corda.djvm.rules.implementation.instrumentation.*
+import java.util.Collections.unmodifiableList
 
 /**
  * Configuration to use for the deterministic sandbox.
@@ -29,15 +30,17 @@ class SandboxConfiguration private constructor(
         val parentClassLoader: SandboxClassLoader?
 ) {
     companion object {
-        val ALL_RULES: List<Rule> = listOf(
+        @JvmField
+        val ALL_RULES: List<Rule> = unmodifiableList(listOf(
             AlwaysUseNonSynchronizedMethods,
             AlwaysUseStrictFloatingPointArithmetic,
             DisallowDynamicInvocation,
             DisallowOverriddenSandboxPackage,
             DisallowUnsupportedApiVersions
-        )
+        ))
 
-        val ALL_DEFINITION_PROVIDERS: List<DefinitionProvider> = listOf(
+        @JvmField
+        val ALL_DEFINITION_PROVIDERS: List<DefinitionProvider> = unmodifiableList(listOf(
             AlwaysInheritFromSandboxedObject,
             AlwaysUseNonSynchronizedMethods,
             AlwaysUseStrictFloatingPointArithmetic,
@@ -45,9 +48,10 @@ class SandboxConfiguration private constructor(
             StubOutFinalizerMethods,
             StubOutNativeMethods,
             StubOutReflectionMethods
-        )
+        ))
 
-        val ALL_EMITTERS: List<Emitter> = listOf(
+        @JvmField
+        val ALL_EMITTERS: List<Emitter> = unmodifiableList(listOf(
             AlwaysInheritFromSandboxedObject,
             AlwaysUseExactMath,
             ArgumentUnwrapper,
@@ -65,21 +69,13 @@ class SandboxConfiguration private constructor(
             TraceInvocations,
             TraceJumps,
             TraceThrows
-        )
+        ))
 
         /**
          * Default configuration for the deterministic sandbox.
          */
         @JvmField
         val DEFAULT = of()
-
-        /**
-         * Configuration with no emitters, rules, meta-data providers or runtime thresholds.
-         */
-        @JvmField
-        val EMPTY = of(
-                ExecutionProfile.UNLIMITED, emptyList(), emptyList(), emptyList()
-        )
 
         /**
          * Create a sandbox configuration where one or more properties deviates from the default.

@@ -7,7 +7,6 @@ import net.corda.djvm.code.instructions.*
 import net.corda.djvm.messages.Message
 import net.corda.djvm.references.*
 import org.objectweb.asm.*
-import java.io.InputStream
 
 /**
  * Functionality for traversing a class and its members.
@@ -43,29 +42,21 @@ open class ClassAndMemberVisitor(
     /**
      * Analyze class by using the provided qualified name of the class.
      */
-    inline fun <reified T> analyze(context: AnalysisContext) = analyze(T::class.java.name, context)
+    inline fun <reified T> analyze(context: AnalysisContext, options: Int = 0) = analyze(T::class.java.name, context, options)
 
     /**
      * Analyze class by using the provided qualified name of the class.
      *
      * @param className The full, qualified name of the class.
      * @param context The context in which the analysis is conducted.
+     * @param options Options for how to parse and process the class.
      * @param origin The originating class for the analysis.
      */
-    fun analyze(className: String, context: AnalysisContext, origin: String? = null) {
+    fun analyze(className: String, context: AnalysisContext, options: Int, origin: String? = null) {
         configuration.supportingClassLoader.classReader(className, context, origin).apply {
-            analyze(this, context)
+            analyze(this, context, options)
         }
     }
-
-    /**
-     * Analyze class by using the provided stream of its byte code.
-     *
-     * @param classStream A stream of the class' byte code.
-     * @param context The context in which the analysis is conducted.
-     */
-    fun analyze(classStream: InputStream, context: AnalysisContext) =
-            analyze(ClassReader(classStream), context)
 
     /**
      * Analyze class by using the provided class reader.
@@ -74,7 +65,7 @@ open class ClassAndMemberVisitor(
      * @param context The context in which to analyse the provided class.
      * @param options Options for how to parse and process the class.
      */
-    fun analyze(classReader: ClassReader, context: AnalysisContext, options: Int = 0) {
+    fun analyze(classReader: ClassReader, context: AnalysisContext, options: Int) {
         analysisContext = context
         classReader.accept(ClassVisitorImpl(classVisitor), options)
     }
@@ -536,7 +527,7 @@ open class ClassAndMemberVisitor(
 
         private fun tryReplaceMethodBody() {
             if (method.body.isNotEmpty() && (mv != null)) {
-                EmitterModule(mv).apply {
+                EmitterModule(mv, configuration).apply {
                     for (body in method.body) {
                         body(this)
                     }
@@ -550,8 +541,8 @@ open class ClassAndMemberVisitor(
         /**
          * Helper function used to streamline the access to an instruction and to catch any related processing errors.
          */
-        private inline fun visit(instruction: Instruction, defaultFirst: Boolean = false, defaultAction: () -> Unit) {
-            val emitterModule = EmitterModule(mv ?: StubMethodVisitor())
+        private fun visit(instruction: Instruction, defaultFirst: Boolean = false, defaultAction: () -> Unit) {
+            val emitterModule = EmitterModule(mv ?: StubMethodVisitor(), configuration)
             if (defaultFirst) {
                 defaultAction()
             }
@@ -591,7 +582,7 @@ open class ClassAndMemberVisitor(
         /**
          * The API version of ASM.
          */
-        const val API_VERSION: Int = Opcodes.ASM6
+        const val API_VERSION: Int = Opcodes.ASM7
 
     }
 

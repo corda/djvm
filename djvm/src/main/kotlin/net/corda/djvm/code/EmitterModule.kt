@@ -1,5 +1,6 @@
 package net.corda.djvm.code
 
+import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.references.MethodBody
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -11,10 +12,11 @@ import sandbox.net.corda.djvm.costing.RuntimeCostAccounter
  * Helper functions for emitting code to a method body.
  *
  * @property methodVisitor The underlying visitor which controls all the byte code for the current method.
+ * @property configuration
  */
-@Suppress("unused")
 class EmitterModule(
-        private val methodVisitor: MethodVisitor
+        private val methodVisitor: MethodVisitor,
+        private val configuration: AnalysisConfiguration
 ) {
 
     /**
@@ -79,6 +81,7 @@ class EmitterModule(
     /**
      * Emit instruction for invoking a special method on class [T], e.g. a constructor or a method on a super-type.
      */
+    @Suppress("unused")
     inline fun <reified T> invokeSpecial(name: String, descriptor: String, isInterface: Boolean = false) {
         invokeSpecial(Type.getInternalName(T::class.java), name, descriptor, isInterface)
     }
@@ -200,6 +203,54 @@ class EmitterModule(
         methodVisitor.visitLabel(label)
         methodVisitor.visitLineNumber(line, label)
         hasEmittedCustomCode = true
+    }
+
+    /**
+     * This determines which [sandbox.java.lang.Throwable] type we must up-cast
+     * the return value of [sandbox.java.lang.DJVM.catch] to.
+     */
+    fun commonThrowableClassOf(classNames: Iterable<String>): String {
+        val classIterator = classNames.iterator()
+        var throwable = classIterator.next()
+        while (classIterator.hasNext() && throwable != THROWABLE_NAME) {
+            throwable = commonSuperclassOf(throwable, classIterator.next())
+            if (throwable == OBJECT_NAME) {
+                throw ClassCastException("Classes $classNames must all be Throwable")
+            }
+        }
+        return throwable
+    }
+
+    /**
+     * The ASM library uses [net.corda.djvm.rewiring.SandboxClassWriter.getCommonSuperClass]
+     * to compute the stack frames for the classes that it generates,
+     * c.f. [org.objectweb.asm.ClassWriter.COMPUTE_FRAMES]. We need to mirror that algorithm
+     * here so that the [sandbox.java.lang.Throwable] can be assigned to the local variable
+     * defined in the method's local variable table. Unfortunately the local variable table
+     * is stored after the method's byte-code, and so we cannot just read the variable's type
+     * from there.
+     */
+    private fun commonSuperclassOf(type1: String, type2: String): String {
+        return when {
+            type1 == OBJECT_NAME -> type1
+            type2 == OBJECT_NAME -> type2
+            else -> {
+                val class1 = configuration.supportingClassLoader.loadClass(type1.asPackagePath)
+                val class2 = configuration.supportingClassLoader.loadClass(type2.asPackagePath)
+                when {
+                    class1.isAssignableFrom(class2) -> type1
+                    class2.isAssignableFrom(class1) -> type2
+                    class1.isInterface || class2.isInterface -> OBJECT_NAME
+                    else -> {
+                        var commonClass = class1
+                        do {
+                            commonClass = commonClass.superclass
+                        } while (!commonClass.isAssignableFrom(class2))
+                        Type.getInternalName(commonClass)
+                    }
+                }
+            }
+        }
     }
 
     /**

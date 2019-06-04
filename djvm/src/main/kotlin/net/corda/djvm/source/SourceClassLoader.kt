@@ -53,7 +53,7 @@ class SourceClassLoader private constructor(
     }
 
     constructor(paths: List<Path>, classResolver: ClassResolver, bootstrap: BootstrapClassLoader? = null)
-        :this(paths, classResolver, bootstrap, SourceClassLoader::class.java.classLoader)
+        : this(paths, classResolver, bootstrap, SourceClassLoader::class.java.classLoader)
 
     /**
      * An empty [SourceClassLoader] that can only delegate to its [BootstrapClassLoader].

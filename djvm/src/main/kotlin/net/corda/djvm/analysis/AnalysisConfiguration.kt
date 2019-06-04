@@ -102,6 +102,15 @@ class AnalysisConfiguration private constructor(
     fun isJvmException(className: String): Boolean = className in JVM_EXCEPTIONS
     fun isSandboxClass(className: String): Boolean = className.startsWith(SANDBOX_PREFIX) && !isPinnedClass(className)
 
+    fun toSandboxClassName(type: Class<*>): String {
+        val sandboxName = classResolver.resolve(Type.getInternalName(type))
+        return if (Throwable::class.java.isAssignableFrom(type)) {
+            exceptionResolver.getThrowableOwnerName(sandboxName)
+        } else {
+            sandboxName
+        }
+    }
+
     companion object {
         /**
          * The package name prefix to use for classes loaded into a sandbox.

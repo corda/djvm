@@ -33,14 +33,17 @@ object DisallowCatchingBlacklistedExceptions : Emitter {
          * Any of [ThreadDeath] and [VirtualMachineError]'s throwable
          * super-classes also need explicit checking.
          */
-        "java/lang/Throwable",
+        THROWABLE_NAME,
         "java/lang/Error"
     )
 
+    override fun createMemberContext() = mutableSetOf<Label>()
+
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
+        val exceptionHandlers: MutableSet<Label> = getMemberContext(context) ?: return
         if (instruction is TryCatchBlock && instruction.typeName in disallowedExceptionTypes) {
-            handlers.add(instruction.handler)
-        } else if (instruction is CodeLabel && isExceptionHandler(instruction.label)) {
+            exceptionHandlers.add(instruction.handler)
+        } else if (instruction is CodeLabel && instruction.label in exceptionHandlers) {
             duplicate()
             invokeInstrumenter("checkCatch", "(Ljava/lang/Throwable;)V")
         }
