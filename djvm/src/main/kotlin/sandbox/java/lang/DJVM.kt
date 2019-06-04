@@ -42,7 +42,7 @@ fun Any.sandbox(): Any {
 
 fun kotlin.Throwable.escapeSandbox(): kotlin.Throwable {
     val sandboxed = (this as? DJVMException)?.getThrowable() ?: sandboxedExceptions.remove(this)
-    return sandboxed?.escapeSandbox() ?: this
+    return sandboxed?.escapeSandbox() ?: sanitise()
 }
 
 fun Throwable.escapeSandbox(): kotlin.Throwable {
