@@ -14,11 +14,14 @@ import sandbox.net.corda.djvm.rules.RuleViolationError
  */
 object DisallowNonDeterministicMethods : Emitter {
 
+    private const val CHARSET_PACKAGE = "sun/nio/cs/"
     private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
     private val CLASSLOADING_METHODS = setOf("defineClass", "loadClass", "findClass")
+    private val memberFormatter = MemberFormatter()
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
-        if (instruction is MemberAccessInstruction && isForbidden(instruction)) {
+        val className = (context.member ?: return).className
+        if (instruction is MemberAccessInstruction && isForbidden(className, instruction)) {
             when (instruction.operation) {
                 INVOKEVIRTUAL, INVOKESPECIAL -> {
                     throwException<RuleViolationError>("Disallowed reference to API; ${memberFormatter.format(instruction.member)}")
@@ -28,11 +31,11 @@ object DisallowNonDeterministicMethods : Emitter {
         }
     }
 
-    private fun isClassReflection(instruction: MemberAccessInstruction): Boolean =
+    private fun isClassReflection(className: String, instruction: MemberAccessInstruction): Boolean =
             (instruction.owner == "java/lang/Class") && (
-                    ((instruction.memberName == "newInstance" && instruction.signature == "()Ljava/lang/Object;")
-                            || instruction.signature.contains("Ljava/lang/reflect/"))
-                    )
+                instruction.signature.contains("Ljava/lang/reflect/") ||
+                    (!className.startsWith(CHARSET_PACKAGE) && instruction.memberName == "newInstance" && instruction.signature == "()Ljava/lang/Object;")
+            )
 
     private fun isClassLoading(instruction: MemberAccessInstruction): Boolean =
             (instruction.owner == "java/lang/ClassLoader") && instruction.memberName in CLASSLOADING_METHODS
@@ -41,9 +44,7 @@ object DisallowNonDeterministicMethods : Emitter {
             (instruction.signature == "()V" && instruction.memberName in MONITOR_METHODS)
                     || (instruction.memberName == "wait" && (instruction.signature == "(J)V" || instruction.signature == "(JI)V"))
 
-    private fun isForbidden(instruction: MemberAccessInstruction): Boolean
-            = instruction.isMethod && (isClassReflection(instruction) || isObjectMonitor(instruction) || isClassLoading(instruction))
-
-    private val memberFormatter = MemberFormatter()
+    private fun isForbidden(className: String, instruction: MemberAccessInstruction): Boolean
+            = instruction.isMethod && (isClassReflection(className, instruction) || isObjectMonitor(instruction) || isClassLoading(instruction))
 
 }

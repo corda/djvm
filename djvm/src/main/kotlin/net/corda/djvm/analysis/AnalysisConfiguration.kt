@@ -148,9 +148,12 @@ class AnalysisConfiguration private constructor(
             java.lang.System::class.java,
             java.lang.ThreadLocal::class.java,
             java.lang.Throwable::class.java,
+            java.security.AccessController::class.java,
             kotlin.Any::class.java,
             sun.misc.JavaLangAccess::class.java,
-            sun.misc.SharedSecrets::class.java
+            sun.misc.SharedSecrets::class.java,
+            sun.misc.VM::class.java,
+            sun.security.action.GetPropertyAction::class.java
         ).sandboxed() + setOf(
             "sandbox/Task",
             "sandbox/TaskTypes",
@@ -158,6 +161,8 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/DJVM",
             "sandbox/java/lang/DJVMException",
             "sandbox/java/lang/DJVMThrowableWrapper",
+            "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
+            "sandbox/java/nio/charset/Charset\$1",
             "sandbox/sun/misc/SharedSecrets\$1",
             "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl"
         )
@@ -227,6 +232,12 @@ class AnalysisConfiguration private constructor(
          * added to the sandbox:
          *
          * <code>interface sandbox.A extends A</code>
+         *
+         * Some of these interface methods will need to have synthetic
+         * bridge methods stitched in too.
+         *
+         * THIS IS ALL FOR THE BENEFIT OF [sandbox.java.lang.String]
+         * AND [sandbox.java.lang.Enum]!!
          */
         private val STITCHED_INTERFACES: Map<String, List<Member>> = listOf(
             object : MethodBuilder(
@@ -251,10 +262,24 @@ class AnalysisConfiguration private constructor(
                 memberName = "toString",
                 descriptor = "()Ljava/lang/String;"
             ).build()
+        ).mapByClassName() + listOf(
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_SYNTHETIC or ACC_BRIDGE,
+                className = sandboxed(Iterable::class.java),
+                memberName = "iterator",
+                descriptor = "()Ljava/util/Iterator;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    invokeInterface(className, memberName, "()Lsandbox/java/util/Iterator;")
+                    returnObject()
+                }
+            }.withBody()
+             .build()
         ).mapByClassName() + mapOf(
             sandboxed(Comparable::class.java) to emptyList(),
             sandboxed(Comparator::class.java) to emptyList(),
-            sandboxed(Iterable::class.java) to emptyList()
+            sandboxed(Iterator::class.java) to emptyList()
         )
 
         /**
