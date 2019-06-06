@@ -29,7 +29,7 @@ object StubOutFinalizerMethods : MemberDefinitionProvider {
      * No need to rewrite [Object.finalize] or [Enum.finalize]; ignore these.
      */
     private fun isFinalizer(member: Member): Boolean
-        = member.memberName == "finalize" && member.signature == "()V"
+        = member.memberName == "finalize" && member.descriptor == "()V"
             && !member.className.startsWith("java/lang/")
             && !Modifier.isAbstract(member.access)
 }

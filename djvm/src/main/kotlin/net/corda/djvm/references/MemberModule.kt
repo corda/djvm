@@ -17,8 +17,8 @@ class MemberModule : AnnotationModule() {
     /**
      * Get member definition for class. Return `null` if the member does not exist.
      */
-    fun getFromClass(clazz: ClassRepresentation, memberName: String, signature: String): Member? {
-        return clazz.members[getQualifyingIdentifier(memberName, signature)]
+    fun getFromClass(clazz: ClassRepresentation, memberName: String, descriptor: String): Member? {
+        return clazz.members[getQualifyingIdentifier(memberName, descriptor)]
     }
 
     /**
@@ -33,14 +33,14 @@ class MemberModule : AnnotationModule() {
      * Check if member is a field.
      */
     fun isField(member: MemberInformation): Boolean {
-        return !member.signature.startsWith('(')
+        return !member.isMethod
     }
 
     /**
      * Check if member is a method.
      */
     fun isMethod(member: MemberInformation): Boolean {
-        return member.signature.startsWith('(')
+        return member.isMethod
     }
 
     /**
@@ -58,13 +58,13 @@ class MemberModule : AnnotationModule() {
     }
 
     /**
-     * Return the number of arguments that the member expects, based on its signature.
+     * Return the number of arguments that the member expects, based on its descriptor.
      */
-    fun numberOfArguments(signature: String): Int {
+    fun numberOfArguments(descriptor: String): Int {
         var count = 0
         var level = 0
         var isLongName = false
-        loop@ for (char in signature) {
+        loop@ for (char in descriptor) {
             when {
                 char == '(' -> level += 1
                 char == ')' -> level -= 1
@@ -91,18 +91,18 @@ class MemberModule : AnnotationModule() {
     /**
      * Check whether a function returns `void` or a value/reference type.
      */
-    fun returnsValueOrReference(signature: String): Boolean {
-        return !signature.endsWith(")V")
+    fun returnsValueOrReference(descriptor: String): Boolean {
+        return !descriptor.endsWith(")V")
     }
 
     /**
-     * Find all classes referenced in a member's signature.
+     * Find all classes referenced in a member's descriptor.
      */
     fun findReferencedClasses(member: MemberInformation): List<String> {
         val classes = mutableListOf<String>()
         var longName = StringBuilder()
         var isLongName = false
-        for (char in member.signature) {
+        for (char in member.descriptor) {
             if (char == 'L' && !isLongName) {
                 longName = StringBuilder()
                 isLongName = true
@@ -119,15 +119,15 @@ class MemberModule : AnnotationModule() {
     /**
      * Get the qualifying identifier of the class member.
      */
-    fun getQualifyingIdentifier(memberName: String, signature: String): String {
-        return "$memberName:$signature"
+    fun getQualifyingIdentifier(memberName: String, descriptor: String): String {
+        return "$memberName:$descriptor"
     }
 
     /**
      * Get the qualifying identifier of the class member.
      */
     private fun getQualifyingIdentifier(member: MemberInformation): String {
-        return getQualifyingIdentifier(member.memberName, member.signature)
+        return getQualifyingIdentifier(member.memberName, member.descriptor)
     }
 
 }

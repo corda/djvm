@@ -1,5 +1,6 @@
 package net.corda.djvm.analysis
 
+import net.corda.djvm.analysis.AnalysisConfiguration.Companion.SANDBOX_PREFIX
 import net.corda.djvm.formatting.MemberFormatter
 import net.corda.djvm.references.MemberInformation
 
@@ -9,14 +10,14 @@ import net.corda.djvm.references.MemberInformation
  * @property className The name of the class.
  * @property sourceFile The file containing the source of the compiled class.
  * @property memberName The name of the field or method.
- * @property signature The signature of the field or method.
+ * @property descriptor The descriptor of the field or method.
  * @property lineNumber The index of the line from which the instruction was compiled.
  */
 data class SourceLocation(
         override val className: String = "",
         val sourceFile: String = "",
         override val memberName: String = "",
-        override val signature: String = "",
+        override val descriptor: String = "",
         val lineNumber: Int = 0
 ) : MemberInformation {
 
@@ -37,11 +38,11 @@ data class SourceLocation(
      */
     override fun toString(): String {
         return StringBuilder().apply {
-            append(className.removePrefix("sandbox/"))
+            append(className.removePrefix(SANDBOX_PREFIX))
             if (memberName.isNotBlank()) {
                 append(".$memberName")
-                if (memberFormatter.isMethod(signature)) {
-                    append("(${memberFormatter.format(signature)})")
+                if (memberFormatter.isMethod(descriptor)) {
+                    append("(${memberFormatter.format(descriptor)})")
                 }
             }
         }.toString()
@@ -72,8 +73,8 @@ data class SourceLocation(
                 } else {
                     append(memberName)
                 }
-                if (memberFormatter.isMethod(signature)) {
-                    append("(${memberFormatter.format(signature)})")
+                if (memberFormatter.isMethod(descriptor)) {
+                    append("(${memberFormatter.format(descriptor)})")
                 }
                 append("|@")
             }

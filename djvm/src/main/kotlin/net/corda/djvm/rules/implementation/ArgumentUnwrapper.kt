@@ -19,7 +19,7 @@ object ArgumentUnwrapper : Emitter {
 
             if (hasStringArgument(instruction)) {
                 unwrapString()
-            } else if (instruction.owner == "java/lang/Class" && instruction.signature.startsWith("(Ljava/lang/String;ZLjava/lang/ClassLoader;)")) {
+            } else if (instruction.owner == "java/lang/Class" && instruction.descriptor.startsWith("(Ljava/lang/String;ZLjava/lang/ClassLoader;)")) {
                 /**
                  * [kotlin.jvm.internal.Intrinsics.checkHasClass] invokes [Class.forName], so I'm
                  * adding support for both of this function's variants. For now.
@@ -31,5 +31,5 @@ object ArgumentUnwrapper : Emitter {
         }
     }
 
-    private fun hasStringArgument(method: MemberAccessInstruction) = method.signature.contains("Ljava/lang/String;)")
+    private fun hasStringArgument(method: MemberAccessInstruction) = method.descriptor.contains("Ljava/lang/String;)")
 }

@@ -414,6 +414,15 @@ public final class String extends Object implements Comparable<String>, CharSequ
         return result;
     }
 
+    @NotNull
+    private static java.nio.charset.Charset fromDJVM(@NotNull Charset charset) {
+        return java.nio.charset.Charset.forName(charset.name().fromDJVM());
+    }
+
+    private static java.util.Locale fromDJVM(@NotNull sandbox.java.util.Locale locale) {
+        return java.util.Locale.forLanguageTag(locale.toLanguageTag().fromDJVM());
+    }
+
     public static String toDJVM(java.lang.String value) {
         return (value == null) ? null : new String(value);
     }

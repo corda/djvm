@@ -15,6 +15,7 @@ import org.objectweb.asm.Type
 import sandbox.net.corda.djvm.costing.RuntimeCostAccounter
 import java.io.Closeable
 import java.io.IOException
+import java.nio.charset.Charset
 import java.nio.file.Path
 
 /**
@@ -162,7 +163,6 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/DJVMException",
             "sandbox/java/lang/DJVMThrowableWrapper",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
-            "sandbox/java/nio/charset/Charset\$1",
             "sandbox/sun/misc/SharedSecrets\$1",
             "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl"
         )
@@ -236,8 +236,7 @@ class AnalysisConfiguration private constructor(
          * Some of these interface methods will need to have synthetic
          * bridge methods stitched in too.
          *
-         * THIS IS ALL FOR THE BENEFIT OF [sandbox.java.lang.String]
-         * AND [sandbox.java.lang.Enum]!!
+         * THIS IS ALL FOR THE BENEFIT OF [sandbox.java.lang.String]!!
          */
         private val STITCHED_INTERFACES: Map<String, List<Member>> = listOf(
             object : MethodBuilder(
@@ -283,7 +282,8 @@ class AnalysisConfiguration private constructor(
         )
 
         /**
-         * These classes have extra methods added when mapped into the sandbox.
+         * These classes have methods replaced or extra ones added when mapped into the sandbox.
+         * THIS IS FOR THE BENEFIT OF [sandbox.java.lang.Enum] AND [sandbox.java.nio.charset.Charset].
          */
         private val STITCHED_CLASSES: Map<String, List<Member>> = listOf(
             object : MethodBuilder(
@@ -310,6 +310,20 @@ class AnalysisConfiguration private constructor(
                 override fun writeBody(emitter: EmitterModule) = with(emitter) {
                     pushObject(0)
                     invokeVirtual(className, memberName, "()Ljava/lang/Enum;")
+                    returnObject()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            object : MethodBuilder(
+                access = ACC_STATIC or ACC_PRIVATE,
+                className = sandboxed(Charset::class.java),
+                memberName = "providers",
+                descriptor = "()Lsandbox/java/util/Iterator;",
+                signature = "()Lsandbox/java/util/Iterator<Lsandbox/java/nio/charset/spi/CharsetProvider;>;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    invokeStatic("sandbox/java/util/Collections", "emptyIterator", descriptor)
                     returnObject()
                 }
             }.withBody()
@@ -377,7 +391,7 @@ class AnalysisConfiguration private constructor(
             access = access,
             className = className,
             memberName = memberName,
-            signature = descriptor,
+            descriptor = descriptor,
             genericsDetails = signature,
             body = bodies
         )

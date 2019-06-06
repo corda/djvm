@@ -16,7 +16,7 @@ object RewriteObjectMethods : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && instruction.owner == OBJECT_NAME) {
             when (instruction.operation) {
-                INVOKEVIRTUAL -> if (instruction.memberName == "hashCode" && instruction.signature == "()I") {
+                INVOKEVIRTUAL -> if (instruction.memberName == "hashCode" && instruction.descriptor == "()I") {
                     invokeStatic(
                         owner = "sandbox/java/lang/DJVM",
                         name = "hashCode",

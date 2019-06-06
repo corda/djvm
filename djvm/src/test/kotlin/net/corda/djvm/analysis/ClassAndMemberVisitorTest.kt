@@ -204,14 +204,14 @@ class ClassAndMemberVisitorTest : TestBase() {
                 ) {
                     assertThat(it.owner).isEqualTo("sandbox/java/lang/Object")
                     assertThat(it.memberName).isEqualTo("<init>")
-                    assertThat(it.signature).isEqualTo("()V")
+                    assertThat(it.descriptor).isEqualTo("()V")
                 }
                 .hasInstruction<MemberAccessInstruction>(
                         "foo", "sandbox/java/lang/Object:hashCode()I"
                 ) {
                     assertThat(it.owner).isEqualTo("sandbox/java/lang/Object")
                     assertThat(it.memberName).isEqualTo("hashCode")
-                    assertThat(it.signature).isEqualTo("()I")
+                    assertThat(it.descriptor).isEqualTo("()I")
                 }
                 .hasInstruction<TryFinallyBlock>("bar", "TryFinallyBlock")
                 .hasInstruction<MemberAccessInstruction>("bar", "MemberAccessInstruction")

@@ -42,7 +42,7 @@ class ClassHierarchyTest {
                 .isNotNull
                 .hasFieldOrPropertyWithValue("className", clazz<FirstClass>().name)
                 .hasFieldOrPropertyWithValue("memberName", "method")
-                .hasFieldOrPropertyWithValue("signature", "()V")
+                .hasFieldOrPropertyWithValue("descriptor", "()V")
     }
 
     @Test
@@ -66,7 +66,7 @@ class ClassHierarchyTest {
                 .isNotNull
                 .hasFieldOrPropertyWithValue("className", clazz<FirstClass>().name)
                 .hasFieldOrPropertyWithValue("memberName", "method")
-                .hasFieldOrPropertyWithValue("signature", "()V")
+                .hasFieldOrPropertyWithValue("descriptor", "()V")
     }
 
     @Test
@@ -81,7 +81,7 @@ class ClassHierarchyTest {
                 .isNotNull
                 .hasFieldOrPropertyWithValue("className", clazz<SecondClass>().name)
                 .hasFieldOrPropertyWithValue("memberName", "method")
-                .hasFieldOrPropertyWithValue("signature", "()V")
+                .hasFieldOrPropertyWithValue("descriptor", "()V")
     }
 
     @Test
@@ -101,7 +101,7 @@ class ClassHierarchyTest {
                 .isNotNull
                 .hasFieldOrPropertyWithValue("className", clazz<SecondClass>().name)
                 .hasFieldOrPropertyWithValue("memberName", "method")
-                .hasFieldOrPropertyWithValue("signature", "()V")
+                .hasFieldOrPropertyWithValue("descriptor", "()V")
     }
 
     @Test
@@ -126,42 +126,42 @@ class ClassHierarchyTest {
                 .isNotNull
                 .hasFieldOrPropertyWithValue("className", clazz<FirstClass>().name)
                 .hasFieldOrPropertyWithValue("memberName", "method")
-                .hasFieldOrPropertyWithValue("signature", "()V")
+                .hasFieldOrPropertyWithValue("descriptor", "()V")
 
         member = classes.getMember(clazz<FourthClass>().name, "method", "(I)V")
         assertThat(member)
                 .isNotNull
                 .hasFieldOrPropertyWithValue("className", clazz<FirstClass>().name)
                 .hasFieldOrPropertyWithValue("memberName", "method")
-                .hasFieldOrPropertyWithValue("signature", "(I)V")
+                .hasFieldOrPropertyWithValue("descriptor", "(I)V")
 
         member = classes.getMember(clazz<FourthClass>().name, "method", "(J)V")
         assertThat(member)
                 .isNotNull
                 .hasFieldOrPropertyWithValue("className", clazz<SecondClass>().name)
                 .hasFieldOrPropertyWithValue("memberName", "method")
-                .hasFieldOrPropertyWithValue("signature", "(J)V")
+                .hasFieldOrPropertyWithValue("descriptor", "(J)V")
 
         member = classes.getMember(clazz<FourthClass>().name, "method", "(B)V")
         assertThat(member)
                 .isNotNull
                 .hasFieldOrPropertyWithValue("className", clazz<ThirdClass>().name)
                 .hasFieldOrPropertyWithValue("memberName", "method")
-                .hasFieldOrPropertyWithValue("signature", "(B)V")
+                .hasFieldOrPropertyWithValue("descriptor", "(B)V")
 
         member = classes.getMember(clazz<FourthClass>().name, "anotherMethod", "([B)V")
         assertThat(member)
                 .isNotNull
                 .hasFieldOrPropertyWithValue("className", clazz<FourthClass>().name)
                 .hasFieldOrPropertyWithValue("memberName", "anotherMethod")
-                .hasFieldOrPropertyWithValue("signature", "([B)V")
+                .hasFieldOrPropertyWithValue("descriptor", "([B)V")
 
         member = classes.getMember(clazz<ThirdClass>().name, "anotherMethod", "([B)V")
         assertThat(member)
                 .isNotNull
                 .hasFieldOrPropertyWithValue("className", clazz<SecondClass>().name)
                 .hasFieldOrPropertyWithValue("memberName", "anotherMethod")
-                .hasFieldOrPropertyWithValue("signature", "([B)V")
+                .hasFieldOrPropertyWithValue("descriptor", "([B)V")
     }
 
     private open class FirstClass
@@ -189,8 +189,8 @@ class ClassHierarchyTest {
                 ClassRepresentation(apiVersion, access, className, superClassName, sourceFile = "${it.simpleName}.kt")
             }
 
-    private fun ClassRepresentation.withMember(memberName: String, signature: String, generics: String = "") = this.apply {
-        memberModule.addToClass(this, Member(0, this.name, memberName, signature, generics))
+    private fun ClassRepresentation.withMember(memberName: String, descriptor: String, generics: String = "") = this.apply {
+        memberModule.addToClass(this, Member(0, this.name, memberName, descriptor, generics))
     }
 
 }

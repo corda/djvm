@@ -33,16 +33,16 @@ object DisallowNonDeterministicMethods : Emitter {
 
     private fun isClassReflection(className: String, instruction: MemberAccessInstruction): Boolean =
             (instruction.owner == "java/lang/Class") && (
-                instruction.signature.contains("Ljava/lang/reflect/") ||
-                    (!className.startsWith(CHARSET_PACKAGE) && instruction.memberName == "newInstance" && instruction.signature == "()Ljava/lang/Object;")
+                instruction.descriptor.contains("Ljava/lang/reflect/") ||
+                    (!className.startsWith(CHARSET_PACKAGE) && instruction.memberName == "newInstance" && instruction.descriptor == "()Ljava/lang/Object;")
             )
 
     private fun isClassLoading(instruction: MemberAccessInstruction): Boolean =
             (instruction.owner == "java/lang/ClassLoader") && instruction.memberName in CLASSLOADING_METHODS
 
     private fun isObjectMonitor(instruction: MemberAccessInstruction): Boolean =
-            (instruction.signature == "()V" && instruction.memberName in MONITOR_METHODS)
-                    || (instruction.memberName == "wait" && (instruction.signature == "(J)V" || instruction.signature == "(JI)V"))
+            (instruction.descriptor == "()V" && instruction.memberName in MONITOR_METHODS)
+                    || (instruction.memberName == "wait" && (instruction.descriptor == "(J)V" || instruction.descriptor == "(JI)V"))
 
     private fun isForbidden(className: String, instruction: MemberAccessInstruction): Boolean
             = instruction.isMethod && (isClassReflection(className, instruction) || isObjectMonitor(instruction) || isClassLoading(instruction))

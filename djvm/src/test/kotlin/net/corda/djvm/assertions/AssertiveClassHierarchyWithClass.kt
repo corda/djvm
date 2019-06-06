@@ -31,15 +31,15 @@ open class AssertiveClassHierarchyWithClass(
         return this
     }
 
-    fun withMember(name: String, signature: String): AssertiveClassHierarchyWithClassAndMember {
+    fun withMember(name: String, descriptor: String): AssertiveClassHierarchyWithClassAndMember {
         assertThat(clazz.members.values)
-                .`as`("Member($className.$name:$signature")
+                .`as`("Member($className.$name:$descriptor")
                 .anySatisfy {
                     assertThat(it.memberName).isEqualTo(name)
-                    assertThat(it.signature).isEqualTo(signature)
+                    assertThat(it.descriptor).isEqualTo(descriptor)
                 }
         val member = clazz.members.values.first {
-            it.memberName == name && it.signature == signature
+            it.memberName == name && it.descriptor == descriptor
         }
         return AssertiveClassHierarchyWithClassAndMember(hierarchy, className, member)
     }

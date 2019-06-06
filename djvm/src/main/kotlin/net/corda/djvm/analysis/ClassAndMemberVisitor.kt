@@ -281,14 +281,14 @@ open class ClassAndMemberVisitor(
                 access = access,
                 className = clazz.name,
                 memberName = name,
-                signature = desc,
+                descriptor = desc,
                 genericsDetails = signature ?: "",
                 exceptions = exceptions?.toMutableSet() ?: mutableSetOf()
             )
             currentMember = member
             sourceLocation = sourceLocation.copy(
                 memberName = name,
-                signature = desc,
+                descriptor = desc,
                 lineNumber = 0
             )
             val processMember = captureExceptions {
@@ -300,7 +300,7 @@ open class ClassAndMemberVisitor(
                 super.visitMethod(
                     derivedMember.access,
                     derivedMember.memberName,
-                    derivedMember.signature,
+                    derivedMember.descriptor,
                     signature,
                     derivedMember.exceptions.toTypedArray()
                 )?.let { targetVisitor ->
@@ -323,14 +323,14 @@ open class ClassAndMemberVisitor(
                 access = access,
                 className = clazz.name,
                 memberName = name,
-                signature = desc,
+                descriptor = desc,
                 genericsDetails = "",
                 value = value
             )
             currentMember = member
             sourceLocation = sourceLocation.copy(
                 memberName = name,
-                signature = desc,
+                descriptor = desc,
                 lineNumber = 0
             )
             val processMember = captureExceptions {
@@ -342,7 +342,7 @@ open class ClassAndMemberVisitor(
                 super.visitField(
                     derivedMember.access,
                     derivedMember.memberName,
-                    derivedMember.signature,
+                    derivedMember.descriptor,
                     signature,
                     derivedMember.value
                 )?.let { targetVisitor ->
