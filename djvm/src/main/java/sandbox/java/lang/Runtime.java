@@ -18,6 +18,10 @@ public final class Runtime extends Object {
         return 1;
     }
 
+    public long maxMemory() {
+        return Long.MAX_VALUE;
+    }
+
     public void loadLibrary(String libraryName) {}
 
     public void load(String fileName) {}

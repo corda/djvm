@@ -49,10 +49,6 @@ object DisallowCatchingBlacklistedExceptions : Emitter {
         }
     }
 
-    private val handlers = mutableSetOf<Label>()
-
-    private fun isExceptionHandler(label: Label) = label in handlers
-
     /**
      * We need to invoke this emitter before the [HandleExceptionUnwrapper]
      * so that we don't unwrap exceptions we don't want to catch.
