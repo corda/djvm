@@ -142,6 +142,7 @@ class AnalysisConfiguration private constructor(
             java.lang.Number::class.java,
             java.lang.Runtime::class.java,
             java.lang.Short::class.java,
+            java.lang.StrictMath::class.java,
             java.lang.String::class.java,
             java.lang.String.CASE_INSENSITIVE_ORDER::class.java,
             java.lang.System::class.java,
