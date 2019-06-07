@@ -67,7 +67,7 @@ class ClassModule : AnnotationModule() {
     /**
      * Normalize an abbreviated class name.
      */
-    fun normalizeClassName(name: Char): String = normalizeClassName("$name")
+    fun normalizeClassName(name: Char): String = normalizeClassName(name.toString())
 
     /**
      * Normalize an abbreviated class name.
@@ -82,23 +82,23 @@ class ClassModule : AnnotationModule() {
         name == "J" -> "java/lang/Long"
         name == "F" -> "java/lang/Float"
         name == "D" -> "java/lang/Double"
-        name.startsWith("L") && name.endsWith(";") ->
+        name.startsWith('L') && name.endsWith(';') ->
             name.substring(1, name.length - 1)
-        name.startsWith("[") ->
+        name.startsWith('[') ->
             normalizeClassName(name.substring(1)) + "[]"
         else -> name
     }
 
     /**
-     * Get a list of types referenced in a signature.
+     * Get a list of types referenced in a descriptor.
      */
-    fun getTypes(abbreviatedSignature: String): List<String> {
+    fun getTypes(abbreviatedDescriptor: String): List<String> {
         val types = mutableListOf<String>()
         var isArray = false
         var arrayLevel = 0
         var isLongName = false
         var longName = StringBuilder()
-        for (char in abbreviatedSignature) {
+        for (char in abbreviatedDescriptor) {
             if (char in arrayOf('(', ')')) {
                 continue
             } else if (char == '[') {
@@ -143,7 +143,7 @@ class ClassModule : AnnotationModule() {
         return when {
             !derive -> emptyList()
             else -> annotations
-                    .flatMap { getClassReferencesFromSignature(it) }
+                    .flatMap(::getClassReferencesFromDescriptor)
                     .filterOutPrimitiveTypes()
         }
     }
@@ -172,17 +172,17 @@ class ClassModule : AnnotationModule() {
      * Get all classes referenced from a member definition.
      */
     fun getClassReferencesFromMember(member: Member, derive: Boolean): List<String> {
-        val classes = getClassReferencesFromSignature(member.signature) +
+        val classes = getClassReferencesFromDescriptor(member.descriptor) +
                 getClassReferencesFromAnnotations(member.annotations, derive) +
                 getClassReferencesFromGenericsSignature(member.genericsDetails)
         return classes.filterOutPrimitiveTypes()
     }
 
     /**
-     * Get all classes referenced from a member signature.
+     * Get all classes referenced from a member descriptor.
      */
-    fun getClassReferencesFromSignature(signature: String): List<String> {
-        return getTypes(signature)
+    fun getClassReferencesFromDescriptor(descriptor: String): List<String> {
+        return getTypes(descriptor)
                 .filterOutPrimitiveTypes()
     }
 
@@ -191,7 +191,7 @@ class ClassModule : AnnotationModule() {
      */
     fun getClassReferencesFromGenericsSignature(signature: String): List<String> {
         return getTypes(signature.replace(genericTypeSignatureRegex, ";"))
-                .filter { it.contains("/") }
+                .filter { it.contains('/') }
                 .filterOutPrimitiveTypes()
     }
 

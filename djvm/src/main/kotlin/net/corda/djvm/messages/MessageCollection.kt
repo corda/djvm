@@ -45,7 +45,7 @@ class MessageCollection(
             location.memberName.isBlank() ->
                 messagesFor(location.className).add(message)
             else ->
-                messagesFor(location.className, location.memberName, location.signature).add(message)
+                messagesFor(location.className, location.memberName, location.descriptor).add(message)
         }
         cachedEntries = null
     }
@@ -90,15 +90,15 @@ class MessageCollection(
     /**
      * Get all recorded messages for a given class member.
      */
-    fun messagesFor(className: String, memberName: String, signature: String) =
-            memberMessages.getOrPut("$className.$memberName:$signature") { mutableListOf() }
+    fun messagesFor(className: String, memberName: String, descriptor: String) =
+            memberMessages.getOrPut("$className.$memberName:$descriptor") { mutableListOf() }
 
     /**
      * Get all recorded messages for a given class or class member.
      */
     fun messagesFor(member: MemberInformation) = when {
         member.memberName.isBlank() -> messagesFor(member.className)
-        else -> messagesFor(member.className, member.memberName, member.signature)
+        else -> messagesFor(member.className, member.memberName, member.descriptor)
     }
 
     /**

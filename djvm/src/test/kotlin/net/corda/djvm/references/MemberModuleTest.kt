@@ -11,19 +11,19 @@ class MemberModuleTest {
     private val module = MemberModule()
 
     @Test
-    fun `can detect empty parameter list based on signature`() {
+    fun `can detect empty parameter list based on descriptor`() {
         assertThat(module.numberOfArguments("")).isEqualTo(0)
         assertThat(module.numberOfArguments("()V")).isEqualTo(0)
     }
 
     @Test
-    fun `can detect number of parameters based on trivial signature`() {
+    fun `can detect number of parameters based on trivial descriptor`() {
         assertThat(module.numberOfArguments("(I)V")).isEqualTo(1)
         assertThat(module.numberOfArguments("(IJ)V")).isEqualTo(2)
     }
 
     @Test
-    fun `can detect number of parameters based on signature containing arrays`() {
+    fun `can detect number of parameters based on descriptor containing arrays`() {
         assertThat(module.numberOfArguments("([IJ)V")).isEqualTo(2)
         assertThat(module.numberOfArguments("([[I[J)V")).isEqualTo(2)
         assertThat(module.numberOfArguments("(B[[I[J)V")).isEqualTo(3)
@@ -31,25 +31,25 @@ class MemberModuleTest {
     }
 
     @Test
-    fun `can detect number of parameters based on signature containing delegates`() {
+    fun `can detect number of parameters based on descriptor containing delegates`() {
         assertThat(module.numberOfArguments("(B[[I[J(I)I)V")).isEqualTo(4)
         assertThat(module.numberOfArguments("(B[[I[J(I)IJ)V")).isEqualTo(5)
     }
 
     @Test
-    fun `can detect number of parameters based on signature with long names`() {
+    fun `can detect number of parameters based on descriptor with long names`() {
         assertThat(module.numberOfArguments("(ILjava/lang/String;)V")).isEqualTo(2)
         assertThat(module.numberOfArguments("(ILfoo/Bar;JLbar/Foo;)V")).isEqualTo(4)
     }
 
     @Test
-    fun `can detect void returns based on signature`() {
+    fun `can detect void returns based on descriptor`() {
         assertThat(module.returnsValueOrReference("()V")).isEqualTo(false)
         assertThat(module.returnsValueOrReference("(Ljava/lang/String;[IJ)V")).isEqualTo(false)
     }
 
     @Test
-    fun `can detect primitive value returns based on signature`() {
+    fun `can detect primitive value returns based on descriptor`() {
         assertThat(module.returnsValueOrReference("()I")).isEqualTo(true)
         assertThat(module.returnsValueOrReference("(IJ)I")).isEqualTo(true)
         assertThat(module.returnsValueOrReference("([IJ)I")).isEqualTo(true)
@@ -57,13 +57,13 @@ class MemberModuleTest {
     }
 
     @Test
-    fun `can detect array value returns based on signature`() {
+    fun `can detect array value returns based on descriptor`() {
         assertThat(module.returnsValueOrReference("()[B")).isEqualTo(true)
         assertThat(module.returnsValueOrReference("(IJ)[[Z")).isEqualTo(true)
     }
 
     @Test
-    fun `can detect object returns based on signature`() {
+    fun `can detect object returns based on descriptor`() {
         assertThat(module.returnsValueOrReference("()Ljava/lang/Object;")).isEqualTo(true)
         assertThat(module.returnsValueOrReference("()Lfoo/bar/Baz;")).isEqualTo(true)
     }
@@ -75,7 +75,7 @@ class MemberModuleTest {
     }
 
     @Test
-    fun `can detect class references in signatures`() {
+    fun `can detect class references in descriptors`() {
         assertThat(module.findReferencedClasses(reference("()V")))
                 .containsExactly()
         assertThat(module.findReferencedClasses(reference("(IJ)V")))
@@ -97,7 +97,7 @@ class MemberModuleTest {
     }
 
     @Test
-    fun `can detect fields from signatures`() {
+    fun `can detect fields from descriptors`() {
         assertThat(module.isField(reference("()V"))).isFalse()
         assertThat(module.isField(reference("(IJ)V"))).isFalse()
         assertThat(module.isField(reference("(IJ)Lfoo/Bar;"))).isFalse()
@@ -110,7 +110,7 @@ class MemberModuleTest {
     }
 
     @Test
-    fun `can detect methods from signatures`() {
+    fun `can detect methods from descriptors`() {
         assertThat(module.isMethod(reference("()V"))).isTrue()
         assertThat(module.isMethod(reference("(IJ)V"))).isTrue()
         assertThat(module.isMethod(reference("(IJ)Lfoo/Bar;"))).isTrue()
@@ -123,7 +123,7 @@ class MemberModuleTest {
     }
 
     @Test
-    fun `can detect constructors from signatures`() {
+    fun `can detect constructors from descriptors`() {
         assertThat(module.isConstructor(member("foo"))).isFalse()
         assertThat(module.isConstructor(member("helloWorld"))).isFalse()
         assertThat(module.isConstructor(member("init"))).isFalse()
@@ -138,7 +138,7 @@ class MemberModuleTest {
     private fun member(member: String) =
             MemberReference("", member, "")
 
-    private fun reference(signature: String) =
-            MemberReference("", "", signature)
+    private fun reference(descriptor: String) =
+            MemberReference("", "", descriptor)
 
 }

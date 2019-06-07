@@ -43,11 +43,11 @@ object AssertionExtensions {
                 assertThat(it.name).isEqualTo(TestBase.nameOf<T>())
             }
 
-    fun IterableAssert<Member>.hasMember(name: String, signature: String): IterableAssert<Member> = this
-            .`as`("HasMember($name:$signature)")
+    fun IterableAssert<Member>.hasMember(name: String, descriptor: String): IterableAssert<Member> = this
+            .`as`("HasMember($name:$descriptor)")
             .anySatisfy {
                 assertThat(it.memberName).isEqualTo(name)
-                assertThat(it.signature).isEqualTo(signature)
+                assertThat(it.descriptor).isEqualTo(descriptor)
             }
 
     inline fun <reified TInstruction : Instruction> IterableAssert<Pair<Member, Instruction>>.hasInstruction(

@@ -207,7 +207,7 @@ open class SandboxExecutor<in TInput, out TOutput>(
                 for (location in context.references.locationsFromReference(reference)) {
                     val originReference = when {
                         location.memberName.isBlank() -> ClassReference(location.className)
-                        else -> MemberReference(location.className, location.memberName, location.signature)
+                        else -> MemberReference(location.className, location.memberName, location.descriptor)
                     }
                     context.recordClassOrigin(reference.className, originReference)
                 }

@@ -25,17 +25,17 @@ class MemberFormatter(
         return if (memberModule.isField(member)) {
             "$className$memberName"
         } else {
-            "$className$memberName(${format(member.signature)})"
+            "$className$memberName(${format(member.descriptor)})"
         }
     }
 
     /**
-     * Format a member's signature.
+     * Format a member's descriptor.
      */
-    fun format(abbreviatedSignature: String): String {
+    fun format(abbreviatedDescriptor: String): String {
         var level = 0
         val stringBuilder = StringBuilder()
-        for (char in abbreviatedSignature) {
+        for (char in abbreviatedDescriptor) {
             if (char == ')') {
                 level -= 1
             }
@@ -46,14 +46,14 @@ class MemberFormatter(
                 level += 1
             }
         }
-        return generateMemberSignature(stringBuilder.toString())
+        return generateMemberDescriptor(stringBuilder.toString())
     }
 
     /**
-     * Check whether or not a signature is for a method.
+     * Check whether or not a descriptor is for a method.
      */
-    fun isMethod(abbreviatedSignature: String): Boolean {
-        return abbreviatedSignature.startsWith('(')
+    fun isMethod(abbreviatedDescriptor: String): Boolean {
+        return abbreviatedDescriptor.startsWith('(')
     }
 
     /**
@@ -64,10 +64,10 @@ class MemberFormatter(
     }
 
     /**
-     * Generate a prettified version of a native signature.
+     * Generate a prettified version of a native descriptor.
      */
-    private fun generateMemberSignature(abbreviatedSignature: String): String {
-        return classModule.getTypes(abbreviatedSignature).joinToString(", ") {
+    private fun generateMemberDescriptor(abbreviatedDescriptor: String): String {
+        return classModule.getTypes(abbreviatedDescriptor).joinToString(", ") {
             classModule.getShortName(it)
         }
     }

@@ -7,6 +7,7 @@ import net.corda.djvm.code.ClassMutator
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.emptyAsNull
 import net.corda.djvm.references.Member
+import net.corda.djvm.references.MethodBody
 import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassReader
@@ -58,7 +59,7 @@ open class ClassRewriter(
     /**
      * Extra visitor that is applied after [SandboxRemapper]. This "stitches" the original
      * unmapped interface as a super-interface of the mapped version, as well as adding
-     * any extra methods that are needed.
+     * or replacing any extra methods that are needed.
      */
     private inner class SandboxStitcher(parent: ClassVisitor)
         : ClassVisitor(API_VERSION, parent)
@@ -78,19 +79,39 @@ open class ClassRewriter(
             super.visit(version, access, className, signature, superName, stitchedInterfaces)
         }
 
+        override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+            val mv = super.visitMethod(access, name, descriptor, signature, exceptions)
+            return if (extraMethods.isEmpty() || mv == null) {
+                mv
+            } else {
+                val idx = extraMethods.indexOfFirst { it.memberName == name && it.descriptor == descriptor && it.genericsDetails == signature }
+                if (idx != -1) {
+                    val replacement = extraMethods.removeAt(idx)
+                    writeMethodBody(mv, replacement.body)
+                    null
+                } else {
+                    mv
+                }
+            }
+        }
+
         override fun visitEnd() {
             for (method in extraMethods) {
                 with(method) {
-                    visitMethod(access, memberName, signature, genericsDetails.emptyAsNull, exceptions.toTypedArray())?.also { mv ->
-                        mv.visitCode()
-                        EmitterModule(mv, analysisConfig).writeByteCode(body)
-                        mv.visitMaxs(-1, -1)
-                        mv.visitEnd()
+                    super.visitMethod(access, memberName, descriptor, genericsDetails.emptyAsNull, exceptions.toTypedArray())?.run {
+                        writeMethodBody(this, body)
                     }
                 }
             }
             extraMethods.clear()
             super.visitEnd()
+        }
+
+        private fun writeMethodBody(mv: MethodVisitor, body: List<MethodBody>) {
+            mv.visitCode()
+            EmitterModule(mv, analysisConfig).writeByteCode(body)
+            mv.visitMaxs(-1, -1)
+            mv.visitEnd()
         }
     }
 

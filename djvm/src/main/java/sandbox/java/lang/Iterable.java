@@ -1,8 +1,7 @@
 package sandbox.java.lang;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Iterator;
+import sandbox.java.util.Iterator;
 
 /**
  * This is a dummy class that implements just enough of {@link java.lang.Iterable}

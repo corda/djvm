@@ -45,11 +45,11 @@ public final class String extends Object implements Comparable<String>, CharSequ
         this.value = value;
     }
 
-    public String(char value[]) {
+    public String(char[] value) {
         this.value = new java.lang.String(value);
     }
 
-    public String(char value[], int offset, int count) {
+    public String(char[] value, int offset, int count) {
         this.value = new java.lang.String(value, offset, count);
     }
 
@@ -58,38 +58,38 @@ public final class String extends Object implements Comparable<String>, CharSequ
     }
 
     @Deprecated
-    public String(byte ascii[], int hibyte, int offset, int count) {
+    public String(byte[] ascii, int hibyte, int offset, int count) {
         this.value = new java.lang.String(ascii, hibyte, offset, count);
     }
 
     @Deprecated
-    public String(byte ascii[], int hibyte) {
+    public String(byte[] ascii, int hibyte) {
         this.value = new java.lang.String(ascii, hibyte);
     }
 
-    public String(byte bytes[], int offset, int length, String charsetName)
+    public String(byte[] bytes, int offset, int length, String charsetName)
             throws UnsupportedEncodingException {
         this.value = new java.lang.String(bytes, offset, length, fromDJVM(charsetName));
     }
 
-    public String(byte bytes[], int offset, int length, Charset charset) {
+    public String(byte[] bytes, int offset, int length, Charset charset) {
         this.value = new java.lang.String(bytes, offset, length, fromDJVM(charset));
     }
 
-    public String(byte bytes[], String charsetName)
+    public String(byte[] bytes, String charsetName)
             throws UnsupportedEncodingException {
         this.value = new java.lang.String(bytes, fromDJVM(charsetName));
     }
 
-    public String(byte bytes[], Charset charset) {
+    public String(byte[] bytes, Charset charset) {
         this.value = new java.lang.String(bytes, fromDJVM(charset));
     }
 
-    public String(byte bytes[], int offset, int length) {
+    public String(byte[] bytes, int offset, int length) {
         this.value = new java.lang.String(bytes, offset, length);
     }
 
-    public String(byte bytes[]) {
+    public String(byte[] bytes) {
         this.value = new java.lang.String(bytes);
     }
 
@@ -142,12 +142,12 @@ public final class String extends Object implements Comparable<String>, CharSequ
         return value.offsetByCodePoints(index, codePointOffset);
     }
 
-    public void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin) {
+    public void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin) {
         value.getChars(srcBegin, srcEnd, dst, dstBegin);
     }
 
     @Deprecated
-    public void getBytes(int srcBegin, int srcEnd, byte dst[], int dstBegin) {
+    public void getBytes(int srcBegin, int srcEnd, byte[] dst, int dstBegin) {
         value.getBytes(srcBegin, srcEnd, dst, dstBegin);
     }
 
@@ -361,19 +361,19 @@ public final class String extends Object implements Comparable<String>, CharSequ
         return (obj instanceof Object) ? ((Object) obj).toDJVMString() : toDJVM(java.lang.String.valueOf(obj));
     }
 
-    public static String valueOf(char data[]) {
+    public static String valueOf(char[] data) {
         return toDJVM(java.lang.String.valueOf(data));
     }
 
-    public static String valueOf(char data[], int offset, int count) {
+    public static String valueOf(char[] data, int offset, int count) {
         return toDJVM(java.lang.String.valueOf(data, offset, count));
     }
 
-    public static String copyValueOf(char data[], int offset, int count) {
+    public static String copyValueOf(char[] data, int offset, int count) {
         return toDJVM(java.lang.String.copyValueOf(data, offset, count));
     }
 
-    public static String copyValueOf(char data[]) {
+    public static String copyValueOf(char[] data) {
         return toDJVM(java.lang.String.copyValueOf(data));
     }
 
@@ -412,6 +412,15 @@ public final class String extends Object implements Comparable<String>, CharSequ
             ++i;
         }
         return result;
+    }
+
+    @NotNull
+    private static java.nio.charset.Charset fromDJVM(@NotNull Charset charset) {
+        return java.nio.charset.Charset.forName(charset.name().fromDJVM());
+    }
+
+    private static java.util.Locale fromDJVM(@NotNull sandbox.java.util.Locale locale) {
+        return java.util.Locale.forLanguageTag(locale.toLanguageTag().fromDJVM());
     }
 
     public static String toDJVM(java.lang.String value) {

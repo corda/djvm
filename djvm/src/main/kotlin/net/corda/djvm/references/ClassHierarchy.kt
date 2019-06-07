@@ -74,18 +74,18 @@ class ClassHierarchy(
     /**
      * Get the implementation of a member, if defined in specified class or any of its ancestors.
      */
-    fun getMember(className: String, memberName: String, signature: String): Member? {
+    fun getMember(className: String, memberName: String, descriptor: String): Member? {
         if (classModule.isArray(className) && memberName == ARRAY_LENGTH) {
             // Special instruction to retrieve length of array
-            return Member(0, className, memberName, signature, "")
+            return Member(0, className, memberName, descriptor, "")
         }
         return findAncestors(get(className)).plus(get(OBJECT_NAME))
                 .asSequence()
                 .filterNotNull()
-                .mapNotNull { memberModule.getFromClass(it, memberName, signature) }
+                .mapNotNull { memberModule.getFromClass(it, memberName, descriptor) }
                 .firstOrNull()
                 .apply {
-                    logger.trace("Getting rooted member for {}.{}:{} yields {}", className, memberName, signature, this)
+                    logger.trace("Getting rooted member for {}.{}:{} yields {}", className, memberName, descriptor, this)
                 }
     }
 

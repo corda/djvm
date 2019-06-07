@@ -30,6 +30,5 @@ object StubOutReflectionMethods : MemberDefinitionProvider {
                || member.className.startsWith("java/lang/invoke/")
                || member.className.startsWith("sun/reflect/")
                || member.className == "sun/misc/Unsafe"
-               || member.className == "sun/misc/VM"
     }
 }

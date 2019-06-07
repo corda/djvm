@@ -1,6 +1,7 @@
 package sandbox.java.lang;
 
 import net.corda.djvm.SandboxRuntimeContext;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public final class System extends Object {
@@ -16,6 +17,11 @@ public final class System extends Object {
 
     public static void arraycopy(java.lang.Object src, int srcPos, java.lang.Object dest, int destPos, int length) {
         java.lang.System.arraycopy(src, srcPos, dest, destPos, length);
+    }
+
+    @Nullable
+    public static SecurityManager getSecurityManager() {
+        return null;
     }
 
     public static void runFinalization() {}

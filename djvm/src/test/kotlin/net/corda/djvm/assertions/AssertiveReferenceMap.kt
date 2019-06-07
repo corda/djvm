@@ -29,7 +29,7 @@ open class AssertiveReferenceMap(private val references: ReferenceMap) {
         return AssertiveReferenceMapWithEntity(references, reference, references.locationsFromReference(reference))
     }
 
-    fun hasMember(owner: String, member: String, signature: String): AssertiveReferenceMapWithEntity {
+    fun hasMember(owner: String, member: String, descriptor: String): AssertiveReferenceMapWithEntity {
         assertThat(references)
                 .`as`("Member($owner.$member)")
                 .anySatisfy {
@@ -39,7 +39,7 @@ open class AssertiveReferenceMap(private val references: ReferenceMap) {
                         assertThat(it.memberName).isEqualTo(member)
                     }
                 }
-        val reference = MemberReference(owner, member, signature)
+        val reference = MemberReference(owner, member, descriptor)
         return AssertiveReferenceMapWithEntity(references, reference, references.locationsFromReference(reference))
     }
 

@@ -30,7 +30,7 @@ object StubOutNativeMethods : MemberDefinitionProvider {
         returnVoid()
     }
 
-    private fun isForStubbing(member: Member): Boolean = member.signature == "()V" && member.memberName == "registerNatives"
+    private fun isForStubbing(member: Member): Boolean = member.descriptor == "()V" && member.memberName == "registerNatives"
 
     private fun isNative(member: Member): Boolean = Modifier.isNative(member.access)
 }

@@ -59,13 +59,4 @@ public class Object {
             throw new RuleViolationError(e.getMessage());
         }
     }
-
-    static java.util.Locale fromDJVM(@NotNull sandbox.java.util.Locale locale) {
-        return java.util.Locale.forLanguageTag(locale.toLanguageTag().fromDJVM());
-    }
-
-    @NotNull
-    static java.nio.charset.Charset fromDJVM(@NotNull sandbox.java.nio.charset.Charset charset) {
-        return java.nio.charset.Charset.forName(charset.name().fromDJVM());
-    }
 }

@@ -4,7 +4,6 @@ import io.github.classgraph.ClassGraph
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_EMITTERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
-import net.corda.djvm.TestBase
 import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.rules.Rule
@@ -15,7 +14,7 @@ import java.lang.reflect.Modifier
 /**
  * Verify that we have installed all of the DJVM's [Rule], [DefinitionProvider] and [Emitter] objects.
  */
-class DiscoveryTest : TestBase() {
+class DiscoveryTest {
     companion object {
         const val FORBIDDEN_CLASS_MASK = (Modifier.STATIC or Modifier.ABSTRACT or Modifier.PRIVATE or Modifier.PROTECTED)
     }

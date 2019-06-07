@@ -33,7 +33,7 @@ class ClassMutator(
     private inner class PrependClassInitializer : Emitter {
         override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
             if (instruction is MethodEntry
-                    && instruction.method.memberName == "<clinit>" && instruction.method.signature == "()V"
+                    && instruction.method.memberName == "<clinit>" && instruction.method.descriptor == "()V"
                     && initializers.isNotEmpty()) {
                 writeByteCode(initializers)
                 initializers.clear()

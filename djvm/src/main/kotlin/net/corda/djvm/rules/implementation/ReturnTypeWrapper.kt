@@ -13,7 +13,7 @@ import net.corda.djvm.code.instructions.MemberAccessInstruction
 object ReturnTypeWrapper : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && context.whitelist.matches(instruction.owner)) {
-            fun invokeMethod() = invokeVirtual(instruction.owner, instruction.memberName, instruction.signature)
+            fun invokeMethod() = invokeVirtual(instruction.owner, instruction.memberName, instruction.descriptor)
 
             if (hasStringReturnType(instruction)) {
                 preventDefault()
@@ -23,5 +23,5 @@ object ReturnTypeWrapper : Emitter {
         }
     }
 
-    private fun hasStringReturnType(method: MemberAccessInstruction) = method.signature.endsWith(")Ljava/lang/String;")
+    private fun hasStringReturnType(method: MemberAccessInstruction) = method.descriptor.endsWith(")Ljava/lang/String;")
 }

@@ -49,9 +49,9 @@ class ReferenceMap(
      * Look up all references made from a class or a class member.
      */
     fun referencesFromLocation(
-            className: String, memberName: String = "", signature: String = ""
+            className: String, memberName: String = "", descriptor: String = ""
     ): Set<ReferenceWithLocation> {
-        return referencesPerLocation.getOrElse(key(className, memberName, signature)) { emptySet() }
+        return referencesPerLocation.getOrElse(key(className, memberName, descriptor)) { emptySet() }
     }
 
     /**
@@ -70,10 +70,10 @@ class ReferenceMap(
 
     companion object {
 
-        private fun SourceLocation.key() = key(this.className, this.memberName, this.signature)
+        private fun SourceLocation.key() = key(this.className, this.memberName, this.descriptor)
 
-        private fun key(className: String, memberName: String = "", signature: String = "") =
-                "$className.$memberName:$signature"
+        private fun key(className: String, memberName: String = "", descriptor: String = "") =
+                "$className.$memberName:$descriptor"
 
     }
 

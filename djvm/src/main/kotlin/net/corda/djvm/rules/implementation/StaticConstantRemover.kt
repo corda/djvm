@@ -16,7 +16,7 @@ object StaticConstantRemover : MemberDefinitionProvider {
         else -> member
     }
 
-    private fun isConstantField(member: Member): Boolean = member.value != null && member.signature == "Ljava/lang/String;"
+    private fun isConstantField(member: Member): Boolean = member.value != null && member.descriptor == "Ljava/lang/String;"
 
     class StringFieldInitializer(private val member: Member) {
         fun writeInitializer(emitter: EmitterModule): Unit = with(emitter) {

@@ -22,27 +22,27 @@ object RewriteClassMethods : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && instruction.owner == "java/lang/Class") {
             when (instruction.operation) {
-                INVOKEVIRTUAL -> if (instruction.memberName == "enumConstantDirectory" && instruction.signature == "()Ljava/util/Map;") {
+                INVOKEVIRTUAL -> if (instruction.memberName == "enumConstantDirectory" && instruction.descriptor == "()Ljava/util/Map;") {
                     invokeStatic(
                         owner = "sandbox/java/lang/DJVM",
                         name = "enumConstantDirectory",
                         descriptor = "(Ljava/lang/Class;)Lsandbox/java/util/Map;"
                     )
                     preventDefault()
-                } else if (instruction.memberName == "isEnum" && instruction.signature == "()Z") {
+                } else if (instruction.memberName == "isEnum" && instruction.descriptor == "()Z") {
                     invokeStatic(
                         owner = "sandbox/java/lang/DJVM",
                         name = "isEnum",
                         descriptor = "(Ljava/lang/Class;)Z"
                     )
                     preventDefault()
-                } else if (instruction.memberName == "getEnumConstants" && instruction.signature == "()[Ljava/lang/Object;") {
+                } else if (instruction.memberName == "getEnumConstants" && instruction.descriptor == "()[Ljava/lang/Object;") {
                     invokeStatic(
                         owner = "sandbox/java/lang/DJVM",
                         name = "getEnumConstants",
                         descriptor = "(Ljava/lang/Class;)[Ljava/lang/Object;")
                     preventDefault()
-                } else if (instruction.memberName == "getProtectionDomain" && instruction.signature == "()Ljava/security/ProtectionDomain;") {
+                } else if (instruction.memberName == "getProtectionDomain" && instruction.descriptor == "()Ljava/security/ProtectionDomain;") {
                     throwException<RuleViolationError>("Disallowed reference to API; ${memberFormatter.format(instruction.member)}")
                     preventDefault()
                 }
@@ -51,7 +51,7 @@ object RewriteClassMethods : Emitter {
                     invokeStatic(
                         owner = "sandbox/java/lang/DJVM",
                         name = "classForName",
-                        descriptor = instruction.signature
+                        descriptor = instruction.descriptor
                     )
                     preventDefault()
                 }
@@ -61,6 +61,6 @@ object RewriteClassMethods : Emitter {
 
     private fun isClassForName(instruction: MemberAccessInstruction): Boolean
         = instruction.memberName == "forName" &&
-            (instruction.signature == "(Ljava/lang/String;)Ljava/lang/Class;" ||
-                    instruction.signature == "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;")
+            (instruction.descriptor == "(Ljava/lang/String;)Ljava/lang/Class;" ||
+                    instruction.descriptor == "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;")
 }
