@@ -2,6 +2,7 @@ package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
+import net.corda.djvm.references.MemberInformation
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.commons.ClassRemapper
@@ -15,14 +16,14 @@ class SandboxClassRemapper(cv: ClassVisitor, private val configuration: Analysis
 
     /**
      * Do not attempt to remap references to methods and fields on pinned classes.
-     * For example, the methods on [RuntimeCostAccounter] really DO use [java.lang.String]
-     * rather than [sandbox.java.lang.String].
+     * For example, the methods on [sandbox.net.corda.djvm.costing.RuntimeCostAccounter]
+     * really DO use [java.lang.String] rather than [sandbox.java.lang.String].
      */
     private inner class MethodRemapperWithPinning(private val nonmapper: MethodVisitor, remapper: MethodVisitor)
         : MethodVisitor(API_VERSION, remapper) {
 
         private fun mapperFor(element: Element): MethodVisitor {
-            return if (configuration.isPinnedClass(element.owner) || configuration.isTemplateClass(element.owner) || isUnmapped(element)) {
+            return if (configuration.isPinnedClass(element.className) || configuration.isTemplateClass(element.className) || isUnmapped(element)) {
                 nonmapper
             } else {
                 mv
@@ -40,7 +41,11 @@ class SandboxClassRemapper(cv: ClassVisitor, private val configuration: Analysis
         }
     }
 
-    private fun isUnmapped(element: Element): Boolean = configuration.whitelist.matches(element.owner)
+    private fun isUnmapped(element: Element): Boolean = configuration.whitelist.matches(element.reference)
 
-    private data class Element(val owner: String, val name: String, val descriptor: String)
+    private data class Element(
+        override val className: String,
+        override val memberName: String,
+        override val descriptor: String
+    ) : MemberInformation
 }
