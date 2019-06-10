@@ -30,7 +30,7 @@ class RuleValidator(
      * Apply the set of rules to the traversed class and record any violations.
      */
     override fun visitClass(clazz: ClassRepresentation): ClassRepresentation {
-        if (shouldBeProcessed(clazz.name)) {
+        if (shouldClassBeProcessed(clazz.name)) {
             val context = RuleContext(currentAnalysisContext())
             Processor.processEntriesOfType<ClassRule>(rules, analysisContext.messages) {
                 it.validate(context, clazz)
@@ -43,7 +43,7 @@ class RuleValidator(
      * Apply the set of rules to the traversed method and record any violations.
      */
     override fun visitMethod(clazz: ClassRepresentation, method: Member): Member {
-        if (shouldBeProcessed(clazz.name) && shouldBeProcessed(method.reference)) {
+        if (shouldClassBeProcessed(clazz.name) && shouldMemberBeProcessed(method.reference)) {
             val context = RuleContext(currentAnalysisContext())
             Processor.processEntriesOfType<MemberRule>(rules, analysisContext.messages) {
                 it.validate(context, method)
@@ -56,7 +56,7 @@ class RuleValidator(
      * Apply the set of rules to the traversed field and record any violations.
      */
     override fun visitField(clazz: ClassRepresentation, field: Member): Member {
-        if (shouldBeProcessed(clazz.name) && shouldBeProcessed(field.reference)) {
+        if (shouldClassBeProcessed(clazz.name) && shouldMemberBeProcessed(field.reference)) {
             val context = RuleContext(currentAnalysisContext())
             Processor.processEntriesOfType<MemberRule>(rules, analysisContext.messages) {
                 it.validate(context, field)
@@ -69,7 +69,7 @@ class RuleValidator(
      * Apply the set of rules to the traversed instruction and record any violations.
      */
     override fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {
-        if (shouldBeProcessed(method.className) && shouldBeProcessed(method.reference)) {
+        if (shouldClassBeProcessed(method.className) && shouldMemberBeProcessed(method.reference)) {
             val context = RuleContext(currentAnalysisContext())
             Processor.processEntriesOfType<InstructionRule>(rules, analysisContext.messages) {
                 it.validate(context, instruction)

@@ -97,9 +97,10 @@ open class Whitelist private constructor(
         private val minimumSet = setOf(
             "^java/lang/Class(\\..*)?\$".toRegex(),
             "^java/lang/ClassLoader(\\..*)?\$".toRegex(),
-            "^java/lang/Cloneable(\\..*)?\$".toRegex(),
+            "^java/lang/Cloneable\$".toRegex(),
             "^java/lang/Object(\\..*)?\$".toRegex(),
-            "^java/lang/Override(\\..*)?\$".toRegex(),
+            "^java/lang/Override\$".toRegex(),
+            "^java/lang/StrictMath\\.(?!random:).*\$".toRegex(),
             "^java/lang/Void\$".toRegex(),
             "^java/lang/invoke/LambdaMetafactory\$".toRegex(),
             "^java/lang/invoke/MethodHandles(\\\$.*)?\$".toRegex(),

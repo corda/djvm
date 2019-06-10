@@ -130,9 +130,16 @@ open class ClassAndMemberVisitor(
     /**
      * Check if a class should be processed or not.
      */
-    protected fun shouldBeProcessed(className: String): Boolean {
+    protected fun shouldClassBeProcessed(className: String): Boolean {
         return !configuration.whitelist.inNamespace(className) &&
                 !configuration.isPinnedClass(className)
+    }
+
+    /**
+     * Check if a member should be processed or not.
+     */
+    protected fun shouldMemberBeProcessed(memberReference: String): Boolean {
+        return !configuration.whitelist.inNamespace(memberReference)
     }
 
     /**
@@ -173,26 +180,32 @@ open class ClassAndMemberVisitor(
     }
 
     /**
-     * Record a reference to a class.
+     * Record a reference to a class (assuming that the class should be processed).
      */
     private fun recordTypeReference(type: String) {
-        val typeName = configuration.classModule
-                .normalizeClassName(type)
-                .replace("[]", "")
-        if (shouldBeProcessed(currentClass!!.name)) {
-            val classReference = ClassReference(typeName)
-            analysisContext.references.add(classReference, sourceLocation)
+        if (shouldClassBeProcessed(currentClass!!.name)) {
+            addTypeReference(type)
         }
     }
 
+    private fun addTypeReference(type: String) {
+        val typeName = configuration.classModule
+            .normalizeClassName(type)
+            .replace("[]", "")
+        val classReference = ClassReference(typeName)
+        analysisContext.references.add(classReference, sourceLocation)
+    }
+
     /**
-     * Record a reference to a class member.
+     * Record a reference to a class member (assuming that the member should be processed).
      */
     private fun recordMemberReference(owner: String, name: String, desc: String) {
-        if (shouldBeProcessed(currentClass!!.name)) {
-            recordTypeReference(owner)
+        if (shouldClassBeProcessed(currentClass!!.name)) {
             val memberReference = MemberReference(owner, name, desc)
-            analysisContext.references.add(memberReference, sourceLocation)
+            if (shouldMemberBeProcessed(memberReference.reference)) {
+                addTypeReference(owner)
+                analysisContext.references.add(memberReference, sourceLocation)
+            }
         }
     }
 
@@ -233,9 +246,11 @@ open class ClassAndMemberVisitor(
          * Post-processing of the traversed class.
          */
         override fun visitEnd() {
-            configuration.classModule
+            if (shouldClassBeProcessed(currentClass!!.name)) {
+                configuration.classModule
                     .getClassReferencesFromClass(currentClass!!, configuration.analyzeAnnotations)
-                    .forEach(::recordTypeReference)
+                    .forEach(::addTypeReference)
+            }
             captureExceptions {
                 visitClassEnd(this, currentClass!!)
             }
