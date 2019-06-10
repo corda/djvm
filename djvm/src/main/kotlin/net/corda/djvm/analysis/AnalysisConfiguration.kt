@@ -17,6 +17,7 @@ import java.io.Closeable
 import java.io.IOException
 import java.nio.charset.Charset
 import java.nio.file.Path
+import java.security.Security
 
 /**
  * The configuration to use for an analysis.
@@ -150,6 +151,8 @@ class AnalysisConfiguration private constructor(
             java.lang.ThreadLocal::class.java,
             java.lang.Throwable::class.java,
             java.security.AccessController::class.java,
+            java.util.concurrent.ConcurrentHashMap::class.java,
+            java.util.concurrent.ConcurrentHashMap.KeySetView::class.java,
             kotlin.Any::class.java,
             sun.misc.JavaLangAccess::class.java,
             sun.misc.SharedSecrets::class.java,
@@ -163,6 +166,7 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/DJVMException",
             "sandbox/java/lang/DJVMThrowableWrapper",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
+            "sandbox/java/util/concurrent/ConcurrentHashMap\$BaseEnumerator",
             "sandbox/sun/misc/SharedSecrets\$1",
             "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl"
         )
@@ -325,6 +329,18 @@ class AnalysisConfiguration private constructor(
                 override fun writeBody(emitter: EmitterModule) = with(emitter) {
                     invokeStatic("sandbox/java/util/Collections", "emptyIterator", descriptor)
                     returnObject()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            object : MethodBuilder(
+                access = ACC_STATIC or ACC_PRIVATE,
+                className = sandboxed(Security::class.java),
+                memberName = "initialize",
+                descriptor = "()V"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    returnVoid()
                 }
             }.withBody()
              .build()

@@ -84,7 +84,7 @@ open class ClassRewriter(
             return if (extraMethods.isEmpty() || mv == null) {
                 mv
             } else {
-                val idx = extraMethods.indexOfFirst { it.memberName == name && it.descriptor == descriptor && it.genericsDetails == signature }
+                val idx = extraMethods.indexOfFirst { it.memberName == name && it.descriptor == descriptor && it.genericsDetails.emptyAsNull == signature }
                 if (idx != -1) {
                     val replacement = extraMethods.removeAt(idx)
                     writeMethodBody(mv, replacement.body)
