@@ -100,6 +100,7 @@ open class Whitelist private constructor(
             "^java/lang/Cloneable\$".toRegex(),
             "^java/lang/Object(\\..*)?\$".toRegex(),
             "^java/lang/Override\$".toRegex(),
+            "^java/lang/StrictMath\\.(?!random:).*\$".toRegex(),
             "^java/lang/Void\$".toRegex(),
             "^java/lang/invoke/LambdaMetafactory\$".toRegex(),
             "^java/lang/invoke/MethodHandles(\\\$.*)?\$".toRegex(),
