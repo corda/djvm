@@ -19,6 +19,14 @@ public final class System extends Object {
         java.lang.System.arraycopy(src, srcPos, dest, destPos, length);
     }
 
+    public static String getProperty(String name, String defaultValue) {
+        return defaultValue;
+    }
+
+    public static String getProperty(String name) {
+        return null;
+    }
+
     @Nullable
     public static SecurityManager getSecurityManager() {
         return null;

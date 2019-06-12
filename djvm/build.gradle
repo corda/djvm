@@ -69,6 +69,7 @@ shadowJar {
     exclude 'sandbox/java/lang/StackTraceElement.class'
     exclude 'sandbox/java/lang/StringBuffer.class'
     exclude 'sandbox/java/lang/StringBuilder.class'
+    exclude 'sandbox/java/lang/ref/ReferenceQueue.class'
     exclude 'sandbox/java/nio/charset/Charset.class'
     exclude 'sandbox/java/nio/charset/spi/**'
     exclude 'sandbox/java/security/PrivilegedAction.class'

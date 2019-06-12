@@ -33,12 +33,8 @@ class SandboxCloneableTest extends TestBase {
         }
 
         @Override
-        public Soldier clone() {
-            try {
-                return (Soldier) super.clone();
-            } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
+        public Soldier clone() throws CloneNotSupportedException {
+            return (Soldier) super.clone();
         }
     }
 
@@ -46,7 +42,11 @@ class SandboxCloneableTest extends TestBase {
         @Override
         public String apply(String subjectName) {
             Soldier soldier = new Soldier(subjectName);
-            return soldier.clone().getName();
+            try {
+                return soldier.clone().getName();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
         }
     }
 
@@ -75,12 +75,8 @@ class SandboxCloneableTest extends TestBase {
         }
 
         @Override
-        public Jedi clone() {
-            try {
-                return (Jedi) super.clone();
-            } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
+        public Jedi clone() throws CloneNotSupportedException {
+            return (Jedi) super.clone();
         }
     }
 
@@ -88,7 +84,11 @@ class SandboxCloneableTest extends TestBase {
         @Override
         public String apply(String subjectName) {
             Jedi jedi = new Jedi(subjectName);
-            return jedi.clone().getName();
+            try {
+                return jedi.clone().getName();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
         }
     }
 }

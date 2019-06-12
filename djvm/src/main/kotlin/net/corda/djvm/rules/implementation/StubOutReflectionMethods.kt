@@ -1,25 +1,22 @@
 package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.analysis.AnalysisRuntimeContext
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.MemberDefinitionProvider
 import net.corda.djvm.references.Member
 import org.objectweb.asm.Opcodes.*
-import sandbox.net.corda.djvm.rules.RuleViolationError
 
 /**
  * Replace reflection APIs with stubs that throw exceptions. Only for unpinned classes.
  */
 object StubOutReflectionMethods : MemberDefinitionProvider {
+    private val ALLOWS_REFLECTION: Set<String> = setOf(
+        "java/lang/reflect/Modifier"
+    )
 
     override fun define(context: AnalysisRuntimeContext, member: Member): Member = when {
-        member.isMethod && isConcreteApi(member) && isReflection(member) -> member.copy(body = member.body + ::writeMethodBody)
+        member.isMethod && isConcreteApi(member) && isReflection(member) && !isAllowedFor(member)
+             -> member.copy(body = member.body + MemberRuleEnforcer(member)::forbidReflection)
         else -> member
-    }
-
-    private fun writeMethodBody(emitter: EmitterModule): Unit = with(emitter) {
-        lineNumber(0)
-        throwException<RuleViolationError>("Disallowed reference to reflection API")
     }
 
     // The method must be public and with a Java implementation.
@@ -31,4 +28,6 @@ object StubOutReflectionMethods : MemberDefinitionProvider {
                || member.className.startsWith("sun/reflect/")
                || member.className == "sun/misc/Unsafe"
     }
+
+    private fun isAllowedFor(member: Member): Boolean = member.className in ALLOWS_REFLECTION
 }

@@ -20,11 +20,10 @@ object StaticConstantRemover : MemberDefinitionProvider {
 
     class StringFieldInitializer(private val member: Member) {
         fun writeInitializer(emitter: EmitterModule): Unit = with(emitter) {
-            member.value?.apply {
-                loadConstant(this)
-                invokeStatic("sandbox/java/lang/String", "toDJVM", "(Ljava/lang/String;)Lsandbox/java/lang/String;", false)
-                putStatic(member.className, member.memberName, "Lsandbox/java/lang/String;")
-            }
+            val value = member.value ?: return
+            loadConstant(value)
+            invokeStatic("sandbox/java/lang/String", "toDJVM", "(Ljava/lang/String;)Lsandbox/java/lang/String;", false)
+            putStatic(member.className, member.memberName, "Lsandbox/java/lang/String;")
         }
     }
 }

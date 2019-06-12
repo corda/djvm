@@ -105,6 +105,7 @@ open class Whitelist private constructor(
             "^java/lang/invoke/LambdaMetafactory\$".toRegex(),
             "^java/lang/invoke/MethodHandles(\\\$.*)?\$".toRegex(),
             "^java/lang/reflect/Array(\\..*)?\$".toRegex(),
+            "^java/lang/reflect/Constructor(\\..*)?\$".toRegex(),
             "^java/io/Serializable\$".toRegex()
         )
 

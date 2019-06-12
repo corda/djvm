@@ -9,6 +9,7 @@ import net.corda.djvm.rules.implementation.*
 import org.objectweb.asm.Opcodes.ACC_ENUM
 import org.objectweb.asm.Type
 import sandbox.isEntryPoint
+import sandbox.java.util.Properties
 import sandbox.net.corda.djvm.rules.RuleViolationError
 
 private const val SANDBOX_PREFIX = "sandbox."
@@ -35,7 +36,7 @@ fun Any.sandbox(): Any {
         is kotlin.Boolean -> Boolean.toDJVM(this)
         is kotlin.Enum<*> -> toDJVMEnum()
         is kotlin.Throwable -> toDJVMThrowable()
-        is Array<*> -> toDJVMArray<Object>()
+        is Array<*> -> toDJVMArray()
         else -> this
     }
 }
@@ -94,7 +95,7 @@ internal fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(name.toSandboxPa
 @Throws(ClassNotFoundException::class)
 internal fun Class<*>.fromDJVMType(): Class<*> = loadSandboxClass(name.fromSandboxPackage())
 
-private fun loadSandboxClass(name: kotlin.String): Class<*> = Class.forName(name, false, SandboxRuntimeContext.instance.classLoader)
+private fun loadSandboxClass(name: kotlin.String): Class<*> = Class.forName(name, false, systemClassLoader)
 
 private fun kotlin.String.toSandboxPackage(): kotlin.String {
     return if (startsWith(SANDBOX_PREFIX)) {
@@ -112,12 +113,21 @@ private fun kotlin.String.fromSandboxPackage(): kotlin.String {
     }
 }
 
-private inline fun <reified T : Object> Array<*>.toDJVMArray(): Array<out T?> {
+private fun Array<*>.toDJVMArray(): Array<*> {
     @Suppress("unchecked_cast")
-    return (java.lang.reflect.Array.newInstance(javaClass.componentType.toDJVMType(), size) as Array<T?>).also {
+    return (java.lang.reflect.Array.newInstance(javaClass.componentType.toDJVMComponentType(), size) as Array<Any?>).also {
         for ((i, item) in withIndex()) {
-            it[i] = item?.sandbox() as T
+            it[i] = item?.sandbox()
         }
+    }
+}
+
+private fun Class<*>.toDJVMComponentType(): Class<*> {
+    return if (isArray || isAssignableFrom(java.io.Serializable::class.java) || isAssignableFrom(Cloneable::class.java)) {
+        // Serializable, Cloneable and array types don't have sandbox.* equivalents.
+        this
+    } else {
+        toDJVMType()
     }
 }
 
@@ -190,6 +200,21 @@ fun hashCode(obj: Any?): Int {
 }
 
 /**
+ * Ensure that all string constants refer to the same instance of [sandbox.java.lang.String].
+ * This isn't just an optimisation - the [String.intern] behaviour expects it!
+ */
+fun intern(s: kotlin.String): String {
+    return String.toDJVM(s).intern()
+}
+
+/**
+ * Replacement function for ClassLoader.getSystemClassLoader().
+ */
+val systemClassLoader: ClassLoader get() {
+    return SandboxRuntimeContext.instance.classLoader
+}
+
+/**
  * Replacement functions for Class<*>.forName(...) which protect
  * against users loading classes from outside the sandbox.
  */
@@ -201,6 +226,11 @@ fun classForName(className: kotlin.String): Class<*> {
 @Throws(ClassNotFoundException::class)
 fun classForName(className: kotlin.String, initialize: kotlin.Boolean, classLoader: ClassLoader): Class<*> {
     return Class.forName(toSandbox(className), initialize, classLoader)
+}
+
+@Throws(ClassNotFoundException::class)
+fun loadClass(classLoader: ClassLoader, className: kotlin.String): Class<*> {
+    return classLoader.loadClass(toSandbox(className))
 }
 
 /**
@@ -221,6 +251,19 @@ private val bannedClasses = setOf(
     "^net\\.corda\\.djvm\\..*\$".toRegex(),
     "^Task(.*)?\$".toRegex()
 )
+
+/**
+ * Security Providers.
+ */
+val securityProviders: Properties
+    get() = Properties().apply {
+        setDJVMProperty("security.provider.1", "sun.security.provider.Sun")
+        setDJVMProperty("security.provider.2", "sun.security.rsa.SunRsaSign")
+    }
+
+private fun Properties.setDJVMProperty(key: kotlin.String, value: kotlin.String) {
+    setProperty(String.toDJVM(key), String.toDJVM(value))
+}
 
 /**
  * Exception Management.

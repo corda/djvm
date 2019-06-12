@@ -14,7 +14,7 @@ object StringConstantWrapper : Emitter {
         if (instruction is ConstantInstruction) {
             when (instruction.value) {
                 is String -> {
-                    invokeStatic("sandbox/java/lang/String", "toDJVM", "(Ljava/lang/String;)Lsandbox/java/lang/String;", false)
+                    invokeStatic("sandbox/java/lang/DJVM", "intern", "(Ljava/lang/String;)Lsandbox/java/lang/String;", false)
                 }
             }
         }

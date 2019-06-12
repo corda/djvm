@@ -2,6 +2,10 @@ package sandbox.java.util;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This is a dummy class that implements just enough of {@link java.util.HashSet}
+ * to allow us to compile {@link sandbox.java.util.AbstractMap}.
+ */
 @SuppressWarnings("WeakerAccess")
 public class HashSet<T> extends sandbox.java.lang.Object implements Set<T> {
     private static final String UNSUPPORTED = "Dummy class - not implemented";
