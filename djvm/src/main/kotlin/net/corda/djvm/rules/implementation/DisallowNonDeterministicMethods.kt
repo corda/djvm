@@ -16,7 +16,7 @@ import sandbox.net.corda.djvm.rules.RuleViolationError
 object DisallowNonDeterministicMethods : Emitter {
 
     private const val CHARSET_PACKAGE = "sun/nio/cs/"
-    private const val SECURITY_PROVIDER_CONFIG = "sun/security/jca/ProviderConfig\$"
+    private const val SUN_SECURITY_PROVIDERS = "sun/security/jca/Provider"
     private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
     private val memberFormatter = MemberFormatter()
@@ -84,7 +84,7 @@ object DisallowNonDeterministicMethods : Emitter {
             }
 
             // These two are required to load security providers.
-            className.startsWith(SECURITY_PROVIDER_CONFIG) -> when {
+            className.startsWith(SUN_SECURITY_PROVIDERS) -> when {
                 hasClassReflection -> Choice.FORBID
                 else -> allowLoadClass()
             }

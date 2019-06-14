@@ -16,6 +16,7 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes.ACC_ABSTRACT
 
 /**
  * Functionality for rewriting parts of a class as it is being loaded.
@@ -80,17 +81,22 @@ open class ClassRewriter(
         }
 
         override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-            val mv = super.visitMethod(access, name, descriptor, signature, exceptions)
-            return if (extraMethods.isEmpty() || mv == null) {
-                mv
+            return if (extraMethods.isEmpty()) {
+                super.visitMethod(access, name, descriptor, signature, exceptions)
             } else {
                 val idx = extraMethods.indexOfFirst { it.memberName == name && it.descriptor == descriptor && it.genericsDetails.emptyAsNull == signature }
                 if (idx != -1) {
                     val replacement = extraMethods.removeAt(idx)
-                    writeMethodBody(mv, replacement.body)
+                    if (replacement.body.isNotEmpty() || (access and ACC_ABSTRACT) != 0) {
+                        // Replace an existing method, or delete it entirely if
+                        // the replacement has no method body and isn't abstract.
+                        super.visitMethod(access, name, descriptor, signature, exceptions)?.run {
+                            writeMethodBody(this, replacement.body)
+                        }
+                    }
                     null
                 } else {
-                    mv
+                    super.visitMethod(access, name, descriptor, signature, exceptions)
                 }
             }
         }

@@ -125,6 +125,15 @@ class EmitterModule(
     }
 
     /**
+     * Emit instruction for pushing a null object
+     * reference onto the stack.
+     */
+    fun pushNull() {
+        methodVisitor.visitInsn(ACONST_NULL)
+        hasEmittedCustomCode = true
+    }
+
+    /**
      * Emit instruction for pushing an integer value
      * from a register onto the stack.
      */

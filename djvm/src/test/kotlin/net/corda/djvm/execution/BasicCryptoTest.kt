@@ -4,6 +4,7 @@ import net.corda.djvm.TestBase
 import org.assertj.core.api.Assertions.assertThat
 import java.util.function.Function
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.*
@@ -109,6 +110,37 @@ class BasicCryptoTest : TestBase() {
     class ServiceAlgorithms : Function<String, Array<String>> {
         override fun apply(serviceName: String): Array<String> {
             return Security.getAlgorithms(serviceName).sorted().toTypedArray()
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = [ "SUN", "SunRsaSign" ])
+    fun `test no secure random for`(serviceName: String) = parentedSandbox {
+        val contractExecutor = DeterministicSandboxExecutor<String, Double>(configuration)
+        val exception = assertThrows<SandboxException> { contractExecutor.run<SecureRandomService>(serviceName) }
+        assertThat(exception)
+            .hasCauseExactlyInstanceOf(Exception::class.java)
+            .hasMessage("sandbox.java.security.NoSuchAlgorithmException -> $serviceName SecureRandom not available")
+    }
+
+    class SecureRandomService : Function<String, Double> {
+        override fun apply(serviceName: String): Double {
+            return SecureRandom.getInstance(serviceName).nextDouble()
+        }
+    }
+
+    @Test
+    fun `test secure random instance`() = parentedSandbox {
+        val contractExecutor = DeterministicSandboxExecutor<ByteArray?, Double>(configuration)
+        val exception = assertThrows<SandboxException> { contractExecutor.run<SecureRandomInstance>(null) }
+        assertThat(exception)
+            .hasCauseExactlyInstanceOf(UnsupportedOperationException::class.java)
+            .hasMessageContaining("Seed generation disabled")
+    }
+
+    class SecureRandomInstance : Function<ByteArray?, Double> {
+        override fun apply(seed: ByteArray?): Double {
+            return (seed ?.run(::SecureRandom) ?: SecureRandom()).nextDouble()
         }
     }
 }
