@@ -31,7 +31,7 @@ final class DJVMThrowableWrapper extends Throwable {
 
     @Override
     @NotNull
-    final protected java.lang.Throwable fromDJVM() {
+    protected final java.lang.Throwable fromDJVM() {
         return throwable;
     }
 }
