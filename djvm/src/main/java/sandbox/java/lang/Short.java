@@ -60,7 +60,7 @@ public final class Short extends Number implements Comparable<Short> {
 
     @Override
     @NotNull
-    java.lang.Short fromDJVM() {
+    protected java.lang.Short fromDJVM() {
         return value;
     }
 

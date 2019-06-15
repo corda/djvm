@@ -28,7 +28,7 @@ public abstract class Enum<E extends Enum<E>> extends Object implements Comparab
 
     @Override
     @NotNull
-    final java.lang.Enum<?> fromDJVM() {
+    final protected java.lang.Enum<?> fromDJVM() {
         throw new UnsupportedOperationException("Dummy implementation");
     }
 

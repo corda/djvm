@@ -287,7 +287,7 @@ class AnalysisConfiguration private constructor(
          */
         private val STITCHED_CLASSES: Map<String, List<Member>> = listOf(
             object : MethodBuilder(
-                access = ACC_FINAL,
+                access = ACC_FINAL or ACC_PROTECTED,
                 className = sandboxed(Enum::class.java),
                 memberName = "fromDJVM",
                 descriptor = "()Ljava/lang/Enum;",
@@ -302,7 +302,7 @@ class AnalysisConfiguration private constructor(
              .build(),
 
             object : MethodBuilder(
-                access = ACC_BRIDGE or ACC_SYNTHETIC,
+                access = ACC_BRIDGE or ACC_SYNTHETIC or ACC_PROTECTED,
                 className = sandboxed(Enum::class.java),
                 memberName = "fromDJVM",
                 descriptor = "()Ljava/lang/Object;"

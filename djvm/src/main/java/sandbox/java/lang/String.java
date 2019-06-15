@@ -187,7 +187,7 @@ public final class String extends Object implements Comparable<String>, CharSequ
 
     @Override
     @NotNull
-    java.lang.String fromDJVM() {
+    protected java.lang.String fromDJVM() {
         return value;
     }
 

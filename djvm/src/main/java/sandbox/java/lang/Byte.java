@@ -74,7 +74,7 @@ public final class Byte extends Number implements Comparable<Byte> {
 
     @Override
     @NotNull
-    java.lang.Byte fromDJVM() {
+    protected java.lang.Byte fromDJVM() {
         return value;
     }
 

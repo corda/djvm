@@ -50,7 +50,7 @@ public final class Float extends Number implements Comparable<Float> {
 
     @Override
     @NotNull
-    java.lang.Float fromDJVM() {
+    protected java.lang.Float fromDJVM() {
         return value;
     }
 
