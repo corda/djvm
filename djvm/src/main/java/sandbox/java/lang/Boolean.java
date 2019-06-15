@@ -59,7 +59,7 @@ public final class Boolean extends Object implements Comparable<Boolean>, Serial
 
     @Override
     @NotNull
-    java.lang.Boolean fromDJVM() {
+    protected java.lang.Boolean fromDJVM() {
         return value;
     }
 

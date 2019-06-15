@@ -22,7 +22,7 @@ public class Object {
     }
 
     @NotNull
-    java.lang.Object fromDJVM() {
+    protected java.lang.Object fromDJVM() {
         return this;
     }
 

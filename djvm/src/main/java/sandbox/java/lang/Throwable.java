@@ -160,7 +160,7 @@ public class Throwable extends Object implements Serializable {
 
     @Override
     @NotNull
-    java.lang.Throwable fromDJVM() {
+    protected java.lang.Throwable fromDJVM() {
         return DJVM.fromDJVM(this);
     }
 }

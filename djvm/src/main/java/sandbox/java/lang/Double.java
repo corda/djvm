@@ -88,7 +88,7 @@ public final class Double extends Number implements Comparable<Double> {
 
     @Override
     @NotNull
-    java.lang.Double fromDJVM() {
+    protected java.lang.Double fromDJVM() {
         return value;
     }
 

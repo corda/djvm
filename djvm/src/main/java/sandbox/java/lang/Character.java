@@ -114,7 +114,7 @@ public final class Character extends Object implements Comparable<Character>, Se
 
     @Override
     @NotNull
-    java.lang.Character fromDJVM() {
+    protected java.lang.Character fromDJVM() {
         return value;
     }
 

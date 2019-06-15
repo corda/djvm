@@ -78,7 +78,7 @@ public final class Long extends Number implements Comparable<Long> {
 
     @Override
     @NotNull
-    java.lang.Long fromDJVM() {
+    protected java.lang.Long fromDJVM() {
         return value;
     }
 

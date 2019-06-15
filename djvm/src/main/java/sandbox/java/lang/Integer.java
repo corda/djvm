@@ -82,7 +82,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 
     @Override
     @NotNull
-    java.lang.Integer fromDJVM() {
+    protected java.lang.Integer fromDJVM() {
         return value;
     }
 

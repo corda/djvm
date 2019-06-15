@@ -36,6 +36,7 @@ class SandboxConfiguration private constructor(
             AlwaysUseStrictFloatingPointArithmetic,
             DisallowDynamicInvocation,
             DisallowOverriddenSandboxPackage,
+            DisallowSandboxMethods,
             DisallowUnsupportedApiVersions
         ))
 
