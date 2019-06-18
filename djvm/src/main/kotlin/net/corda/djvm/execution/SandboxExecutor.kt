@@ -20,9 +20,11 @@ import java.lang.reflect.InvocationTargetException
  * the referenced code block should be returned to the caller.
  *
  * @property configuration The configuration of sandbox.
+ * @property validating Whether the sandbox should pre-validate the class before executing it.
  */
 open class SandboxExecutor<in TInput, out TOutput>(
-        protected val configuration: SandboxConfiguration
+        protected val configuration: SandboxConfiguration,
+        private val validating: Boolean
 ) {
 
     private val classModule = configuration.analysisConfiguration.classModule
@@ -64,10 +66,11 @@ open class SandboxExecutor<in TInput, out TOutput>(
         // parallel, caching any intermediate state and subsequently process enqueued sources in parallel batches as well.
         // Note that this would require some rework of the [IsolatedTask] and the class loader to bypass the limitation
         // of caching and state preserved in thread-local contexts.
-        val classSources = listOf(runnableClass)
-        val context = AnalysisContext.fromConfiguration(configuration.analysisConfiguration)
         val result = IsolatedTask(runnableClass.qualifiedClassName, configuration).run {
-            validate(context, classLoader, classSources)
+            if (validating) {
+                val context = AnalysisContext.fromConfiguration(configuration.analysisConfiguration)
+                validate(context, classLoader, listOf(runnableClass))
+            }
 
             // Load the "entry-point" task class into the sandbox. This task will marshall
             // the input and outputs between Java types and sandbox wrapper types.

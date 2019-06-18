@@ -56,7 +56,7 @@ class IsolatedTask(
                 else -> null
             }
         } ?: MessageCollection()
-        return Result(threadName, output, costs, messages, exception)
+        return Result(threadName, output, costs, messages.acceptProvisional(), exception)
     }
 
     /**

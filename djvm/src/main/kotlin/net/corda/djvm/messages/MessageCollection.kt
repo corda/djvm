@@ -76,9 +76,10 @@ class MessageCollection(
     /**
      * Accept all provisional messages.
      */
-    fun acceptProvisional() {
+    fun acceptProvisional(): MessageCollection {
         addAll(provisional)
         clearProvisional()
+        return this
     }
 
     /**
