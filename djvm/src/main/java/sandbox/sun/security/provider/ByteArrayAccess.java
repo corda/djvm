@@ -14,12 +14,12 @@ final class ByteArrayAccess extends sandbox.java.lang.Object {
         final int sourceEnd = sourceOffset + sourceSize;
         while (sourceOffset < sourceEnd) {
             target[targetOffset++] = (
-                (source[++sourceOffset] & 0xFF) |
-                (source[++sourceOffset] & 0xFF) << 8 |
-                (source[++sourceOffset] & 0xFF) << 16 |
-                (source[sourceOffset] & 0xFF) << 24
+                (source[sourceOffset] & 0xFF) |
+                (source[sourceOffset + 1] & 0xFF) << 8 |
+                (source[sourceOffset + 2] & 0xFF) << 16 |
+                (source[sourceOffset + 3] & 0xFF) << 24
             );
-            ++sourceOffset;
+            sourceOffset += Integer.BYTES;
         }
     }
 
@@ -69,11 +69,11 @@ final class ByteArrayAccess extends sandbox.java.lang.Object {
         while (sourceOffset < sourceEnd) {
             target[targetOffset++] = (
                 (source[sourceOffset] & 0xFF) << 24 |
-                (source[++sourceOffset] & 0xFF) << 16 |
-                (source[++sourceOffset] & 0xFF) << 8 |
-                (source[++sourceOffset] & 0xFF)
+                (source[sourceOffset + 1] & 0xFF) << 16 |
+                (source[sourceOffset + 2] & 0xFF) << 8 |
+                (source[sourceOffset + 3] & 0xFF)
             );
-            ++sourceOffset;
+            sourceOffset += Integer.BYTES;
         }
     }
 
@@ -123,15 +123,15 @@ final class ByteArrayAccess extends sandbox.java.lang.Object {
         while (sourceOffset < sourceEnd) {
             target[targetOffset++] = (
                 (long)(source[sourceOffset] & 0xFF) << 56 |
-                (long)(source[++sourceOffset] & 0xFF) << 48 |
-                (long)(source[++sourceOffset] & 0xFF) << 40 |
-                (long)(source[++sourceOffset] & 0xFF) << 32 |
-                (long)(source[++sourceOffset] & 0xFF) << 24 |
-                (long)(source[++sourceOffset] & 0xFF) << 16 |
-                (long)(source[++sourceOffset] & 0xFF) << 8 |
-                (long)(source[++sourceOffset] & 0xFF)
+                (long)(source[sourceOffset + 1] & 0xFF) << 48 |
+                (long)(source[sourceOffset + 2] & 0xFF) << 40 |
+                (long)(source[sourceOffset + 3] & 0xFF) << 32 |
+                (long)(source[sourceOffset + 4] & 0xFF) << 24 |
+                (long)(source[sourceOffset + 5] & 0xFF) << 16 |
+                (long)(source[sourceOffset + 6] & 0xFF) << 8 |
+                (long)(source[sourceOffset + 7] & 0xFF)
             );
-            ++sourceOffset;
+            sourceOffset += Long.BYTES;
         }
     }
 
