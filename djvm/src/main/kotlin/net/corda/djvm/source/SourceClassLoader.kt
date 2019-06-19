@@ -166,7 +166,16 @@ private val homeDirectory: Path
  * Does [name] exist within any of the packages reserved for Java itself?
  */
 private fun isJvmInternal(name: String): Boolean = name.startsWith("java/")
-        || name.startsWith("javax/")
-        || name.startsWith("com/sun/")
         || name.startsWith("sun/")
+        || name.startsWith("com/sun/")
+        || isJavaxInternal(name)
         || name.startsWith("jdk/")
+
+private fun isJavaxInternal(name: String): Boolean {
+    return name.startsWith("javax/") && name.substring("javax/".length).run {
+        startsWith("activation/")
+            || startsWith("crypto/")
+            || startsWith("security/")
+            || startsWith("xml/")
+    }
+}

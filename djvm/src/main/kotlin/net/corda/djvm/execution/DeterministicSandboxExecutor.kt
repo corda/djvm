@@ -14,7 +14,7 @@ import java.util.function.Function
  */
 class DeterministicSandboxExecutor<TInput, TOutput>(
         configuration: SandboxConfiguration
-) : SandboxExecutor<TInput, TOutput>(configuration) {
+) : SandboxExecutor<TInput, TOutput>(configuration, false) {
 
     /**
      * Short-hand for running a [Function] in a sandbox by its type reference.

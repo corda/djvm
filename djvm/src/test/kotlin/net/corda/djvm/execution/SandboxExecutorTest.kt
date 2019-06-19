@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test
 import sandbox.net.corda.djvm.costing.ThresholdViolationError
 import sandbox.net.corda.djvm.rules.RuleViolationError
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.function.Function
 import java.util.stream.Collectors.*
 
@@ -344,16 +345,16 @@ class SandboxExecutorTest : TestBase() {
 
     @Test
     fun `can load and execute code that uses IO`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<Int, Int>(configuration)
+        val contractExecutor = DeterministicSandboxExecutor<String, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestIO>(0) }
-                .withCauseInstanceOf(SandboxClassLoadingException::class.java)
-                .withMessageContaining("Class file not found; java/nio/file/Files.class")
+            .isThrownBy { contractExecutor.run<TestIO>("test.dat") }
+            .withCauseInstanceOf(SandboxClassLoadingException::class.java)
+            .withMessageContaining("Class file not found; java/nio/file/Paths.class")
     }
 
-    class TestIO : Function<Int, Int> {
-        override fun apply(input: Int): Int {
-            val file = Files.createTempFile("test", ".dat")
+    class TestIO : Function<String, Int> {
+        override fun apply(input: String): Int {
+            val file = Paths.get(input)
             Files.newBufferedWriter(file).use {
                 it.write("Hello world!")
             }

@@ -56,7 +56,7 @@ abstract class ClassCommand : CommandBase() {
 
     private lateinit var classLoader: ClassLoader
 
-    protected var executor = SandboxExecutor<Any, Any>(SandboxConfiguration.DEFAULT)
+    protected var executor = SandboxExecutor<Any, Any>(SandboxConfiguration.DEFAULT, validating = true)
 
     abstract fun processClasses(classes: List<Class<*>>)
 
@@ -194,7 +194,7 @@ abstract class ClassCommand : CommandBase() {
     }
 
     private fun createExecutor(configuration: SandboxConfiguration) {
-        executor = SandboxExecutor(configuration)
+        executor = SandboxExecutor(configuration, validating = true)
     }
 
     private fun <T> Boolean.emptyListIfTrueOtherwiseNull(): List<T>? = when (this) {
