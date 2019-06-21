@@ -62,6 +62,30 @@ class SandboxStringTest extends TestBase {
     }
 
     @Test
+    void testStringConstant() {
+        parentedSandbox(WARNING, true, ctx -> {
+            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            assertThat(WithJava.run(executor, StringConstant.class, "Wibble!").getResult())
+                .isEqualTo("Wibble!");
+            return null;
+        });
+    }
+
+    public static class StringConstant implements Function<String, String> {
+        @SuppressWarnings("all")
+        @Override
+        public String apply(String input) {
+            String constant = input.intern();
+            if (!constant.equals(input)) {
+                throw new IllegalArgumentException("String constant has wrong value: '" + constant + '\'');
+            } else if (constant != "Wibble!") {
+                throw new IllegalArgumentException("String constant has not been interned");
+            }
+            return constant;
+        }
+    }
+
+    @Test
     void encodeStringWithUnknownCharset() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<String, byte[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());

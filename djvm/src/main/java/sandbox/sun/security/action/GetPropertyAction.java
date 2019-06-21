@@ -13,7 +13,7 @@ public class GetPropertyAction extends sandbox.java.lang.Object implements Privi
     }
 
     public GetPropertyAction(String name) {
-        this(name, String.toDJVM(""));
+        this(name, null);
     }
 
     @Override

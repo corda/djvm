@@ -5,7 +5,6 @@ import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.MemberDefinitionProvider
 import net.corda.djvm.references.Member
 import org.objectweb.asm.Opcodes.*
-import sandbox.net.corda.djvm.rules.RuleViolationError
 import java.lang.reflect.Modifier
 
 /**
@@ -16,14 +15,9 @@ object StubOutNativeMethods : MemberDefinitionProvider {
     override fun define(context: AnalysisRuntimeContext, member: Member) = when {
         member.isMethod && isNative(member) -> member.copy(
             access = member.access and ACC_NATIVE.inv(),
-            body = member.body + if (isForStubbing(member)) ::writeStubMethodBody else ::writeExceptionMethodBody
+            body = member.body + if (isForStubbing(member)) ::writeStubMethodBody else MemberRuleEnforcer(member)::forbidNativeMethod
         )
         else -> member
-    }
-
-    private fun writeExceptionMethodBody(emitter: EmitterModule): Unit = with(emitter) {
-        lineNumber(0)
-        throwException<RuleViolationError>("Native method has been deleted")
     }
 
     private fun writeStubMethodBody(emitter: EmitterModule): Unit = with(emitter) {

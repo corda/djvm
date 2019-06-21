@@ -38,7 +38,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
      * Run a set of actions within the provided sandbox context.
      */
     fun use(action: SandboxRuntimeContext.() -> Unit) {
-        SandboxRuntimeContext.instance = this
+        instance = this
         try {
             action(this)
         } finally {

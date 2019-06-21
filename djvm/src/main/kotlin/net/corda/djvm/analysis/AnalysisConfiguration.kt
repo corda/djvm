@@ -15,8 +15,12 @@ import org.objectweb.asm.Type
 import sandbox.net.corda.djvm.costing.RuntimeCostAccounter
 import java.io.Closeable
 import java.io.IOException
+import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.nio.file.Path
+import java.security.SecureRandom
+import java.security.Security
+import java.util.Random
 
 /**
  * The configuration to use for an analysis.
@@ -149,7 +153,11 @@ class AnalysisConfiguration private constructor(
             java.lang.System::class.java,
             java.lang.ThreadLocal::class.java,
             java.lang.Throwable::class.java,
+            java.lang.ref.Reference::class.java,
             java.security.AccessController::class.java,
+            java.util.concurrent.ConcurrentHashMap::class.java,
+            java.util.concurrent.ConcurrentHashMap.KeySetView::class.java,
+            java.util.concurrent.atomic.AtomicLong::class.java,
             kotlin.Any::class.java,
             sun.misc.JavaLangAccess::class.java,
             sun.misc.SharedSecrets::class.java,
@@ -163,8 +171,10 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/DJVMException",
             "sandbox/java/lang/DJVMThrowableWrapper",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
+            "sandbox/java/util/concurrent/ConcurrentHashMap\$BaseEnumerator",
             "sandbox/sun/misc/SharedSecrets\$1",
-            "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl"
+            "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl",
+            "sandbox/sun/security/provider/ByteArrayAccess"
         )
 
         /**
@@ -284,6 +294,9 @@ class AnalysisConfiguration private constructor(
         /**
          * These classes have methods replaced or extra ones added when mapped into the sandbox.
          * THIS IS FOR THE BENEFIT OF [sandbox.java.lang.Enum] AND [sandbox.java.nio.charset.Charset].
+         *
+         * The Java Security mechanisms also require some careful surgery to prevent them from
+         * trying to invoke [sun.misc.Unsafe] and other assorted native methods.
          */
         private val STITCHED_CLASSES: Map<String, List<Member>> = listOf(
             object : MethodBuilder(
@@ -324,6 +337,51 @@ class AnalysisConfiguration private constructor(
             ) {
                 override fun writeBody(emitter: EmitterModule) = with(emitter) {
                     invokeStatic("sandbox/java/util/Collections", "emptyIterator", descriptor)
+                    returnObject()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            object : MethodBuilder(
+                access = ACC_STATIC or ACC_PRIVATE,
+                className = sandboxed(Security::class.java),
+                memberName = "initialize",
+                descriptor = "()V"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    invokeStatic("sandbox/java/lang/DJVM", "getSecurityProviders", "()Lsandbox/java/util/Properties;")
+                    putStatic(className, "props", "Lsandbox/java/util/Properties;")
+                    returnVoid()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            // This method will be deleted.
+            Member(
+                access = ACC_STATIC,
+                className = sandboxed(Modifier::class.java),
+                memberName = "<clinit>",
+                descriptor = "()V",
+                genericsDetails = ""
+            )
+        ).mapByClassName() + listOf(
+            // This method will be deleted.
+            Member(
+                access = ACC_STATIC,
+                className = sandboxed(Random::class.java),
+                memberName = "<clinit>",
+                descriptor = "()V",
+                genericsDetails = ""
+            )
+        ).mapByClassName() + listOf(
+            object : MethodBuilder(
+                access = ACC_PRIVATE or ACC_STATIC,
+                className = sandboxed(SecureRandom::class.java),
+                memberName = "getPrngAlgorithm",
+                descriptor = "()Lsandbox/java/lang/String;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushNull()
                     returnObject()
                 }
             }.withBody()

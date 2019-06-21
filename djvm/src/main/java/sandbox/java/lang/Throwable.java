@@ -69,11 +69,13 @@ public class Throwable extends Object implements Serializable {
 
     public Throwable initCause(Throwable cause) {
         if (this.cause != this) {
+            // DO NOT INVOKE Throwable.fromDJVM() here in case someone manages to override it!
             throw new java.lang.IllegalStateException(
-                    "Can't overwrite cause with " + java.util.Objects.toString(cause, "a null"), fromDJVM());
+                "Can't overwrite cause with " + java.util.Objects.toString(cause, "a null"), DJVM.fromDJVM(this));
         }
         if (cause == this) {
-            throw new java.lang.IllegalArgumentException("Self-causation not permitted", fromDJVM());
+            // DO NOT INVOKE Throwable.fromDJVM() here in case someone manages to override it!
+            throw new java.lang.IllegalArgumentException("Self-causation not permitted", DJVM.fromDJVM(this));
         }
         this.cause = cause;
         return this;

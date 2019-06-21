@@ -69,10 +69,14 @@ shadowJar {
     exclude 'sandbox/java/lang/StackTraceElement.class'
     exclude 'sandbox/java/lang/StringBuffer.class'
     exclude 'sandbox/java/lang/StringBuilder.class'
+    exclude 'sandbox/java/lang/ref/ReferenceQueue.class'
     exclude 'sandbox/java/nio/charset/Charset.class'
     exclude 'sandbox/java/nio/charset/spi/**'
     exclude 'sandbox/java/security/PrivilegedAction.class'
-    exclude 'sandbox/java/util/**'
+    exclude 'sandbox/java/util/concurrent/ConcurrentMap.class'
+    exclude 'sandbox/java/util/concurrent/ConcurrentHashMap\$CollectionView.class'
+    exclude 'sandbox/java/util/function/**'
+    exclude 'sandbox/java/util/*.class'
 }
 assemble.dependsOn shadowJar
 
