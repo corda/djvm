@@ -1,5 +1,6 @@
 package net.corda.djvm.execution
 
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
@@ -10,7 +11,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.nio.charset.Charset
 import java.util.function.Function
 
-class SandboxCharsetTest : TestBase() {
+class SandboxCharsetTest : TestBase(KOTLIN) {
     companion object {
         const val MESSAGE = "Hello World!"
     }

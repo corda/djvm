@@ -20,7 +20,6 @@ import net.corda.djvm.rules.Rule
 import net.corda.djvm.rules.implementation.*
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.ClassSource
-import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.validation.RuleValidator
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -30,14 +29,16 @@ import org.junit.jupiter.api.fail
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Type
+import java.io.File
 import java.lang.reflect.InvocationTargetException
+import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections.unmodifiableList
 import kotlin.concurrent.thread
 import kotlin.reflect.jvm.jvmName
 
-abstract class TestBase {
+abstract class TestBase(type: SandboxType) {
 
     companion object {
 
@@ -72,6 +73,10 @@ abstract class TestBase {
         val DETERMINISTIC_RT: Path = Paths.get(
                 System.getProperty("deterministic-rt.path") ?: fail("deterministic-rt.path property not set"))
 
+        @JvmField
+        val TESTING_LIBRARIES: List<Path> = (System.getProperty("sandbox-libraries.path") ?: fail("sandbox-libraries.path property not set"))
+            .split(File.pathSeparator).map { Paths.get(it) }
+
         private lateinit var parentConfiguration: SandboxConfiguration
         lateinit var parentClassLoader: SandboxClassLoader
 
@@ -84,11 +89,9 @@ abstract class TestBase {
         @JvmStatic
         fun setupParentClassLoader() {
             val rootConfiguration = AnalysisConfiguration.createRoot(
+                emptyList(),
                 Whitelist.MINIMAL,
                 bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT),
-                sourceClassLoaderFactory = { classResolver, bootstrapClassLoader ->
-                    SourceClassLoader(classResolver,  bootstrapClassLoader!!)
-                },
                 additionalPinnedClasses = setOf(
                     Utilities::class.java
                 ).map(Type::getInternalName).toSet()
@@ -111,10 +114,16 @@ abstract class TestBase {
         }
     }
 
+    val classPaths: List<Path> = when(type) {
+        SandboxType.KOTLIN -> TESTING_LIBRARIES
+        SandboxType.JAVA -> TESTING_LIBRARIES.filter { isDirectory(it) }
+    }
+
     /**
      * Default analysis configuration.
      */
     val configuration = AnalysisConfiguration.createRoot(
+        classPaths,
         Whitelist.MINIMAL,
         bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
     )
@@ -139,6 +148,7 @@ abstract class TestBase {
     ) {
         val reader = ClassReader(T::class.java.name)
         AnalysisConfiguration.createRoot(
+            classPaths,
             minimumSeverityLevel = minimumSeverityLevel,
             bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
         ).use { analysisConfiguration ->
@@ -186,6 +196,7 @@ abstract class TestBase {
             try {
                 val pinnedTestClasses = pinnedClasses.map(Type::getInternalName).toSet()
                 AnalysisConfiguration.createRoot(
+                    classPaths = classPaths,
                     whitelist = whitelist,
                     additionalPinnedClasses = pinnedTestClasses,
                     minimumSeverityLevel = minimumSeverityLevel,
@@ -219,6 +230,7 @@ abstract class TestBase {
         thread {
             try {
                 parentConfiguration.analysisConfiguration.createChild(
+                    classPaths = classPaths,
                     newMinimumSeverityLevel = minimumSeverityLevel
                 ).use { analysisConfiguration ->
                     SandboxRuntimeContext(SandboxConfiguration.of(

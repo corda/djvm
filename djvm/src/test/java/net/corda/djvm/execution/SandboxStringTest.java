@@ -4,6 +4,7 @@ import net.corda.djvm.TestBase;
 
 import static java.util.Arrays.*;
 import static java.util.stream.Collectors.joining;
+import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,6 +25,10 @@ import java.util.stream.StreamSupport;
 class SandboxStringTest extends TestBase {
     private static final String UNICODE_MESSAGE = "Goodbye, Cruel World! \u1F4A9";
     private static final String HELLO_WORLD = "Hello World!";
+
+    SandboxStringTest() {
+        super(JAVA);
+    }
 
     @Test
     void testJoiningIterableInsideSandbox() {

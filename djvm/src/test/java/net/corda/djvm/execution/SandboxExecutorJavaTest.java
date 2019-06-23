@@ -9,11 +9,16 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.Collections.singleton;
+import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class SandboxExecutorJavaTest extends TestBase {
     private static final int TX_ID = 101;
+
+    SandboxExecutorJavaTest() {
+        super(JAVA);
+    }
 
     @Test
     void testTransaction() {

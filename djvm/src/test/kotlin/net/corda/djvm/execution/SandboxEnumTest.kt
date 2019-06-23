@@ -1,12 +1,13 @@
 package net.corda.djvm.execution
 
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.*
 import java.util.function.Function
 
-class SandboxEnumTest : TestBase() {
+class SandboxEnumTest : TestBase(KOTLIN) {
     @Test
     fun `test enum inside sandbox`() = parentedSandbox {
         val contractExecutor = DeterministicSandboxExecutor<Int, Array<String>>(configuration)
@@ -79,8 +80,4 @@ class UseEnumSet : Function<ExampleEnum, Boolean> {
     override fun apply(input: ExampleEnum): Boolean {
         return EnumSet.allOf(ExampleEnum::class.java).contains(input)
     }
-}
-
-enum class ExampleEnum {
-    ONE, TWO, THREE
 }

@@ -1,10 +1,11 @@
 package net.corda.djvm.analysis
 
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class WhitelistTest : TestBase() {
+class WhitelistTest : TestBase(KOTLIN) {
 
     @Test
     fun `can determine when a class is whitelisted when namespace is covered`() {

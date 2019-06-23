@@ -1,5 +1,6 @@
 package net.corda.djvm.analysis
 
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.annotations.NonDeterministic
 import net.corda.djvm.assertions.AssertionExtensions.hasClass
@@ -16,7 +17,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 @Suppress("unused")
-class ClassAndMemberVisitorTest : TestBase() {
+class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
 
     @Test
     fun `can traverse classes`() {

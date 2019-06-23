@@ -1,12 +1,13 @@
 package net.corda.djvm
 
+import net.corda.djvm.SandboxType.KOTLIN
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import sandbox.java.lang.sandbox
 import java.text.DecimalFormatSymbols
 
-class DJVMTest : TestBase() {
+class DJVMTest : TestBase(KOTLIN) {
 
     @Test
     fun testDJVMString() {

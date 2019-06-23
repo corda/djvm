@@ -1,6 +1,7 @@
 package net.corda.djvm.rewiring
 
 import foo.bar.sandbox.*
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import net.corda.djvm.execution.ExecutionProfile
@@ -10,7 +11,7 @@ import sandbox.net.corda.djvm.costing.ThresholdViolationError
 import java.nio.file.Paths
 import java.util.*
 
-class ClassRewriterTest : TestBase() {
+class ClassRewriterTest : TestBase(KOTLIN) {
 
     @Test
     fun `empty transformer does nothing`() = sandbox(BLANK) {

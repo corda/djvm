@@ -1,5 +1,6 @@
 package net.corda.djvm
 
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.assertions.AssertionExtensions.assertThatDJVM
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import org.assertj.core.api.Assertions.assertThat
@@ -9,7 +10,7 @@ import sandbox.SandboxFunction
 import sandbox.Task
 import java.util.*
 
-class DJVMExceptionTest : TestBase() {
+class DJVMExceptionTest : TestBase(KOTLIN) {
     @Test
     fun testSingleException() = parentedSandbox {
         val result = Task(SingleExceptionTask()).apply("Hello World")

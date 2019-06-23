@@ -3,10 +3,10 @@ package net.corda.djvm.execution
 import foo.bar.sandbox.MyObject
 import foo.bar.sandbox.testClock
 import foo.bar.sandbox.toNumber
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
+import net.corda.djvm.Utilities.*
 import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
-import net.corda.djvm.Utilities.throwRuleViolationError
-import net.corda.djvm.Utilities.throwThresholdViolationError
 import net.corda.djvm.assertions.AssertionExtensions.withProblem
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import org.assertj.core.api.Assertions.assertThat
@@ -19,7 +19,7 @@ import java.nio.file.Paths
 import java.util.function.Function
 import java.util.stream.Collectors.*
 
-class SandboxExecutorTest : TestBase() {
+class SandboxExecutorTest : TestBase(KOTLIN) {
 
     @Test
     fun `can load and execute runnable`() = sandbox(MINIMAL) {
@@ -203,6 +203,7 @@ class SandboxExecutorTest : TestBase() {
         override fun apply(input: Int): Int {
             return try {
                 throwThresholdViolationError()
+                Int.MIN_VALUE // Should not reach here
             } catch (exception: ThresholdViolationError) {
                 1
             }
@@ -226,6 +227,7 @@ class SandboxExecutorTest : TestBase() {
         override fun apply(input: Int): Int {
             return try {
                 throwRuleViolationError()
+                Int.MIN_VALUE // Should not reach here
             } catch (exception: RuleViolationError) {
                 1
             }

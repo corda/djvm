@@ -7,7 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import sandbox.net.corda.djvm.rules.RuleViolationError;
 
-import static net.corda.djvm.Utilities.CANNOT_CATCH;
+import static net.corda.djvm.SandboxType.JAVA;
+import static net.corda.djvm.Utilities.*;
 import static net.corda.djvm.messages.Severity.*;
 
 import java.io.*;
@@ -23,6 +24,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SandboxThrowableJavaTest extends TestBase {
+    SandboxThrowableJavaTest() {
+        super(JAVA);
+    }
 
     @Test
     void testUserExceptionHandling() {
@@ -225,7 +229,7 @@ class SandboxThrowableJavaTest extends TestBase {
                 if (!input.isEmpty()) {
                     throw new MyExampleException(input);
                 } else {
-                    Utilities.throwRuleViolationError();
+                    throwRuleViolationError();
                     return "FAIL";
                 }
             } catch (MyExampleException | ThreadDeath e) {

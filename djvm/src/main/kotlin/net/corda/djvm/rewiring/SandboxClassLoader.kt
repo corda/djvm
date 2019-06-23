@@ -210,8 +210,8 @@ class SandboxClassLoader private constructor(
             logger.trace("Class {} already loaded", request.qualifiedClassName)
             return loadedClass
         } else if (analysisConfiguration.isPinnedClass(requestedPath)) {
-            logger.debug("Class {} is loaded unmodified", request.qualifiedClassName)
-            return loadUnmodifiedClass(requestedPath)
+            logger.error("Class {} should not be loaded here", request.qualifiedClassName)
+            throw SandboxClassLoadingException(context)
         }
 
         val byteCode = if (analysisConfiguration.isTemplateClass(requestedPath)) {
@@ -265,12 +265,6 @@ class SandboxClassLoader private constructor(
     private fun loadUnmodifiedByteCode(internalClassName: String): ByteCode {
         return ByteCode((getSystemClassLoader().getResourceAsStream("$internalClassName.class")
                 ?: throw ClassNotFoundException(internalClassName)).readBytes(), false)
-    }
-
-    private fun loadUnmodifiedClass(className: String): LoadedClass {
-        return LoadedClass(supportingClassLoader.loadClass(className), UNMODIFIED).apply {
-            loadedClasses[className] = this
-        }
     }
 
     /**

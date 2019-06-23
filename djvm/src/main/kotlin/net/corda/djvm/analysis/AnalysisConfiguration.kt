@@ -82,7 +82,7 @@ class AnalysisConfiguration private constructor(
      * The child inherits the same [whitelist], [pinnedClasses] and [bootstrapClassLoader].
      */
     fun createChild(
-        classPaths: List<Path> = emptyList(),
+        classPaths: List<Path>,
         newMinimumSeverityLevel: Severity?
     ): AnalysisConfiguration {
         return AnalysisConfiguration(
@@ -397,6 +397,7 @@ class AnalysisConfiguration private constructor(
          * @see [AnalysisConfiguration]
          */
         fun createRoot(
+            classPaths: List<Path>,
             whitelist: Whitelist = Whitelist.MINIMAL,
             additionalPinnedClasses: Set<String> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
@@ -404,10 +405,7 @@ class AnalysisConfiguration private constructor(
             prefixFilters: List<String> = emptyList(),
             classModule: ClassModule = ClassModule(),
             memberModule: MemberModule = MemberModule(),
-            bootstrapClassLoader: BootstrapClassLoader? = null,
-            sourceClassLoaderFactory: (ClassResolver, BootstrapClassLoader?) -> SourceClassLoader = { classResolver, bootstrapCL ->
-                SourceClassLoader(emptyList(), classResolver, bootstrapCL)
-            }
+            bootstrapClassLoader: BootstrapClassLoader? = null
         ): AnalysisConfiguration {
             val pinnedClasses = MANDATORY_PINNED_CLASSES + additionalPinnedClasses
             val classResolver = ClassResolver(pinnedClasses, TEMPLATE_CLASSES, whitelist, SANDBOX_PREFIX)
@@ -423,7 +421,7 @@ class AnalysisConfiguration private constructor(
                 classModule = classModule,
                 memberModule = memberModule,
                 bootstrapClassLoader = bootstrapClassLoader,
-                supportingClassLoader = sourceClassLoaderFactory(classResolver, bootstrapClassLoader),
+                supportingClassLoader = SourceClassLoader(classPaths, classResolver, bootstrapClassLoader),
                 isRootConfiguration = true
             )
         }

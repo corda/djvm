@@ -1,13 +1,14 @@
 package net.corda.djvm.rules
 
 import foo.bar.sandbox.Callable
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import org.junit.jupiter.api.Test
 import org.objectweb.asm.Type
 import java.util.*
 
-class ReferenceExtractorTest : TestBase() {
+class ReferenceExtractorTest : TestBase(KOTLIN) {
 
     class A : Callable {
         override fun call() {
