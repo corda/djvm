@@ -45,6 +45,7 @@ task shadowZip(type: Zip) {
     archiveBaseName = djvmName
     archiveClassifier = ''
 
+    from(rootProject.file('LICENSE'))
     from(shadowJar) {
         rename "$djvmName-(.*).jar", "${djvmName}.jar"
     }
