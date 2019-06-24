@@ -268,7 +268,7 @@ class SandboxClassLoader private constructor(
     }
 
     private fun loadUnmodifiedByteCode(internalClassName: String): ByteCode {
-        return ByteCode((getSystemClassLoader().getResourceAsStream("$internalClassName.class")
+        return ByteCode((getSystemResourceAsStream("$internalClassName.class")
                 ?: throw ClassNotFoundException(internalClassName)).readBytes(), false)
     }
 
