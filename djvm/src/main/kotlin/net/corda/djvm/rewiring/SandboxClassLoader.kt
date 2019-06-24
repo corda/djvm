@@ -139,8 +139,13 @@ class SandboxClassLoader private constructor(
                 }
             }
 
-            if (clazz == null && isSandboxClass) {
-                clazz = loadSandboxClass(source, context).type
+            if (clazz == null) {
+                if (isSandboxClass) {
+                    clazz = loadSandboxClass(source, context).type
+                } else {
+                    // We shouldn't reach here, but this function should never return null.
+                    throw ClassNotFoundException(name)
+                }
             }
         }
         if (resolve) {
