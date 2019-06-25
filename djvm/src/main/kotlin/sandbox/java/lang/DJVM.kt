@@ -42,7 +42,7 @@ fun Any.sandbox(): Any {
 }
 
 fun kotlin.Throwable.escapeSandbox(): kotlin.Throwable {
-    val sandboxed = (this as? DJVMException)?.getThrowable() ?: sandboxedExceptions.remove(this)
+    val sandboxed = (this as? DJVMException)?.throwable ?: sandboxedExceptions.remove(this)
     return sandboxed?.escapeSandbox() ?: sanitise()
 }
 
@@ -336,7 +336,7 @@ private fun <T: kotlin.Throwable> T.sanitise(): T {
  * Worker functions to convert [java.lang.Throwable] into [sandbox.java.lang.Throwable].
  */
 private fun kotlin.Throwable.toDJVMThrowable(): Throwable {
-    return (this as? DJVMException)?.getThrowable() ?:
+    return (this as? DJVMException)?.throwable ?:
                sandboxedExceptions.remove(this) ?:
                javaClass.toDJVMType().createDJVMThrowable(this)
 }

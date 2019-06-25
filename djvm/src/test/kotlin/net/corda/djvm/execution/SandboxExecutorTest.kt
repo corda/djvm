@@ -12,6 +12,8 @@ import net.corda.djvm.rewiring.SandboxClassLoadingException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import sandbox.net.corda.djvm.costing.ThresholdViolationError
 import sandbox.net.corda.djvm.rules.RuleViolationError
 import java.nio.file.Files
@@ -615,13 +617,22 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         }
     }
 
-    @Test
-    fun `users cannot load our sandboxed classes`() = parentedSandbox {
+    @ParameterizedTest
+    @ValueSource(strings = [
+        "java.lang.DJVM",
+        "java.lang.DJVMException",
+        "java.lang.DJVMThrowableWrapper"
+    ])
+    fun `users cannot load our sandboxed classes`(className: String) = parentedSandbox {
+        // Show the class exists to be found.
+        assertThat(Class.forName("sandbox.$className")).isNotNull
+
+        // Show the class cannot be loaded from the sandbox.
         val contractExecutor = DeterministicSandboxExecutor<String, Class<*>>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestClassForName>("java.lang.DJVM") }
-                .withCauseInstanceOf(ClassNotFoundException::class.java)
-                .withMessageContaining("java.lang.DJVM")
+            .isThrownBy { contractExecutor.run<TestClassForName>(className) }
+            .withCauseInstanceOf(ClassNotFoundException::class.java)
+            .withMessageContaining(className)
     }
 
     @Test
