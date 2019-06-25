@@ -10,7 +10,7 @@ import java.util.function.Function
 
 class KotlinNeedsKotlinTest : TestBase(JAVA) {
     @Test
-    fun `kotlin codes needs kotlin libraries`() = parentedSandbox {
+    fun `kotlin code needs kotlin libraries`() = parentedSandbox {
         val contractExecutor = DeterministicSandboxExecutor<String, String>(configuration)
         val exception = assertThrows<SandboxException> {
             contractExecutor.run<UseKotlinForSomething>("Hello Kotlin!")
