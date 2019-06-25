@@ -47,20 +47,25 @@ object RewriteClassMethods : Emitter {
                     preventDefault()
                 }
 
-                INVOKESTATIC -> if (isClassForName(instruction)) {
-                    invokeStatic(
-                        owner = "sandbox/java/lang/DJVM",
-                        name = "classForName",
-                        descriptor = instruction.descriptor
-                    )
-                    preventDefault()
+                INVOKESTATIC -> if (instruction.memberName == "forName") {
+                    if (instruction.descriptor == "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;") {
+                        invokeStatic(
+                            owner = "sandbox/java/lang/DJVM",
+                            name = "classForName",
+                            descriptor = instruction.descriptor
+                        )
+                        preventDefault()
+                    } else if (instruction.descriptor == "(Ljava/lang/String;)Ljava/lang/Class;") {
+                        // Map the class name into the sandbox namespace, but still invoke
+                        // Class.forName(String) here so that it uses the caller's classloader.
+                        invokeStatic(
+                            owner = "sandbox/java/lang/DJVM",
+                            name = "toSandbox",
+                            descriptor = "(Ljava/lang/String;)Ljava/lang/String;"
+                        )
+                    }
                 }
             }
         }
     }
-
-    private fun isClassForName(instruction: MemberAccessInstruction): Boolean
-        = instruction.memberName == "forName" &&
-            (instruction.descriptor == "(Ljava/lang/String;)Ljava/lang/Class;" ||
-                    instruction.descriptor == "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;")
 }

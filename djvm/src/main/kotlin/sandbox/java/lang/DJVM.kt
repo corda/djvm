@@ -215,14 +215,9 @@ val systemClassLoader: ClassLoader get() {
 }
 
 /**
- * Replacement functions for Class<*>.forName(...) which protect
+ * Replacement function for Class<*>.forName(String, boolean, ClassLoader) which protects
  * against users loading classes from outside the sandbox.
  */
-@Throws(ClassNotFoundException::class)
-fun classForName(className: kotlin.String): Class<*> {
-    return Class.forName(toSandbox(className))
-}
-
 @Throws(ClassNotFoundException::class)
 fun classForName(className: kotlin.String, initialize: kotlin.Boolean, classLoader: ClassLoader): Class<*> {
     return Class.forName(toSandbox(className), initialize, classLoader)
@@ -239,7 +234,8 @@ fun loadClass(classLoader: ClassLoader, className: kotlin.String): Class<*> {
  * return the resulting sandbox class. E.g. for any of our own
  * internal classes.
  */
-private fun toSandbox(className: kotlin.String): kotlin.String {
+@Throws(ClassNotFoundException::class)
+fun toSandbox(className: kotlin.String): kotlin.String {
     if (bannedClasses.any { it.matches(className) }) {
         throw ClassNotFoundException(className).sanitise()
     }
