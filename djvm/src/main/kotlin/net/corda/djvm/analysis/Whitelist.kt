@@ -95,18 +95,20 @@ open class Whitelist private constructor(
         private val everythingRegex = setOf(".*".toRegex())
 
         private val minimumSet = setOf(
+            "^java/lang/AutoCloseable(\\..*)\$".toRegex(),
             "^java/lang/Class(\\..*)?\$".toRegex(),
             "^java/lang/ClassLoader(\\..*)?\$".toRegex(),
             "^java/lang/Cloneable\$".toRegex(),
             "^java/lang/Object(\\..*)?\$".toRegex(),
-            "^java/lang/Override\$".toRegex(),
             "^java/lang/StrictMath\\.(?!random:).*\$".toRegex(),
             "^java/lang/Void\$".toRegex(),
             "^java/lang/invoke/LambdaMetafactory\$".toRegex(),
             "^java/lang/invoke/MethodHandles(\\\$.*)?\$".toRegex(),
             "^java/lang/reflect/Array(\\..*)?\$".toRegex(),
             "^java/lang/reflect/Constructor(\\..*)?\$".toRegex(),
-            "^java/io/Serializable\$".toRegex()
+            "^java/io/Closeable(\\..*)\$".toRegex(),
+            "^java/io/Serializable\$".toRegex(),
+            "^java/util/concurrent/atomic/Atomic(Integer|Long|Reference)FieldUpdater\\.newUpdater:.*\$".toRegex()
         )
 
         /**

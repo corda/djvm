@@ -1,5 +1,6 @@
 package net.corda.djvm.rules.implementation
 
+import net.corda.djvm.code.EMIT_BEFORE_INVOKE
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
@@ -13,8 +14,10 @@ import net.corda.djvm.code.instructions.MemberAccessInstruction
  * theoretically arbitrary. However, in practice WE control the whitelist.
  */
 object ArgumentUnwrapper : Emitter {
+    override val priority: Int = EMIT_BEFORE_INVOKE
+
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
-        if (instruction is MemberAccessInstruction && context.whitelist.matches(instruction.owner)) {
+        if (instruction is MemberAccessInstruction && context.whitelist.matches(instruction.reference)) {
             fun unwrapString() = invokeStatic("sandbox/java/lang/String", "fromDJVM", "(Lsandbox/java/lang/String;)Ljava/lang/String;")
 
             if (hasStringArgument(instruction)) {

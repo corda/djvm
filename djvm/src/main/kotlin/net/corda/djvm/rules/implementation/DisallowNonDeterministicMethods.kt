@@ -32,17 +32,22 @@ object DisallowNonDeterministicMethods : Emitter {
                         Choice.FORBID -> forbid(instruction)
                         Choice.LOAD_CLASS -> loadClass()
                         Choice.INIT_CLASSLOADER -> initClassLoader()
-                        Choice.RETURN_NULL -> returnNull()
+                        Choice.GET_PARENT -> returnNull(POP)
+                        Choice.NO_RESOURCE -> returnNull(POP2)
+                        Choice.EMPTY_RESOURCES -> emptyResources(POP2)
                         else -> Unit
                     }
                 }
 
                 INVOKESTATIC -> if (instruction.owner == "java/lang/ClassLoader") {
-                    if (instruction.memberName == "getSystemClassLoader") {
-                        invokeStatic("sandbox/java/lang/DJVM", instruction.memberName, instruction.descriptor)
-                        preventDefault()
-                    } else {
-                        forbid(instruction)
+                    when {
+                        instruction.memberName == "getSystemClassLoader" -> {
+                            invokeStatic("sandbox/java/lang/DJVM", instruction.memberName, instruction.descriptor)
+                            preventDefault()
+                        }
+                        instruction.memberName == "getSystemResources" -> emptyResources(POP)
+                        instruction.memberName.startsWith("getSystemResource") -> returnNull(POP)
+                        else -> forbid(instruction)
                     }
                 }
             }
@@ -65,9 +70,15 @@ object DisallowNonDeterministicMethods : Emitter {
         preventDefault()
     }
 
-    private fun EmitterModule.returnNull() {
-        pop()
+    private fun EmitterModule.returnNull(popCode: Int) {
+        instruction(popCode)
         pushNull()
+        preventDefault()
+    }
+
+    private fun EmitterModule.emptyResources(popCode: Int) {
+        instruction(popCode)
+        invokeStatic("sandbox/java/util/Collections", "emptyEnumeration", "()Lsandbox/java/util/Enumeration;")
         preventDefault()
     }
 
@@ -79,7 +90,9 @@ object DisallowNonDeterministicMethods : Emitter {
         FORBID,
         LOAD_CLASS,
         INIT_CLASSLOADER,
-        RETURN_NULL,
+        GET_PARENT,
+        NO_RESOURCE,
+        EMPTY_RESOURCES,
         PASS
     }
 
@@ -87,10 +100,7 @@ object DisallowNonDeterministicMethods : Emitter {
         private val isClassLoader: Boolean = instruction.owner == "java/lang/ClassLoader"
         private val isClass: Boolean = instruction.owner == "java/lang/Class"
         private val hasClassReflection: Boolean = isClass && instruction.descriptor.contains("Ljava/lang/reflect/")
-        private val isNewInstance: Boolean = instruction.memberName == "newInstance" &&
-            (isClass && instruction.descriptor == "()Ljava/lang/Object;") || instruction.owner == "java/lang/reflect/Constructor"
         private val isLoadClass: Boolean = instruction.memberName == "loadClass"
-        private val hasAnyClassReflection = hasClassReflection || isNewInstance
 
         fun runFor(className: String): Choice = when {
             isClassLoader && instruction.memberName == "<init>" -> if (instruction.descriptor == "()V") {
@@ -98,7 +108,9 @@ object DisallowNonDeterministicMethods : Emitter {
             } else {
                 Choice.FORBID
             }
-            isClassLoader && instruction.memberName == "getParent" -> Choice.RETURN_NULL
+            isClassLoader && instruction.memberName == "getParent" -> Choice.GET_PARENT
+            isClassLoader && instruction.memberName == "getResources" -> Choice.EMPTY_RESOURCES
+            isClassLoader && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
 
             // Required to load character sets.
             className.startsWith(CHARSET_PACKAGE) -> when {
@@ -114,7 +126,7 @@ object DisallowNonDeterministicMethods : Emitter {
             className == "java/security/Provider\$Service" -> allowLoadClass()
 
             // Forbid classloading and reflection otherwise.
-            hasAnyClassReflection || hasAnyClassLoading() -> Choice.FORBID
+            hasClassReflection || hasAnyClassLoading() -> Choice.FORBID
 
             else -> Choice.PASS
         }

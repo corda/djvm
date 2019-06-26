@@ -53,5 +53,6 @@ object AlwaysUseExactMath : Emitter {
     private fun requiresInexactMaths(className: String): Boolean
                     = className.startsWith("sun/security/") ||
                         className.startsWith("java/math/") ||
+                        className.startsWith("java/util/regex/") ||
                         className == "java/lang/Math"
 }

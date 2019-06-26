@@ -12,6 +12,7 @@ import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
 import sandbox.RUNTIME_ACCOUNTER_NAME
+import sun.util.locale.provider.JRELocaleProviderAdapter
 import java.io.Closeable
 import java.io.IOException
 import java.lang.reflect.Modifier
@@ -19,7 +20,8 @@ import java.nio.charset.Charset
 import java.nio.file.Path
 import java.security.SecureRandom
 import java.security.Security
-import java.util.Random
+import java.util.*
+import kotlin.Comparator
 
 /**
  * The configuration to use for an analysis.
@@ -167,9 +169,18 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/Character\$Cache",
             "sandbox/java/lang/DJVM",
             "sandbox/java/lang/DJVMException",
+            "sandbox/java/lang/DJVMNoResource",
+            "sandbox/java/lang/DJVMResourceKey",
             "sandbox/java/lang/DJVMThrowableWrapper",
+            "sandbox/java/io/IO",
+            "sandbox/java/io/IO\$DJVMInputStream",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
+            "sandbox/java/util/Currency\$1",
             "sandbox/java/util/concurrent/ConcurrentHashMap\$BaseEnumerator",
+            "sandbox/java/util/concurrent/atomic/AtomicIntegerFieldUpdater\$AtomicIntegerFieldUpdaterImpl",
+            "sandbox/java/util/concurrent/atomic/AtomicLongFieldUpdater\$AtomicLongFieldUpdaterImpl",
+            "sandbox/java/util/concurrent/atomic/AtomicReferenceFieldUpdater\$AtomicReferenceFieldUpdaterImpl",
+            "sandbox/java/util/concurrent/atomic/DJVM",
             "sandbox/sun/misc/SharedSecrets\$1",
             "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl",
             "sandbox/sun/security/provider/ByteArrayAccess"
@@ -289,6 +300,8 @@ class AnalysisConfiguration private constructor(
             sandboxed(Iterator::class.java) to emptyList()
         )
 
+        private const val GET_BUNDLE = "getBundle"
+
         /**
          * These classes have methods replaced or extra ones added when mapped into the sandbox.
          * THIS IS FOR THE BENEFIT OF [sandbox.java.lang.Enum] AND [sandbox.java.nio.charset.Charset].
@@ -384,12 +397,145 @@ class AnalysisConfiguration private constructor(
                 }
             }.withBody()
              .build()
+        ).mapByClassName() + listOf(
+            object : MethodBuilder(
+                access = ACC_PRIVATE or ACC_STATIC,
+                className = sandboxed(JRELocaleProviderAdapter::class.java),
+                memberName = "isNonENLangSupported",
+                descriptor = "()Z"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushFalse()
+                    returnInteger()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            /**
+             * Redirect the [ResourceBundle] handling.
+             */
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushDefaultLocale()
+                    pushDefaultControl()
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/ResourceBundle\$Control;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushDefaultLocale()
+                    pushObject(1)
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushObject(1)
+                    pushDefaultControl()
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;Lsandbox/java/util/ResourceBundle\$Control;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushObject(1)
+                    pushObject(2)
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;Ljava/lang/ClassLoader;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushObject(1)
+                    pushDefaultControl()
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;Ljava/lang/ClassLoader;Lsandbox/java/util/ResourceBundle\$Control;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushObject(1)
+                    pushObject(3)
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build()
         ).mapByClassName()
 
         private fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
         private fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
         private fun Iterable<Member>.mapByClassName(): Map<String, List<Member>>
                       = groupBy(Member::className).mapValues(Map.Entry<String, List<Member>>::value)
+        private fun EmitterModule.returnResourceBundle() {
+            invokeStatic(
+                owner = "sandbox/java/lang/DJVM",
+                name = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;Lsandbox/java/util/ResourceBundle\$Control;)Lsandbox/java/util/ResourceBundle;"
+            )
+            returnObject()
+        }
+        private fun EmitterModule.pushDefaultLocale() {
+            invokeStatic(
+                owner = "sandbox/java/util/Locale",
+                name = "getDefault",
+                descriptor = "()Lsandbox/java/util/Locale;"
+            )
+        }
+        private fun EmitterModule.pushDefaultControl() {
+            /*
+             * The baseName parameter is expected already to have been
+             * pushed onto the stack, just below the Locale value, so
+             * emit instructions to rearrange the stack as follows:
+             *     [W1]    [W2]
+             *     [W2] -> [W1]
+             *             [W2]
+             */
+            instruction(DUP2)
+            pop()
+            invokeStatic(
+                owner = "sandbox/java/util/ResourceBundle",
+                name = "getDefaultControl",
+                descriptor = "(Lsandbox/java/lang/String;)Lsandbox/java/util/ResourceBundle\$Control;"
+            )
+        }
 
         /**
          * @see [AnalysisConfiguration]

@@ -9,7 +9,8 @@ import net.corda.djvm.rules.implementation.*
 import org.objectweb.asm.Opcodes.ACC_ENUM
 import org.objectweb.asm.Type
 import sandbox.isEntryPoint
-import sandbox.java.util.Properties
+import sandbox.java.io.*
+import sandbox.java.util.*
 import sandbox.net.corda.djvm.rules.RuleViolationError
 import java.lang.reflect.Constructor
 
@@ -186,7 +187,7 @@ private fun createEnum(clazz: Class<out Enum<*>>): Array<out Enum<*>>? {
 
 private fun createEnumDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Map<String, out Enum<*>> {
     val universe = getEnumConstantsShared(clazz) ?: throw IllegalArgumentException("${clazz.name} is not an enum type")
-    val directory = sandbox.java.util.LinkedHashMap<String, Enum<*>>(2 * universe.size)
+    val directory = LinkedHashMap<String, Enum<*>>(2 * universe.size)
     for (entry in universe) {
         directory.put(entry.name(), entry)
     }
@@ -194,8 +195,8 @@ private fun createEnumDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Ma
     return directory
 }
 
-private val allEnums: sandbox.java.util.Map<Class<out Enum<*>>, Array<out Enum<*>>> = sandbox.java.util.LinkedHashMap()
-private val allEnumDirectories: sandbox.java.util.Map<Class<out Enum<*>>, sandbox.java.util.Map<String, out Enum<*>>> = sandbox.java.util.LinkedHashMap()
+private val allEnums: sandbox.java.util.Map<Class<out Enum<*>>, Array<out Enum<*>>> = LinkedHashMap()
+private val allEnumDirectories: sandbox.java.util.Map<Class<out Enum<*>>, sandbox.java.util.Map<String, out Enum<*>>> = LinkedHashMap()
 
 /**
  * Replacement function for Object.hashCode(), because some objects
@@ -219,7 +220,7 @@ fun intern(s: kotlin.String): String {
 }
 
 /**
- * Replacement function for ClassLoader.getSystemClassLoader().
+ * Replacement function for [ClassLoader.getSystemClassLoader].
  */
 val systemClassLoader: ClassLoader get() {
     return SandboxRuntimeContext.instance.classLoader
@@ -239,6 +240,13 @@ fun getClassLoader(type: Class<*>): ClassLoader {
      * So "don't do that". Always return the sandbox classloader instead.
      */
     return systemClassLoader
+}
+
+/**
+ * Replacement function for [ClassLoader.getSystemResourceAsStream].
+ */
+fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
+    return IO.toDJVM(systemClassLoader.getResourceAsStream(name))
 }
 
 /**
@@ -272,6 +280,8 @@ fun toSandbox(className: kotlin.String): kotlin.String {
 private val bannedClasses = setOf(
     "^java\\.lang\\.DJVM(.*)?\$".toRegex(),
     "^net\\.corda\\.djvm\\..*\$".toRegex(),
+    "^java\\..*\\.DJVM\$".toRegex(),
+    "^java\\.io\\.IO.*\$".toRegex(),
     "^RuntimeCostAccounter\$".toRegex(),
     "^Task(.*)?\$".toRegex()
 )
@@ -441,3 +451,49 @@ private fun fromDJVM(elt: StackTraceElement): java.lang.StackTraceElement = Stac
 
 private val sandboxedExceptions: MutableMap<kotlin.Throwable, Throwable> = HashMap()
 private val sandboxThrowable: Class<*> = Throwable::class.java
+
+/**
+ * Resource Bundles.
+ */
+fun getBundle(baseName: String, locale: Locale, control: ResourceBundle.Control): ResourceBundle {
+    control.getCandidateLocales(baseName, locale).forEach { candidateLocale ->
+        val resourceKey = DJVMResourceKey(baseName, candidateLocale)
+        val bundle = resourceCache[resourceKey] ?: run {
+            loadResourceBundle(control, resourceKey)
+        }
+
+        if (bundle != DJVMNoResource) {
+            return bundle
+        }
+    }
+
+    val message = "Cannot find bundle for base name $baseName, locale $locale"
+    val key = "${baseName}_$locale"
+    throw fromDJVM(MissingResourceException(String.toDJVM(message), String.toDJVM(key), intern("")))
+}
+
+private fun loadResourceBundle(control: ResourceBundle.Control, key: DJVMResourceKey): ResourceBundle {
+    val bundleName = control.toBundleName(key.baseName, key.locale)
+    val bundle = try {
+        val bundleClass = systemClassLoader.loadClass(toSandbox(bundleName.toString()))
+        if (ResourceBundle::class.java.isAssignableFrom(bundleClass)) {
+            bundleClass.newInstance() as ResourceBundle
+        } else {
+            DJVMNoResource
+        }
+    } catch (e: Exception) {
+        DJVMNoResource
+    }
+    resourceCache[key] = bundle
+    return bundle
+}
+
+private val resourceCache = mutableMapOf<DJVMResourceKey, ResourceBundle>()
+
+private data class DJVMResourceKey(val baseName: String, val locale: Locale)
+
+private object DJVMNoResource : ResourceBundle() {
+    override fun handleGetObject(key: String?): Any? = null
+    override fun getKeys(): Enumeration<String>? = null
+    override fun toDJVMString(): String = intern("NON-EXISTENT BUNDLE")
+}

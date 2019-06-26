@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.io.*;
 import java.util.function.Function;
 
+import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,6 +16,10 @@ class DataInputStreamTest extends TestBase {
     private static final double BIG_FRACTION = 97323.38238232d;
     private static final long BIG_NUMBER = 81738392L;
     private static final int NUMBER = 123456;
+
+    DataInputStreamTest() {
+        super(JAVA);
+    }
 
     @Test
     void testReadingData() throws IOException {

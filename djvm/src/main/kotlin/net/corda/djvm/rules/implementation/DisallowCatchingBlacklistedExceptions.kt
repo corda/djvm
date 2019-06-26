@@ -22,6 +22,7 @@ object DisallowCatchingBlacklistedExceptions : Emitter {
          */
         "java/lang/StackOverflowError",
         "java/lang/OutOfMemoryError",
+        "java/lang/InternalError",
 
         /**
          * These are immediate super-classes for our explicit errors.

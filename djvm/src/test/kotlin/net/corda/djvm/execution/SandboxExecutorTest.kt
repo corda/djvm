@@ -373,7 +373,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
                 .isThrownBy { contractExecutor.run<TestReflection>(0) }
                 .withCauseInstanceOf(RuleViolationError::class.java)
                 .withMessageContaining("Disallowed reference to API;")
-                .withMessageContaining("java.lang.Class.newInstance()")
+                .withMessageContaining("java.lang.Class.getMethods()")
     }
 
     class TestReflection : Function<Int, Int> {
@@ -620,9 +620,14 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @ValueSource(strings = [
         "RuntimeCostAccounter",
+        "java.io.IO",
+        "java.io.IO\$DJVMInputStream",
         "java.lang.DJVM",
         "java.lang.DJVMException",
-        "java.lang.DJVMThrowableWrapper"
+        "java.lang.DJVMNoResource",
+        "java.lang.DJVMResourceKey",
+        "java.lang.DJVMThrowableWrapper",
+        "java.util.concurrent.atomic.DJVM"
     ])
     fun `users cannot load our sandboxed classes`(className: String) = parentedSandbox {
         // Show the class exists to be found.
@@ -754,6 +759,90 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
                 }
             }
             return cl.find()
+        }
+    }
+
+    @Test
+    fun `test users cannot load system resources`() = parentedSandbox {
+        val contractExecutor = DeterministicSandboxExecutor<String, Boolean>(configuration)
+        contractExecutor.run<GetSystemResources>("META-INF/MANIFEST.MF").apply {
+            assertThat(result).isFalse()
+        }
+    }
+
+    class GetSystemResources : Function<String, Boolean> {
+        override fun apply(resourceName: String): Boolean {
+            return ClassLoader.getSystemResources(resourceName).hasMoreElements()
+        }
+    }
+
+    @Test
+    fun `test users cannot load system resource URL`() = parentedSandbox {
+        val contractExecutor = DeterministicSandboxExecutor<String, String?>(configuration)
+        contractExecutor.run<GetSystemResourceURL>("META-INF/MANIFEST.MF").apply {
+            assertThat(result).isNull()
+        }
+    }
+
+    class GetSystemResourceURL : Function<String, String?> {
+        override fun apply(resourceName: String): String? {
+            return ClassLoader.getSystemResource(resourceName)?.path
+        }
+    }
+
+    @Test
+    fun `test users cannot load system resource stream`() = parentedSandbox {
+        val contractExecutor = DeterministicSandboxExecutor<String, Int?>(configuration)
+        contractExecutor.run<GetSystemResourceStream>("META-INF/MANIFEST.MF").apply {
+            assertThat(result).isNull()
+        }
+    }
+
+    class GetSystemResourceStream : Function<String, Int?> {
+        override fun apply(resourceName: String): Int? {
+            return ClassLoader.getSystemResourceAsStream(resourceName)?.available()
+        }
+    }
+
+    @Test
+    fun `test users cannot load resources`() = parentedSandbox {
+        val contractExecutor = DeterministicSandboxExecutor<String, Boolean>(configuration)
+        contractExecutor.run<GetResources>("META-INF/MANIFEST.MF").apply {
+            assertThat(result).isFalse()
+        }
+    }
+
+    class GetResources : Function<String, Boolean> {
+        override fun apply(resourceName: String): Boolean {
+            return ClassLoader.getSystemClassLoader().getResources(resourceName).hasMoreElements()
+        }
+    }
+
+    @Test
+    fun `test users cannot load resource URL`() = parentedSandbox {
+        val contractExecutor = DeterministicSandboxExecutor<String, String?>(configuration)
+        contractExecutor.run<GetResourceURL>("META-INF/MANIFEST.MF").apply {
+            assertThat(result).isNull()
+        }
+    }
+
+    class GetResourceURL : Function<String, String?> {
+        override fun apply(resourceName: String): String? {
+            return ClassLoader.getSystemClassLoader().getResource(resourceName)?.path
+        }
+    }
+
+    @Test
+    fun `test users cannot load resource stream`() = parentedSandbox {
+        val contractExecutor = DeterministicSandboxExecutor<String, Int?>(configuration)
+        contractExecutor.run<GetResourceStream>("META-INF/MANIFEST.MF").apply {
+            assertThat(result).isNull()
+        }
+    }
+
+    class GetResourceStream : Function<String, Int?> {
+        override fun apply(resourceName: String): Int? {
+            return ClassLoader.getSystemClassLoader().getResourceAsStream(resourceName)?.available()
         }
     }
 
