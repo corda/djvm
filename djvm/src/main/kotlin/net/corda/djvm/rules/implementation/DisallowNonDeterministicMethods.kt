@@ -11,7 +11,7 @@ import sandbox.net.corda.djvm.rules.RuleViolationError
 
 /**
  * Some non-deterministic APIs belong to pinned classes and so cannot be stubbed out.
- * Replace their invocations with exceptions instead.
+ * Replace their invocations with safe alternatives, e.g. throwing an exception.
  */
 object DisallowNonDeterministicMethods : Emitter {
 
@@ -31,6 +31,8 @@ object DisallowNonDeterministicMethods : Emitter {
                     when (Enforcer(instruction).runFor(className)) {
                         Choice.FORBID -> forbid(instruction)
                         Choice.LOAD_CLASS -> loadClass()
+                        Choice.INIT_CLASSLOADER -> initClassLoader()
+                        Choice.RETURN_NULL -> returnNull()
                         else -> Unit
                     }
                 }
@@ -57,6 +59,18 @@ object DisallowNonDeterministicMethods : Emitter {
         preventDefault()
     }
 
+    private fun EmitterModule.initClassLoader() {
+        invokeStatic("sandbox/java/lang/DJVM", "getSystemClassLoader", "()Ljava/lang/ClassLoader;")
+        invokeSpecial("java/lang/ClassLoader", "<init>", "(Ljava/lang/ClassLoader;)V")
+        preventDefault()
+    }
+
+    private fun EmitterModule.returnNull() {
+        pop()
+        pushNull()
+        preventDefault()
+    }
+
     private fun isObjectMonitor(instruction: MemberAccessInstruction): Boolean =
         (instruction.descriptor == "()V" && instruction.memberName in MONITOR_METHODS)
             || (instruction.memberName == "wait" && (instruction.descriptor == "(J)V" || instruction.descriptor == "(JI)V"))
@@ -64,6 +78,8 @@ object DisallowNonDeterministicMethods : Emitter {
     private enum class Choice {
         FORBID,
         LOAD_CLASS,
+        INIT_CLASSLOADER,
+        RETURN_NULL,
         PASS
     }
 
@@ -77,6 +93,13 @@ object DisallowNonDeterministicMethods : Emitter {
         private val hasAnyClassReflection = hasClassReflection || isNewInstance
 
         fun runFor(className: String): Choice = when {
+            isClassLoader && instruction.memberName == "<init>" -> if (instruction.descriptor == "()V") {
+                Choice.INIT_CLASSLOADER
+            } else {
+                Choice.FORBID
+            }
+            isClassLoader && instruction.memberName == "getParent" -> Choice.RETURN_NULL
+
             // Required to load character sets.
             className.startsWith(CHARSET_PACKAGE) -> when {
                 hasClassReflection || hasAnyClassLoading() -> Choice.FORBID

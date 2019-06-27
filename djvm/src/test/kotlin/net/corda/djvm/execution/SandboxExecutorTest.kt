@@ -705,7 +705,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     class DefineNewClass : Function<String, Class<*>> {
         override fun apply(input: String): Class<*> {
             val data = ByteArray(0)
-            val cl = object : ClassLoader(this::class.java.classLoader) {
+            val cl = object : ClassLoader() {
                 fun define(): Class<*> {
                     return super.defineClass(input, data, 0, data.size)
                 }
@@ -726,7 +726,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
     class LoadNewClass : Function<String, Class<*>> {
         override fun apply(input: String): Class<*> {
-            val cl = object : ClassLoader(this::class.java.classLoader) {
+            val cl = object : ClassLoader() {
                 fun load(): Class<*> {
                     return super.loadClass(input)
                 }
@@ -747,7 +747,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
     class FindClass : Function<String, Class<*>> {
         override fun apply(input: String): Class<*> {
-            val cl = object : ClassLoader(this::class.java.classLoader) {
+            val cl = object : ClassLoader() {
                 fun find(): Class<*> {
                     return super.findClass(input)
                 }

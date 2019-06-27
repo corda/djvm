@@ -219,8 +219,8 @@ val systemClassLoader: ClassLoader get() {
  * against users loading classes from outside the sandbox.
  */
 @Throws(ClassNotFoundException::class)
-fun classForName(className: kotlin.String, initialize: kotlin.Boolean, classLoader: ClassLoader): Class<*> {
-    return Class.forName(toSandbox(className), initialize, classLoader)
+fun classForName(className: kotlin.String, initialize: kotlin.Boolean, classLoader: ClassLoader?): Class<*> {
+    return Class.forName(toSandbox(className), initialize, classLoader ?: systemClassLoader)
 }
 
 @Throws(ClassNotFoundException::class)
