@@ -139,8 +139,13 @@ class SandboxClassLoader private constructor(
                 }
             }
 
-            if (clazz == null && isSandboxClass) {
-                clazz = loadSandboxClass(source, context).type
+            if (clazz == null) {
+                if (isSandboxClass) {
+                    clazz = loadSandboxClass(source, context).type
+                } else {
+                    // We shouldn't reach here, but this function should never return null.
+                    throw ClassNotFoundException(name)
+                }
             }
         }
         if (resolve) {
@@ -210,8 +215,8 @@ class SandboxClassLoader private constructor(
             logger.trace("Class {} already loaded", request.qualifiedClassName)
             return loadedClass
         } else if (analysisConfiguration.isPinnedClass(requestedPath)) {
-            logger.debug("Class {} is loaded unmodified", request.qualifiedClassName)
-            return loadUnmodifiedClass(requestedPath)
+            logger.error("Class {} should not be loaded here", request.qualifiedClassName)
+            throw SandboxClassLoadingException(context)
         }
 
         val byteCode = if (analysisConfiguration.isTemplateClass(requestedPath)) {
@@ -263,14 +268,8 @@ class SandboxClassLoader private constructor(
     }
 
     private fun loadUnmodifiedByteCode(internalClassName: String): ByteCode {
-        return ByteCode((getSystemClassLoader().getResourceAsStream("$internalClassName.class")
+        return ByteCode((getSystemResourceAsStream("$internalClassName.class")
                 ?: throw ClassNotFoundException(internalClassName)).readBytes(), false)
-    }
-
-    private fun loadUnmodifiedClass(className: String): LoadedClass {
-        return LoadedClass(supportingClassLoader.loadClass(className), UNMODIFIED).apply {
-            loadedClasses[className] = this
-        }
     }
 
     /**

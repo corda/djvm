@@ -4,6 +4,7 @@ import net.corda.djvm.TestBase;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
+import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.messages.Severity.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -14,6 +15,9 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 class SandboxEnumJavaTest extends TestBase {
+    SandboxEnumJavaTest() {
+        super(JAVA);
+    }
 
     @Test
     void testEnumInsideSandbox() {

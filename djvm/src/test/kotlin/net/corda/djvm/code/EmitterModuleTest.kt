@@ -1,5 +1,6 @@
 package net.corda.djvm.code
 
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.analysis.ClassAndMemberVisitor
 import org.assertj.core.api.Assertions.assertThat
@@ -9,7 +10,7 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.NEW
 import org.objectweb.asm.Type
 
-class EmitterModuleTest : TestBase() {
+class EmitterModuleTest : TestBase(KOTLIN) {
 
     @Test
     fun `can emit code to method body`() {

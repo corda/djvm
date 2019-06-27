@@ -1,5 +1,6 @@
 package net.corda.djvm.execution
 
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -8,7 +9,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import java.util.*
 import java.util.function.Function
 
-class SandboxLocaleTest : TestBase() {
+class SandboxLocaleTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @CsvSource("en,en,''", "en-GB,en,GB", "en-US,en,US", "en-CA,en,CA", "en-AU,en,AU")
     fun `test loading locales`(tagName: String, language: String, country: String) = parentedSandbox {

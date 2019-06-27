@@ -7,11 +7,16 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
 
+import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MaliciousClassTest extends TestBase {
+    MaliciousClassTest() {
+        super(JAVA);
+    }
+
     @Test
     void testImplementingToDJVMString() {
         parentedSandbox(WARNING, true, ctx -> {

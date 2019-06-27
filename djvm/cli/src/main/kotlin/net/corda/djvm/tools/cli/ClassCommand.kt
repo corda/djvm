@@ -56,7 +56,8 @@ abstract class ClassCommand : CommandBase() {
 
     private lateinit var classLoader: ClassLoader
 
-    protected var executor = SandboxExecutor<Any, Any>(SandboxConfiguration.DEFAULT, validating = true)
+    protected lateinit var executor: SandboxExecutor<Any, Any>
+        private set
 
     abstract fun processClasses(classes: List<Class<*>>)
 
@@ -171,8 +172,11 @@ abstract class ClassCommand : CommandBase() {
 
     private fun isFullClassName(filter: String) = filter.count { it == '.' } > 0
 
-    private fun getClasspath() =
-            classPath.toList() + filters.filter { it.endsWith(".jar", true) }.map { Paths.get(it) }
+    private fun getClasspath() = (
+        listOf(Paths.get("tmp").toAbsolutePath())
+          + classPath.toList()
+          + filters.filter { it.endsWith(".jar", true) }.map { Paths.get(it) }
+    )
 
     private fun getConfiguration(whitelist: Whitelist): SandboxConfiguration {
         return SandboxConfiguration.of(
@@ -182,13 +186,11 @@ abstract class ClassCommand : CommandBase() {
                 definitionProviders = if (ignoreDefinitionProviders) { emptyList() } else { ALL_DEFINITION_PROVIDERS },
                 enableTracing = !disableTracing,
                 analysisConfiguration = AnalysisConfiguration.createRoot(
+                        classPaths = getClasspath(),
                         whitelist = whitelist,
                         minimumSeverityLevel = level,
                         analyzeAnnotations = analyzeAnnotations,
-                        prefixFilters = prefixFilters.toList(),
-                        sourceClassLoaderFactory = { classResolver, bootstrapClassLoader ->
-                            SourceClassLoader(getClasspath(), classResolver, bootstrapClassLoader)
-                        }
+                        prefixFilters = prefixFilters.toList()
                 )
         )
     }

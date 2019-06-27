@@ -1,11 +1,12 @@
 package net.corda.djvm.execution
 
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.function.Function
 
-class SandboxThrowableTest : TestBase() {
+class SandboxThrowableTest : TestBase(KOTLIN) {
 
     @Test
     fun `test user exception handling`() = parentedSandbox {
@@ -90,8 +91,3 @@ class TriggerJVMException : Function<Int, String> {
         }
     }
 }
-
-open class MyBaseException(message: String) : Exception(message)
-class MyExampleException(message: String) : MyBaseException(message)
-class MyOtherException(message: String) : MyBaseException(message)
-class BigTroubleException(message: String): RuntimeException(message)

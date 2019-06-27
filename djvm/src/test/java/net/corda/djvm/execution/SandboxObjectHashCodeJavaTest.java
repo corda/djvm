@@ -7,11 +7,15 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
 
+import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class SandboxObjectHashCodeJavaTest extends TestBase {
+    SandboxObjectHashCodeJavaTest() {
+        super(JAVA);
+    }
 
     @Test
     void testHashForArray() {

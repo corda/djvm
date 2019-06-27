@@ -1,5 +1,6 @@
 package net.corda.djvm.execution
 
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import org.assertj.core.api.Assertions.assertThat
 import java.util.function.Function
@@ -12,7 +13,7 @@ import java.security.*
 import java.security.spec.X509EncodedKeySpec
 import java.util.stream.Stream
 
-class BasicCryptoTest : TestBase() {
+class BasicCryptoTest : TestBase(KOTLIN) {
     companion object {
         const val SECRET_MESSAGE = "Goodbye, Cruel World!"
     }

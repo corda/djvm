@@ -42,24 +42,14 @@ class BootstrapClassLoader(
  * @property classResolver The resolver to use to derive the original name of a requested class.
  * @property bootstrap The [BootstrapClassLoader] containing the Java APIs for the sandbox.
  */
-class SourceClassLoader private constructor(
+class SourceClassLoader(
     paths: List<Path>,
     private val classResolver: ClassResolver,
-    private val bootstrap: BootstrapClassLoader?,
-    parent: ClassLoader?
-) : URLClassLoader(resolvePaths(paths), parent) {
+    private val bootstrap: BootstrapClassLoader? = null
+) : URLClassLoader(resolvePaths(paths), null) {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
     }
-
-    constructor(paths: List<Path>, classResolver: ClassResolver, bootstrap: BootstrapClassLoader? = null)
-        : this(paths, classResolver, bootstrap, SourceClassLoader::class.java.classLoader)
-
-    /**
-     * An empty [SourceClassLoader] that can only delegate to its [BootstrapClassLoader].
-     */
-    constructor(classResolver: ClassResolver, bootstrap: BootstrapClassLoader)
-        : this(emptyList(), classResolver, bootstrap, null)
 
     /**
      * Open a [ClassReader] for the provided class name.
@@ -120,18 +110,16 @@ class SourceClassLoader private constructor(
                 logger.error("Denying request for actual {}", name)
                 return null
             }
+        } else if (isJvmInternal(name)) {
+            /**
+             * Without a special [BootstrapClassLoader], we need
+             * to fetch Java API classes from the JVM itself.
+             */
+            return getSystemClassLoader().getResource(name)
         }
 
         return parent?.getResource(name) ?: findResource(name)
     }
-
-    /**
-     * Deny all requests for DJVM classes from any user-supplied jars.
-     */
-    override fun findResource(name: String): URL? {
-        return if (name.startsWith("net/corda/djvm/")) null else super.findResource(name)
-    }
-
 }
 
 private fun resolvePaths(paths: List<Path>): Array<URL> {

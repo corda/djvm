@@ -9,10 +9,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
+import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SandboxConcurrentHashMapTest extends TestBase {
+    SandboxConcurrentHashMapTest() {
+        super(JAVA);
+    }
+
     @Test
     void testJoiningIterableInsideSandbox() {
         String[] inputs = new String[]{ "one", "One", "ONE" };

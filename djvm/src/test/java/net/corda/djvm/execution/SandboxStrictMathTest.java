@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -15,6 +16,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SandboxStrictMathTest extends TestBase {
     private static final double ERROR_DELTA = 1.0E-10;
+
+    SandboxStrictMathTest() {
+        super(JAVA);
+    }
 
     @Test
     void testStrictMathHasNoRandom() {

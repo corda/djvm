@@ -73,22 +73,16 @@ class SandboxConfiguration private constructor(
         ))
 
         /**
-         * Default configuration for the deterministic sandbox.
-         */
-        @JvmField
-        val DEFAULT = of()
-
-        /**
          * Create a sandbox configuration where one or more properties deviates from the default.
          */
         fun of(
-                profile: ExecutionProfile = ExecutionProfile.DEFAULT,
-                rules: List<Rule> = ALL_RULES,
-                emitters: List<Emitter>? = null,
-                definitionProviders: List<DefinitionProvider> = ALL_DEFINITION_PROVIDERS,
-                enableTracing: Boolean = true,
-                analysisConfiguration: AnalysisConfiguration = AnalysisConfiguration.createRoot(),
-                parentClassLoader: SandboxClassLoader? = null
+            profile: ExecutionProfile = ExecutionProfile.DEFAULT,
+            rules: List<Rule> = ALL_RULES,
+            emitters: List<Emitter>? = null,
+            definitionProviders: List<DefinitionProvider> = ALL_DEFINITION_PROVIDERS,
+            enableTracing: Boolean = true,
+            analysisConfiguration: AnalysisConfiguration,
+            parentClassLoader: SandboxClassLoader? = null
         ) = SandboxConfiguration(
                 executionProfile = profile,
                 rules = rules,

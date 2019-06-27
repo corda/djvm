@@ -3,15 +3,17 @@ package net.corda.djvm.execution
 import foo.bar.sandbox.MyObject
 import foo.bar.sandbox.testClock
 import foo.bar.sandbox.toNumber
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
+import net.corda.djvm.Utilities.*
 import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
-import net.corda.djvm.Utilities.throwRuleViolationError
-import net.corda.djvm.Utilities.throwThresholdViolationError
 import net.corda.djvm.assertions.AssertionExtensions.withProblem
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import sandbox.net.corda.djvm.costing.ThresholdViolationError
 import sandbox.net.corda.djvm.rules.RuleViolationError
 import java.nio.file.Files
@@ -19,7 +21,7 @@ import java.nio.file.Paths
 import java.util.function.Function
 import java.util.stream.Collectors.*
 
-class SandboxExecutorTest : TestBase() {
+class SandboxExecutorTest : TestBase(KOTLIN) {
 
     @Test
     fun `can load and execute runnable`() = sandbox(MINIMAL) {
@@ -203,6 +205,7 @@ class SandboxExecutorTest : TestBase() {
         override fun apply(input: Int): Int {
             return try {
                 throwThresholdViolationError()
+                Int.MIN_VALUE // Should not reach here
             } catch (exception: ThresholdViolationError) {
                 1
             }
@@ -226,6 +229,7 @@ class SandboxExecutorTest : TestBase() {
         override fun apply(input: Int): Int {
             return try {
                 throwRuleViolationError()
+                Int.MIN_VALUE // Should not reach here
             } catch (exception: RuleViolationError) {
                 1
             }
@@ -613,13 +617,22 @@ class SandboxExecutorTest : TestBase() {
         }
     }
 
-    @Test
-    fun `users cannot load our sandboxed classes`() = parentedSandbox {
+    @ParameterizedTest
+    @ValueSource(strings = [
+        "java.lang.DJVM",
+        "java.lang.DJVMException",
+        "java.lang.DJVMThrowableWrapper"
+    ])
+    fun `users cannot load our sandboxed classes`(className: String) = parentedSandbox {
+        // Show the class exists to be found.
+        assertThat(Class.forName("sandbox.$className")).isNotNull
+
+        // Show the class cannot be loaded from the sandbox.
         val contractExecutor = DeterministicSandboxExecutor<String, Class<*>>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestClassForName>("java.lang.DJVM") }
-                .withCauseInstanceOf(ClassNotFoundException::class.java)
-                .withMessageContaining("java.lang.DJVM")
+            .isThrownBy { contractExecutor.run<TestClassForName>(className) }
+            .withCauseInstanceOf(ClassNotFoundException::class.java)
+            .withMessageContaining(className)
     }
 
     @Test
