@@ -18,9 +18,12 @@ import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
  *   [java.util.concurrent.atomic.AtomicLongFieldUpdater.newUpdater]
  *   [java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater]
  *
- * The actual factory functions invoke [sun.reflect.Reflection.getCallerClass], which
- * cannot be invoked inside the sandbox. So the plan is to create an actual field
- * updater object and then wrap it inside a sandbox object.
+ * The AtomicFieldUpdater classes are too complex to be worth replacing with
+ * template classes, so we create actual AtomicFieldUpdater instances via
+ * their factory functions and then wrap them for use inside the sandbox.
+ *
+ * The factory functions invoke [sun.reflect.Reflection.getCallerClass] internally,
+ * which means that we must continue to invoke them where they are.
  *
  * Technically [sun.reflect.Reflection.getCallerClass] is like passing the result of
  * [javaClass] from the caller, except that the caller may also be static.
