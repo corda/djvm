@@ -542,7 +542,7 @@ class AnalysisConfiguration private constructor(
          */
         fun createRoot(
             classPaths: List<Path>,
-            whitelist: Whitelist = Whitelist.MINIMAL,
+            whitelist: Whitelist,
             additionalPinnedClasses: Set<String> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
             analyzeAnnotations: Boolean = false,
@@ -551,11 +551,24 @@ class AnalysisConfiguration private constructor(
             memberModule: MemberModule = MemberModule(),
             bootstrapClassLoader: BootstrapClassLoader? = null
         ): AnalysisConfiguration {
+            /**
+             * We may need to whitelist the descriptors for methods that we
+             * "stitch" into sandbox classes, to protect their invocations from
+             * being remapped by [net.corda.djvm.rewiring.SandboxClassRemapper].
+             */
+            val actualWhitelist = whitelist.addTextEntries(
+                STITCHED_CLASSES
+                    .flatMap(Map.Entry<String, List<Member>>::value)
+                    .filter { it.body.isNotEmpty() }
+                    .filter(MemberFilter(whitelist)::isWhitelistable)
+                    .map(Member::reference)
+                    .toSet()
+            )
             val pinnedClasses = MANDATORY_PINNED_CLASSES + additionalPinnedClasses
-            val classResolver = ClassResolver(pinnedClasses, TEMPLATE_CLASSES, whitelist, SANDBOX_PREFIX)
+            val classResolver = ClassResolver(pinnedClasses, TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
 
             return AnalysisConfiguration(
-                whitelist = whitelist,
+                whitelist = actualWhitelist,
                 pinnedClasses = pinnedClasses,
                 classResolver = classResolver,
                 exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, pinnedClasses, SANDBOX_PREFIX),
@@ -595,5 +608,22 @@ class AnalysisConfiguration private constructor(
             genericsDetails = signature,
             body = bodies
         )
+    }
+
+    private class MemberFilter(private val whitelist: Whitelist) {
+        fun isWhitelistable(member: Member): Boolean {
+            val methodType = Type.getMethodType(member.descriptor)
+            val argumentTypes = methodType.argumentTypes
+            return argumentTypes.any(::isWhitelistable) || isWhitelistable(methodType.returnType)
+        }
+
+        private fun isWhitelistable(type: Type): Boolean {
+            return (type.sort == Type.OBJECT && isWhitelistable(type.internalName))
+                || (type.sort == Type.ARRAY && isWhitelistable(type.elementType.internalName))
+        }
+
+        private fun isWhitelistable(internalName: String): Boolean {
+            return !internalName.startsWith(SANDBOX_PREFIX) && !whitelist.matches(internalName)
+        }
     }
 }

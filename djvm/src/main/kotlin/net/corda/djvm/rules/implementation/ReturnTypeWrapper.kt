@@ -5,6 +5,7 @@ import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.MemberAccessInstruction
+import org.objectweb.asm.Opcodes.INVOKESPECIAL
 import org.objectweb.asm.Opcodes.INVOKESTATIC
 import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
 
@@ -42,6 +43,7 @@ object ReturnTypeWrapper : Emitter {
             fun invokeMethod() = when (instruction.operation) {
                 INVOKEVIRTUAL -> invokeVirtual(instruction.owner, instruction.memberName, instruction.descriptor)
                 INVOKESTATIC -> invokeStatic(instruction.owner, instruction.memberName, instruction.descriptor)
+                INVOKESPECIAL -> invokeSpecial(instruction.owner, instruction.memberName, instruction.descriptor)
                 else -> Unit
             }
 

@@ -78,6 +78,10 @@ open class Whitelist private constructor(
         return plus(Whitelist(null, additionalEntries, emptySet()))
     }
 
+    fun addTextEntries(additionalEntries: Set<String>): Whitelist {
+        return plus(Whitelist(null, emptySet(), additionalEntries))
+    }
+
     /**
      * Get a derived whitelist by adding an additional entry.
      */
