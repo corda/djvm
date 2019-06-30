@@ -6,7 +6,7 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
-import sandbox.net.corda.djvm.costing.RuntimeCostAccounter
+import sandbox.net.corda.djvm.costing.RUNTIME_ACCOUNTER_NAME
 
 /**
  * Helper functions for emitting code to a method body.
@@ -282,7 +282,7 @@ class EmitterModule(
      * Emit instruction for invoking a method on the static runtime cost accounting and instrumentation object.
      */
     fun invokeInstrumenter(methodName: String, methodSignature: String) {
-        invokeStatic(RuntimeCostAccounter.TYPE_NAME, methodName, methodSignature)
+        invokeStatic(RUNTIME_ACCOUNTER_NAME, methodName, methodSignature)
     }
 
 }

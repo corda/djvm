@@ -12,7 +12,7 @@ import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
-import sandbox.net.corda.djvm.costing.RuntimeCostAccounter
+import sandbox.net.corda.djvm.costing.RUNTIME_ACCOUNTER_NAME
 import java.io.Closeable
 import java.io.IOException
 import java.lang.reflect.Modifier
@@ -127,7 +127,7 @@ class AnalysisConfiguration private constructor(
          * They should already exist within the sandbox namespace.
          */
         private val MANDATORY_PINNED_CLASSES: Set<String> = setOf(
-            RuntimeCostAccounter.TYPE_NAME,
+            RUNTIME_ACCOUNTER_NAME,
             ruleViolationError,
             thresholdViolationError
         )
