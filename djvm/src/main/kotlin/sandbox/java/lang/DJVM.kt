@@ -11,6 +11,7 @@ import org.objectweb.asm.Type
 import sandbox.isEntryPoint
 import sandbox.java.util.Properties
 import sandbox.net.corda.djvm.rules.RuleViolationError
+import java.lang.reflect.Constructor
 
 private const val SANDBOX_PREFIX = "sandbox."
 
@@ -37,6 +38,16 @@ fun Any.sandbox(): Any {
         is kotlin.Enum<*> -> toDJVMEnum()
         is kotlin.Throwable -> toDJVMThrowable()
         is Array<*> -> toDJVMArray()
+
+        // These types are white-listed inside the sandbox, which
+        // means that they're used "as is". So prevent the user
+        // from passing bad instances into the sandbox through the
+        // front door!
+        is Class<*> -> throw RuleViolationError("Cannot sandbox ${toString()}}").sanitise()
+        is ClassLoader -> throw RuleViolationError("Cannot sandbox a ClassLoader").sanitise()
+        is Constructor<*> -> throw RuleViolationError("Cannot sandbox a Constructor").sanitise()
+
+        // Default behaviour...
         else -> this
     }
 }
