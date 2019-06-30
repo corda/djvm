@@ -9,12 +9,14 @@ import net.corda.djvm.references.MemberModule
 import net.corda.djvm.references.MethodBody
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.SourceClassLoader
+import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
 import sandbox.RUNTIME_ACCOUNTER_NAME
 import sun.util.locale.provider.JRELocaleProviderAdapter
 import java.io.Closeable
 import java.io.IOException
+import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.nio.file.Path
@@ -166,14 +168,13 @@ class AnalysisConfiguration private constructor(
             "sandbox/Task",
             "sandbox/TaskTypes",
             RUNTIME_ACCOUNTER_NAME,
+            "sandbox/java/io/DJVMInputStream",
             "sandbox/java/lang/Character\$Cache",
             "sandbox/java/lang/DJVM",
             "sandbox/java/lang/DJVMException",
             "sandbox/java/lang/DJVMNoResource",
             "sandbox/java/lang/DJVMResourceKey",
             "sandbox/java/lang/DJVMThrowableWrapper",
-            "sandbox/java/io/IO",
-            "sandbox/java/io/IO\$DJVMInputStream",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
             "sandbox/java/util/Currency\$1",
             "sandbox/java/util/concurrent/ConcurrentHashMap\$BaseEnumerator",
@@ -407,6 +408,31 @@ class AnalysisConfiguration private constructor(
                 override fun writeBody(emitter: EmitterModule) = with(emitter) {
                     pushFalse()
                     returnInteger()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            // Create factory function to wrap java.io.InputStream.
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(InputStream::class.java),
+                memberName = "toDJVM",
+                descriptor = "(Ljava/io/InputStream;)Lsandbox/java/io/InputStream;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    val doWrap = Label()
+                    lineNumber(1)
+                    pushObject(0)
+                    jump(IFNONNULL, doWrap)
+                    pushNull()
+                    returnObject()
+
+                    lineNumber(2, doWrap)
+                    new("sandbox/java/io/DJVMInputStream")
+                    duplicate()
+                    pushObject(0)
+                    invokeSpecial("sandbox/java/io/DJVMInputStream", "<init>", "(Ljava/io/InputStream;)V")
+                    returnObject()
                 }
             }.withBody()
              .build()

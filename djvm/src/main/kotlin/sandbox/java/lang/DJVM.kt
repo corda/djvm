@@ -246,7 +246,7 @@ fun getClassLoader(type: Class<*>): ClassLoader {
  * Replacement function for [ClassLoader.getSystemResourceAsStream].
  */
 fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
-    return IO.toDJVM(systemClassLoader.getResourceAsStream(name))
+    return InputStream.toDJVM(systemClassLoader.getResourceAsStream(name))
 }
 
 /**
@@ -281,7 +281,7 @@ private val bannedClasses = setOf(
     "^java\\.lang\\.DJVM(.*)?\$".toRegex(),
     "^net\\.corda\\.djvm\\..*\$".toRegex(),
     "^java\\..*\\.DJVM\$".toRegex(),
-    "^java\\.io\\.IO.*\$".toRegex(),
+    "^java\\.io\\.DJVM[^.]++\$".toRegex(),
     "^RuntimeCostAccounter\$".toRegex(),
     "^Task(.*)?\$".toRegex()
 )

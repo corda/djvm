@@ -5,7 +5,7 @@ import java.io.IOException;
 
 /**
  * This is a dummy class that implements just enough of {@link java.io.InputStream}
- * to allow us to compile {@link IO}.
+ * to allow us to compile {@link DJVMInputStream}.
  */
 @SuppressWarnings("unused")
 public abstract class InputStream extends sandbox.java.lang.Object implements Closeable {
@@ -42,5 +42,13 @@ public abstract class InputStream extends sandbox.java.lang.Object implements Cl
 
     public void reset() throws IOException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED);
+    }
+
+    /**
+     * This method will actually be "stitched" into {@link InputStream} at runtime.
+     * It has been implemented here mainly for reference.
+     */
+    public static InputStream toDJVM(java.io.InputStream input) {
+        return (input == null) ? null : new DJVMInputStream(input);
     }
 }

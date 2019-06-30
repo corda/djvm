@@ -147,6 +147,14 @@ class EmitterModule(
     }
 
     /**
+     * Emit instruction for branching to a [Label].
+     */
+    fun jump(opcode: Int, label: Label) {
+        methodVisitor.visitJumpInsn(opcode, label)
+        hasEmittedCustomCode = true
+    }
+
+    /**
      * Emit instructions to rearrange the stack as follows:
      *     [W1]    [W3]
      *     [W2] -> [W1]
@@ -210,12 +218,13 @@ class EmitterModule(
     /**
      * Emit instructions for a new line number.
      */
-    fun lineNumber(line: Int) {
-        val label = Label()
+    fun lineNumber(line: Int, label: Label) {
         methodVisitor.visitLabel(label)
         methodVisitor.visitLineNumber(line, label)
         hasEmittedCustomCode = true
     }
+
+    fun lineNumber(line: Int) = lineNumber(line, Label())
 
     /**
      * This determines which [sandbox.java.lang.Throwable] type we must up-cast

@@ -619,15 +619,16 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
     @ParameterizedTest
     @ValueSource(strings = [
-        "RuntimeCostAccounter",
-        "java.io.IO",
-        "java.io.IO\$DJVMInputStream",
+        "java.io.DJVMInputStream",
         "java.lang.DJVM",
         "java.lang.DJVMException",
         "java.lang.DJVMNoResource",
         "java.lang.DJVMResourceKey",
         "java.lang.DJVMThrowableWrapper",
-        "java.util.concurrent.atomic.DJVM"
+        "java.util.concurrent.atomic.DJVM",
+        "RuntimeCostAccounter",
+        "TaskTypes",
+        "Task"
     ])
     fun `users cannot load our sandboxed classes`(className: String) = parentedSandbox {
         // Show the class exists to be found.
