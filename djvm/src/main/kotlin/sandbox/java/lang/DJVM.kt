@@ -215,6 +215,22 @@ val systemClassLoader: ClassLoader get() {
 }
 
 /**
+ * Filter function for [Class.getClassLoader].
+ */
+@Suppress("unused_parameter")
+fun getClassLoader(type: Class<*>): ClassLoader {
+    /**
+     * We expect [Class.getClassLoader] to return one of the following:
+     * - [net.corda.djvm.rewiring.SandboxClassLoader] for sandbox classes
+     * - the application class loader for pinned classes
+     * - null for basic Java classes.
+     *
+     * So "don't do that". Always return the sandbox classloader instead.
+     */
+    return systemClassLoader
+}
+
+/**
  * Replacement function for Class<*>.forName(String, boolean, ClassLoader) which protects
  * against users loading classes from outside the sandbox.
  */

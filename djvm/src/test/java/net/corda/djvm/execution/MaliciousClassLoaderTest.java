@@ -5,6 +5,7 @@ import net.corda.djvm.TestBase;
 import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoader;
 import org.junit.jupiter.api.Test;
+import sandbox.net.corda.djvm.costing.RuntimeCostAccounter;
 import sandbox.net.corda.djvm.rules.RuleViolationError;
 
 import java.util.function.Function;
@@ -125,6 +126,25 @@ class MaliciousClassLoaderTest extends TestBase {
                 parent = parent.getParent();
             }
             return parent;
+        }
+    }
+
+    @Test
+    void testClassLoaderForPinnedClass() {
+        parentedSandbox(WARNING, true, ctx -> {
+            SandboxExecutor<String, ClassLoader> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            ClassLoader result = WithJava.run(executor, GetPinnedClassLoader.class, "").getResult();
+            assertThat(result)
+                .isExactlyInstanceOf(SandboxClassLoader.class);
+            return null;
+        });
+    }
+
+    public static class GetPinnedClassLoader implements Function<String, ClassLoader> {
+        @Override
+        public ClassLoader apply(String input) {
+            // A pinned class belongs to the application classloader.
+            return RuntimeCostAccounter.class.getClassLoader();
         }
     }
 }
