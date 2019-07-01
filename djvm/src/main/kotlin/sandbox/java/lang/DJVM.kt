@@ -63,7 +63,7 @@ fun Throwable.escapeSandbox(): kotlin.Throwable {
         val escaping = if (Type.getInternalName(javaClass) in JVM_EXCEPTIONS) {
             // We map these exceptions to their equivalent JVM classes.
             @Suppress("unchecked_cast")
-            val escapingType = Class.forName(sandboxedName.fromSandboxPackage()) as Class<out kotlin.Throwable>
+            val escapingType = loadBootstrapClass(sandboxedName.fromSandboxPackage()) as Class<out kotlin.Throwable>
             try {
                 escapingType.getDeclaredConstructor(kotlin.String::class.java).newInstance(String.fromDJVM(message))
             } catch (e: NoSuchMethodException) {
@@ -107,6 +107,7 @@ internal fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(name.toSandboxPa
 internal fun Class<*>.fromDJVMType(): Class<*> = loadSandboxClass(name.fromSandboxPackage())
 
 private fun loadSandboxClass(name: kotlin.String): Class<*> = Class.forName(name, false, systemClassLoader)
+private fun loadBootstrapClass(name: kotlin.String): Class<*> = Class.forName(name, true, null)
 
 private fun kotlin.String.toSandboxPackage(): kotlin.String {
     return if (startsWith(SANDBOX_PREFIX)) {
