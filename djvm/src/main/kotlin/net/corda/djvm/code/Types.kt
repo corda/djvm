@@ -1,9 +1,9 @@
 @file:JvmName("Types")
 package net.corda.djvm.code
 
+import net.corda.djvm.costing.ThresholdViolationError
 import org.objectweb.asm.Type
 import sandbox.java.lang.DJVMException
-import sandbox.net.corda.djvm.costing.ThresholdViolationError
 import sandbox.net.corda.djvm.rules.RuleViolationError
 
 /**

@@ -4,10 +4,11 @@ import foo.bar.sandbox.*
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
+import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.execution.ExecutionProfile
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
-import sandbox.net.corda.djvm.costing.ThresholdViolationError
+import sandbox.net.corda.djvm.rules.RuleViolationError
 import java.nio.file.Paths
 import java.util.*
 
@@ -154,8 +155,8 @@ class ClassRewriterTest : TestBase(KOTLIN) {
 
     @Test
     fun `test pinned class is owned by application classloader`() = parentedSandbox {
-        val violationClass = loadClass<ThresholdViolationError>().type
-        assertThat(violationClass).isEqualTo(ThresholdViolationError::class.java)
+        val violationClass = loadClass<RuleViolationError>().type
+        assertThat(violationClass).isEqualTo(RuleViolationError::class.java)
     }
 }
 

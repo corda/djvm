@@ -2,7 +2,6 @@ package net.corda.djvm.analysis
 
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.ruleViolationError
-import net.corda.djvm.code.thresholdViolationError
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.references.ClassModule
 import net.corda.djvm.references.Member
@@ -127,8 +126,7 @@ class AnalysisConfiguration private constructor(
          * They should already exist within the sandbox namespace.
          */
         private val MANDATORY_PINNED_CLASSES: Set<String> = setOf(
-            ruleViolationError,
-            thresholdViolationError
+            ruleViolationError
         )
 
         /**

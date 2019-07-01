@@ -8,13 +8,13 @@ import net.corda.djvm.TestBase
 import net.corda.djvm.Utilities.*
 import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
 import net.corda.djvm.assertions.AssertionExtensions.withProblem
+import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import sandbox.net.corda.djvm.costing.ThresholdViolationError
 import sandbox.net.corda.djvm.rules.RuleViolationError
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -206,7 +206,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
             return try {
                 throwThresholdViolationError()
                 Int.MIN_VALUE // Should not reach here
-            } catch (exception: ThresholdViolationError) {
+            } catch (exception: Error) {
                 1
             }
         }

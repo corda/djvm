@@ -1,6 +1,6 @@
 package net.corda.djvm;
 
-import sandbox.net.corda.djvm.costing.ThresholdViolationError;
+import net.corda.djvm.costing.ThresholdViolationError;
 import sandbox.net.corda.djvm.rules.RuleViolationError;
 
 /**
