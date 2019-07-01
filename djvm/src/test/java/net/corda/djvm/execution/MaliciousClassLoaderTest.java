@@ -5,7 +5,6 @@ import net.corda.djvm.TestBase;
 import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoader;
 import org.junit.jupiter.api.Test;
-import sandbox.net.corda.djvm.costing.RuntimeCostAccounter;
 import sandbox.net.corda.djvm.rules.RuleViolationError;
 
 import java.util.function.Function;
@@ -144,7 +143,7 @@ class MaliciousClassLoaderTest extends TestBase {
         @Override
         public ClassLoader apply(String input) {
             // A pinned class belongs to the application classloader.
-            return RuntimeCostAccounter.class.getClassLoader();
+            return RuleViolationError.class.getClassLoader();
         }
     }
 }

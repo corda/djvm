@@ -619,6 +619,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
     @ParameterizedTest
     @ValueSource(strings = [
+        "RuntimeCostAccounter",
         "java.lang.DJVM",
         "java.lang.DJVMException",
         "java.lang.DJVMThrowableWrapper"

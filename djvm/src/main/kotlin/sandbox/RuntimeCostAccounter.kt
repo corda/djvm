@@ -1,6 +1,6 @@
 @file:JvmName("RuntimeCostAccounter")
 @file:Suppress("unused")
-package sandbox.net.corda.djvm.costing
+package sandbox
 
 import net.corda.djvm.SandboxRuntimeContext
 
@@ -16,13 +16,7 @@ import net.corda.djvm.SandboxRuntimeContext
 /**
  * A static instance of the sandbox context which is used to keep track of the costs.
  */
-private val context: SandboxRuntimeContext
-    get() = SandboxRuntimeContext.instance
-
-/**
- * The type name of the [RuntimeCostAccounter] class; referenced from instrumentors.
- */
-const val RUNTIME_ACCOUNTER_NAME: String = "sandbox/net/corda/djvm/costing/RuntimeCostAccounter"
+private val context: SandboxRuntimeContext = SandboxRuntimeContext.instance
 
 /**
  * Known / estimated allocation costs.

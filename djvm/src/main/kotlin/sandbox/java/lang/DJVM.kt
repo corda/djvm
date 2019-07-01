@@ -272,6 +272,7 @@ fun toSandbox(className: kotlin.String): kotlin.String {
 private val bannedClasses = setOf(
     "^java\\.lang\\.DJVM(.*)?\$".toRegex(),
     "^net\\.corda\\.djvm\\..*\$".toRegex(),
+    "^RuntimeCostAccounter\$".toRegex(),
     "^Task(.*)?\$".toRegex()
 )
 

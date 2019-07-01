@@ -12,7 +12,7 @@ import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
-import sandbox.net.corda.djvm.costing.RUNTIME_ACCOUNTER_NAME
+import sandbox.RUNTIME_ACCOUNTER_NAME
 import java.io.Closeable
 import java.io.IOException
 import java.lang.reflect.Modifier
@@ -127,7 +127,6 @@ class AnalysisConfiguration private constructor(
          * They should already exist within the sandbox namespace.
          */
         private val MANDATORY_PINNED_CLASSES: Set<String> = setOf(
-            RUNTIME_ACCOUNTER_NAME,
             ruleViolationError,
             thresholdViolationError
         )
@@ -166,6 +165,7 @@ class AnalysisConfiguration private constructor(
         ).sandboxed() + setOf(
             "sandbox/Task",
             "sandbox/TaskTypes",
+            RUNTIME_ACCOUNTER_NAME,
             "sandbox/java/lang/Character\$Cache",
             "sandbox/java/lang/DJVM",
             "sandbox/java/lang/DJVMException",
