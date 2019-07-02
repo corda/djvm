@@ -90,7 +90,7 @@ class MaliciousClassTest extends TestBase {
             SandboxExecutor<Constructor<?>, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(executor, EvilConstructor.class, constructor));
             assertThat(ex)
-                .hasMessageContaining("Cannot sandbox a Constructor");
+                .hasMessageContaining("Cannot sandbox " + constructor);
             return null;
         });
     }

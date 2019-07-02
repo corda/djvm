@@ -43,9 +43,8 @@ fun Any.sandbox(): Any {
         // means that they're used "as is". So prevent the user
         // from passing bad instances into the sandbox through the
         // front door!
-        is Class<*> -> throw RuleViolationError("Cannot sandbox ${toString()}}").sanitise()
+        is Class<*>, is Constructor<*> -> throw RuleViolationError("Cannot sandbox $this").sanitise()
         is ClassLoader -> throw RuleViolationError("Cannot sandbox a ClassLoader").sanitise()
-        is Constructor<*> -> throw RuleViolationError("Cannot sandbox a Constructor").sanitise()
 
         // Default behaviour...
         else -> this
