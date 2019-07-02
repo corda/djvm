@@ -1,4 +1,4 @@
-package sandbox.net.corda.djvm.costing
+package net.corda.djvm.costing
 
 /**
  * Exception thrown when a sandbox threshold is violated. This will kill the current thread and consequently exit the

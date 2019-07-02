@@ -45,6 +45,13 @@ object RewriteClassMethods : Emitter {
                 } else if (instruction.memberName == "getProtectionDomain" && instruction.descriptor == "()Ljava/security/ProtectionDomain;") {
                     throwException<RuleViolationError>("Disallowed reference to API; ${memberFormatter.format(instruction.member)}")
                     preventDefault()
+                } else if (instruction.memberName == "getClassLoader" && instruction.descriptor == "()Ljava/lang/ClassLoader;") {
+                    invokeStatic(
+                        owner = "sandbox/java/lang/DJVM",
+                        name = "getClassLoader",
+                        descriptor = "(Ljava/lang/Class;)Ljava/lang/ClassLoader;"
+                    )
+                    preventDefault()
                 }
 
                 INVOKESTATIC -> if (instruction.memberName == "forName") {

@@ -1,7 +1,6 @@
 package net.corda.djvm.costing
 
 import net.corda.djvm.utilities.loggerFor
-import sandbox.net.corda.djvm.costing.ThresholdViolationError
 
 /**
  * Cost metric to be used in a sandbox environment. The metric has a threshold and a mechanism for reporting violations.

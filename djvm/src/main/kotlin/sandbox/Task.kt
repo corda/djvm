@@ -7,6 +7,11 @@ import sandbox.java.lang.unsandbox
 
 typealias SandboxFunction<TInput, TOutput> = sandbox.java.util.function.Function<TInput, TOutput>
 
+/**
+ * The type name of the [RuntimeCostAccounter] class; referenced from instrumentors.
+ */
+const val RUNTIME_ACCOUNTER_NAME: String = "sandbox/RuntimeCostAccounter"
+
 internal fun isEntryPoint(elt: StackTraceElement): Boolean {
     return elt.className == "sandbox.Task" && elt.methodName == "apply"
 }

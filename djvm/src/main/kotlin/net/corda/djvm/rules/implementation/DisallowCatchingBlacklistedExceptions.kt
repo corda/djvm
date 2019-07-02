@@ -3,8 +3,8 @@ package net.corda.djvm.rules.implementation
 import net.corda.djvm.code.*
 import net.corda.djvm.code.instructions.CodeLabel
 import net.corda.djvm.code.instructions.TryCatchBlock
+import net.corda.djvm.costing.ThresholdViolationError
 import org.objectweb.asm.Label
-import sandbox.net.corda.djvm.costing.ThresholdViolationError
 
 /**
  * Rule that checks for attempted catches of [ThreadDeath], [ThresholdViolationError],

@@ -11,6 +11,7 @@ import org.objectweb.asm.Type
 import sandbox.isEntryPoint
 import sandbox.java.util.Properties
 import sandbox.net.corda.djvm.rules.RuleViolationError
+import java.lang.reflect.Constructor
 
 private const val SANDBOX_PREFIX = "sandbox."
 
@@ -37,6 +38,15 @@ fun Any.sandbox(): Any {
         is kotlin.Enum<*> -> toDJVMEnum()
         is kotlin.Throwable -> toDJVMThrowable()
         is Array<*> -> toDJVMArray()
+
+        // These types are white-listed inside the sandbox, which
+        // means that they're used "as is". So prevent the user
+        // from passing bad instances into the sandbox through the
+        // front door!
+        is Class<*>, is Constructor<*> -> throw RuleViolationError("Cannot sandbox $this").sanitise()
+        is ClassLoader -> throw RuleViolationError("Cannot sandbox a ClassLoader").sanitise()
+
+        // Default behaviour...
         else -> this
     }
 }
@@ -52,7 +62,7 @@ fun Throwable.escapeSandbox(): kotlin.Throwable {
         val escaping = if (Type.getInternalName(javaClass) in JVM_EXCEPTIONS) {
             // We map these exceptions to their equivalent JVM classes.
             @Suppress("unchecked_cast")
-            val escapingType = Class.forName(sandboxedName.fromSandboxPackage()) as Class<out kotlin.Throwable>
+            val escapingType = loadBootstrapClass(sandboxedName.fromSandboxPackage()) as Class<out kotlin.Throwable>
             try {
                 escapingType.getDeclaredConstructor(kotlin.String::class.java).newInstance(String.fromDJVM(message))
             } catch (e: NoSuchMethodException) {
@@ -96,6 +106,7 @@ internal fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(name.toSandboxPa
 internal fun Class<*>.fromDJVMType(): Class<*> = loadSandboxClass(name.fromSandboxPackage())
 
 private fun loadSandboxClass(name: kotlin.String): Class<*> = Class.forName(name, false, systemClassLoader)
+private fun loadBootstrapClass(name: kotlin.String): Class<*> = Class.forName(name, true, null)
 
 private fun kotlin.String.toSandboxPackage(): kotlin.String {
     return if (startsWith(SANDBOX_PREFIX)) {
@@ -215,12 +226,28 @@ val systemClassLoader: ClassLoader get() {
 }
 
 /**
+ * Filter function for [Class.getClassLoader].
+ */
+@Suppress("unused_parameter")
+fun getClassLoader(type: Class<*>): ClassLoader {
+    /**
+     * We expect [Class.getClassLoader] to return one of the following:
+     * - [net.corda.djvm.rewiring.SandboxClassLoader] for sandbox classes
+     * - the application class loader for pinned classes
+     * - null for basic Java classes.
+     *
+     * So "don't do that". Always return the sandbox classloader instead.
+     */
+    return systemClassLoader
+}
+
+/**
  * Replacement function for Class<*>.forName(String, boolean, ClassLoader) which protects
  * against users loading classes from outside the sandbox.
  */
 @Throws(ClassNotFoundException::class)
-fun classForName(className: kotlin.String, initialize: kotlin.Boolean, classLoader: ClassLoader): Class<*> {
-    return Class.forName(toSandbox(className), initialize, classLoader)
+fun classForName(className: kotlin.String, initialize: kotlin.Boolean, classLoader: ClassLoader?): Class<*> {
+    return Class.forName(toSandbox(className), initialize, classLoader ?: systemClassLoader)
 }
 
 @Throws(ClassNotFoundException::class)
@@ -245,6 +272,7 @@ fun toSandbox(className: kotlin.String): kotlin.String {
 private val bannedClasses = setOf(
     "^java\\.lang\\.DJVM(.*)?\$".toRegex(),
     "^net\\.corda\\.djvm\\..*\$".toRegex(),
+    "^RuntimeCostAccounter\$".toRegex(),
     "^Task(.*)?\$".toRegex()
 )
 
