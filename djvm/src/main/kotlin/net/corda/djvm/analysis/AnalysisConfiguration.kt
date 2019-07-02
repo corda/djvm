@@ -1,7 +1,6 @@
 package net.corda.djvm.analysis
 
 import net.corda.djvm.code.EmitterModule
-import net.corda.djvm.code.ruleViolationError
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.references.ClassModule
 import net.corda.djvm.references.Member
@@ -126,12 +125,10 @@ class AnalysisConfiguration private constructor(
         const val SANDBOX_PREFIX: String = "sandbox/"
 
         /**
-         * These class must belong to the application class loader.
+         * These classes must belong to the application class loader.
          * They should already exist within the sandbox namespace.
          */
-        private val MANDATORY_PINNED_CLASSES: Set<String> = setOf(
-            ruleViolationError
-        )
+        private val MANDATORY_PINNED_CLASSES: Set<String> = emptySet()
 
         /**
          * These classes will be duplicated into every sandbox's

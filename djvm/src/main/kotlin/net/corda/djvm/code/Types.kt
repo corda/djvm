@@ -2,9 +2,9 @@
 package net.corda.djvm.code
 
 import net.corda.djvm.costing.ThresholdViolationError
+import net.corda.djvm.rules.RuleViolationError
 import org.objectweb.asm.Type
 import sandbox.java.lang.DJVMException
-import sandbox.net.corda.djvm.rules.RuleViolationError
 
 /**
  * These are the priorities for executing [Emitter] instances.

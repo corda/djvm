@@ -1,7 +1,6 @@
 package sandbox.java.lang;
 
 import org.jetbrains.annotations.NotNull;
-import sandbox.net.corda.djvm.rules.RuleViolationError;
 
 public class Object {
 
@@ -56,7 +55,7 @@ public class Object {
         try {
             return DJVM.fromDJVMType(type);
         } catch (ClassNotFoundException e) {
-            throw new RuleViolationError(e.getMessage());
+            throw DJVM.fail(e.getMessage());
         }
     }
 }

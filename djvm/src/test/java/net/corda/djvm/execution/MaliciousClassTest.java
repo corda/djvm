@@ -3,8 +3,8 @@ package net.corda.djvm.execution;
 import net.corda.djvm.TestBase;
 import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoadingException;
+import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
-import sandbox.net.corda.djvm.rules.RuleViolationError;
 
 import java.lang.reflect.Constructor;
 import java.util.function.Function;
