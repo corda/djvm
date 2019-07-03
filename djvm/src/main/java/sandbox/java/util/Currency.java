@@ -38,6 +38,9 @@ public final class Currency extends sandbox.java.lang.Object implements Serializ
     static int[] otherCurrenciesNumericCode;
 
     static {
+        /*
+         * This anonymous inner class is a NON-dummy class called java.util.Currency$1.
+         */
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
             @Override
             public Void run() {
