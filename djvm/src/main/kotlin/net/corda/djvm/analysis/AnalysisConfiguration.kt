@@ -39,9 +39,7 @@ import kotlin.Comparator
  * If none are provided, all messages will be reported.
  * @property classModule Module for handling evolution of a class hierarchy during analysis.
  * @property memberModule Module for handling the specification and inspection of class members.
- * @property bootstrapClassLoader Optional provider for the Java API classes.
  * @property supportingClassLoader ClassLoader providing the classes to run inside the sandbox.
- * @property isRootConfiguration Effectively, whether we are allowed to close [bootstrapClassLoader].
  */
 class AnalysisConfiguration private constructor(
         val whitelist: Whitelist,
@@ -53,9 +51,7 @@ class AnalysisConfiguration private constructor(
         val prefixFilters: List<String>,
         val classModule: ClassModule,
         val memberModule: MemberModule,
-        private val bootstrapClassLoader: BootstrapClassLoader?,
-        val supportingClassLoader: SourceClassLoader,
-        private val isRootConfiguration: Boolean
+        val supportingClassLoader: SourceClassLoader
 ) : Closeable {
 
     /**
@@ -72,16 +68,12 @@ class AnalysisConfiguration private constructor(
 
     @Throws(IOException::class)
     override fun close() {
-        supportingClassLoader.use {
-            if (isRootConfiguration) {
-                bootstrapClassLoader?.close()
-            }
-        }
+        supportingClassLoader.close()
     }
 
     /**
      * Creates a child [AnalysisConfiguration] with this instance as its parent.
-     * The child inherits the same [whitelist], [pinnedClasses] and [bootstrapClassLoader].
+     * The child inherits the same [whitelist] and [pinnedClasses].
      */
     fun createChild(
         classPaths: List<Path>,
@@ -97,9 +89,7 @@ class AnalysisConfiguration private constructor(
             prefixFilters = prefixFilters,
             classModule = classModule,
             memberModule = memberModule,
-            bootstrapClassLoader = bootstrapClassLoader,
-            supportingClassLoader = SourceClassLoader(classPaths, classResolver, bootstrapClassLoader),
-            isRootConfiguration = false
+            supportingClassLoader = SourceClassLoader(classPaths, classResolver, EMPTY)
         )
     }
 
@@ -123,6 +113,11 @@ class AnalysisConfiguration private constructor(
          * The package name prefix to use for classes loaded into a sandbox.
          */
         const val SANDBOX_PREFIX: String = "sandbox/"
+
+        /**
+         * An empty placeholder used by "child" instances of [SourceClassLoader].
+         */
+        private val EMPTY: BootstrapClassLoader = BootstrapClassLoader()
 
         /**
          * These classes must belong to the application class loader.
@@ -600,9 +595,7 @@ class AnalysisConfiguration private constructor(
                 prefixFilters = prefixFilters,
                 classModule = classModule,
                 memberModule = memberModule,
-                bootstrapClassLoader = bootstrapClassLoader,
-                supportingClassLoader = SourceClassLoader(classPaths, classResolver, bootstrapClassLoader),
-                isRootConfiguration = true
+                supportingClassLoader = SourceClassLoader(classPaths, classResolver, bootstrapClassLoader)
             )
         }
     }
