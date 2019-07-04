@@ -420,7 +420,7 @@ open class ClassAndMemberVisitor(
          */
         override fun visitFieldInsn(opcode: Int, owner: String, name: String, desc: String) {
             recordMemberReference(owner, name, desc)
-            visit(MemberAccessInstruction(opcode, owner, name, desc, isMethod = false)) {
+            visit(MemberAccessInstruction(opcode, owner, name, desc)) {
                 super.visitFieldInsn(opcode, owner, name, desc)
             }
         }
@@ -430,7 +430,7 @@ open class ClassAndMemberVisitor(
          */
         override fun visitMethodInsn(opcode: Int, owner: String, name: String, desc: String, itf: Boolean) {
             recordMemberReference(owner, name, desc)
-            visit(MemberAccessInstruction(opcode, owner, name, desc, itf, isMethod = true)) {
+            visit(MemberAccessInstruction(opcode, owner, name, desc, itf)) {
                 super.visitMethodInsn(opcode, owner, name, desc, itf)
             }
         }
@@ -438,12 +438,16 @@ open class ClassAndMemberVisitor(
         /**
          * Extract information about provided dynamic invocation instruction.
          */
-        override fun visitInvokeDynamicInsn(name: String, desc: String, bsm: Handle?, vararg bsmArgs: Any?) {
-            val module = configuration.memberModule
-            visit(DynamicInvocationInstruction(
-                    name, desc, module.numberOfArguments(desc), module.returnsValueOrReference(desc)
-            )) {
-                super.visitInvokeDynamicInsn(name, desc, bsm, *bsmArgs)
+        override fun visitInvokeDynamicInsn(name: String, desc: String, bsm: Handle, vararg bsmArgs: Any?) {
+            val dynamicInstruction = DynamicInvocationInstruction(
+                method = method,
+                memberName = name,
+                descriptor = desc,
+                bootstrap = bsm,
+                bootstrapArgs = bsmArgs
+            )
+            visit(dynamicInstruction) {
+                super.visitInvokeDynamicInsn(name, desc, bsm, *dynamicInstruction.bootstrapArgs)
             }
         }
 

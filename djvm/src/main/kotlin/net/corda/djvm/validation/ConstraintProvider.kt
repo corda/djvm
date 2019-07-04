@@ -48,7 +48,7 @@ open class ConstraintProvider(
     /**
      * Construct for representing a rule constraint.
      */
-    private fun DraftMessage.always() {
+    fun DraftMessage.always() {
         context.messages.add(Message(message, severity, context.location))
     }
 

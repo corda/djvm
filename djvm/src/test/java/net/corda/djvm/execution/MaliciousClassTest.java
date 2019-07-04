@@ -5,6 +5,7 @@ import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoadingException;
 import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
+import org.objectweb.asm.Type;
 
 import java.lang.reflect.Constructor;
 import java.util.function.Function;
@@ -118,6 +119,31 @@ class MaliciousClassTest extends TestBase {
         @Override
         public String apply(ClassLoader classLoader) {
             return classLoader.toString();
+        }
+    }
+
+    @Test
+    void testCannotInvokeSandboxMethodsExplicitly() {
+        parentedSandbox(WARNING, true, ctx -> {
+            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            Throwable ex = assertThrows(SandboxClassLoadingException.class,
+                               () -> WithJava.run(executor, SelfSandboxing.class, "Victory is mine!"));
+            assertThat(ex)
+                .isExactlyInstanceOf(SandboxClassLoadingException.class)
+                .hasMessageContaining(Type.getInternalName(SelfSandboxing.class))
+                .hasMessageContaining("Access to sandbox.java.lang.String.toDJVM(String) is forbidden.")
+                .hasMessageContaining("Access to sandbox.java.lang.String.fromDJVM(String) is forbidden.");
+            return null;
+        });
+    }
+
+    public static class SelfSandboxing implements Function<String, String> {
+        @SuppressWarnings("ConstantConditions")
+        @Override
+        public String apply(String message) {
+            return (String) (Object) sandbox.java.lang.String.toDJVM(
+                sandbox.java.lang.String.fromDJVM((sandbox.java.lang.String) (Object) message)
+            );
         }
     }
 }

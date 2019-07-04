@@ -36,7 +36,7 @@ object AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
         }
         if (instruction is MemberAccessInstruction &&
                 instruction.operation == Opcodes.INVOKESPECIAL &&
-                instruction.owner == OBJECT_NAME &&
+                instruction.className == OBJECT_NAME &&
                 instruction.memberName == CONSTRUCTOR_NAME &&
                 context.clazz.name != SANDBOX_OBJECT_NAME) {
             // Rewrite object initialisation call so that the sandboxed constructor gets used instead.

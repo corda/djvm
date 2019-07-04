@@ -2,7 +2,7 @@ package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.code.*
 import net.corda.djvm.code.instructions.MemberAccessInstruction
-import net.corda.djvm.formatting.MemberFormatter
+import net.corda.djvm.rules.implementation.MemberRuleEnforcer.Companion.formatFor
 import org.objectweb.asm.Opcodes.*
 
 /**
@@ -15,7 +15,6 @@ object DisallowNonDeterministicMethods : Emitter {
     private const val SUN_SECURITY_PROVIDERS = "sun/security/jca/Provider"
     private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
-    private val memberFormatter = MemberFormatter()
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         val className = (context.member ?: return).className
@@ -35,7 +34,7 @@ object DisallowNonDeterministicMethods : Emitter {
                     }
                 }
 
-                INVOKESTATIC -> if (instruction.owner == "java/lang/ClassLoader") {
+                INVOKESTATIC -> if (instruction.className == "java/lang/ClassLoader") {
                     when {
                         instruction.memberName == "getSystemClassLoader" -> {
                             invokeStatic(DJVM_NAME, instruction.memberName, instruction.descriptor)
@@ -51,7 +50,7 @@ object DisallowNonDeterministicMethods : Emitter {
     }
 
     private fun EmitterModule.forbid(instruction: MemberAccessInstruction) {
-        throwRuleViolationError("Disallowed reference to API; ${memberFormatter.format(instruction.member)}")
+        throwRuleViolationError("Disallowed reference to API; ${formatFor(instruction)}")
         preventDefault()
     }
 
@@ -93,8 +92,8 @@ object DisallowNonDeterministicMethods : Emitter {
     }
 
     private class Enforcer(private val instruction: MemberAccessInstruction) {
-        private val isClassLoader: Boolean = instruction.owner == "java/lang/ClassLoader"
-        private val isClass: Boolean = instruction.owner == "java/lang/Class"
+        private val isClassLoader: Boolean = instruction.className == "java/lang/ClassLoader"
+        private val isClass: Boolean = instruction.className == "java/lang/Class"
         private val hasClassReflection: Boolean = isClass && instruction.descriptor.contains("Ljava/lang/reflect/")
         private val isLoadClass: Boolean = instruction.memberName == "loadClass"
 
