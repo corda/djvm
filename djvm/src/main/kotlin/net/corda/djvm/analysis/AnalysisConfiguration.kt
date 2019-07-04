@@ -22,6 +22,7 @@ import java.nio.file.Path
 import java.security.SecureRandom
 import java.security.Security
 import java.util.*
+import java.util.Collections.unmodifiableSet
 import kotlin.Comparator
 
 /**
@@ -522,6 +523,10 @@ class AnalysisConfiguration private constructor(
         private fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
         private fun Iterable<Member>.mapByClassName(): Map<String, List<Member>>
                       = groupBy(Member::className).mapValues(Map.Entry<String, List<Member>>::value)
+        private fun <T> unmodifiable(items: Set<T>): Set<T> {
+            return if (items.isEmpty()) emptySet() else unmodifiableSet(items)
+        }
+
         private fun EmitterModule.returnResourceBundle() {
             invokeStatic(
                 owner = "sandbox/java/lang/DJVM",
@@ -582,7 +587,7 @@ class AnalysisConfiguration private constructor(
                     .map(Member::reference)
                     .toSet()
             )
-            val pinnedClasses = MANDATORY_PINNED_CLASSES + additionalPinnedClasses
+            val pinnedClasses = unmodifiable(MANDATORY_PINNED_CLASSES + additionalPinnedClasses)
             val classResolver = ClassResolver(pinnedClasses, TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
 
             return AnalysisConfiguration(
