@@ -100,20 +100,22 @@ class EmitterModule(
     }
 
     /**
+     * Emit an opcode for a single instruction.
+     */
+    fun instruction(opcode: Int) {
+        methodVisitor.visitInsn(opcode)
+        hasEmittedCustomCode = true
+    }
+
+    /**
      * Emit instruction for popping one element off the stack.
      */
-    fun pop() {
-        hasEmittedCustomCode = true
-        methodVisitor.visitInsn(POP)
-    }
+    fun pop() = instruction(POP)
 
     /**
      * Emit instruction for duplicating the top of the stack.
      */
-    fun duplicate() {
-        hasEmittedCustomCode = true
-        methodVisitor.visitInsn(DUP)
-    }
+    fun duplicate() = instruction(DUP)
 
     /**
      * Emit instruction for pushing an object reference
@@ -128,10 +130,12 @@ class EmitterModule(
      * Emit instruction for pushing a null object
      * reference onto the stack.
      */
-    fun pushNull() {
-        methodVisitor.visitInsn(ACONST_NULL)
-        hasEmittedCustomCode = true
-    }
+    fun pushNull() = instruction(ACONST_NULL)
+
+    /**
+     * Emit instruction for pushing "false" onto the stack.
+     */
+    fun pushFalse() = instruction(ICONST_0)
 
     /**
      * Emit instruction for pushing an integer value
@@ -139,6 +143,14 @@ class EmitterModule(
      */
     fun pushInteger(regNum: Int) {
         methodVisitor.visitVarInsn(ILOAD, regNum)
+        hasEmittedCustomCode = true
+    }
+
+    /**
+     * Emit instruction for branching to a [Label].
+     */
+    fun jump(opcode: Int, label: Label) {
+        methodVisitor.visitJumpInsn(opcode, label)
         hasEmittedCustomCode = true
     }
 
@@ -191,28 +203,28 @@ class EmitterModule(
     /**
      * Emit instruction for returning from "void" method.
      */
-    fun returnVoid() {
-        methodVisitor.visitInsn(RETURN)
-        hasEmittedCustomCode = true
-    }
+    fun returnVoid() = instruction(RETURN)
 
     /**
-     * Emit instruction for a function that returns an object reference.
+     * Emit instruction to return an object reference from a function.
      */
-    fun returnObject() {
-        methodVisitor.visitInsn(ARETURN)
-        hasEmittedCustomCode = true
-    }
+    fun returnObject() = instruction(ARETURN)
+
+    /**
+     * Emit instruction to return an integer from a function.
+     */
+    fun returnInteger() = instruction(IRETURN)
 
     /**
      * Emit instructions for a new line number.
      */
-    fun lineNumber(line: Int) {
-        val label = Label()
+    fun lineNumber(line: Int, label: Label) {
         methodVisitor.visitLabel(label)
         methodVisitor.visitLineNumber(line, label)
         hasEmittedCustomCode = true
     }
+
+    fun lineNumber(line: Int) = lineNumber(line, Label())
 
     /**
      * This determines which [sandbox.java.lang.Throwable] type we must up-cast

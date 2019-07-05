@@ -9,17 +9,21 @@ import net.corda.djvm.references.MemberModule
 import net.corda.djvm.references.MethodBody
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.SourceClassLoader
+import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
 import sandbox.RUNTIME_ACCOUNTER_NAME
+import sun.util.locale.provider.JRELocaleProviderAdapter
 import java.io.Closeable
 import java.io.IOException
+import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.nio.file.Path
 import java.security.SecureRandom
 import java.security.Security
-import java.util.Random
+import java.util.*
+import kotlin.Comparator
 
 /**
  * The configuration to use for an analysis.
@@ -164,12 +168,20 @@ class AnalysisConfiguration private constructor(
             "sandbox/Task",
             "sandbox/TaskTypes",
             RUNTIME_ACCOUNTER_NAME,
+            "sandbox/java/io/DJVMInputStream",
             "sandbox/java/lang/Character\$Cache",
             "sandbox/java/lang/DJVM",
             "sandbox/java/lang/DJVMException",
+            "sandbox/java/lang/DJVMNoResource",
+            "sandbox/java/lang/DJVMResourceKey",
             "sandbox/java/lang/DJVMThrowableWrapper",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
+            "sandbox/java/util/Currency\$1",
             "sandbox/java/util/concurrent/ConcurrentHashMap\$BaseEnumerator",
+            "sandbox/java/util/concurrent/atomic/AtomicIntegerFieldUpdater\$AtomicIntegerFieldUpdaterImpl",
+            "sandbox/java/util/concurrent/atomic/AtomicLongFieldUpdater\$AtomicLongFieldUpdaterImpl",
+            "sandbox/java/util/concurrent/atomic/AtomicReferenceFieldUpdater\$AtomicReferenceFieldUpdaterImpl",
+            "sandbox/java/util/concurrent/atomic/DJVM",
             "sandbox/sun/misc/SharedSecrets\$1",
             "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl",
             "sandbox/sun/security/provider/ByteArrayAccess"
@@ -289,6 +301,8 @@ class AnalysisConfiguration private constructor(
             sandboxed(Iterator::class.java) to emptyList()
         )
 
+        private const val GET_BUNDLE = "getBundle"
+
         /**
          * These classes have methods replaced or extra ones added when mapped into the sandbox.
          * THIS IS FOR THE BENEFIT OF [sandbox.java.lang.Enum] AND [sandbox.java.nio.charset.Charset].
@@ -384,19 +398,177 @@ class AnalysisConfiguration private constructor(
                 }
             }.withBody()
              .build()
+        ).mapByClassName() + listOf(
+            object : MethodBuilder(
+                access = ACC_PRIVATE or ACC_STATIC,
+                className = sandboxed(JRELocaleProviderAdapter::class.java),
+                memberName = "isNonENLangSupported",
+                descriptor = "()Z"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushFalse()
+                    returnInteger()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            // Create factory function to wrap java.io.InputStream.
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(InputStream::class.java),
+                memberName = "toDJVM",
+                descriptor = "(Ljava/io/InputStream;)Lsandbox/java/io/InputStream;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    val doWrap = Label()
+                    lineNumber(1)
+                    pushObject(0)
+                    jump(IFNONNULL, doWrap)
+                    pushNull()
+                    returnObject()
+
+                    lineNumber(2, doWrap)
+                    new("sandbox/java/io/DJVMInputStream")
+                    duplicate()
+                    pushObject(0)
+                    invokeSpecial("sandbox/java/io/DJVMInputStream", "<init>", "(Ljava/io/InputStream;)V")
+                    returnObject()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            /**
+             * Redirect the [ResourceBundle] handling.
+             */
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushDefaultLocale()
+                    pushDefaultControl()
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/ResourceBundle\$Control;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushDefaultLocale()
+                    pushObject(1)
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushObject(1)
+                    pushDefaultControl()
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;Lsandbox/java/util/ResourceBundle\$Control;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushObject(1)
+                    pushObject(2)
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;Ljava/lang/ClassLoader;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushObject(1)
+                    pushDefaultControl()
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(ResourceBundle::class.java),
+                memberName = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;Ljava/lang/ClassLoader;Lsandbox/java/util/ResourceBundle\$Control;)Lsandbox/java/util/ResourceBundle;"
+            ) {
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushObject(1)
+                    pushObject(3)
+                    returnResourceBundle()
+                }
+            }.withBody()
+             .build()
         ).mapByClassName()
 
         private fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
         private fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
         private fun Iterable<Member>.mapByClassName(): Map<String, List<Member>>
                       = groupBy(Member::className).mapValues(Map.Entry<String, List<Member>>::value)
+        private fun EmitterModule.returnResourceBundle() {
+            invokeStatic(
+                owner = "sandbox/java/lang/DJVM",
+                name = GET_BUNDLE,
+                descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;Lsandbox/java/util/ResourceBundle\$Control;)Lsandbox/java/util/ResourceBundle;"
+            )
+            returnObject()
+        }
+        private fun EmitterModule.pushDefaultLocale() {
+            invokeStatic(
+                owner = "sandbox/java/util/Locale",
+                name = "getDefault",
+                descriptor = "()Lsandbox/java/util/Locale;"
+            )
+        }
+        private fun EmitterModule.pushDefaultControl() {
+            /*
+             * The baseName parameter is expected already to have been
+             * pushed onto the stack, just below the Locale value, so
+             * emit instructions to rearrange the stack as follows:
+             *     [W1]    [W2]
+             *     [W2] -> [W1]
+             *             [W2]
+             */
+            instruction(DUP2)
+            pop()
+            invokeStatic(
+                owner = "sandbox/java/util/ResourceBundle",
+                name = "getDefaultControl",
+                descriptor = "(Lsandbox/java/lang/String;)Lsandbox/java/util/ResourceBundle\$Control;"
+            )
+        }
 
         /**
          * @see [AnalysisConfiguration]
          */
         fun createRoot(
             classPaths: List<Path>,
-            whitelist: Whitelist = Whitelist.MINIMAL,
+            whitelist: Whitelist,
             additionalPinnedClasses: Set<String> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
             analyzeAnnotations: Boolean = false,
@@ -405,11 +577,24 @@ class AnalysisConfiguration private constructor(
             memberModule: MemberModule = MemberModule(),
             bootstrapClassLoader: BootstrapClassLoader? = null
         ): AnalysisConfiguration {
+            /**
+             * We may need to whitelist the descriptors for methods that we
+             * "stitch" into sandbox classes, to protect their invocations from
+             * being remapped by [net.corda.djvm.rewiring.SandboxClassRemapper].
+             */
+            val actualWhitelist = whitelist.addTextEntries(
+                STITCHED_CLASSES
+                    .flatMap(Map.Entry<String, List<Member>>::value)
+                    .filter { it.body.isNotEmpty() }
+                    .filter(MemberFilter(whitelist)::isWhitelistable)
+                    .map(Member::reference)
+                    .toSet()
+            )
             val pinnedClasses = MANDATORY_PINNED_CLASSES + additionalPinnedClasses
-            val classResolver = ClassResolver(pinnedClasses, TEMPLATE_CLASSES, whitelist, SANDBOX_PREFIX)
+            val classResolver = ClassResolver(pinnedClasses, TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
 
             return AnalysisConfiguration(
-                whitelist = whitelist,
+                whitelist = actualWhitelist,
                 pinnedClasses = pinnedClasses,
                 classResolver = classResolver,
                 exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, pinnedClasses, SANDBOX_PREFIX),
@@ -449,5 +634,22 @@ class AnalysisConfiguration private constructor(
             genericsDetails = signature,
             body = bodies
         )
+    }
+
+    private class MemberFilter(private val whitelist: Whitelist) {
+        fun isWhitelistable(member: Member): Boolean {
+            val methodType = Type.getMethodType(member.descriptor)
+            val argumentTypes = methodType.argumentTypes
+            return argumentTypes.any(::isWhitelistable) || isWhitelistable(methodType.returnType)
+        }
+
+        private fun isWhitelistable(type: Type): Boolean {
+            return (type.sort == Type.OBJECT && isWhitelistable(type.internalName))
+                || (type.sort == Type.ARRAY && isWhitelistable(type.elementType.internalName))
+        }
+
+        private fun isWhitelistable(internalName: String): Boolean {
+            return !internalName.startsWith(SANDBOX_PREFIX) && !whitelist.matches(internalName)
+        }
     }
 }

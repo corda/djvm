@@ -55,6 +55,7 @@ jar.enabled = false
 shadowJar {
     baseName 'corda-djvm'
     classifier ''
+    reproducibleFileOrder = true
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
 
     manifest {
@@ -64,6 +65,9 @@ shadowJar {
     // These particular classes are only needed to "bootstrap"
     // the compilation of the other sandbox classes. At runtime,
     // we will generate better versions from deterministic-rt.jar.
+    exclude 'sandbox/java/io/BufferedInputStream.class'
+    exclude 'sandbox/java/io/DataInputStream.class'
+    exclude 'sandbox/java/io/InputStream.class'
     exclude 'sandbox/java/lang/Appendable.class'
     exclude 'sandbox/java/lang/CharSequence.class'
     exclude 'sandbox/java/lang/Character\$Subset.class'
@@ -79,10 +83,26 @@ shadowJar {
     exclude 'sandbox/java/nio/charset/Charset.class'
     exclude 'sandbox/java/nio/charset/spi/**'
     exclude 'sandbox/java/security/PrivilegedAction.class'
+    exclude 'sandbox/java/security/PrivilegedExceptionAction.class'
     exclude 'sandbox/java/util/concurrent/ConcurrentMap.class'
     exclude 'sandbox/java/util/concurrent/ConcurrentHashMap\$CollectionView.class'
+    exclude 'sandbox/java/util/concurrent/atomic/AtomicIntegerFieldUpdater.class'
+    exclude 'sandbox/java/util/concurrent/atomic/AtomicLongFieldUpdater.class'
+    exclude 'sandbox/java/util/concurrent/atomic/AtomicReferenceFieldUpdater.class'
     exclude 'sandbox/java/util/function/**'
-    exclude 'sandbox/java/util/*.class'
+    exclude 'sandbox/java/util/*List*.class'
+    exclude 'sandbox/java/util/*Map*.class'
+    exclude 'sandbox/java/util/*Set*.class'
+    exclude 'sandbox/java/util/Collection.class'
+    exclude 'sandbox/java/util/Comparator.class'
+    exclude 'sandbox/java/util/Currency.class'
+    exclude 'sandbox/java/util/Enumeration.class'
+    exclude 'sandbox/java/util/Hashtable.class'
+    exclude 'sandbox/java/util/Iterator.class'
+    exclude 'sandbox/java/util/Locale.class'
+    exclude 'sandbox/java/util/MissingResourceException.class'
+    exclude 'sandbox/java/util/Properties.class'
+    exclude 'sandbox/java/util/ResourceBundle*.class'
 }
 assemble.dependsOn shadowJar
 

@@ -45,4 +45,19 @@ class WhitelistTest : TestBase(KOTLIN) {
         assertThat(whitelist.matches("org/junit/Test")).isFalse()
     }
 
+    @Test
+    fun `test atomic field updater factories are whitelisted`() {
+        val whitelist = Whitelist.MINIMAL
+        assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicIntegerFieldUpdater.newUpdater:(Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicIntegerFieldUpdater;")).isTrue()
+        assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicLongFieldUpdater.newUpdater:(Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicLongFieldUpdater;")).isTrue()
+        assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicReferenceFieldUpdater.newUpdater:(Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;")).isTrue()
+    }
+
+    @Test
+    fun `test atomic field updaters are not whitelisted`() {
+        val whitelist = Whitelist.MINIMAL
+        assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicIntegerFieldUpdater")).isFalse()
+        assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicLongFieldUpdater")).isFalse()
+        assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicReferenceFieldUpdater")).isFalse()
+    }
 }

@@ -15,6 +15,7 @@ import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.Type
+import java.net.URL
 
 /**
  * Class loader that enables registration of rewired classes.
@@ -283,6 +284,13 @@ class SandboxClassLoader private constructor(
             val byteCode = ThrowableWrapperFactory.toByteCode(className, superName)
             LoadedClass(defineClass(className.asPackagePath, byteCode.bytes, 0, byteCode.bytes.size), byteCode)
         }
+    }
+
+    /**
+     * Allow access to resources in the source classloader.
+     */
+    override fun getResource(resourceName: String): URL? {
+        return supportingClassLoader.getResource(resourceName)
     }
 
     companion object {

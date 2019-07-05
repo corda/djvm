@@ -149,6 +149,7 @@ abstract class TestBase(type: SandboxType) {
         val reader = ClassReader(T::class.java.name)
         AnalysisConfiguration.createRoot(
             classPaths,
+            whitelist = Whitelist.MINIMAL,
             minimumSeverityLevel = minimumSeverityLevel,
             bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
         ).use { analysisConfiguration ->
