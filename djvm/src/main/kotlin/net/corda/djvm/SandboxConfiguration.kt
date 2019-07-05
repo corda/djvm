@@ -34,7 +34,6 @@ class SandboxConfiguration private constructor(
         val ALL_RULES: List<Rule> = unmodifiableList(listOf(
             AlwaysUseNonSynchronizedMethods,
             AlwaysUseStrictFloatingPointArithmetic,
-            DisallowDynamicInvocation,
             DisallowOverriddenSandboxPackage,
             DisallowSandboxInstructions,
             DisallowSandboxMethods,
@@ -57,6 +56,7 @@ class SandboxConfiguration private constructor(
             AlwaysInheritFromSandboxedObject,
             AlwaysUseExactMath,
             ArgumentUnwrapper,
+            DisallowDynamicInvocation,
             DisallowCatchingBlacklistedExceptions,
             DisallowNonDeterministicMethods,
             HandleExceptionUnwrapper,

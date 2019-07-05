@@ -1,21 +1,31 @@
 package net.corda.djvm.rules.implementation
 
+import jdk.internal.org.objectweb.asm.Type
+import net.corda.djvm.code.Emitter
+import net.corda.djvm.code.EmitterContext
+import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.DynamicInvocationInstruction
-import net.corda.djvm.rules.InstructionRule
-import net.corda.djvm.validation.RuleContext
+import net.corda.djvm.references.MemberReference
 import org.objectweb.asm.Handle
 
 /**
- * Rule that checks for invalid dynamic invocations.
+ * Checks for invalid dynamic invocations.
  */
-object DisallowDynamicInvocation : InstructionRule() {
+object DisallowDynamicInvocation : Emitter {
 
-    override fun validate(context: RuleContext, instruction: Instruction) = context.validate {
-        if (instruction is DynamicInvocationInstruction && !isJvmLambda(instruction.bootstrapArgs)) {
-            warn("Disallowed dynamic invocation in ${formatFor(instruction.method)}").always()
+    override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
+        if (instruction is DynamicInvocationInstruction
+            && instruction.bootstrap.owner == "java/lang/invoke/LambdaMetafactory"
+            && isMetafactory(instruction.bootstrap.name)
+            && !isJvmLambda(instruction.bootstrapArgs)) {
+            //forbid(instruction)
             // TODO Allow specific lambda and string concatenation meta-factories used by Java code itself
         }
+    }
+
+    private fun isMetafactory(methodName: String): Boolean {
+        return methodName == "metafactory" || methodName == "altMetafactory"
     }
 
     private fun isJvmLambda(bootstrapArgs: Array<out Any?>): Boolean {
@@ -24,5 +34,15 @@ object DisallowDynamicInvocation : InstructionRule() {
 
     private fun isJvmInternal(className: String): Boolean {
         return className.startsWith("java/")
+    }
+
+    private fun EmitterModule.forbid(instruction: DynamicInvocationInstruction) {
+        val lambdaType = Type.getObjectType(instruction.descriptor)
+        val dynamicMember = MemberReference(
+            className = lambdaType.returnType.className,
+            memberName = instruction.memberName,
+            descriptor = instruction.descriptor
+        )
+        throwRuleViolationError("Disallowed reference to Lambda; ${formatFor(dynamicMember)}")
     }
 }
