@@ -2,7 +2,6 @@ package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.code.*
 import net.corda.djvm.code.instructions.MemberAccessInstruction
-import net.corda.djvm.rules.implementation.MemberRuleEnforcer.Companion.formatFor
 import org.objectweb.asm.Opcodes.*
 
 /**

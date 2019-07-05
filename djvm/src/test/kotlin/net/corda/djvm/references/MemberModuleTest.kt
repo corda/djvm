@@ -97,32 +97,6 @@ class MemberModuleTest {
     }
 
     @Test
-    fun `can detect fields from descriptors`() {
-        assertThat(module.isField(reference("()V"))).isFalse()
-        assertThat(module.isField(reference("(IJ)V"))).isFalse()
-        assertThat(module.isField(reference("(IJ)Lfoo/Bar;"))).isFalse()
-        assertThat(module.isField(reference("(Ljava/lang/String;J)V"))).isFalse()
-        assertThat(module.isField(reference("(Ljava/lang/String;J)Lfoo/Bar;"))).isFalse()
-        assertThat(module.isField(reference("V"))).isTrue()
-        assertThat(module.isField(reference("[Z"))).isTrue()
-        assertThat(module.isField(reference("Ljava/lang/String;"))).isTrue()
-        assertThat(module.isField(reference("[Ljava/lang/String;"))).isTrue()
-    }
-
-    @Test
-    fun `can detect methods from descriptors`() {
-        assertThat(module.isMethod(reference("()V"))).isTrue()
-        assertThat(module.isMethod(reference("(IJ)V"))).isTrue()
-        assertThat(module.isMethod(reference("(IJ)Lfoo/Bar;"))).isTrue()
-        assertThat(module.isMethod(reference("(Ljava/lang/String;J)V"))).isTrue()
-        assertThat(module.isMethod(reference("(Ljava/lang/String;J)Lfoo/Bar;"))).isTrue()
-        assertThat(module.isMethod(reference("V"))).isFalse()
-        assertThat(module.isMethod(reference("[Z"))).isFalse()
-        assertThat(module.isMethod(reference("Ljava/lang/String;"))).isFalse()
-        assertThat(module.isMethod(reference("[Ljava/lang/String;"))).isFalse()
-    }
-
-    @Test
     fun `can detect constructors from descriptors`() {
         assertThat(module.isConstructor(member("foo"))).isFalse()
         assertThat(module.isConstructor(member("helloWorld"))).isFalse()

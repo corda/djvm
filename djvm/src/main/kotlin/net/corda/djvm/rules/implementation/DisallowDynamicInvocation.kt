@@ -3,7 +3,6 @@ package net.corda.djvm.rules.implementation
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.DynamicInvocationInstruction
 import net.corda.djvm.rules.InstructionRule
-import net.corda.djvm.rules.implementation.MemberRuleEnforcer.Companion.formatFor
 import net.corda.djvm.validation.RuleContext
 import org.objectweb.asm.Handle
 

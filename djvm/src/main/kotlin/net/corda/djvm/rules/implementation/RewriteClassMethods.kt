@@ -5,7 +5,6 @@ import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.MemberAccessInstruction
-import net.corda.djvm.rules.implementation.MemberRuleEnforcer.Companion.formatFor
 import org.objectweb.asm.Opcodes.*
 
 /**

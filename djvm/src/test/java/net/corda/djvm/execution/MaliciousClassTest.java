@@ -132,7 +132,8 @@ class MaliciousClassTest extends TestBase {
                 .isExactlyInstanceOf(SandboxClassLoadingException.class)
                 .hasMessageContaining(Type.getInternalName(SelfSandboxing.class))
                 .hasMessageContaining("Access to sandbox.java.lang.String.toDJVM(String) is forbidden.")
-                .hasMessageContaining("Access to sandbox.java.lang.String.fromDJVM(String) is forbidden.");
+                .hasMessageContaining("Access to sandbox.java.lang.String.fromDJVM(String) is forbidden.")
+                .hasMessageContaining("Casting to sandbox.java.lang.String is forbidden.");
             return null;
         });
     }

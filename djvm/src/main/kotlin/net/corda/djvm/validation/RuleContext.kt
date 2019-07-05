@@ -3,10 +3,7 @@ package net.corda.djvm.validation
 import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.analysis.Whitelist
-import net.corda.djvm.references.ClassRepresentation
-import net.corda.djvm.references.ClassModule
-import net.corda.djvm.references.Member
-import net.corda.djvm.references.MemberModule
+import net.corda.djvm.references.*
 
 /**
  * The context in which a rule is validated.
@@ -17,6 +14,7 @@ import net.corda.djvm.references.MemberModule
 open class RuleContext(
         private val analysisContext: AnalysisRuntimeContext
 ) : ConstraintProvider(analysisContext) {
+    fun formatFor(member: MemberInformation): String = analysisContext.configuration.formatFor(member)
 
     /**
      * The class currently being analysed.

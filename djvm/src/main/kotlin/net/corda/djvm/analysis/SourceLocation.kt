@@ -2,7 +2,9 @@ package net.corda.djvm.analysis
 
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.SANDBOX_PREFIX
 import net.corda.djvm.formatting.MemberFormatter
+import net.corda.djvm.references.ClassModule
 import net.corda.djvm.references.MemberInformation
+import net.corda.djvm.references.MemberModule
 
 /**
  * Representation of the source location of a class, member or instruction.
@@ -83,7 +85,7 @@ data class SourceLocation(
 
     private companion object {
 
-        private val memberFormatter = MemberFormatter()
+        private val memberFormatter = MemberFormatter(ClassModule(), MemberModule())
 
     }
 

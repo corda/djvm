@@ -8,8 +8,8 @@ import net.corda.djvm.references.MemberModule
  * Functionality for formatting a member.
  */
 class MemberFormatter(
-        private val classModule: ClassModule = ClassModule(),
-        private val memberModule: MemberModule = MemberModule()
+    private val classModule: ClassModule,
+    private val memberModule: MemberModule
 ) {
 
     /**
@@ -22,10 +22,10 @@ class MemberFormatter(
         } else {
             ".${member.memberName}"
         }
-        return if (memberModule.isField(member)) {
-            "$className$memberName"
-        } else {
+        return if (member.isMethod) {
             "$className$memberName(${format(member.descriptor)})"
+        } else {
+            "$className$memberName"
         }
     }
 

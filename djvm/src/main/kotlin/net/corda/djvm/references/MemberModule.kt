@@ -30,20 +30,6 @@ class MemberModule : AnnotationModule() {
     }
 
     /**
-     * Check if member is a field.
-     */
-    fun isField(member: MemberInformation): Boolean {
-        return !member.isMethod
-    }
-
-    /**
-     * Check if member is a method.
-     */
-    fun isMethod(member: MemberInformation): Boolean {
-        return member.isMethod
-    }
-
-    /**
      * Check if member is marked to be deterministic.
      */
     fun isDeterministic(member: Member): Boolean {

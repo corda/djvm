@@ -1,6 +1,7 @@
 package net.corda.djvm.code
 
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.references.MemberInformation
 import net.corda.djvm.references.MethodBody
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -17,6 +18,7 @@ class EmitterModule(
         private val methodVisitor: MethodVisitor,
         private val configuration: AnalysisConfiguration
 ) {
+    fun formatFor(member: MemberInformation): String = configuration.formatFor(member)
 
     /**
      * Indicates whether the default instruction in the currently processed block is to be emitted or not.

@@ -4,15 +4,13 @@ import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
 import net.corda.djvm.code.djvmException
+import net.corda.djvm.formatting.MemberFormatter
 import net.corda.djvm.messages.Severity
-import net.corda.djvm.references.ClassModule
-import net.corda.djvm.references.Member
-import net.corda.djvm.references.MemberModule
-import net.corda.djvm.references.MethodBody
+import net.corda.djvm.references.*
 import net.corda.djvm.source.ApiSource
 import net.corda.djvm.source.EmptyApi
-import net.corda.djvm.source.UserSource
 import net.corda.djvm.source.SourceClassLoader
+import net.corda.djvm.source.UserSource
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
@@ -57,6 +55,9 @@ class AnalysisConfiguration private constructor(
         val memberModule: MemberModule,
         val supportingClassLoader: SourceClassLoader
 ) : Closeable {
+    private val memberFormatter = MemberFormatter(classModule, memberModule)
+
+    fun formatFor(member: MemberInformation): String = memberFormatter.format(member)
 
     /**
      * These interfaces are modified as they are mapped into the sandbox by
