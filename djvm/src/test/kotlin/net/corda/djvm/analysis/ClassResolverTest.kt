@@ -1,11 +1,12 @@
 package net.corda.djvm.analysis
 
+import net.corda.djvm.analysis.AnalysisConfiguration.Companion.SANDBOX_PREFIX
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class ClassResolverTest {
 
-    private val resolver = ClassResolver(emptySet(), emptySet(), Whitelist.MINIMAL, "sandbox/")
+    private val resolver = ClassResolver(emptySet(), emptySet(), Whitelist.MINIMAL, SANDBOX_PREFIX)
 
     @Test
     fun `can resolve class name`() {

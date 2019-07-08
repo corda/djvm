@@ -1,5 +1,6 @@
 package net.corda.djvm.rules.implementation
 
+import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
@@ -14,7 +15,7 @@ object StringConstantWrapper : Emitter {
         if (instruction is ConstantInstruction) {
             when (instruction.value) {
                 is String -> {
-                    invokeStatic("sandbox/java/lang/DJVM", "intern", "(Ljava/lang/String;)Lsandbox/java/lang/String;", false)
+                    invokeStatic(DJVM_NAME, "intern", "(Ljava/lang/String;)Lsandbox/java/lang/String;", false)
                 }
             }
         }

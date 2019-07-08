@@ -1,9 +1,6 @@
 package net.corda.djvm.rules.implementation
 
-import net.corda.djvm.code.Emitter
-import net.corda.djvm.code.EmitterContext
-import net.corda.djvm.code.EmitterModule
-import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.*
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import net.corda.djvm.formatting.MemberFormatter
 import org.objectweb.asm.Opcodes.*
@@ -41,7 +38,7 @@ object DisallowNonDeterministicMethods : Emitter {
                 INVOKESTATIC -> if (instruction.owner == "java/lang/ClassLoader") {
                     when {
                         instruction.memberName == "getSystemClassLoader" -> {
-                            invokeStatic("sandbox/java/lang/DJVM", instruction.memberName, instruction.descriptor)
+                            invokeStatic(DJVM_NAME, instruction.memberName, instruction.descriptor)
                             preventDefault()
                         }
                         instruction.memberName == "getSystemResources" -> emptyResources(POP)
@@ -59,12 +56,12 @@ object DisallowNonDeterministicMethods : Emitter {
     }
 
     private fun EmitterModule.loadClass() {
-        invokeStatic("sandbox/java/lang/DJVM", "loadClass", "(Ljava/lang/ClassLoader;Ljava/lang/String;)Ljava/lang/Class;")
+        invokeStatic(DJVM_NAME, "loadClass", "(Ljava/lang/ClassLoader;Ljava/lang/String;)Ljava/lang/Class;")
         preventDefault()
     }
 
     private fun EmitterModule.initClassLoader() {
-        invokeStatic("sandbox/java/lang/DJVM", "getSystemClassLoader", "()Ljava/lang/ClassLoader;")
+        invokeStatic(DJVM_NAME, "getSystemClassLoader", "()Ljava/lang/ClassLoader;")
         invokeSpecial("java/lang/ClassLoader", "<init>", "(Ljava/lang/ClassLoader;)V")
         preventDefault()
     }

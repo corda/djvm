@@ -198,7 +198,7 @@ class EmitterModule(
     fun throwRuleViolationError(message: String) {
         methodVisitor.visitLdcInsn(message)
         invokeStatic(
-            owner = "sandbox/java/lang/DJVM",
+            owner = DJVM_NAME,
             name = "fail",
             descriptor = "(Ljava/lang/String;)Ljava/lang/Error;"
         )

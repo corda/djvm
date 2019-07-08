@@ -1,7 +1,9 @@
 package net.corda.djvm.analysis
 
+import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
+import net.corda.djvm.code.djvmException
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.references.ClassModule
 import net.corda.djvm.references.Member
@@ -157,8 +159,8 @@ class AnalysisConfiguration private constructor(
             RUNTIME_ACCOUNTER_NAME,
             "sandbox/java/io/DJVMInputStream",
             "sandbox/java/lang/Character\$Cache",
-            "sandbox/java/lang/DJVM",
-            "sandbox/java/lang/DJVMException",
+            DJVM_NAME,
+            djvmException,
             "sandbox/java/lang/DJVMNoResource",
             "sandbox/java/lang/DJVMResourceKey",
             "sandbox/java/lang/DJVMThrowableWrapper",
@@ -307,7 +309,7 @@ class AnalysisConfiguration private constructor(
             ) {
                 override fun writeBody(emitter: EmitterModule) = with(emitter) {
                     pushObject(0)
-                    invokeStatic("sandbox/java/lang/DJVM", "fromDJVMEnum", "(Lsandbox/java/lang/Enum;)Ljava/lang/Enum;")
+                    invokeStatic(DJVM_NAME, "fromDJVMEnum", "(Lsandbox/java/lang/Enum;)Ljava/lang/Enum;")
                     returnObject()
                 }
             }.withBody()
@@ -348,7 +350,7 @@ class AnalysisConfiguration private constructor(
                 descriptor = "()V"
             ) {
                 override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    invokeStatic("sandbox/java/lang/DJVM", "getSecurityProviders", "()Lsandbox/java/util/Properties;")
+                    invokeStatic(DJVM_NAME, "getSecurityProviders", "()Lsandbox/java/util/Properties;")
                     putStatic(className, "props", "Lsandbox/java/util/Properties;")
                     returnVoid()
                 }
@@ -523,7 +525,7 @@ class AnalysisConfiguration private constructor(
 
         private fun EmitterModule.returnResourceBundle() {
             invokeStatic(
-                owner = "sandbox/java/lang/DJVM",
+                owner = DJVM_NAME,
                 name = GET_BUNDLE,
                 descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;Lsandbox/java/util/ResourceBundle\$Control;)Lsandbox/java/util/ResourceBundle;"
             )

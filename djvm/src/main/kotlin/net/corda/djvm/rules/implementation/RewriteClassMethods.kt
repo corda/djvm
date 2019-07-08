@@ -1,5 +1,6 @@
 package net.corda.djvm.rules.implementation
 
+import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
@@ -23,21 +24,21 @@ object RewriteClassMethods : Emitter {
             when (instruction.operation) {
                 INVOKEVIRTUAL -> if (instruction.memberName == "enumConstantDirectory" && instruction.descriptor == "()Ljava/util/Map;") {
                     invokeStatic(
-                        owner = "sandbox/java/lang/DJVM",
+                        owner = DJVM_NAME,
                         name = "enumConstantDirectory",
                         descriptor = "(Ljava/lang/Class;)Lsandbox/java/util/Map;"
                     )
                     preventDefault()
                 } else if (instruction.memberName == "isEnum" && instruction.descriptor == "()Z") {
                     invokeStatic(
-                        owner = "sandbox/java/lang/DJVM",
+                        owner = DJVM_NAME,
                         name = "isEnum",
                         descriptor = "(Ljava/lang/Class;)Z"
                     )
                     preventDefault()
                 } else if (instruction.memberName == "getEnumConstants" && instruction.descriptor == "()[Ljava/lang/Object;") {
                     invokeStatic(
-                        owner = "sandbox/java/lang/DJVM",
+                        owner = DJVM_NAME,
                         name = "getEnumConstants",
                         descriptor = "(Ljava/lang/Class;)[Ljava/lang/Object;")
                     preventDefault()
@@ -46,7 +47,7 @@ object RewriteClassMethods : Emitter {
                     preventDefault()
                 } else if (instruction.memberName == "getClassLoader" && instruction.descriptor == "()Ljava/lang/ClassLoader;") {
                     invokeStatic(
-                        owner = "sandbox/java/lang/DJVM",
+                        owner = DJVM_NAME,
                         name = "getClassLoader",
                         descriptor = "(Ljava/lang/Class;)Ljava/lang/ClassLoader;"
                     )
@@ -56,7 +57,7 @@ object RewriteClassMethods : Emitter {
                 INVOKESTATIC -> if (instruction.memberName == "forName") {
                     if (instruction.descriptor == "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;") {
                         invokeStatic(
-                            owner = "sandbox/java/lang/DJVM",
+                            owner = DJVM_NAME,
                             name = "classForName",
                             descriptor = instruction.descriptor
                         )
@@ -67,7 +68,7 @@ object RewriteClassMethods : Emitter {
                         // and not the classloader of the DJVM class. We cannot assume that
                         // the DJVM class has access to the user's libraries.
                         invokeStatic(
-                            owner = "sandbox/java/lang/DJVM",
+                            owner = DJVM_NAME,
                             name = "toSandbox",
                             descriptor = "(Ljava/lang/String;)Ljava/lang/String;"
                         )

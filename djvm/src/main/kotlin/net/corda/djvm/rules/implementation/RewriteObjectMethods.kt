@@ -1,9 +1,6 @@
 package net.corda.djvm.rules.implementation
 
-import net.corda.djvm.code.Emitter
-import net.corda.djvm.code.EmitterContext
-import net.corda.djvm.code.Instruction
-import net.corda.djvm.code.OBJECT_NAME
+import net.corda.djvm.code.*
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import org.objectweb.asm.Opcodes.*
 
@@ -18,7 +15,7 @@ object RewriteObjectMethods : Emitter {
             when (instruction.operation) {
                 INVOKEVIRTUAL -> if (instruction.memberName == "hashCode" && instruction.descriptor == "()I") {
                     invokeStatic(
-                        owner = "sandbox/java/lang/DJVM",
+                        owner = DJVM_NAME,
                         name = "hashCode",
                         descriptor = "(Ljava/lang/Object;)I"
                     )

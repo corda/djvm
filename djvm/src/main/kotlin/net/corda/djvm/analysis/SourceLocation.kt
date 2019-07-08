@@ -61,7 +61,7 @@ data class SourceLocation(
                 sourceFile
             } else {
                 className
-            }.removePrefix("sandbox/"))
+            }.removePrefix(SANDBOX_PREFIX))
             append("|@")
             if (hasLineNumber) {
                 append(" on @|yellow line $lineNumber|@")

@@ -25,7 +25,7 @@ object HandleExceptionUnwrapper : Emitter {
                         /**
                          * This is a catch block; the wrapping function is allowed to throw exceptions.
                          */
-                        invokeStatic("sandbox/java/lang/DJVM", "catch", "(Ljava/lang/Throwable;)Lsandbox/java/lang/Throwable;")
+                        invokeStatic(DJVM_NAME, "catch", "(Ljava/lang/Throwable;)Lsandbox/java/lang/Throwable;")
 
                         /**
                          * When catching exceptions, we also need to tell the verifier which
@@ -38,7 +38,7 @@ object HandleExceptionUnwrapper : Emitter {
                         /**
                          * This is a finally block; the wrapping function MUST NOT throw exceptions.
                          */
-                        invokeStatic("sandbox/java/lang/DJVM", "finally", "(Ljava/lang/Throwable;)Lsandbox/java/lang/Throwable;")
+                        invokeStatic(DJVM_NAME, "finally", "(Ljava/lang/Throwable;)Lsandbox/java/lang/Throwable;")
                     }
                 }
             }
