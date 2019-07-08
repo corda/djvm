@@ -1,5 +1,6 @@
 package net.corda.djvm.rules.implementation
 
+import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
@@ -13,7 +14,7 @@ object ThrowExceptionWrapper : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         when (instruction.operation) {
             ATHROW -> {
-                invokeStatic("sandbox/java/lang/DJVM", "fromDJVM", "(Lsandbox/java/lang/Throwable;)Ljava/lang/Throwable;")
+                invokeStatic(DJVM_NAME, "fromDJVM", "(Lsandbox/java/lang/Throwable;)Ljava/lang/Throwable;")
             }
         }
     }

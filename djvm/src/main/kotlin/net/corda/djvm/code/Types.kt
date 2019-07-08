@@ -22,6 +22,12 @@ const val OBJECT_NAME = "java/lang/Object"
 const val THROWABLE_NAME = "java/lang/Throwable"
 
 /**
+ * The type name of the [sandbox.java.lang.DJVM] class which contains the
+ * low-level support functions for running inside the sandbox.
+ */
+const val DJVM_NAME = "sandbox/java/lang/DJVM"
+
+/**
  * The type name of the [RuntimeCostAccounter] class; referenced from instrumentors.
  */
 const val RUNTIME_ACCOUNTER_NAME: String = "sandbox/RuntimeCostAccounter"
