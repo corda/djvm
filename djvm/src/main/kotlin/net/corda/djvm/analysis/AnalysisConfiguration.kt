@@ -24,7 +24,7 @@ import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.security.Security
 import java.util.*
-import java.util.Collections.unmodifiableSet
+import java.util.Collections.*
 import kotlin.Comparator
 
 /**
@@ -124,7 +124,7 @@ class AnalysisConfiguration private constructor(
          * These classes will be duplicated into every sandbox's
          * parent classloader.
          */
-        private val TEMPLATE_CLASSES: Set<String> = setOf(
+        private val TEMPLATE_CLASSES: Set<String> = unmodifiable(setOf(
             java.lang.Boolean::class.java,
             java.lang.Byte::class.java,
             java.lang.Character::class.java,
@@ -175,7 +175,7 @@ class AnalysisConfiguration private constructor(
             "sandbox/sun/misc/SharedSecrets\$1",
             "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl",
             "sandbox/sun/security/provider/ByteArrayAccess"
-        )
+        ))
 
         /**
          * These exceptions are thrown by the JVM itself, and
@@ -188,7 +188,8 @@ class AnalysisConfiguration private constructor(
          * The full list of exceptions is determined by:
          * hotspot/src/share/vm/classfile/vmSymbols.hpp
          */
-        val JVM_EXCEPTIONS: Set<String> = setOf(
+        @JvmField
+        val JVM_EXCEPTIONS: Set<String> = unmodifiable(setOf(
             java.io.IOException::class.java,
             java.lang.AbstractMethodError::class.java,
             java.lang.ArithmeticException::class.java,
@@ -235,7 +236,7 @@ class AnalysisConfiguration private constructor(
         ).sandboxed() + setOf(
             // Mentioned here to prevent the DJVM from generating a synthetic wrapper.
             "sandbox/java/lang/DJVMThrowableWrapper"
-        )
+        ))
 
         /**
          * These interfaces will be modified as follows when
@@ -248,7 +249,7 @@ class AnalysisConfiguration private constructor(
          *
          * THIS IS ALL FOR THE BENEFIT OF [sandbox.java.lang.String]!!
          */
-        private val STITCHED_INTERFACES: Map<String, List<Member>> = listOf(
+        private val STITCHED_INTERFACES: Map<String, List<Member>> = unmodifiable(listOf(
             object : MethodBuilder(
                 access = ACC_PUBLIC or ACC_SYNTHETIC or ACC_BRIDGE,
                 className = sandboxed(CharSequence::class.java),
@@ -289,7 +290,7 @@ class AnalysisConfiguration private constructor(
             sandboxed(Comparable::class.java) to emptyList(),
             sandboxed(Comparator::class.java) to emptyList(),
             sandboxed(Iterator::class.java) to emptyList()
-        )
+        ))
 
         private const val GET_BUNDLE = "getBundle"
 
@@ -300,7 +301,7 @@ class AnalysisConfiguration private constructor(
          * The Java Security mechanisms also require some careful surgery to prevent them from
          * trying to invoke [sun.misc.Unsafe] and other assorted native methods.
          */
-        private val STITCHED_CLASSES: Map<String, List<Member>> = listOf(
+        private val STITCHED_CLASSES: Map<String, List<Member>> = unmodifiable(listOf(
             object : MethodBuilder(
                 access = ACC_FINAL or ACC_PROTECTED,
                 className = sandboxed(Enum::class.java),
@@ -502,7 +503,7 @@ class AnalysisConfiguration private constructor(
                 }
             }.withBody()
              .build()
-        ).mapByClassName()
+        ).mapByClassName())
 
         private fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
         private fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
@@ -510,6 +511,12 @@ class AnalysisConfiguration private constructor(
                       = groupBy(Member::className).mapValues(Map.Entry<String, List<Member>>::value)
         private fun <T> unmodifiable(items: Set<T>): Set<T> {
             return if (items.isEmpty()) emptySet() else unmodifiableSet(items)
+        }
+        private fun <K, V> unmodifiable(entry: Map.Entry<K, List<V>>): List<V> {
+            return if (entry.value.isEmpty()) emptyList() else unmodifiableList(entry.value)
+        }
+        private fun <K,V> unmodifiable(items: Map<K, List<V>>): Map<K, List<V>> {
+            return if (items.isEmpty()) emptyMap() else unmodifiableMap(items.mapValues(Companion::unmodifiable))
         }
 
         private fun deleteClassInitialiserFor(classType: Class<*>) = Member(

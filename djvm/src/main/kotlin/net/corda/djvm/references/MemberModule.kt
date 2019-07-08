@@ -27,8 +27,8 @@ class MemberModule : AnnotationModule() {
      * Check if member is a constructor or a static initialization block.
      */
     fun isConstructor(member: MemberInformation): Boolean {
-        return member.memberName == CONSTRUCTOR_NAME        // Instance constructor
-                || member.memberName == "<clinit>"  // Static initialization block
+        return member.memberName == CONSTRUCTOR_NAME // Instance constructor
+                || member.memberName == "<clinit>"   // Static initialization block
     }
 
     /**
