@@ -187,7 +187,7 @@ class EmitterModule(
         new(exceptionName)
         methodVisitor.visitInsn(DUP)
         methodVisitor.visitLdcInsn(message)
-        invokeSpecial(exceptionName, "<init>", "(Ljava/lang/String;)V")
+        invokeSpecial(exceptionName, CONSTRUCTOR_NAME, "(Ljava/lang/String;)V")
         methodVisitor.visitInsn(ATHROW)
     }
 

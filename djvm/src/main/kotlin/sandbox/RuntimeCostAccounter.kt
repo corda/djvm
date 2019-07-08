@@ -3,6 +3,8 @@
 package sandbox
 
 import net.corda.djvm.SandboxRuntimeContext
+import net.corda.djvm.code.OBJECT_NAME
+import net.corda.djvm.code.SANDBOX_OBJECT_NAME
 import net.corda.djvm.costing.RuntimeCostSummary
 
 /**
@@ -25,8 +27,8 @@ private val runtimeCosts: RuntimeCostSummary get() = SandboxRuntimeContext.insta
  * Known / estimated allocation costs.
  */
 private val allocationCosts = mapOf(
-        "java/lang/Object" to 8,
-        "sandbox/java/lang/Object" to 8
+        OBJECT_NAME to 8,
+        SANDBOX_OBJECT_NAME to 8
 )
 
 /**

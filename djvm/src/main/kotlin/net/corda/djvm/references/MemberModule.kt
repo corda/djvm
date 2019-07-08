@@ -1,5 +1,7 @@
 package net.corda.djvm.references
 
+import net.corda.djvm.code.CONSTRUCTOR_NAME
+
 /**
  * Member-specific functionality.
  */
@@ -25,7 +27,7 @@ class MemberModule : AnnotationModule() {
      * Check if member is a constructor or a static initialization block.
      */
     fun isConstructor(member: MemberInformation): Boolean {
-        return member.memberName == "<init>"        // Instance constructor
+        return member.memberName == CONSTRUCTOR_NAME        // Instance constructor
                 || member.memberName == "<clinit>"  // Static initialization block
     }
 

@@ -14,10 +14,6 @@ import java.lang.reflect.Modifier
  */
 object AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
 
-    private const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"
-
-    private const val CONSTRUCTOR_NAME = "<init>"
-
     override fun define(context: AnalysisRuntimeContext, clazz: ClassRepresentation) = when {
         isDirectSubClassOfObject(context.clazz) -> clazz.copy(superClass = SANDBOX_OBJECT_NAME)
         else -> clazz

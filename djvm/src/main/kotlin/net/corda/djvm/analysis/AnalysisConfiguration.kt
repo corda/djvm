@@ -1,6 +1,7 @@
 package net.corda.djvm.analysis
 
 import net.corda.djvm.code.DJVM_NAME
+import net.corda.djvm.code.CONSTRUCTOR_NAME
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
 import net.corda.djvm.code.djvmException
@@ -408,7 +409,7 @@ class AnalysisConfiguration private constructor(
                     new("sandbox/java/io/DJVMInputStream")
                     duplicate()
                     pushObject(0)
-                    invokeSpecial("sandbox/java/io/DJVMInputStream", "<init>", "(Ljava/io/InputStream;)V")
+                    invokeSpecial("sandbox/java/io/DJVMInputStream", CONSTRUCTOR_NAME, "(Ljava/io/InputStream;)V")
                     returnObject()
                 }
             }.withBody()

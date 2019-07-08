@@ -20,6 +20,8 @@ const val EMIT_AFTER_INVOKE: Int = EMIT_DEFAULT + 2
 
 const val OBJECT_NAME = "java/lang/Object"
 const val THROWABLE_NAME = "java/lang/Throwable"
+const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object";
+const val CONSTRUCTOR_NAME = "<init>"
 
 /**
  * The type name of the [sandbox.java.lang.DJVM] class which contains the

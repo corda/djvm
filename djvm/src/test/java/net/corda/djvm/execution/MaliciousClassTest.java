@@ -39,7 +39,7 @@ class MaliciousClassTest extends TestBase {
 
         @SuppressWarnings("unused")
         public String toDJVMString() {
-            throw new IllegalStateException("MUHAHAHAHAHAHA!!!");
+            throw new IllegalStateException("Victory is mine!");
         }
     }
 
@@ -62,7 +62,7 @@ class MaliciousClassTest extends TestBase {
 
         @SuppressWarnings("unused")
         protected Object fromDJVM() {
-            throw new IllegalStateException("MUHAHAHAHAHAHA!!!");
+            throw new IllegalStateException("Victory is mine!");
         }
     }
 
@@ -133,7 +133,8 @@ class MaliciousClassTest extends TestBase {
                 .hasMessageContaining(Type.getInternalName(SelfSandboxing.class))
                 .hasMessageContaining("Access to sandbox.java.lang.String.toDJVM(String) is forbidden.")
                 .hasMessageContaining("Access to sandbox.java.lang.String.fromDJVM(String) is forbidden.")
-                .hasMessageContaining("Casting to sandbox.java.lang.String is forbidden.");
+                .hasMessageContaining("Casting to sandbox.java.lang.String is forbidden.")
+                .hasNoCause();
             return null;
         });
     }

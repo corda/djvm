@@ -60,7 +60,7 @@ object DisallowNonDeterministicMethods : Emitter {
 
     private fun EmitterModule.initClassLoader() {
         invokeStatic(DJVM_NAME, "getSystemClassLoader", "()Ljava/lang/ClassLoader;")
-        invokeSpecial("java/lang/ClassLoader", "<init>", "(Ljava/lang/ClassLoader;)V")
+        invokeSpecial("java/lang/ClassLoader", CONSTRUCTOR_NAME, "(Ljava/lang/ClassLoader;)V")
         preventDefault()
     }
 
@@ -97,7 +97,7 @@ object DisallowNonDeterministicMethods : Emitter {
         private val isLoadClass: Boolean = instruction.memberName == "loadClass"
 
         fun runFor(className: String): Choice = when {
-            isClassLoader && instruction.memberName == "<init>" -> if (instruction.descriptor == "()V") {
+            isClassLoader && instruction.memberName == CONSTRUCTOR_NAME -> if (instruction.descriptor == "()V") {
                 Choice.INIT_CLASSLOADER
             } else {
                 Choice.FORBID

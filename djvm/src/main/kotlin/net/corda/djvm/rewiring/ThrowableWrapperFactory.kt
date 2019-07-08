@@ -1,6 +1,7 @@
 package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.ExceptionResolver.Companion.isDJVMException
+import net.corda.djvm.code.CONSTRUCTOR_NAME
 import net.corda.djvm.code.djvmException
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes.*
@@ -78,10 +79,10 @@ class ThrowableWrapperFactory(
         visitField(ACC_PRIVATE or ACC_FINAL, THROWABLE_FIELD, FIELD_TYPE, null, null)
 
         // Constructor
-        visitMethod(ACC_PUBLIC, "<init>", CONSTRUCTOR_DESCRIPTOR, null, null).also { mv ->
+        visitMethod(ACC_PUBLIC, CONSTRUCTOR_NAME, CONSTRUCTOR_DESCRIPTOR, null, null).also { mv ->
             mv.visitCode()
             mv.visitVarInsn(ALOAD, 0)
-            mv.visitMethodInsn(INVOKESPECIAL, superName, "<init>", "()V", false)
+            mv.visitMethodInsn(INVOKESPECIAL, superName, CONSTRUCTOR_NAME, "()V", false)
             mv.visitVarInsn(ALOAD, 0)
             mv.visitVarInsn(ALOAD, 1)
             mv.visitFieldInsn(PUTFIELD, className, THROWABLE_FIELD, FIELD_TYPE)
@@ -136,11 +137,11 @@ class ThrowableWrapperFactory(
         )
 
         // Constructor
-        visitMethod(ACC_PUBLIC, "<init>", CONSTRUCTOR_DESCRIPTOR, null, null).also { mv ->
+        visitMethod(ACC_PUBLIC, CONSTRUCTOR_NAME, CONSTRUCTOR_DESCRIPTOR, null, null).also { mv ->
             mv.visitCode()
             mv.visitVarInsn(ALOAD, 0)
             mv.visitVarInsn(ALOAD, 1)
-            mv.visitMethodInsn(INVOKESPECIAL, superName, "<init>", CONSTRUCTOR_DESCRIPTOR, false)
+            mv.visitMethodInsn(INVOKESPECIAL, superName, CONSTRUCTOR_NAME, CONSTRUCTOR_DESCRIPTOR, false)
             mv.visitInsn(RETURN)
             mv.visitMaxs(2, 2)
             mv.visitEnd()
