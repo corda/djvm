@@ -7,7 +7,6 @@ import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import net.corda.djvm.formatting.MemberFormatter
 import org.objectweb.asm.Opcodes.*
-import sandbox.net.corda.djvm.rules.RuleViolationError
 
 /**
  * Some non-deterministic APIs belong to pinned classes and so cannot be stubbed out.
@@ -55,7 +54,7 @@ object DisallowNonDeterministicMethods : Emitter {
     }
 
     private fun EmitterModule.forbid(instruction: MemberAccessInstruction) {
-        throwException<RuleViolationError>("Disallowed reference to API; ${memberFormatter.format(instruction.member)}")
+        throwRuleViolationError("Disallowed reference to API; ${memberFormatter.format(instruction.member)}")
         preventDefault()
     }
 

@@ -2,10 +2,11 @@ package net.corda.djvm.execution;
 
 import greymalkin.PureEvil;
 import net.corda.djvm.TestBase;
+import net.corda.djvm.Utilities;
 import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoader;
+import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
-import sandbox.net.corda.djvm.rules.RuleViolationError;
 
 import java.util.function.Function;
 
@@ -143,7 +144,7 @@ class MaliciousClassLoaderTest extends TestBase {
         @Override
         public ClassLoader apply(String input) {
             // A pinned class belongs to the application classloader.
-            return RuleViolationError.class.getClassLoader();
+            return Utilities.class.getClassLoader();
         }
     }
 }

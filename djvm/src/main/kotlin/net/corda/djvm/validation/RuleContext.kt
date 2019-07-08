@@ -43,12 +43,6 @@ open class RuleContext(
         get() = analysisContext.configuration.whitelist
 
     /**
-     * Classes that have been explicitly defined in the sandbox namespace.
-     */
-    val pinnedClasses: Set<String>
-        get() = analysisContext.configuration.pinnedClasses
-
-    /**
      * Utilities for dealing with classes.
      */
     val classModule: ClassModule
@@ -59,6 +53,11 @@ open class RuleContext(
      */
     val memberModule: MemberModule
         get() = analysisContext.configuration.memberModule
+
+    /**
+     * Check whether the class has been explicitly defined in the sandbox namespace.
+     */
+    fun isSandboxClass(className: String): Boolean = analysisContext.configuration.isSandboxClass(className)
 
     /**
      * Set up and execute a rule validation block.

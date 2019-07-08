@@ -6,7 +6,6 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
-import sandbox.RUNTIME_ACCOUNTER_NAME
 
 /**
  * Helper functions for emitting code to a method body.
@@ -190,7 +189,27 @@ class EmitterModule(
         methodVisitor.visitInsn(ATHROW)
     }
 
+    @Suppress("unused")
     inline fun <reified T : Throwable> throwException(message: String) = throwException(T::class.java, message)
+
+    /**
+     * Emits an instruction to throw [net.corda.djvm.rules.RuleViolationError].
+     */
+    fun throwRuleViolationError(message: String) {
+        methodVisitor.visitLdcInsn(message)
+        invokeStatic(
+            owner = "sandbox/java/lang/DJVM",
+            name = "fail",
+            descriptor = "(Ljava/lang/String;)Ljava/lang/Error;"
+        )
+
+        // This instruction is actually never reached because
+        // DJVM.fail() does not return. But pretending to throw
+        // the exception that it will never receive from fail()
+        // closes off this functions's byte-code in a way that
+        // the Verifier can always accept.
+        methodVisitor.visitInsn(ATHROW)
+    }
 
     /**
      * Attempt to cast the object on the top of the stack to the given class.

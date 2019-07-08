@@ -3,6 +3,7 @@
 package sandbox
 
 import net.corda.djvm.SandboxRuntimeContext
+import net.corda.djvm.costing.RuntimeCostSummary
 
 /**
  * Class for keeping a tally on various runtime metrics, like number of jumps, allocations, invocations, etc. The
@@ -14,9 +15,11 @@ import net.corda.djvm.SandboxRuntimeContext
  */
 
 /**
- * A static instance of the sandbox context which is used to keep track of the costs.
+ * The field from the sandbox context which is used to keep track of the costs.
+ * We cannot cache the value in a static field because we may wish to reuse
+ * this class across multiple sandboxes.
  */
-private val context: SandboxRuntimeContext = SandboxRuntimeContext.instance
+private val runtimeCosts: RuntimeCostSummary get() = SandboxRuntimeContext.instance.runtimeCosts
 
 /**
  * Known / estimated allocation costs.
@@ -38,8 +41,7 @@ fun checkCatch(exception: Throwable) {
 /**
  * Record a jump operation.
  */
-fun recordJump() =
-        context.runtimeCosts.jumpCost.increment()
+fun recordJump() = runtimeCosts.jumpCost.increment()
 
 /**
  * Record a memory allocation operation.
@@ -52,7 +54,7 @@ fun recordAllocation(typeName: String) {
     // - https://github.com/DimitrisAndreou/memory-measurer
     // - https://stackoverflow.com/questions/9368764/calculate-size-of-object-in-java
     val size = allocationCosts.getOrDefault(typeName, 16)
-    context.runtimeCosts.allocationCost.increment(size)
+    runtimeCosts.allocationCost.increment(size)
 }
 
 /**
@@ -64,7 +66,7 @@ fun recordAllocation(typeName: String) {
 fun recordArrayAllocation(length: Int, typeName: String) {
     require(length >= 0) { "Length must be a positive integer" }
     val size = allocationCosts.getOrDefault(typeName, 16)
-    context.runtimeCosts.allocationCost.increment(length * size)
+    runtimeCosts.allocationCost.increment(length * size)
 }
 
 /**
@@ -76,17 +78,15 @@ fun recordArrayAllocation(length: Int, typeName: String) {
 fun recordArrayAllocation(length: Int, typeSize: Int) {
     require(length >= 0) { "Length must be a positive integer" }
     require(typeSize > 0) { "Type size must be a positive integer" }
-    context.runtimeCosts.allocationCost.increment(length * typeSize)
+    runtimeCosts.allocationCost.increment(length * typeSize)
 }
 
 /**
  * Record a method call.
  */
-fun recordInvocation() =
-        context.runtimeCosts.invocationCost.increment()
+fun recordInvocation() = runtimeCosts.invocationCost.increment()
 
 /**
  * The accumulated cost of exception throws that have been made.
  */
-fun recordThrow() =
-        context.runtimeCosts.throwCost.increment()
+fun recordThrow() = runtimeCosts.throwCost.increment()

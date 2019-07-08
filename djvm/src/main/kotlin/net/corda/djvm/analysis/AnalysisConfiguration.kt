@@ -1,7 +1,7 @@
 package net.corda.djvm.analysis
 
 import net.corda.djvm.code.EmitterModule
-import net.corda.djvm.code.ruleViolationError
+import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.references.ClassModule
 import net.corda.djvm.references.Member
@@ -12,7 +12,6 @@ import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
-import sandbox.RUNTIME_ACCOUNTER_NAME
 import sun.util.locale.provider.JRELocaleProviderAdapter
 import java.io.Closeable
 import java.io.IOException
@@ -23,6 +22,7 @@ import java.nio.file.Path
 import java.security.SecureRandom
 import java.security.Security
 import java.util.*
+import java.util.Collections.unmodifiableSet
 import kotlin.Comparator
 
 /**
@@ -40,9 +40,7 @@ import kotlin.Comparator
  * If none are provided, all messages will be reported.
  * @property classModule Module for handling evolution of a class hierarchy during analysis.
  * @property memberModule Module for handling the specification and inspection of class members.
- * @property bootstrapClassLoader Optional provider for the Java API classes.
  * @property supportingClassLoader ClassLoader providing the classes to run inside the sandbox.
- * @property isRootConfiguration Effectively, whether we are allowed to close [bootstrapClassLoader].
  */
 class AnalysisConfiguration private constructor(
         val whitelist: Whitelist,
@@ -54,9 +52,7 @@ class AnalysisConfiguration private constructor(
         val prefixFilters: List<String>,
         val classModule: ClassModule,
         val memberModule: MemberModule,
-        private val bootstrapClassLoader: BootstrapClassLoader?,
-        val supportingClassLoader: SourceClassLoader,
-        private val isRootConfiguration: Boolean
+        val supportingClassLoader: SourceClassLoader
 ) : Closeable {
 
     /**
@@ -73,16 +69,12 @@ class AnalysisConfiguration private constructor(
 
     @Throws(IOException::class)
     override fun close() {
-        supportingClassLoader.use {
-            if (isRootConfiguration) {
-                bootstrapClassLoader?.close()
-            }
-        }
+        supportingClassLoader.close()
     }
 
     /**
      * Creates a child [AnalysisConfiguration] with this instance as its parent.
-     * The child inherits the same [whitelist], [pinnedClasses] and [bootstrapClassLoader].
+     * The child inherits the same [whitelist] and [pinnedClasses].
      */
     fun createChild(
         classPaths: List<Path>,
@@ -98,9 +90,7 @@ class AnalysisConfiguration private constructor(
             prefixFilters = prefixFilters,
             classModule = classModule,
             memberModule = memberModule,
-            bootstrapClassLoader = bootstrapClassLoader,
-            supportingClassLoader = SourceClassLoader(classPaths, classResolver, bootstrapClassLoader),
-            isRootConfiguration = false
+            supportingClassLoader = SourceClassLoader(classPaths, classResolver, EMPTY)
         )
     }
 
@@ -126,12 +116,9 @@ class AnalysisConfiguration private constructor(
         const val SANDBOX_PREFIX: String = "sandbox/"
 
         /**
-         * These class must belong to the application class loader.
-         * They should already exist within the sandbox namespace.
+         * An empty placeholder used by "child" instances of [SourceClassLoader].
          */
-        private val MANDATORY_PINNED_CLASSES: Set<String> = setOf(
-            ruleViolationError
-        )
+        private val EMPTY: BootstrapClassLoader = BootstrapClassLoader()
 
         /**
          * These classes will be duplicated into every sandbox's
@@ -530,6 +517,10 @@ class AnalysisConfiguration private constructor(
         private fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
         private fun Iterable<Member>.mapByClassName(): Map<String, List<Member>>
                       = groupBy(Member::className).mapValues(Map.Entry<String, List<Member>>::value)
+        private fun <T> unmodifiable(items: Set<T>): Set<T> {
+            return if (items.isEmpty()) emptySet() else unmodifiableSet(items)
+        }
+
         private fun EmitterModule.returnResourceBundle() {
             invokeStatic(
                 owner = "sandbox/java/lang/DJVM",
@@ -569,7 +560,7 @@ class AnalysisConfiguration private constructor(
         fun createRoot(
             classPaths: List<Path>,
             whitelist: Whitelist,
-            additionalPinnedClasses: Set<String> = emptySet(),
+            pinnedClasses: Set<String> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
             analyzeAnnotations: Boolean = false,
             prefixFilters: List<String> = emptyList(),
@@ -590,22 +581,20 @@ class AnalysisConfiguration private constructor(
                     .map(Member::reference)
                     .toSet()
             )
-            val pinnedClasses = MANDATORY_PINNED_CLASSES + additionalPinnedClasses
-            val classResolver = ClassResolver(pinnedClasses, TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
+            val actualPinnedClasses = unmodifiable(pinnedClasses)
+            val classResolver = ClassResolver(actualPinnedClasses, TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
 
             return AnalysisConfiguration(
                 whitelist = actualWhitelist,
-                pinnedClasses = pinnedClasses,
+                pinnedClasses = actualPinnedClasses,
                 classResolver = classResolver,
-                exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, pinnedClasses, SANDBOX_PREFIX),
+                exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, actualPinnedClasses, SANDBOX_PREFIX),
                 minimumSeverityLevel = minimumSeverityLevel,
                 analyzeAnnotations = analyzeAnnotations,
                 prefixFilters = prefixFilters,
                 classModule = classModule,
                 memberModule = memberModule,
-                bootstrapClassLoader = bootstrapClassLoader,
-                supportingClassLoader = SourceClassLoader(classPaths, classResolver, bootstrapClassLoader),
-                isRootConfiguration = true
+                supportingClassLoader = SourceClassLoader(classPaths, classResolver, bootstrapClassLoader)
             )
         }
     }

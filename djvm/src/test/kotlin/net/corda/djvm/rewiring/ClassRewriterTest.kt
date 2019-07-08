@@ -6,9 +6,9 @@ import net.corda.djvm.TestBase
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.execution.ExecutionProfile
+import net.corda.djvm.rules.RuleViolationError
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
-import sandbox.net.corda.djvm.rules.RuleViolationError
 import java.nio.file.Paths
 import java.util.*
 
@@ -154,9 +154,17 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test pinned class is owned by application classloader`() = parentedSandbox {
-        val violationClass = loadClass<RuleViolationError>().type
-        assertThat(violationClass).isEqualTo(RuleViolationError::class.java)
+    fun `test rule violation error cannot be loaded`() = parentedSandbox {
+        assertThatExceptionOfType(SandboxClassLoadingException::class.java)
+            .isThrownBy { loadClass<RuleViolationError>() }
+            .withMessageContaining("Class file not found; net/corda/djvm/rules/RuleViolationError.class")
+    }
+
+    @Test
+    fun `test threshold violation error cannot be loaded`() = parentedSandbox {
+        assertThatExceptionOfType(SandboxClassLoadingException::class.java)
+            .isThrownBy { loadClass<ThresholdViolationError>() }
+            .withMessageContaining("Class file not found; net/corda/djvm/costing/ThresholdViolationError.class")
     }
 }
 

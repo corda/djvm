@@ -23,11 +23,15 @@ import kotlin.streams.toList
 
 /**
  * Class loader to manage an optional JAR of replacement Java APIs.
- * @param bootstrapJar The location of the JAR containing the Java APIs.
  */
-class BootstrapClassLoader(
-    bootstrapJar: Path
-) : URLClassLoader(resolvePaths(listOf(bootstrapJar)), null) {
+class BootstrapClassLoader private constructor(
+    jarPaths: List<Path>
+) : URLClassLoader(resolvePaths(jarPaths), null) {
+    /**
+     * @param bootstrapJar The location of the JAR containing the Java APIs.
+     */
+    constructor(bootstrapJar: Path) : this(listOf(bootstrapJar))
+    constructor() : this(emptyList())
 
     /**
      * Only search our own jars for the given resource.
@@ -49,6 +53,12 @@ class SourceClassLoader(
 ) : URLClassLoader(resolvePaths(paths), null) {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
+    }
+
+    override fun close() {
+        bootstrap.use {
+            super.close()
+        }
     }
 
     /**

@@ -3,9 +3,9 @@ package net.corda.djvm.execution;
 import net.corda.djvm.TestBase;
 import net.corda.djvm.Utilities;
 import net.corda.djvm.WithJava;
+import net.corda.djvm.rules.RuleViolationError;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-import sandbox.net.corda.djvm.rules.RuleViolationError;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.Utilities.*;

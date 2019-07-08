@@ -10,12 +10,13 @@ import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
 import net.corda.djvm.assertions.AssertionExtensions.withProblem
 import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.rewiring.SandboxClassLoadingException
+import net.corda.djvm.rules.RuleViolationError
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import sandbox.net.corda.djvm.rules.RuleViolationError
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.function.Function
@@ -168,14 +169,13 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
     @Test
     fun `cannot execute runnable that catches ThreadDeath`() = parentedSandbox {
-        TestCatchThreadDeath().apply {
-            assertThat(apply(0)).isEqualTo(1)
-        }
+        assertThat(TestCatchThreadDeath().apply(0))
+            .isEqualTo(1)
 
         val contractExecutor = DeterministicSandboxExecutor<Int, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestCatchThreadDeath>(0) }
-                .withCauseExactlyInstanceOf(ThreadDeath::class.java)
+            .isThrownBy { contractExecutor.run<TestCatchThreadDeath>(0) }
+            .withCauseExactlyInstanceOf(ThreadDeath::class.java)
     }
 
     class TestCatchThreadDeath : Function<Int, Int> {
@@ -190,15 +190,14 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
     @Test
     fun `cannot execute runnable that catches ThresholdViolationError`() = parentedSandbox {
-        TestCatchThresholdViolationError().apply {
-            assertThat(apply(0)).isEqualTo(1)
-        }
+        assertThat(TestCatchThresholdViolationError().apply(0))
+            .isEqualTo(1)
 
         val contractExecutor = DeterministicSandboxExecutor<Int, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestCatchThresholdViolationError>(0) }
-                .withCauseExactlyInstanceOf(ThresholdViolationError::class.java)
-                .withMessageContaining("Can't catch this!")
+            .isThrownBy { contractExecutor.run<TestCatchThresholdViolationError>(0) }
+            .withCauseExactlyInstanceOf(ThresholdViolationError::class.java)
+            .withMessageContaining("Can't catch this!")
     }
 
     class TestCatchThresholdViolationError : Function<Int, Int> {
@@ -214,15 +213,14 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
     @Test
     fun `cannot execute runnable that catches RuleViolationError`() = parentedSandbox {
-        TestCatchRuleViolationError().apply {
-            assertThat(apply(0)).isEqualTo(1)
-        }
+        assertThat(TestCatchRuleViolationError().apply(0))
+            .isEqualTo(1)
 
         val contractExecutor = DeterministicSandboxExecutor<Int, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestCatchRuleViolationError>(0) }
-                .withCauseExactlyInstanceOf(RuleViolationError::class.java)
-                .withMessageContaining("Can't catch this!")
+            .isThrownBy { contractExecutor.run<TestCatchRuleViolationError>(0) }
+            .withCauseExactlyInstanceOf(RuleViolationError::class.java)
+            .withMessageContaining("Can't catch this!")
     }
 
     class TestCatchRuleViolationError : Function<Int, Int> {
@@ -230,7 +228,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
             return try {
                 throwRuleViolationError()
                 Int.MIN_VALUE // Should not reach here
-            } catch (exception: RuleViolationError) {
+            } catch (exception: ThreadDeath) {
                 1
             }
         }
@@ -369,11 +367,13 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     @Test
     fun `can load and execute code that uses reflection`() = parentedSandbox {
         val contractExecutor = DeterministicSandboxExecutor<Int, Int>(configuration)
-        assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestReflection>(0) }
-                .withCauseInstanceOf(RuleViolationError::class.java)
-                .withMessageContaining("Disallowed reference to API;")
-                .withMessageContaining("java.lang.Class.getMethods()")
+        val ex = assertThrows<SandboxException>{ contractExecutor.run<TestReflection>(0) }
+        assertThat(ex)
+            .isExactlyInstanceOf(SandboxException::class.java)
+            .hasCauseExactlyInstanceOf(RuleViolationError::class.java)
+            .hasMessageContaining("Disallowed reference to API;")
+            .hasMessageContaining("java.lang.Class.getMethods()")
+        assertThat(ex.cause).extracting { it.stackTrace.toList() }.asList().hasSize(2)
     }
 
     class TestReflection : Function<Int, Int> {
@@ -388,51 +388,61 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     @Test
     fun `can load and execute code that uses notify()`() = parentedSandbox {
         val contractExecutor = DeterministicSandboxExecutor<Int, String?>(configuration)
-        assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestMonitors>(1) }
-                .withCauseInstanceOf(RuleViolationError::class.java)
-                .withMessageContaining("Disallowed reference to API;")
-                .withMessageContaining("java.lang.Object.notify()")
+        val ex = assertThrows<SandboxException>{ contractExecutor.run<TestMonitors>(1) }
+        assertThat(ex)
+            .isExactlyInstanceOf(SandboxException::class.java)
+            .hasCauseExactlyInstanceOf(RuleViolationError::class.java)
+            .hasMessageContaining("Disallowed reference to API;")
+            .hasMessageContaining("java.lang.Object.notify()")
+        assertThat(ex.cause).extracting { it.stackTrace.toList() }.asList().hasSize(2)
     }
 
     @Test
     fun `can load and execute code that uses notifyAll()`() = parentedSandbox {
         val contractExecutor = DeterministicSandboxExecutor<Int, String?>(configuration)
-        assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestMonitors>(2) }
-                .withCauseInstanceOf(RuleViolationError::class.java)
-                .withMessageContaining("Disallowed reference to API;")
-                .withMessageContaining("java.lang.Object.notifyAll()")
+        val ex = assertThrows<SandboxException>{ contractExecutor.run<TestMonitors>(2) }
+        assertThat(ex)
+            .isExactlyInstanceOf(SandboxException::class.java)
+            .hasCauseExactlyInstanceOf(RuleViolationError::class.java)
+            .hasMessageContaining("Disallowed reference to API;")
+            .hasMessageContaining("java.lang.Object.notifyAll()")
+        assertThat(ex.cause).extracting { it.stackTrace.toList() }.asList().hasSize(2)
     }
 
     @Test
     fun `can load and execute code that uses wait()`() = parentedSandbox {
         val contractExecutor = DeterministicSandboxExecutor<Int, String?>(configuration)
-        assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestMonitors>(3) }
-                .withCauseInstanceOf(RuleViolationError::class.java)
-                .withMessageContaining("Disallowed reference to API;")
-                .withMessageContaining("java.lang.Object.wait()")
+        val ex = assertThrows<SandboxException>{ contractExecutor.run<TestMonitors>(3) }
+        assertThat(ex)
+            .isExactlyInstanceOf(SandboxException::class.java)
+            .hasCauseExactlyInstanceOf(RuleViolationError::class.java)
+            .hasMessageContaining("Disallowed reference to API;")
+            .hasMessageContaining("java.lang.Object.wait()")
+        assertThat(ex.cause).extracting { it.stackTrace.toList() }.asList().hasSize(2)
     }
 
     @Test
     fun `can load and execute code that uses wait(long)`() = parentedSandbox {
         val contractExecutor = DeterministicSandboxExecutor<Int, String?>(configuration)
-        assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestMonitors>(4) }
-                .withCauseInstanceOf(RuleViolationError::class.java)
-                .withMessageContaining("Disallowed reference to API;")
-                .withMessageContaining("java.lang.Object.wait(Long)")
+        val ex = assertThrows<SandboxException>{ contractExecutor.run<TestMonitors>(4) }
+        assertThat(ex)
+            .isExactlyInstanceOf(SandboxException::class.java)
+            .hasCauseExactlyInstanceOf(RuleViolationError::class.java)
+            .hasMessageContaining("Disallowed reference to API;")
+            .hasMessageContaining("java.lang.Object.wait(Long)")
+        assertThat(ex.cause).extracting { it.stackTrace.toList() }.asList().hasSize(2)
     }
 
     @Test
     fun `can load and execute code that uses wait(long,int)`() = parentedSandbox {
         val contractExecutor = DeterministicSandboxExecutor<Int, String?>(configuration)
-        assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { contractExecutor.run<TestMonitors>(5) }
-                .withCauseInstanceOf(RuleViolationError::class.java)
-                .withMessageContaining("Disallowed reference to API;")
-                .withMessageContaining("java.lang.Object.wait(Long, Integer)")
+        val ex = assertThrows<SandboxException>{ contractExecutor.run<TestMonitors>(5) }
+        assertThat(ex)
+            .isExactlyInstanceOf(SandboxException::class.java)
+            .hasCauseExactlyInstanceOf(RuleViolationError::class.java)
+            .hasMessageContaining("Disallowed reference to API;")
+            .hasMessageContaining("java.lang.Object.wait(Long, Integer)")
+        assertThat(ex.cause).extracting { it.stackTrace.toList() }.asList().hasSize(2)
     }
 
     @Test

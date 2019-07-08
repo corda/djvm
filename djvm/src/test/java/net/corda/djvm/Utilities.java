@@ -1,7 +1,7 @@
 package net.corda.djvm;
 
 import net.corda.djvm.costing.ThresholdViolationError;
-import sandbox.net.corda.djvm.rules.RuleViolationError;
+import net.corda.djvm.rules.RuleViolationError;
 
 /**
  * Pin this {@link Utilities} class inside the sandbox to allow

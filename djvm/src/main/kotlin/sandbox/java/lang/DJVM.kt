@@ -5,13 +5,13 @@ package sandbox.java.lang
 import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_EXCEPTIONS
 import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMException
+import net.corda.djvm.rules.RuleViolationError
 import net.corda.djvm.rules.implementation.*
 import org.objectweb.asm.Opcodes.ACC_ENUM
 import org.objectweb.asm.Type
 import sandbox.isEntryPoint
 import sandbox.java.io.*
 import sandbox.java.util.*
-import sandbox.net.corda.djvm.rules.RuleViolationError
 import java.lang.reflect.Constructor
 
 private const val SANDBOX_PREFIX = "sandbox."
@@ -44,8 +44,8 @@ fun Any.sandbox(): Any {
         // means that they're used "as is". So prevent the user
         // from passing bad instances into the sandbox through the
         // front door!
-        is Class<*>, is Constructor<*> -> throw RuleViolationError("Cannot sandbox $this").sanitise()
-        is ClassLoader -> throw RuleViolationError("Cannot sandbox a ClassLoader").sanitise()
+        is Class<*>, is Constructor<*> -> throw RuleViolationError("Cannot sandbox $this").sanitise(1)
+        is ClassLoader -> throw RuleViolationError("Cannot sandbox a ClassLoader").sanitise(1)
 
         // Default behaviour...
         else -> this
@@ -54,7 +54,7 @@ fun Any.sandbox(): Any {
 
 fun kotlin.Throwable.escapeSandbox(): kotlin.Throwable {
     val sandboxed = (this as? DJVMException)?.throwable ?: sandboxedExceptions.remove(this)
-    return sandboxed?.escapeSandbox() ?: sanitise()
+    return sandboxed?.escapeSandbox() ?: sanitise(0)
 }
 
 fun Throwable.escapeSandbox(): kotlin.Throwable {
@@ -84,16 +84,30 @@ fun Throwable.escapeSandbox(): kotlin.Throwable {
                 initCause(it.escapeSandbox())
             }
             stackTrace = copyFromDJVM(this@escapeSandbox.stackTrace)
+            sanitise(0)
             this@escapeSandbox.suppressed.forEach {
                 addSuppressed(it.escapeSandbox())
             }
         }
     } catch (e: Exception) {
-        RuleViolationError(e.message).sanitise()
+        RuleViolationError(e.message).sanitise(1)
     }
 }
 
 private fun Array<*>.fromDJVMArray(): Array<*> = Object.fromDJVM(this)
+
+/**
+ * Throws a [RuleViolationError] to exit the sandbox.
+ * This function never returns, and we can inform the
+ * caller not to expect us to by invoking it via:
+ *
+ *     throw DJVM.fail("message")
+ */
+fun fail(message: kotlin.String): Error {
+    // Discard the first stack frame so that
+    // our invoker's frame is on top.
+    throw RuleViolationError(message).sanitise(1)
+}
 
 /**
  * Use [Class.forName] so that we can also fetch classes for arrays of primitive types.
@@ -207,7 +221,7 @@ fun hashCode(obj: Any?): Int {
         obj is Object -> obj.hashCode()
         obj != null -> System.identityHashCode(obj)
         else -> // Throw the same exception that the JVM would throw in this case.
-            throw NullPointerException().sanitise()
+            throw NullPointerException().sanitise(1)
     }
 }
 
@@ -246,7 +260,10 @@ fun getClassLoader(type: Class<*>): ClassLoader {
  * Replacement function for [ClassLoader.getSystemResourceAsStream].
  */
 fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
-    return InputStream.toDJVM(systemClassLoader.getResourceAsStream(name))
+    // Read system resources from the classloader that contains the Java APIs.
+    // I'd prefer to use this class's own classloader really, except that Kotlin
+    // cannot provide me with the .class for this "file".
+    return InputStream.toDJVM(sandboxThrowable.classLoader.getResourceAsStream(name))
 }
 
 /**
@@ -272,7 +289,7 @@ fun loadClass(classLoader: ClassLoader, className: kotlin.String): Class<*> {
 @Throws(ClassNotFoundException::class)
 fun toSandbox(className: kotlin.String): kotlin.String {
     if (bannedClasses.any { it.matches(className) }) {
-        throw ClassNotFoundException(className).sanitise()
+        throw ClassNotFoundException(className).sanitise(1)
     }
     return SANDBOX_PREFIX + className
 }
@@ -329,7 +346,7 @@ fun fromDJVM(t: Throwable?): kotlin.Throwable {
                     .newInstance(t) as kotlin.Throwable
             }
         } catch (e: Exception) {
-            RuleViolationError(e.message).sanitise()
+            RuleViolationError(e.message).sanitise(1)
         }
     }
 }
@@ -356,16 +373,16 @@ fun catch(t: kotlin.Throwable): Throwable {
     try {
         return t.toDJVMThrowable()
     } catch (e: Exception) {
-        throw RuleViolationError(e.message).sanitise()
+        throw RuleViolationError(e.message).sanitise(1)
     }
 }
 
 /**
  * Clean up exception stack trace for throwing.
  */
-private fun <T: kotlin.Throwable> T.sanitise(): T {
+private fun <T: kotlin.Throwable> T.sanitise(firstIndex: Int): T {
     stackTrace = stackTrace.let {
-        it.sliceArray(1 until findEntryPointIndex(it))
+        it.sliceArray(firstIndex until findEntryPointIndex(it))
     }
     return this
 }

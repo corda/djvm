@@ -6,7 +6,6 @@ import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import net.corda.djvm.formatting.MemberFormatter
 import org.objectweb.asm.Opcodes.*
-import sandbox.net.corda.djvm.rules.RuleViolationError
 
 /**
  * The enum-related methods on [Class] all require that enums use [java.lang.Enum]
@@ -43,7 +42,7 @@ object RewriteClassMethods : Emitter {
                         descriptor = "(Ljava/lang/Class;)[Ljava/lang/Object;")
                     preventDefault()
                 } else if (instruction.memberName == "getProtectionDomain" && instruction.descriptor == "()Ljava/security/ProtectionDomain;") {
-                    throwException<RuleViolationError>("Disallowed reference to API; ${memberFormatter.format(instruction.member)}")
+                    throwRuleViolationError("Disallowed reference to API; ${memberFormatter.format(instruction.member)}")
                     preventDefault()
                 } else if (instruction.memberName == "getClassLoader" && instruction.descriptor == "()Ljava/lang/ClassLoader;") {
                     invokeStatic(
