@@ -116,7 +116,9 @@ artifacts {
 }
 
 publish {
-    dependenciesFrom configurations.shadow
+    dependenciesFrom(configurations.shadow) {
+        defaultScope = 'compile'
+    }
     name shadowJar.baseName
 }
 
