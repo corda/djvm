@@ -1,6 +1,7 @@
 package net.corda.djvm.analysis
 
 import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.references.ClassModule
 import net.corda.djvm.references.Member
@@ -11,7 +12,6 @@ import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
-import sandbox.RUNTIME_ACCOUNTER_NAME
 import sun.util.locale.provider.JRELocaleProviderAdapter
 import java.io.Closeable
 import java.io.IOException
@@ -119,12 +119,6 @@ class AnalysisConfiguration private constructor(
          * An empty placeholder used by "child" instances of [SourceClassLoader].
          */
         private val EMPTY: BootstrapClassLoader = BootstrapClassLoader()
-
-        /**
-         * These classes must belong to the application class loader.
-         * They should already exist within the sandbox namespace.
-         */
-        private val MANDATORY_PINNED_CLASSES: Set<String> = emptySet()
 
         /**
          * These classes will be duplicated into every sandbox's
@@ -566,7 +560,7 @@ class AnalysisConfiguration private constructor(
         fun createRoot(
             classPaths: List<Path>,
             whitelist: Whitelist,
-            additionalPinnedClasses: Set<String> = emptySet(),
+            pinnedClasses: Set<String> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
             analyzeAnnotations: Boolean = false,
             prefixFilters: List<String> = emptyList(),
@@ -587,14 +581,14 @@ class AnalysisConfiguration private constructor(
                     .map(Member::reference)
                     .toSet()
             )
-            val pinnedClasses = unmodifiable(MANDATORY_PINNED_CLASSES + additionalPinnedClasses)
-            val classResolver = ClassResolver(pinnedClasses, TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
+            val actualPinnedClasses = unmodifiable(pinnedClasses)
+            val classResolver = ClassResolver(actualPinnedClasses, TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
 
             return AnalysisConfiguration(
                 whitelist = actualWhitelist,
-                pinnedClasses = pinnedClasses,
+                pinnedClasses = actualPinnedClasses,
                 classResolver = classResolver,
-                exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, pinnedClasses, SANDBOX_PREFIX),
+                exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, actualPinnedClasses, SANDBOX_PREFIX),
                 minimumSeverityLevel = minimumSeverityLevel,
                 analyzeAnnotations = analyzeAnnotations,
                 prefixFilters = prefixFilters,

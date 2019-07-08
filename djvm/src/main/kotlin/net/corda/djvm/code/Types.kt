@@ -21,6 +21,11 @@ const val EMIT_AFTER_INVOKE: Int = EMIT_DEFAULT + 2
 const val OBJECT_NAME = "java/lang/Object"
 const val THROWABLE_NAME = "java/lang/Throwable"
 
+/**
+ * The type name of the [RuntimeCostAccounter] class; referenced from instrumentors.
+ */
+const val RUNTIME_ACCOUNTER_NAME: String = "sandbox/RuntimeCostAccounter"
+
 val ruleViolationError: String = Type.getInternalName(RuleViolationError::class.java)
 val thresholdViolationError: String = Type.getInternalName(ThresholdViolationError::class.java)
 val djvmException: String = Type.getInternalName(DJVMException::class.java)
@@ -34,5 +39,5 @@ val String.asResourcePath: String get() = this.replace('.', '/')
 val String.emptyAsNull: String? get() = if (isEmpty()) null else this
 
 inline fun <reified T> Emitter.getMemberContext(context: EmitterContext): T? {
-    return context.getMemberContext(this) as T?
+    return context.getMemberContext(this) as? T
 }

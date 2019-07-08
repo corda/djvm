@@ -92,7 +92,7 @@ abstract class TestBase(type: SandboxType) {
                 emptyList(),
                 Whitelist.MINIMAL,
                 bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT),
-                additionalPinnedClasses = setOf(
+                pinnedClasses = setOf(
                     Utilities::class.java
                 ).map(Type::getInternalName).toSet()
             )
@@ -199,7 +199,7 @@ abstract class TestBase(type: SandboxType) {
                 AnalysisConfiguration.createRoot(
                     classPaths = classPaths,
                     whitelist = whitelist,
-                    additionalPinnedClasses = pinnedTestClasses,
+                    pinnedClasses = pinnedTestClasses,
                     minimumSeverityLevel = minimumSeverityLevel,
                     bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
                 ).use { analysisConfiguration ->
