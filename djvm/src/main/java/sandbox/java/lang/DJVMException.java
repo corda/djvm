@@ -7,6 +7,7 @@ package sandbox.java.lang;
 public interface DJVMException {
     /**
      * Returns the {@link sandbox.java.lang.Throwable} instance inside the wrapper.
+     * @return The non-throwable {@link Throwable}.
      */
     Throwable getThrowable();
 }

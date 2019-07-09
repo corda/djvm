@@ -13,7 +13,7 @@ import java.io.Serializable;
 
 /**
  * This is a dummy class that implements just enough of {@link java.util.Currency}
- * to allow us to compile {@link sandbox.java.util.Currency.1}.
+ * to allow us to compile the anonymous inner class implementing {@link PrivilegedAction}.
  */
 @SuppressWarnings({"unused", "RedundantThrows", "WeakerAccess"})
 public final class Currency extends sandbox.java.lang.Object implements Serializable {
