@@ -47,6 +47,8 @@ public abstract class InputStream extends sandbox.java.lang.Object implements Cl
     /**
      * This method will actually be "stitched" into {@link InputStream} at runtime.
      * It has been implemented here mainly for reference.
+     * @param input The {@link java.io.InputStream} to be wrapped.
+     * @return The sandboxed {@link InputStream} wrapper.
      */
     public static InputStream toDJVM(java.io.InputStream input) {
         return (input == null) ? null : new DJVMInputStream(input);
