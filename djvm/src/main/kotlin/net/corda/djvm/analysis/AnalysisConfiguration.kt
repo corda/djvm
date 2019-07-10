@@ -147,7 +147,9 @@ class AnalysisConfiguration private constructor(
             java.security.AccessController::class.java,
             java.util.concurrent.ConcurrentHashMap::class.java,
             java.util.concurrent.ConcurrentHashMap.KeySetView::class.java,
+            java.util.concurrent.atomic.AtomicInteger::class.java,
             java.util.concurrent.atomic.AtomicLong::class.java,
+            java.util.concurrent.locks.ReentrantLock::class.java,
             kotlin.Any::class.java,
             sun.misc.JavaLangAccess::class.java,
             sun.misc.SharedSecrets::class.java,
@@ -171,6 +173,7 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/util/concurrent/atomic/AtomicLongFieldUpdater\$AtomicLongFieldUpdaterImpl",
             "sandbox/java/util/concurrent/atomic/AtomicReferenceFieldUpdater\$AtomicReferenceFieldUpdaterImpl",
             "sandbox/java/util/concurrent/atomic/DJVM",
+            "sandbox/java/util/concurrent/locks/DJVMConditionObject",
             "sandbox/sun/misc/SharedSecrets\$1",
             "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl",
             "sandbox/sun/security/provider/ByteArrayAccess"
