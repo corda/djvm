@@ -31,6 +31,7 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Type
 import java.io.File
 import java.lang.reflect.InvocationTargetException
+import java.nio.file.Files.exists
 import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -75,7 +76,7 @@ abstract class TestBase(type: SandboxType) {
 
         @JvmField
         val TESTING_LIBRARIES: List<Path> = (System.getProperty("sandbox-libraries.path") ?: fail("sandbox-libraries.path property not set"))
-            .split(File.pathSeparator).map { Paths.get(it) }
+            .split(File.pathSeparator).map { Paths.get(it) }.filter { exists(it) }
 
         private lateinit var parentConfiguration: SandboxConfiguration
         lateinit var parentClassLoader: SandboxClassLoader
