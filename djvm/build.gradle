@@ -83,6 +83,7 @@ shadowJar {
     exclude 'sandbox/java/lang/ref/ReferenceQueue.class'
     exclude 'sandbox/java/nio/charset/Charset.class'
     exclude 'sandbox/java/nio/charset/spi/**'
+    exclude 'sandbox/java/security/AccessControlException.class'
     exclude 'sandbox/java/security/PrivilegedAction.class'
     exclude 'sandbox/java/security/PrivilegedExceptionAction.class'
     exclude 'sandbox/java/util/concurrent/ConcurrentMap.class'

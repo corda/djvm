@@ -48,6 +48,7 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
 
     sandboxTesting sourceSets.getByName("main").runtimeClasspath
+    sandboxTesting "org.slf4j:slf4j-nop:$slf4j_version"
 }
 
 tasks.withType(JavaCompile) {

@@ -2,9 +2,11 @@ package sandbox.java.lang;
 
 import net.corda.djvm.SandboxRuntimeContext;
 import org.jetbrains.annotations.Nullable;
+import sandbox.java.security.AccessControlException;
 
 @SuppressWarnings("unused")
 public final class System extends Object {
+    private static final String ACCESS_DENIED = DJVM.intern("access denied");
 
     private System() {}
 
@@ -30,6 +32,10 @@ public final class System extends Object {
     @Nullable
     public static SecurityManager getSecurityManager() {
         return null;
+    }
+
+    public static void setSecurityManager(SecurityManager sm) {
+        throw (RuntimeException) DJVM.fromDJVM(new AccessControlException(ACCESS_DENIED));
     }
 
     public static void runFinalization() {}
