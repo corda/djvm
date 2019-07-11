@@ -5,3 +5,11 @@ pluginManagement {
 }
 
 rootProject.name = "djvm-example"
+
+if (file('../djvm').isDirectory()) {
+    includeBuild('..') {
+        dependencySubstitution {
+            substitute module('net.corda:corda-djvm') with project(':djvm')
+        }
+    }
+}

@@ -53,7 +53,6 @@ dependencies {
 jar.enabled = false
 
 shadowJar {
-    archiveBaseName = 'corda-djvm'
     classifier ''
     reproducibleFileOrder = true
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
@@ -125,7 +124,7 @@ publish {
     dependenciesFrom(configurations.shadow) {
         defaultScope = 'compile'
     }
-    name shadowJar.archiveBaseName.get()
+    name 'corda-djvm'
 }
 
 idea {
