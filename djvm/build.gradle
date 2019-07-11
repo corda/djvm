@@ -53,7 +53,7 @@ dependencies {
 jar.enabled = false
 
 shadowJar {
-    baseName 'corda-djvm'
+    archiveBaseName = 'corda-djvm'
     classifier ''
     reproducibleFileOrder = true
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
@@ -79,6 +79,7 @@ shadowJar {
     exclude 'sandbox/java/lang/StackTraceElement.class'
     exclude 'sandbox/java/lang/StringBuffer.class'
     exclude 'sandbox/java/lang/StringBuilder.class'
+    exclude 'sandbox/java/lang/Thread.class'
     exclude 'sandbox/java/lang/ref/ReferenceQueue.class'
     exclude 'sandbox/java/nio/charset/Charset.class'
     exclude 'sandbox/java/nio/charset/spi/**'
@@ -86,9 +87,12 @@ shadowJar {
     exclude 'sandbox/java/security/PrivilegedExceptionAction.class'
     exclude 'sandbox/java/util/concurrent/ConcurrentMap.class'
     exclude 'sandbox/java/util/concurrent/ConcurrentHashMap\$CollectionView.class'
+    exclude 'sandbox/java/util/concurrent/TimeUnit.class'
     exclude 'sandbox/java/util/concurrent/atomic/AtomicIntegerFieldUpdater.class'
     exclude 'sandbox/java/util/concurrent/atomic/AtomicLongFieldUpdater.class'
     exclude 'sandbox/java/util/concurrent/atomic/AtomicReferenceFieldUpdater.class'
+    exclude 'sandbox/java/util/concurrent/locks/Condition.class'
+    exclude 'sandbox/java/util/concurrent/locks/Lock.class'
     exclude 'sandbox/java/util/function/**'
     exclude 'sandbox/java/util/*List*.class'
     exclude 'sandbox/java/util/*Map*.class'
@@ -96,6 +100,7 @@ shadowJar {
     exclude 'sandbox/java/util/Collection.class'
     exclude 'sandbox/java/util/Comparator.class'
     exclude 'sandbox/java/util/Currency.class'
+    exclude "sandbox/java/util/Date.class"
     exclude 'sandbox/java/util/Enumeration.class'
     exclude 'sandbox/java/util/Hashtable.class'
     exclude 'sandbox/java/util/Iterator.class'
@@ -119,7 +124,7 @@ publish {
     dependenciesFrom(configurations.shadow) {
         defaultScope = 'compile'
     }
-    name shadowJar.baseName
+    name shadowJar.archiveBaseName.get()
 }
 
 idea {
