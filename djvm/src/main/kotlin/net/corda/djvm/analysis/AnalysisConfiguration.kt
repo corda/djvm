@@ -378,6 +378,15 @@ class AnalysisConfiguration private constructor(
                 genericsDetails = ""
             )
         ).mapByClassName() + listOf(
+            // This method will be deleted.
+            Member(
+                access = ACC_STATIC,
+                className = sandboxed(SecurityManager::class.java),
+                memberName = "<clinit>",
+                descriptor = "()V",
+                genericsDetails = ""
+            )
+        ).mapByClassName() + listOf(
             object : MethodBuilder(
                 access = ACC_PRIVATE or ACC_STATIC,
                 className = sandboxed(SecureRandom::class.java),
