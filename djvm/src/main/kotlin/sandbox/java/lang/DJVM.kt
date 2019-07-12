@@ -5,6 +5,7 @@ package sandbox.java.lang
 import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_EXCEPTIONS
 import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMException
+import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
 import net.corda.djvm.rules.implementation.*
 import org.objectweb.asm.Opcodes.ACC_ENUM
@@ -368,9 +369,13 @@ fun finally(t: kotlin.Throwable): Throwable {
  * It is invoked at the start of each catch block.
  *
  * Note: [DisallowCatchingBlacklistedExceptions] means that we don't
- * need to handle [ThreadDeath] here.
+ * need to handle [ThreadDeath] or [VirtualMachineError] here.
  */
 fun catch(t: kotlin.Throwable): Throwable {
+    if (t is SandboxClassLoadingException) {
+        // Don't interfere with sandbox failures!
+        throw t
+    }
     try {
         return t.toDJVMThrowable()
     } catch (e: Exception) {

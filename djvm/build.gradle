@@ -53,7 +53,6 @@ dependencies {
 jar.enabled = false
 
 shadowJar {
-    archiveBaseName = 'corda-djvm'
     classifier ''
     reproducibleFileOrder = true
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
@@ -83,6 +82,7 @@ shadowJar {
     exclude 'sandbox/java/lang/ref/ReferenceQueue.class'
     exclude 'sandbox/java/nio/charset/Charset.class'
     exclude 'sandbox/java/nio/charset/spi/**'
+    exclude 'sandbox/java/security/AccessControlException.class'
     exclude 'sandbox/java/security/PrivilegedAction.class'
     exclude 'sandbox/java/security/PrivilegedExceptionAction.class'
     exclude 'sandbox/java/util/concurrent/ConcurrentMap.class'
@@ -124,7 +124,7 @@ publish {
     dependenciesFrom(configurations.shadow) {
         defaultScope = 'compile'
     }
-    name shadowJar.archiveBaseName.get()
+    name 'corda-djvm'
 }
 
 idea {
