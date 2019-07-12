@@ -360,32 +360,11 @@ class AnalysisConfiguration private constructor(
             }.withBody()
              .build()
         ).mapByClassName() + listOf(
-            // This method will be deleted.
-            Member(
-                access = ACC_STATIC,
-                className = sandboxed(Modifier::class.java),
-                memberName = "<clinit>",
-                descriptor = "()V",
-                genericsDetails = ""
-            )
+            deleteClassInitialiserFor(Modifier::class.java)
         ).mapByClassName() + listOf(
-            // This method will be deleted.
-            Member(
-                access = ACC_STATIC,
-                className = sandboxed(Random::class.java),
-                memberName = "<clinit>",
-                descriptor = "()V",
-                genericsDetails = ""
-            )
+            deleteClassInitialiserFor(Random::class.java)
         ).mapByClassName() + listOf(
-            // This method will be deleted.
-            Member(
-                access = ACC_STATIC,
-                className = sandboxed(SecurityManager::class.java),
-                memberName = "<clinit>",
-                descriptor = "()V",
-                genericsDetails = ""
-            )
+            deleteClassInitialiserFor(SecurityManager::class.java)
         ).mapByClassName() + listOf(
             object : MethodBuilder(
                 access = ACC_PRIVATE or ACC_STATIC,
@@ -534,6 +513,14 @@ class AnalysisConfiguration private constructor(
         private fun <T> unmodifiable(items: Set<T>): Set<T> {
             return if (items.isEmpty()) emptySet() else unmodifiableSet(items)
         }
+
+        private fun deleteClassInitialiserFor(classType: Class<*>) = Member(
+            access = ACC_STATIC,
+            className = sandboxed(classType),
+            memberName = "<clinit>",
+            descriptor = "()V",
+            genericsDetails = ""
+        )
 
         private fun EmitterModule.returnResourceBundle() {
             invokeStatic(
