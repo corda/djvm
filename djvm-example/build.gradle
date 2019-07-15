@@ -66,15 +66,16 @@ tasks.withType(KotlinCompile) {
     }
 }
 
+def djvmProject = gradle.includedBuilds.find { it.name == 'deterministic-jvm-sandbox' }
+
 tasks.withType(Test) {
     useJUnitPlatform()
     systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
-}
 
-def djvmProject = gradle.includedBuilds.find { it.name == 'deterministic-jvm-sandbox' }
-if (djvmProject) {
-    assemble.dependsOn djvmProject.task(':djvm:assemble')
+    if (djvmProject) {
+        dependsOn djvmProject.task(':djvm:assemble')
+    }
 }
 
 wrapper {
