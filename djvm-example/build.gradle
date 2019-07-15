@@ -72,6 +72,11 @@ tasks.withType(Test) {
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 }
 
+def djvmProject = gradle.includedBuilds.find { it.name == 'deterministic-jvm-sandbox' }
+if (djvmProject) {
+    assemble.dependsOn djvmProject.task(':djvm:assemble')
+}
+
 wrapper {
     gradleVersion = "5.5.1"
     distributionType = Wrapper.DistributionType.ALL
