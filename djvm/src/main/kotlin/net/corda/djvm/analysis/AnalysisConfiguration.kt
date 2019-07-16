@@ -15,6 +15,7 @@ import net.corda.djvm.source.UserSource
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
+import sun.security.x509.X500Name
 import sun.util.locale.provider.JRELocaleProviderAdapter
 import java.io.Closeable
 import java.io.IOException
@@ -25,6 +26,7 @@ import java.security.SecureRandom
 import java.security.Security
 import java.util.*
 import java.util.Collections.*
+import javax.security.auth.x500.X500Principal
 import kotlin.Comparator
 
 /**
@@ -152,6 +154,7 @@ class AnalysisConfiguration private constructor(
             sun.misc.JavaLangAccess::class.java,
             sun.misc.SharedSecrets::class.java,
             sun.misc.VM::class.java,
+            sun.security.action.GetBooleanAction::class.java,
             sun.security.action.GetPropertyAction::class.java
         ).sandboxed() + setOf(
             "sandbox/RawTask",
@@ -173,9 +176,11 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/util/concurrent/atomic/AtomicReferenceFieldUpdater\$AtomicReferenceFieldUpdaterImpl",
             "sandbox/java/util/concurrent/atomic/DJVM",
             "sandbox/java/util/concurrent/locks/DJVMConditionObject",
+            "sandbox/javax/security/auth/x500/DJVM",
             "sandbox/sun/misc/SharedSecrets\$1",
             "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl",
-            "sandbox/sun/security/provider/ByteArrayAccess"
+            "sandbox/sun/security/provider/ByteArrayAccess",
+            "sandbox/sun/security/x509/X500Name\$1"
         ))
 
         /**
@@ -418,6 +423,85 @@ class AnalysisConfiguration private constructor(
              .build()
         ).mapByClassName() + listOf(
             /**
+             * Create [sandbox.javax.security.auth.x500.X500Principal.unwrap] method
+             * to expose existing private [X500Principal.thisX500Name] field.
+             */
+            object : MethodBuilder(
+                access = ACC_FINAL,
+                className = sandboxed(X500Principal::class.java),
+                memberName = "unwrap",
+                descriptor = "()Lsandbox/sun/security/x509/X500Name;"
+            ) {
+                /**
+                 * Implement package private accessor.
+                 *     return thisX500Name
+                 */
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    pushField(className, "thisX500Name", "Lsandbox/sun/security/x509/X500Name;")
+                    returnObject()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            /**
+             * Reimplement these methods so that they don't require reflection.
+             */
+            object : MethodBuilder(
+                access = ACC_PUBLIC,
+                className = sandboxed(X500Name::class.java),
+                memberName = "asX500Principal",
+                descriptor = "()Lsandbox/javax/security/auth/x500/X500Principal;"
+            ) {
+                /**
+                 * Reimplement [X500Name.asX500Principal] without reflection.
+                 *     return DJVM.create(this)
+                 */
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    invokeStatic(
+                        owner = "sandbox/javax/security/auth/x500/DJVM",
+                        name = "create",
+                        descriptor = "(Lsandbox/sun/security/x509/X500Name;)Lsandbox/javax/security/auth/x500/X500Principal;"
+                    )
+                    returnObject()
+                }
+            }.withBody()
+             .build(),
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(X500Name::class.java),
+                memberName = "asX500Name",
+                descriptor = "(Lsandbox/javax/security/auth/x500/X500Principal;)Lsandbox/sun/security/x509/X500Name;"
+            ) {
+                /**
+                 * Reimplement [X500Name.asX500Name] without reflection.
+                 *     X500Name name = DJVM.unwrap(principal)
+                 *     name.x500Principal = principal
+                 *     return name
+                 */
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    pushObject(0)
+                    invokeStatic(
+                        owner = "sandbox/javax/security/auth/x500/DJVM",
+                        name = "unwrap",
+                        descriptor = "(Lsandbox/javax/security/auth/x500/X500Principal;)Lsandbox/sun/security/x509/X500Name;"
+                    )
+                    popObject(1)
+                    pushObject(1)
+                    pushObject(0)
+                    popField(
+                        owner = className,
+                        name = "x500Principal",
+                        descriptor = "Lsandbox/javax/security/auth/x500/X500Principal;"
+                    )
+                    pushObject(1)
+                    returnObject()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            /**
              * Redirect the [ResourceBundle] handling.
              */
             object : MethodBuilder(
@@ -538,7 +622,7 @@ class AnalysisConfiguration private constructor(
         }
         private fun EmitterModule.pushDefaultLocale() {
             invokeStatic(
-                owner = "sandbox/java/util/Locale",
+                owner = sandboxed(Locale::class.java),
                 name = "getDefault",
                 descriptor = "()Lsandbox/java/util/Locale;"
             )
@@ -555,7 +639,7 @@ class AnalysisConfiguration private constructor(
             instruction(DUP2)
             pop()
             invokeStatic(
-                owner = "sandbox/java/util/ResourceBundle",
+                owner = sandboxed(ResourceBundle::class.java),
                 name = "getDefaultControl",
                 descriptor = "(Lsandbox/java/lang/String;)Lsandbox/java/util/ResourceBundle\$Control;"
             )

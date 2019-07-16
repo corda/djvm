@@ -101,6 +101,22 @@ class EmitterModule(
     }
 
     /**
+     * Emit instruction for pushing a field value onto the stack.
+     */
+    fun pushField(owner: String, name: String, descriptor: String) {
+        methodVisitor.visitFieldInsn(GETFIELD, owner, name, descriptor)
+        hasEmittedCustomCode = true
+    }
+
+    /**
+     * Emit instruction for popping a value from the stack into a field.
+     */
+    fun popField(owner: String, name: String, descriptor: String) {
+        methodVisitor.visitFieldInsn(PUTFIELD, owner, name, descriptor)
+        hasEmittedCustomCode = true
+    }
+
+    /**
      * Emit an opcode for a single instruction.
      */
     fun instruction(opcode: Int) {
@@ -117,6 +133,15 @@ class EmitterModule(
      * Emit instruction for duplicating the top of the stack.
      */
     fun duplicate() = instruction(DUP)
+
+    /**
+     * Emit instruction for popping an object reference
+     * from the stack into a register.
+     */
+    fun popObject(regNum: Int) {
+        methodVisitor.visitVarInsn(ASTORE, regNum)
+        hasEmittedCustomCode = true
+    }
 
     /**
      * Emit instruction for pushing an object reference

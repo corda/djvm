@@ -21,8 +21,8 @@ class BasicCryptoTest : TestBase(KOTLIN) {
     @ValueSource(strings = [ "SHA", "SHA-256", "SHA-384", "SHA-512" ])
     @ParameterizedTest
     fun `test SHA hashing`(algorithmName: String) = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<Array<String>, ByteArray>(configuration)
-        val summary = contractExecutor.run<Hashing>(arrayOf(algorithmName, SECRET_MESSAGE))
+        val executor = DeterministicSandboxExecutor<Array<String>, ByteArray>(configuration)
+        val summary = executor.run<Hashing>(arrayOf(algorithmName, SECRET_MESSAGE))
         assertThat(summary.result)
             .isEqualTo(MessageDigest.getInstance(algorithmName).digest(SECRET_MESSAGE.toByteArray()))
     }
@@ -45,8 +45,8 @@ class BasicCryptoTest : TestBase(KOTLIN) {
             sign()
         }
 
-        val contractExecutor = DeterministicSandboxExecutor<Array<*>, Boolean>(configuration)
-        val summary = contractExecutor.run<VerifySignature>(
+        val executor = DeterministicSandboxExecutor<Array<*>, Boolean>(configuration)
+        val summary = executor.run<VerifySignature>(
             arrayOf(algorithm, keyPair.public.encoded, algorithmName, data, signature)
         )
         assertThat(summary.result).isTrue()
@@ -68,8 +68,8 @@ class BasicCryptoTest : TestBase(KOTLIN) {
 
     @Test
     fun `test security providers`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
-        val summary = contractExecutor.run<SecurityProviders>("")
+        val executor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
+        val summary = executor.run<SecurityProviders>("")
         assertThat(summary.result).isEqualTo(arrayOf("SUN", "SunRsaSign"))
     }
 
@@ -102,8 +102,8 @@ class BasicCryptoTest : TestBase(KOTLIN) {
     @ArgumentsSource(AlgorithmProvider::class)
     @ParameterizedTest
     fun `test service algorithms`(serviceName: String, algorithms: Array<String>) = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
-        val summary = contractExecutor.run<ServiceAlgorithms>(serviceName)
+        val executor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
+        val summary = executor.run<ServiceAlgorithms>(serviceName)
         assertThat(summary.result)
             .isEqualTo(algorithms)
     }
@@ -117,8 +117,8 @@ class BasicCryptoTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @ValueSource(strings = [ "SUN", "SunRsaSign" ])
     fun `test no secure random for`(serviceName: String) = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, Double>(configuration)
-        val exception = assertThrows<SandboxException> { contractExecutor.run<SecureRandomService>(serviceName) }
+        val executor = DeterministicSandboxExecutor<String, Double>(configuration)
+        val exception = assertThrows<SandboxException> { executor.run<SecureRandomService>(serviceName) }
         assertThat(exception)
             .hasCauseExactlyInstanceOf(Exception::class.java)
             .hasMessage("sandbox.java.security.NoSuchAlgorithmException -> $serviceName SecureRandom not available")
@@ -132,8 +132,8 @@ class BasicCryptoTest : TestBase(KOTLIN) {
 
     @Test
     fun `test secure random instance`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<ByteArray?, Double>(configuration)
-        val exception = assertThrows<SandboxException> { contractExecutor.run<SecureRandomInstance>(null) }
+        val executor = DeterministicSandboxExecutor<ByteArray?, Double>(configuration)
+        val exception = assertThrows<SandboxException> { executor.run<SecureRandomInstance>(null) }
         assertThat(exception)
             .hasCauseExactlyInstanceOf(UnsupportedOperationException::class.java)
             .hasMessageContaining("Seed generation disabled")
