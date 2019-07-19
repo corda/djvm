@@ -10,6 +10,7 @@ import net.corda.djvm.source.SourceClassLoader
 import djvm.org.objectweb.asm.ClassReader
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
+import net.corda.djvm.source.UserPathSource
 import picocli.CommandLine.Option
 import java.nio.file.Files
 import java.nio.file.Path
@@ -54,7 +55,7 @@ abstract class ClassCommand : CommandBase() {
 
     private val classModule = ClassModule()
 
-    private lateinit var classLoader: ClassLoader
+    private lateinit var classLoader: SourceClassLoader
 
     protected lateinit var executor: SandboxExecutor<Any, Any>
         private set
@@ -67,7 +68,7 @@ abstract class ClassCommand : CommandBase() {
 
     override fun handleCommand(): Boolean {
         val configuration = getConfiguration(Whitelist.MINIMAL)
-        classLoader = SourceClassLoader(getClasspath(), configuration.analysisConfiguration.classResolver)
+        classLoader = configuration.analysisConfiguration.supportingClassLoader
         createExecutor(configuration)
 
         val classes = discoverClasses(filters).onEmpty {
@@ -186,7 +187,7 @@ abstract class ClassCommand : CommandBase() {
                 definitionProviders = if (ignoreDefinitionProviders) { emptyList() } else { ALL_DEFINITION_PROVIDERS },
                 enableTracing = !disableTracing,
                 analysisConfiguration = AnalysisConfiguration.createRoot(
-                        classPaths = getClasspath(),
+                        userSource = UserPathSource(getClasspath()),
                         whitelist = whitelist,
                         minimumSeverityLevel = level,
                         analyzeAnnotations = analyzeAnnotations,

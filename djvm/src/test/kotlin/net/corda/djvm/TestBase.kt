@@ -18,8 +18,7 @@ import net.corda.djvm.rewiring.LoadedClass
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.rules.implementation.*
-import net.corda.djvm.source.BootstrapClassLoader
-import net.corda.djvm.source.ClassSource
+import net.corda.djvm.source.*
 import net.corda.djvm.validation.RuleValidator
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -90,8 +89,8 @@ abstract class TestBase(type: SandboxType) {
         @JvmStatic
         fun setupParentClassLoader() {
             val rootConfiguration = AnalysisConfiguration.createRoot(
-                emptyList(),
-                Whitelist.MINIMAL,
+                userSource = UserPathSource(emptyList()),
+                whitelist = Whitelist.MINIMAL,
                 bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT),
                 pinnedClasses = setOf(
                     Utilities::class.java
@@ -124,8 +123,8 @@ abstract class TestBase(type: SandboxType) {
      * Default analysis configuration.
      */
     val configuration = AnalysisConfiguration.createRoot(
-        classPaths,
-        Whitelist.MINIMAL,
+        userSource = UserPathSource(classPaths),
+        whitelist = Whitelist.MINIMAL,
         bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
     )
 
@@ -149,7 +148,7 @@ abstract class TestBase(type: SandboxType) {
     ) {
         val reader = ClassReader(T::class.java.name)
         AnalysisConfiguration.createRoot(
-            classPaths,
+            userSource = UserPathSource(classPaths),
             whitelist = Whitelist.MINIMAL,
             minimumSeverityLevel = minimumSeverityLevel,
             bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
@@ -198,7 +197,7 @@ abstract class TestBase(type: SandboxType) {
             try {
                 val pinnedTestClasses = pinnedClasses.map(Type::getInternalName).toSet()
                 AnalysisConfiguration.createRoot(
-                    classPaths = classPaths,
+                    userSource = UserPathSource(classPaths),
                     whitelist = whitelist,
                     pinnedClasses = pinnedTestClasses,
                     minimumSeverityLevel = minimumSeverityLevel,
@@ -232,7 +231,7 @@ abstract class TestBase(type: SandboxType) {
         thread {
             try {
                 parentConfiguration.analysisConfiguration.createChild(
-                    classPaths = classPaths,
+                    userSource = UserPathSource(classPaths),
                     newMinimumSeverityLevel = minimumSeverityLevel
                 ).use { analysisConfiguration ->
                     SandboxRuntimeContext(SandboxConfiguration.of(

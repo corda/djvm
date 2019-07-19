@@ -15,14 +15,14 @@ class SourceClassLoaderTest {
 
     @Test
     fun `can load class from Java's lang package when no files are provided to the class loader`() {
-        val classLoader = SourceClassLoader(emptyList(), classResolver)
+        val classLoader = SourceClassLoader(classResolver, UserPathSource(emptyList()))
         val clazz = classLoader.loadClass("java.lang.Boolean")
         assertThat(clazz.simpleName).isEqualTo("Boolean")
     }
 
     @Test
     fun `cannot load arbitrary class when no files are provided to the class loader`() {
-        val classLoader = SourceClassLoader(emptyList(), classResolver)
+        val classLoader = SourceClassLoader(classResolver, UserPathSource(emptyList()))
         assertThrows<ClassNotFoundException> {
             classLoader.loadClass("net.foo.NonExistentClass")
         }
@@ -31,7 +31,7 @@ class SourceClassLoaderTest {
     @Test
     fun `can load class when JAR file is provided to the class loader`() {
         useTemporaryFile("jar-with-single-class.jar") {
-            val classLoader = SourceClassLoader(this, classResolver)
+            val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
             val clazz = classLoader.loadClass("net.foo.Bar")
             assertThat(clazz.simpleName).isEqualTo("Bar")
         }
@@ -40,7 +40,7 @@ class SourceClassLoaderTest {
     @Test
     fun `cannot load arbitrary class when JAR file is provided to the class loader`() {
         useTemporaryFile("jar-with-single-class.jar") {
-            val classLoader = SourceClassLoader(this, classResolver)
+            val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
             assertThrows<ClassNotFoundException> {
                 classLoader.loadClass("net.foo.NonExistentClass")
             }
@@ -50,7 +50,7 @@ class SourceClassLoaderTest {
     @Test
     fun `can load classes when multiple JAR files are provided to the class loader`() {
         useTemporaryFile("jar-with-single-class.jar", "jar-with-two-classes.jar") {
-            val classLoader = SourceClassLoader(this, classResolver)
+            val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
             val firstClass = classLoader.loadClass("com.somewhere.Test")
             assertThat(firstClass.simpleName).isEqualTo("Test")
             val secondClass = classLoader.loadClass("com.somewhere.AnotherTest")
@@ -61,7 +61,7 @@ class SourceClassLoaderTest {
     @Test
     fun `cannot load arbitrary class when multiple JAR files are provided to the class loader`() {
         useTemporaryFile("jar-with-single-class.jar", "jar-with-two-classes.jar") {
-            val classLoader = SourceClassLoader(this, classResolver)
+            val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
             assertThrows<ClassNotFoundException> {
                 classLoader.loadClass("com.somewhere.NonExistentClass")
             }
@@ -73,8 +73,8 @@ class SourceClassLoaderTest {
         useTemporaryFile("jar-with-single-class.jar", "jar-with-two-classes.jar") {
             val (first, second) = this
             val directory = first.parent
-            val classLoader = SourceClassLoader(listOf(directory), classResolver)
-            assertThat(classLoader.urLs).anySatisfy {
+            val userPathSource = UserPathSource(listOf(directory))
+            assertThat(userPathSource.getURLs()).anySatisfy {
                 assertThat(it).isEqualTo(first.toUri().toURL())
             }.anySatisfy {
                 assertThat(it).isEqualTo(second.toUri().toURL())

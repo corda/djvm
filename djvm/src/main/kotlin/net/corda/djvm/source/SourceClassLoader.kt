@@ -23,10 +23,24 @@ import java.nio.file.Paths
 import kotlin.streams.toList
 
 /**
+ * Base interface for API and user sources.
+ */
+interface Source : Closeable {
+    val loadResource: (String) -> URL?
+}
+
+/**
  * This is the contract that our source of Java APIs must satisfy.
  */
-interface BootstrapSource : Closeable {
-    val loadResource: (String) -> URL?
+interface ApiSource : Source
+
+/**
+ * This is the contract that the source of the user's own code must satisfy.
+ * It will almost certainly be a [ClassLoader] of some description.
+ */
+interface UserSource : Source {
+    val loadClass: (String) -> Class<*>
+    fun getURLs(): Array<URL>
 }
 
 /**
@@ -34,12 +48,11 @@ interface BootstrapSource : Closeable {
  */
 class BootstrapClassLoader private constructor(
     jarPaths: List<Path>
-) : URLClassLoader(resolvePaths(jarPaths), null), BootstrapSource {
+) : URLClassLoader(resolvePaths(jarPaths), null), ApiSource {
     /**
      * @param bootstrapJar The location of the JAR containing the Java APIs.
      */
     constructor(bootstrapJar: Path) : this(listOf(bootstrapJar))
-    constructor() : this(emptyList())
 
     /**
      * Only search our own jars for the given resource.
@@ -49,25 +62,44 @@ class BootstrapClassLoader private constructor(
     override val loadResource = ::findResource
 }
 
+object EmptyApi : ApiSource {
+    override val loadResource: (String) -> URL? = { null }
+    override fun close() {}
+}
+
+/**
+ * Wrap a [URLClassLoader] containing the user's own code for the DJVM.
+ * It is used mainly by the tests, but also by the CLI tool.
+ * @param paths The directories and explicit JAR files to scan.
+ */
+class UserPathSource(paths: List<Path>) : UserSource {
+    private val classLoader = URLClassLoader(resolvePaths(paths), null)
+
+    override fun getURLs(): Array<URL> = classLoader.urLs
+    override val loadResource: (String) -> URL? = classLoader::findResource
+    override val loadClass: (String) -> Class<*> = classLoader::loadClass
+    override fun close() = classLoader.close()
+}
+
 /**
  * Customizable class loader that allows the user to specify explicitly additional JARs and directories to scan.
  *
- * @param paths The directories and explicit JAR files to scan.
  * @property classResolver The resolver to use to derive the original name of a requested class.
- * @property bootstrap The [BootstrapSource] containing the Java APIs for the sandbox.
+ * @property userSource The [UserSource] containing the user's own code.
+ * @property bootstrap The [ApiSource] containing the Java APIs for the sandbox.
  */
 class SourceClassLoader(
-    paths: List<Path>,
     private val classResolver: ClassResolver,
-    private val bootstrap: BootstrapSource? = null
-) : URLClassLoader(resolvePaths(paths), null) {
+    private val userSource: UserSource,
+    private val bootstrap: ApiSource? = null
+) : ClassLoader(null), Closeable {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
     }
 
     override fun close() {
         bootstrap.use {
-            super.close()
+           userSource.close()
         }
     }
 
@@ -116,6 +148,11 @@ class SourceClassLoader(
         return loadClass(originalName)
     }
 
+    @Throws(ClassNotFoundException::class)
+    override fun loadClass(name: String): Class<*> {
+        return userSource.loadClass(name)
+    }
+
     /**
      * First check the bootstrap classloader, if we have one.
      * Otherwise check our parent classloader, followed by
@@ -132,13 +169,13 @@ class SourceClassLoader(
             }
         } else if (isJvmInternal(name)) {
             /**
-             * Without a special [BootstrapSource], we need
+             * Without a special [ApiSource], we need
              * to fetch Java API classes from the JVM itself.
              */
             return getSystemClassLoader().getResource(name)
         }
 
-        return parent?.getResource(name) ?: findResource(name)
+        return userSource.loadResource(name)
     }
 }
 

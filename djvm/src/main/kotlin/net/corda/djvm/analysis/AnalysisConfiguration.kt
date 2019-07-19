@@ -9,8 +9,9 @@ import net.corda.djvm.references.ClassModule
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MemberModule
 import net.corda.djvm.references.MethodBody
-import net.corda.djvm.source.BootstrapClassLoader
-import net.corda.djvm.source.BootstrapSource
+import net.corda.djvm.source.ApiSource
+import net.corda.djvm.source.EmptyApi
+import net.corda.djvm.source.UserSource
 import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.*
@@ -21,7 +22,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
-import java.nio.file.Path
 import java.security.SecureRandom
 import java.security.Security
 import java.util.*
@@ -80,7 +80,7 @@ class AnalysisConfiguration private constructor(
      * The child inherits the same [whitelist] and [pinnedClasses].
      */
     fun createChild(
-        classPaths: List<Path>,
+        userSource: UserSource,
         newMinimumSeverityLevel: Severity?
     ): AnalysisConfiguration {
         return AnalysisConfiguration(
@@ -93,7 +93,7 @@ class AnalysisConfiguration private constructor(
             prefixFilters = prefixFilters,
             classModule = classModule,
             memberModule = memberModule,
-            supportingClassLoader = SourceClassLoader(classPaths, classResolver, EMPTY)
+            supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi)
         )
     }
 
@@ -117,11 +117,6 @@ class AnalysisConfiguration private constructor(
          * The package name prefix to use for classes loaded into a sandbox.
          */
         const val SANDBOX_PREFIX: String = "sandbox/"
-
-        /**
-         * An empty placeholder used by "child" instances of [SourceClassLoader].
-         */
-        private val EMPTY: BootstrapSource = BootstrapClassLoader()
 
         /**
          * These classes will be duplicated into every sandbox's
@@ -560,7 +555,7 @@ class AnalysisConfiguration private constructor(
          * @see [AnalysisConfiguration]
          */
         fun createRoot(
-            classPaths: List<Path>,
+            userSource: UserSource,
             whitelist: Whitelist,
             pinnedClasses: Set<String> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
@@ -568,7 +563,7 @@ class AnalysisConfiguration private constructor(
             prefixFilters: List<String> = emptyList(),
             classModule: ClassModule = ClassModule(),
             memberModule: MemberModule = MemberModule(),
-            bootstrapSource: BootstrapSource? = null
+            bootstrapSource: ApiSource? = null
         ): AnalysisConfiguration {
             /**
              * We may need to whitelist the descriptors for methods that we
@@ -596,7 +591,7 @@ class AnalysisConfiguration private constructor(
                 prefixFilters = prefixFilters,
                 classModule = classModule,
                 memberModule = memberModule,
-                supportingClassLoader = SourceClassLoader(classPaths, classResolver, bootstrapSource)
+                supportingClassLoader = SourceClassLoader(classResolver, userSource, bootstrapSource)
             )
         }
     }
