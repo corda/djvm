@@ -12,6 +12,7 @@ import net.corda.djvm.messages.Severity
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassReader
+import java.io.Closeable
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.URL
@@ -22,11 +23,18 @@ import java.nio.file.Paths
 import kotlin.streams.toList
 
 /**
+ * This is the contract that our source of Java APIs must satisfy.
+ */
+interface BootstrapSource : Closeable {
+    val loadResource: (String) -> URL?
+}
+
+/**
  * Class loader to manage an optional JAR of replacement Java APIs.
  */
 class BootstrapClassLoader private constructor(
     jarPaths: List<Path>
-) : URLClassLoader(resolvePaths(jarPaths), null) {
+) : URLClassLoader(resolvePaths(jarPaths), null), BootstrapSource {
     /**
      * @param bootstrapJar The location of the JAR containing the Java APIs.
      */
@@ -37,6 +45,8 @@ class BootstrapClassLoader private constructor(
      * Only search our own jars for the given resource.
      */
     override fun getResource(name: String): URL? = findResource(name)
+
+    override val loadResource = ::findResource
 }
 
 /**
@@ -44,12 +54,12 @@ class BootstrapClassLoader private constructor(
  *
  * @param paths The directories and explicit JAR files to scan.
  * @property classResolver The resolver to use to derive the original name of a requested class.
- * @property bootstrap The [BootstrapClassLoader] containing the Java APIs for the sandbox.
+ * @property bootstrap The [BootstrapSource] containing the Java APIs for the sandbox.
  */
 class SourceClassLoader(
     paths: List<Path>,
     private val classResolver: ClassResolver,
-    private val bootstrap: BootstrapClassLoader? = null
+    private val bootstrap: BootstrapSource? = null
 ) : URLClassLoader(resolvePaths(paths), null) {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
@@ -113,7 +123,7 @@ class SourceClassLoader(
      */
     override fun getResource(name: String): URL? {
         if (bootstrap != null) {
-            val resource = bootstrap.findResource(name)
+            val resource = bootstrap.loadResource(name)
             if (resource != null) {
                 return resource
             } else if (isJvmInternal(name)) {
@@ -122,7 +132,7 @@ class SourceClassLoader(
             }
         } else if (isJvmInternal(name)) {
             /**
-             * Without a special [BootstrapClassLoader], we need
+             * Without a special [BootstrapSource], we need
              * to fetch Java API classes from the JVM itself.
              */
             return getSystemClassLoader().getResource(name)

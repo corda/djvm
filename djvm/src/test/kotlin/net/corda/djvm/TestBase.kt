@@ -92,7 +92,7 @@ abstract class TestBase(type: SandboxType) {
             val rootConfiguration = AnalysisConfiguration.createRoot(
                 emptyList(),
                 Whitelist.MINIMAL,
-                bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT),
+                bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT),
                 pinnedClasses = setOf(
                     Utilities::class.java
                 ).map(Type::getInternalName).toSet()
@@ -126,7 +126,7 @@ abstract class TestBase(type: SandboxType) {
     val configuration = AnalysisConfiguration.createRoot(
         classPaths,
         Whitelist.MINIMAL,
-        bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
+        bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
     )
 
     /**
@@ -152,7 +152,7 @@ abstract class TestBase(type: SandboxType) {
             classPaths,
             whitelist = Whitelist.MINIMAL,
             minimumSeverityLevel = minimumSeverityLevel,
-            bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
+            bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
         ).use { analysisConfiguration ->
             val validator = RuleValidator(ALL_RULES, analysisConfiguration)
             val context = AnalysisContext.fromConfiguration(analysisConfiguration)
@@ -202,7 +202,7 @@ abstract class TestBase(type: SandboxType) {
                     whitelist = whitelist,
                     pinnedClasses = pinnedTestClasses,
                     minimumSeverityLevel = minimumSeverityLevel,
-                    bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
+                    bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
                 ).use { analysisConfiguration ->
                     SandboxRuntimeContext(SandboxConfiguration.of(
                         executionProfile,

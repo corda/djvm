@@ -10,6 +10,7 @@ import net.corda.djvm.references.Member
 import net.corda.djvm.references.MemberModule
 import net.corda.djvm.references.MethodBody
 import net.corda.djvm.source.BootstrapClassLoader
+import net.corda.djvm.source.BootstrapSource
 import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.*
@@ -120,7 +121,7 @@ class AnalysisConfiguration private constructor(
         /**
          * An empty placeholder used by "child" instances of [SourceClassLoader].
          */
-        private val EMPTY: BootstrapClassLoader = BootstrapClassLoader()
+        private val EMPTY: BootstrapSource = BootstrapClassLoader()
 
         /**
          * These classes will be duplicated into every sandbox's
@@ -567,7 +568,7 @@ class AnalysisConfiguration private constructor(
             prefixFilters: List<String> = emptyList(),
             classModule: ClassModule = ClassModule(),
             memberModule: MemberModule = MemberModule(),
-            bootstrapClassLoader: BootstrapClassLoader? = null
+            bootstrapSource: BootstrapSource? = null
         ): AnalysisConfiguration {
             /**
              * We may need to whitelist the descriptors for methods that we
@@ -595,7 +596,7 @@ class AnalysisConfiguration private constructor(
                 prefixFilters = prefixFilters,
                 classModule = classModule,
                 memberModule = memberModule,
-                supportingClassLoader = SourceClassLoader(classPaths, classResolver, bootstrapClassLoader)
+                supportingClassLoader = SourceClassLoader(classPaths, classResolver, bootstrapSource)
             )
         }
     }
