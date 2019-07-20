@@ -45,20 +45,14 @@ interface UserSource : Source {
 
 /**
  * Class loader to manage an optional JAR of replacement Java APIs.
+ * @param bootstrapJar The location of the JAR containing the Java APIs.
  */
-class BootstrapClassLoader private constructor(
-    jarPaths: List<Path>
-) : URLClassLoader(resolvePaths(jarPaths), null), ApiSource {
-    /**
-     * @param bootstrapJar The location of the JAR containing the Java APIs.
-     */
-    constructor(bootstrapJar: Path) : this(listOf(bootstrapJar))
-
+class BootstrapClassLoader(bootstrapJar: Path)
+    : URLClassLoader(resolvePaths(listOf(bootstrapJar)), null), ApiSource {
     /**
      * Only search our own jars for the given resource.
      */
     override fun getResource(name: String): URL? = findResource(name)
-
     override val loadResource = ::findResource
 }
 
@@ -68,17 +62,15 @@ object EmptyApi : ApiSource {
 }
 
 /**
- * Wrap a [URLClassLoader] containing the user's own code for the DJVM.
+ * A [URLClassLoader] containing the user's own code for the DJVM.
  * It is used mainly by the tests, but also by the CLI tool.
  * @param paths The directories and explicit JAR files to scan.
  */
-class UserPathSource(paths: List<Path>) : UserSource {
-    private val classLoader = URLClassLoader(resolvePaths(paths), null)
+class UserPathSource(urls: Array<URL>) : URLClassLoader(urls, null), UserSource {
+    constructor(paths: List<Path>) : this(resolvePaths(paths))
 
-    override fun getURLs(): Array<URL> = classLoader.urLs
-    override val loadResource: (String) -> URL? = classLoader::findResource
-    override val loadClass: (String) -> Class<*> = classLoader::loadClass
-    override fun close() = classLoader.close()
+    override val loadResource: (String) -> URL? = ::findResource
+    override val loadClass: (String) -> Class<*> = ::loadClass
 }
 
 /**
@@ -102,6 +94,8 @@ class SourceClassLoader(
            userSource.close()
         }
     }
+
+    fun getURLs(): Array<URL> = userSource.getURLs()
 
     /**
      * Open a [ClassReader] for the provided class name.

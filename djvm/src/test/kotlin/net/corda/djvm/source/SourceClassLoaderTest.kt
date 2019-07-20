@@ -74,7 +74,8 @@ class SourceClassLoaderTest {
             val (first, second) = this
             val directory = first.parent
             val userPathSource = UserPathSource(listOf(directory))
-            assertThat(userPathSource.getURLs()).anySatisfy {
+            val classLoader = SourceClassLoader(classResolver, userPathSource)
+            assertThat(classLoader.getURLs()).anySatisfy {
                 assertThat(it).isEqualTo(first.toUri().toURL())
             }.anySatisfy {
                 assertThat(it).isEqualTo(second.toUri().toURL())
