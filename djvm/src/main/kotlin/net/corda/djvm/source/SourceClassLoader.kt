@@ -26,7 +26,7 @@ import kotlin.streams.toList
  * Base interface for API and user sources.
  */
 interface Source : Closeable {
-    val loadResource: (String) -> URL?
+    fun findResource(name: String): URL?
 }
 
 /**
@@ -39,7 +39,9 @@ interface ApiSource : Source
  * It will almost certainly be a [ClassLoader] of some description.
  */
 interface UserSource : Source {
-    val loadClass: (String) -> Class<*>
+    @Throws(ClassNotFoundException::class)
+    fun loadClass(className: String): Class<*>
+
     fun getURLs(): Array<URL>
 }
 
@@ -53,24 +55,30 @@ class BootstrapClassLoader(bootstrapJar: Path)
      * Only search our own jars for the given resource.
      */
     override fun getResource(name: String): URL? = findResource(name)
-    override val loadResource = ::findResource
 }
 
-object EmptyApi : ApiSource {
-    override val loadResource: (String) -> URL? = { null }
+/**
+ * Just like a [BootstrapClassLoader] without a JAR inside,
+ * except that it doesn't inherit from [URLClassLoader] either.
+ */
+object EmptyApi : ClassLoader(null), ApiSource {
+    override fun findResource(name: String): URL? {
+        return super.findResource(name)
+    }
+    override fun getResource(name: String): URL? = findResource(name)
     override fun close() {}
 }
 
 /**
  * A [URLClassLoader] containing the user's own code for the DJVM.
  * It is used mainly by the tests, but also by the CLI tool.
- * @param paths The directories and explicit JAR files to scan.
+ * @param urls The URLs for the resources to scan.
  */
 class UserPathSource(urls: Array<URL>) : URLClassLoader(urls, null), UserSource {
+    /**
+     * @param paths The directories and explicit JAR files to scan.
+     */
     constructor(paths: List<Path>) : this(resolvePaths(paths))
-
-    override val loadResource: (String) -> URL? = ::findResource
-    override val loadClass: (String) -> Class<*> = ::loadClass
 }
 
 /**
@@ -154,7 +162,7 @@ class SourceClassLoader(
      */
     override fun getResource(name: String): URL? {
         if (bootstrap != null) {
-            val resource = bootstrap.loadResource(name)
+            val resource = bootstrap.findResource(name)
             if (resource != null) {
                 return resource
             } else if (isJvmInternal(name)) {
@@ -169,7 +177,7 @@ class SourceClassLoader(
             return getSystemClassLoader().getResource(name)
         }
 
-        return userSource.loadResource(name)
+        return userSource.findResource(name)
     }
 }
 
