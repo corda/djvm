@@ -8,6 +8,7 @@ import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.source.BootstrapClassLoader
+import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.fail
@@ -35,9 +36,9 @@ abstract class TestBase(type: SandboxType) {
         @JvmStatic
         fun setupClassLoader() {
             val rootConfiguration = AnalysisConfiguration.createRoot(
-                emptyList(),
-                Whitelist.MINIMAL,
-                bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
+                userSource = UserPathSource(emptyList()),
+                whitelist = Whitelist.MINIMAL,
+                bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
             )
             configuration = SandboxConfiguration.of(
                 ExecutionProfile.UNLIMITED,
@@ -71,7 +72,7 @@ abstract class TestBase(type: SandboxType) {
         thread {
             try {
                 configuration.analysisConfiguration.createChild(
-                    classPaths = classPaths,
+                    userSource = UserPathSource(classPaths),
                     newMinimumSeverityLevel = minimumSeverityLevel
                 ).use { analysisConfiguration ->
                     SandboxRuntimeContext(SandboxConfiguration.of(

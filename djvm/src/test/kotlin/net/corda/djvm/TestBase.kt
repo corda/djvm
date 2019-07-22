@@ -18,8 +18,7 @@ import net.corda.djvm.rewiring.LoadedClass
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.rules.implementation.*
-import net.corda.djvm.source.BootstrapClassLoader
-import net.corda.djvm.source.ClassSource
+import net.corda.djvm.source.*
 import net.corda.djvm.validation.RuleValidator
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -90,9 +89,9 @@ abstract class TestBase(type: SandboxType) {
         @JvmStatic
         fun setupParentClassLoader() {
             val rootConfiguration = AnalysisConfiguration.createRoot(
-                emptyList(),
-                Whitelist.MINIMAL,
-                bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT),
+                userSource = UserPathSource(emptyList()),
+                whitelist = Whitelist.MINIMAL,
+                bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT),
                 pinnedClasses = setOf(
                     Utilities::class.java
                 ).map(Type::getInternalName).toSet()
@@ -124,9 +123,9 @@ abstract class TestBase(type: SandboxType) {
      * Default analysis configuration.
      */
     val configuration = AnalysisConfiguration.createRoot(
-        classPaths,
-        Whitelist.MINIMAL,
-        bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
+        userSource = UserPathSource(classPaths),
+        whitelist = Whitelist.MINIMAL,
+        bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
     )
 
     /**
@@ -149,10 +148,10 @@ abstract class TestBase(type: SandboxType) {
     ) {
         val reader = ClassReader(T::class.java.name)
         AnalysisConfiguration.createRoot(
-            classPaths,
+            userSource = UserPathSource(classPaths),
             whitelist = Whitelist.MINIMAL,
             minimumSeverityLevel = minimumSeverityLevel,
-            bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
+            bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
         ).use { analysisConfiguration ->
             val validator = RuleValidator(ALL_RULES, analysisConfiguration)
             val context = AnalysisContext.fromConfiguration(analysisConfiguration)
@@ -198,11 +197,11 @@ abstract class TestBase(type: SandboxType) {
             try {
                 val pinnedTestClasses = pinnedClasses.map(Type::getInternalName).toSet()
                 AnalysisConfiguration.createRoot(
-                    classPaths = classPaths,
+                    userSource = UserPathSource(classPaths),
                     whitelist = whitelist,
                     pinnedClasses = pinnedTestClasses,
                     minimumSeverityLevel = minimumSeverityLevel,
-                    bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
+                    bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
                 ).use { analysisConfiguration ->
                     SandboxRuntimeContext(SandboxConfiguration.of(
                         executionProfile,
@@ -232,7 +231,7 @@ abstract class TestBase(type: SandboxType) {
         thread {
             try {
                 parentConfiguration.analysisConfiguration.createChild(
-                    classPaths = classPaths,
+                    userSource = UserPathSource(classPaths),
                     newMinimumSeverityLevel = minimumSeverityLevel
                 ).use { analysisConfiguration ->
                     SandboxRuntimeContext(SandboxConfiguration.of(

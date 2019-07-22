@@ -12,6 +12,7 @@ import net.corda.djvm.messages.Severity
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassReader
+import java.io.Closeable
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.URL
@@ -22,17 +23,34 @@ import java.nio.file.Paths
 import kotlin.streams.toList
 
 /**
- * Class loader to manage an optional JAR of replacement Java APIs.
+ * Base interface for API and user sources.
  */
-class BootstrapClassLoader private constructor(
-    jarPaths: List<Path>
-) : URLClassLoader(resolvePaths(jarPaths), null) {
-    /**
-     * @param bootstrapJar The location of the JAR containing the Java APIs.
-     */
-    constructor(bootstrapJar: Path) : this(listOf(bootstrapJar))
-    constructor() : this(emptyList())
+interface Source : Closeable {
+    fun findResource(name: String): URL?
+}
 
+/**
+ * This is the contract that our source of Java APIs must satisfy.
+ */
+interface ApiSource : Source
+
+/**
+ * This is the contract that the source of the user's own code must satisfy.
+ * It will almost certainly be a [ClassLoader] of some description.
+ */
+interface UserSource : Source {
+    @Throws(ClassNotFoundException::class)
+    fun loadClass(className: String): Class<*>
+
+    fun getURLs(): Array<URL>
+}
+
+/**
+ * Class loader to manage an optional JAR of replacement Java APIs.
+ * @param bootstrapJar The location of the JAR containing the Java APIs.
+ */
+class BootstrapClassLoader(bootstrapJar: Path)
+    : URLClassLoader(resolvePaths(listOf(bootstrapJar)), null), ApiSource {
     /**
      * Only search our own jars for the given resource.
      */
@@ -40,26 +58,52 @@ class BootstrapClassLoader private constructor(
 }
 
 /**
+ * Just like a [BootstrapClassLoader] without a JAR inside,
+ * except that it doesn't inherit from [URLClassLoader] either.
+ */
+object EmptyApi : ClassLoader(null), ApiSource {
+    override fun findResource(name: String): URL? {
+        return super.findResource(name)
+    }
+    override fun getResource(name: String): URL? = findResource(name)
+    override fun close() {}
+}
+
+/**
+ * A [URLClassLoader] containing the user's own code for the DJVM.
+ * It is used mainly by the tests, but also by the CLI tool.
+ * @param urls The URLs for the resources to scan.
+ */
+class UserPathSource(urls: Array<URL>) : URLClassLoader(urls, null), UserSource {
+    /**
+     * @param paths The directories and explicit JAR files to scan.
+     */
+    constructor(paths: List<Path>) : this(resolvePaths(paths))
+}
+
+/**
  * Customizable class loader that allows the user to specify explicitly additional JARs and directories to scan.
  *
- * @param paths The directories and explicit JAR files to scan.
  * @property classResolver The resolver to use to derive the original name of a requested class.
- * @property bootstrap The [BootstrapClassLoader] containing the Java APIs for the sandbox.
+ * @property userSource The [UserSource] containing the user's own code.
+ * @property bootstrap The [ApiSource] containing the Java APIs for the sandbox.
  */
 class SourceClassLoader(
-    paths: List<Path>,
     private val classResolver: ClassResolver,
-    private val bootstrap: BootstrapClassLoader? = null
-) : URLClassLoader(resolvePaths(paths), null) {
+    private val userSource: UserSource,
+    private val bootstrap: ApiSource? = null
+) : ClassLoader(null), Closeable {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
     }
 
     override fun close() {
         bootstrap.use {
-            super.close()
+           userSource.close()
         }
     }
+
+    fun getURLs(): Array<URL> = userSource.getURLs()
 
     /**
      * Open a [ClassReader] for the provided class name.
@@ -106,6 +150,11 @@ class SourceClassLoader(
         return loadClass(originalName)
     }
 
+    @Throws(ClassNotFoundException::class)
+    override fun loadClass(name: String): Class<*> {
+        return userSource.loadClass(name)
+    }
+
     /**
      * First check the bootstrap classloader, if we have one.
      * Otherwise check our parent classloader, followed by
@@ -122,13 +171,13 @@ class SourceClassLoader(
             }
         } else if (isJvmInternal(name)) {
             /**
-             * Without a special [BootstrapClassLoader], we need
+             * Without a special [ApiSource], we need
              * to fetch Java API classes from the JVM itself.
              */
             return getSystemClassLoader().getResource(name)
         }
 
-        return parent?.getResource(name) ?: findResource(name)
+        return userSource.findResource(name)
     }
 }
 
