@@ -1,13 +1,14 @@
 package net.corda.djvm.references
 
+import net.corda.djvm.code.OBJECT_NAME
 import net.corda.djvm.utilities.loggerFor
 
 /**
  * Representation of a hierarchy of classes.
  */
 class ClassHierarchy(
-        private val classModule: ClassModule = ClassModule(),
-        private val memberModule: MemberModule = MemberModule()
+        private val classModule: ClassModule,
+        private val memberModule: MemberModule
 ) : Iterable<ClassRepresentation> {
 
     private val classMap = mutableMapOf<String, ClassRepresentation>()
@@ -107,8 +108,6 @@ class ClassHierarchy(
     }
 
     private companion object {
-
-        private const val OBJECT_NAME = "java/lang/Object"
 
         private const val ARRAY_LENGTH = "length"
 

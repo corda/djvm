@@ -14,10 +14,6 @@ import java.lang.reflect.Modifier
  */
 object AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
 
-    private const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"
-
-    private const val CONSTRUCTOR_NAME = "<init>"
-
     override fun define(context: AnalysisRuntimeContext, clazz: ClassRepresentation) = when {
         isDirectSubClassOfObject(context.clazz) -> clazz.copy(superClass = SANDBOX_OBJECT_NAME)
         else -> clazz
@@ -36,7 +32,7 @@ object AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
         }
         if (instruction is MemberAccessInstruction &&
                 instruction.operation == Opcodes.INVOKESPECIAL &&
-                instruction.owner == OBJECT_NAME &&
+                instruction.className == OBJECT_NAME &&
                 instruction.memberName == CONSTRUCTOR_NAME &&
                 context.clazz.name != SANDBOX_OBJECT_NAME) {
             // Rewrite object initialisation call so that the sandboxed constructor gets used instead.

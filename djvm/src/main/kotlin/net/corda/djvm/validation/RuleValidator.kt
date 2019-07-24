@@ -12,19 +12,23 @@ import net.corda.djvm.rules.MemberRule
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.utilities.Processor
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.MethodVisitor
 
 /**
  * Helper class for validating a set of rules for a class or set of classes.
  *
  * @property rules A set of rules to validate for provided classes.
  * @param configuration The configuration to use for class analysis.
- * @param classVisitor Class visitor to use when traversing the structure of classes.
  */
 class RuleValidator(
         private val rules: List<Rule> = emptyList(),
-        configuration: AnalysisConfiguration,
-        classVisitor: ClassVisitor? = null
-) : ClassAndMemberVisitor(configuration, classVisitor) {
+        configuration: AnalysisConfiguration
+) : ClassAndMemberVisitor(configuration, STUB) {
+    private companion object {
+        @JvmField
+        val STUB = StubClassReader(API_VERSION)
+    }
 
     /**
      * Apply the set of rules to the traversed class and record any violations.
@@ -78,4 +82,20 @@ class RuleValidator(
         super.visitInstruction(method, emitter, instruction)
     }
 
+    /**
+     * Provide some "stub" visitors for methods and fields so that we can apply
+     * [InstructionRule] operations.
+     */
+    private class StubClassReader(api: Int) : ClassVisitor(api) {
+        override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor {
+            return StubMethodReader(api)
+        }
+
+        override fun visitField(access: Int, name: String, descriptor: String, signature: String?, value: Any?): FieldVisitor {
+            return StubFieldReader(api)
+        }
+    }
+
+    private class StubMethodReader(api: Int) : MethodVisitor(api)
+    private class StubFieldReader(api: Int) : FieldVisitor(api)
 }

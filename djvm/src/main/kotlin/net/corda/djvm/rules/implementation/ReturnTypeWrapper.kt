@@ -41,9 +41,9 @@ object ReturnTypeWrapper : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && context.whitelist.matches(instruction.reference)) {
             fun invokeMethod() = when (instruction.operation) {
-                INVOKEVIRTUAL -> invokeVirtual(instruction.owner, instruction.memberName, instruction.descriptor)
-                INVOKESTATIC -> invokeStatic(instruction.owner, instruction.memberName, instruction.descriptor)
-                INVOKESPECIAL -> invokeSpecial(instruction.owner, instruction.memberName, instruction.descriptor)
+                INVOKEVIRTUAL -> invokeVirtual(instruction.className, instruction.memberName, instruction.descriptor)
+                INVOKESTATIC -> invokeStatic(instruction.className, instruction.memberName, instruction.descriptor)
+                INVOKESPECIAL -> invokeSpecial(instruction.className, instruction.memberName, instruction.descriptor)
                 else -> Unit
             }
 
@@ -61,7 +61,7 @@ object ReturnTypeWrapper : Emitter {
                 invokeStatic(
                     owner = "sandbox/java/util/concurrent/atomic/DJVM",
                     name = "toDJVM",
-                    descriptor = "(L${instruction.owner};)Lsandbox/${instruction.owner};"
+                    descriptor = "(L${instruction.className};)Lsandbox/${instruction.className};"
                 )
             }
         }
@@ -69,5 +69,5 @@ object ReturnTypeWrapper : Emitter {
 
     private fun hasStringReturnType(method: MemberAccessInstruction) = method.descriptor.endsWith(")Ljava/lang/String;")
     private fun isAtomicFieldUpdaterFactory(method: MemberAccessInstruction)
-                    = method.memberName == "newUpdater" && method.owner.matches(ATOMIC_FIELD_UPDATER)
+                    = method.memberName == "newUpdater" && method.className.matches(ATOMIC_FIELD_UPDATER)
 }

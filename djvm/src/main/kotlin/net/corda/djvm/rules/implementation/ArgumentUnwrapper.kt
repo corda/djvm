@@ -22,7 +22,7 @@ object ArgumentUnwrapper : Emitter {
 
             if (hasStringArgument(instruction)) {
                 unwrapString()
-            } else if (instruction.owner == "java/lang/Class" && instruction.descriptor.startsWith("(Ljava/lang/String;ZLjava/lang/ClassLoader;)")) {
+            } else if (instruction.className == "java/lang/Class" && instruction.descriptor.startsWith("(Ljava/lang/String;ZLjava/lang/ClassLoader;)")) {
                 /**
                  * [kotlin.jvm.internal.Intrinsics.checkHasClass] invokes [Class.forName], so I'm
                  * adding support for both of this function's variants. For now.

@@ -4,6 +4,10 @@ import net.corda.djvm.references.Member
 import net.corda.djvm.rules.MemberRule
 import net.corda.djvm.validation.RuleContext
 
+/**
+ * Disallow loading of classes that try to override methods on
+ * [sandbox.java.lang.Object] which are specific to the DJVM.
+ */
 object DisallowSandboxMethods : MemberRule() {
     override fun validate(context: RuleContext, member: Member) = context.validate {
         fail("Class is not allowed to implement toDJVMString()") given (

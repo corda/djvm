@@ -203,14 +203,14 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
                 .hasInstruction<MemberAccessInstruction>(
                         "foo", "sandbox/java/lang/Object:<init>:()V"
                 ) {
-                    assertThat(it.owner).isEqualTo("sandbox/java/lang/Object")
+                    assertThat(it.className).isEqualTo("sandbox/java/lang/Object")
                     assertThat(it.memberName).isEqualTo("<init>")
                     assertThat(it.descriptor).isEqualTo("()V")
                 }
                 .hasInstruction<MemberAccessInstruction>(
                         "foo", "sandbox/java/lang/Object:hashCode()I"
                 ) {
-                    assertThat(it.owner).isEqualTo("sandbox/java/lang/Object")
+                    assertThat(it.className).isEqualTo("sandbox/java/lang/Object")
                     assertThat(it.memberName).isEqualTo("hashCode")
                     assertThat(it.descriptor).isEqualTo("()I")
                 }

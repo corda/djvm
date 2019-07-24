@@ -1,6 +1,7 @@
 package net.corda.djvm.references
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.objectweb.asm.Opcodes
 
@@ -10,13 +11,13 @@ class ClassHierarchyTest {
 
     private val memberModule = MemberModule()
 
-    private val classes = ClassHierarchy()
+    private val classes = ClassHierarchy(classModule, memberModule)
 
     @Test
     fun `can register class in hierarchy`() {
         val clazz = clazz<Foo>()
         classes.add(clazz)
-        assertThat(classes.contains(clazz.name)).isTrue()
+        assertTrue(classes.contains(clazz.name))
     }
 
     @Test

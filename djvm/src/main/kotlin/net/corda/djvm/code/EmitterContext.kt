@@ -63,7 +63,7 @@ open class EmitterContext(
      * Return the runtime data associated with both this member and this emitter.
      */
     fun getMemberContext(emitter: Emitter): Any? {
-        return (member ?: return null).runtimeContext.computeIfAbsent(emitter) { emitter.createMemberContext() }
+        return (member ?: return null).runtimeContext.computeIfAbsent(emitter, Emitter::createMemberContext)
     }
 
     /**

@@ -1,12 +1,14 @@
 package net.corda.djvm.formatter
 
 import net.corda.djvm.formatting.MemberFormatter
+import net.corda.djvm.references.ClassModule
+import net.corda.djvm.references.MemberModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class MemberFormatterTest {
 
-    private val formatter = MemberFormatter()
+    private val formatter = MemberFormatter(ClassModule(), MemberModule())
 
     @Test
     fun `can format empty descriptors`() {

@@ -11,7 +11,7 @@ import org.objectweb.asm.Opcodes.*
  */
 object RewriteObjectMethods : Emitter {
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
-        if (instruction is MemberAccessInstruction && instruction.owner == OBJECT_NAME) {
+        if (instruction is MemberAccessInstruction && instruction.className == OBJECT_NAME) {
             when (instruction.operation) {
                 INVOKEVIRTUAL -> if (instruction.memberName == "hashCode" && instruction.descriptor == "()I") {
                     invokeStatic(

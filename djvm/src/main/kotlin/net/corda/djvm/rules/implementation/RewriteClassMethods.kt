@@ -5,7 +5,6 @@ import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.MemberAccessInstruction
-import net.corda.djvm.formatting.MemberFormatter
 import org.objectweb.asm.Opcodes.*
 
 /**
@@ -17,10 +16,9 @@ import org.objectweb.asm.Opcodes.*
  * objects.
  */
 object RewriteClassMethods : Emitter {
-    private val memberFormatter = MemberFormatter()
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
-        if (instruction is MemberAccessInstruction && instruction.owner == "java/lang/Class") {
+        if (instruction is MemberAccessInstruction && instruction.className == "java/lang/Class") {
             when (instruction.operation) {
                 INVOKEVIRTUAL -> if (instruction.memberName == "enumConstantDirectory" && instruction.descriptor == "()Ljava/util/Map;") {
                     invokeStatic(
@@ -43,7 +41,7 @@ object RewriteClassMethods : Emitter {
                         descriptor = "(Ljava/lang/Class;)[Ljava/lang/Object;")
                     preventDefault()
                 } else if (instruction.memberName == "getProtectionDomain" && instruction.descriptor == "()Ljava/security/ProtectionDomain;") {
-                    throwRuleViolationError("Disallowed reference to API; ${memberFormatter.format(instruction.member)}")
+                    throwRuleViolationError("Disallowed reference to API; ${formatFor(instruction)}")
                     preventDefault()
                 } else if (instruction.memberName == "getClassLoader" && instruction.descriptor == "()Ljava/lang/ClassLoader;") {
                     invokeStatic(
