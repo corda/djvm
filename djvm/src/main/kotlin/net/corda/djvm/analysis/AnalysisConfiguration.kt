@@ -154,6 +154,7 @@ class AnalysisConfiguration private constructor(
             sun.misc.VM::class.java,
             sun.security.action.GetPropertyAction::class.java
         ).sandboxed() + setOf(
+            "sandbox/RawTask",
             "sandbox/Task",
             "sandbox/TaskTypes",
             RUNTIME_ACCOUNTER_NAME,
