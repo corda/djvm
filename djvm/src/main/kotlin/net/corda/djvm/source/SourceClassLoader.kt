@@ -12,7 +12,6 @@ import net.corda.djvm.messages.Severity
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassReader
-import java.io.Closeable
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.URL
@@ -25,7 +24,7 @@ import kotlin.streams.toList
 /**
  * Base interface for API and user sources.
  */
-interface Source : Closeable {
+interface Source : AutoCloseable {
     fun findResource(name: String): URL?
 }
 
@@ -92,7 +91,7 @@ class SourceClassLoader(
     private val classResolver: ClassResolver,
     private val userSource: UserSource,
     private val bootstrap: ApiSource? = null
-) : ClassLoader(null), Closeable {
+) : ClassLoader(null), AutoCloseable {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
     }
