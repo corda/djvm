@@ -33,6 +33,7 @@ shadowJar {
     manifest {
         attributes(
             'Automatic-Module-Name': 'net.corda.djvm.cli',
+            'Corda-DJVM-Version' : corda_djvm_version,
             'Main-Class': 'net.corda.djvm.tools.cli.Program',
             'Build-Date': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
             'Sealed': true
