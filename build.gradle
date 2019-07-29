@@ -38,6 +38,7 @@ subprojects {
         sourceCompatibility = VERSION_1_8
         targetCompatibility = VERSION_1_8
         options.encoding = 'UTF-8'
+        options.compilerArgs += '-XDenableSunApiLintControl'
     }
 
     tasks.withType(KotlinCompile) {

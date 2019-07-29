@@ -637,6 +637,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         "java.lang.DJVMThrowableWrapper",
         "java.util.concurrent.atomic.DJVM",
         "java.util.concurrent.locks.DJVMConditionObject",
+        "javax.security.auth.x500.DJVM",
         "RawTask",
         "RuntimeCostAccounter",
         "TaskTypes",

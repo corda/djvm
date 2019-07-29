@@ -16,6 +16,8 @@ import sandbox.java.util.*
 import java.lang.reflect.Constructor
 
 private const val SANDBOX_PREFIX = "sandbox."
+private val OBJECT_ARRAY = "^(\\[++L)([^;]++);\$".toRegex()
+private val PRIMITIVE_ARRAY = "^(\\[)++[IJSCBZFD]\$".toRegex()
 
 fun Any.unsandbox(): Any {
     return when (this) {
@@ -289,16 +291,24 @@ fun loadClass(classLoader: ClassLoader, className: kotlin.String): Class<*> {
  */
 @Throws(ClassNotFoundException::class)
 fun toSandbox(className: kotlin.String): kotlin.String {
-    if (bannedClasses.any { it.matches(className) }) {
+    if (PRIMITIVE_ARRAY.matches(className)) {
+        return className
+    }
+
+    val (actualName, sandboxName) = OBJECT_ARRAY.matchEntire(className)?.let {
+        Pair(it.groupValues[2], it.groupValues[1] + SANDBOX_PREFIX + it.groupValues[2] + ';')
+    } ?: Pair(className, SANDBOX_PREFIX + className)
+
+    if (bannedClasses.any { it.matches(actualName) }) {
         throw ClassNotFoundException(className).sanitise(1)
     }
-    return SANDBOX_PREFIX + className
+    return sandboxName
 }
 
 private val bannedClasses = setOf(
     "^java\\.lang\\.DJVM(.*)?\$".toRegex(),
     "^net\\.corda\\.djvm\\..*\$".toRegex(),
-    "^java\\..*\\.DJVM\$".toRegex(),
+    "^javax?\\..*\\.DJVM\$".toRegex(),
     "^java\\.io\\.DJVM[^.]++\$".toRegex(),
     "^java\\.util\\.concurrent\\.locks\\.DJVM[^.]++\$".toRegex(),
     "^RawTask\$".toRegex(),
