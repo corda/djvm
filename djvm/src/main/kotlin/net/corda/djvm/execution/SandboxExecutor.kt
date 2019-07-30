@@ -22,10 +22,10 @@ import java.lang.reflect.InvocationTargetException
  * @property configuration The configuration of sandbox.
  * @property validating Whether the sandbox should pre-validate the class before executing it.
  */
-open class SandboxExecutor<in TInput, out TOutput>(
-        protected val configuration: SandboxConfiguration,
+open class SandboxExecutor<in INPUT, out OUTPUT>(
+        configuration: SandboxConfiguration,
         private val validating: Boolean
-) {
+) : Executor<INPUT, OUTPUT>(configuration) {
 
     private val classModule = configuration.analysisConfiguration.classModule
 
@@ -44,10 +44,10 @@ open class SandboxExecutor<in TInput, out TOutput>(
      * caller, with additional information about the sandboxed environment.
      */
     @Throws(Exception::class)
-    open fun run(
+    final override fun run(
             runnableClass: ClassSource,
-            input: TInput
-    ): ExecutionSummaryWithResult<TOutput> {
+            input: INPUT
+    ): ExecutionSummaryWithResult<OUTPUT> {
         // 1. We first do a breath first traversal of the class hierarchy, starting from the requested class.
         //    The branching is defined by class references from referencesFromLocation.
         // 2. For each class we run validation against defined rules.
@@ -88,7 +88,7 @@ open class SandboxExecutor<in TInput, out TOutput>(
             val method = taskClass.getMethod("apply", Any::class.java)
             try {
                 @Suppress("UNCHECKED_CAST")
-                method.invoke(task, input) as? TOutput
+                method.invoke(task, input) as? OUTPUT
             } catch (ex: InvocationTargetException) {
                 throw ex.targetException
             }
@@ -97,11 +97,11 @@ open class SandboxExecutor<in TInput, out TOutput>(
         when (result.exception) {
             null -> return ExecutionSummaryWithResult(result.output, result.costs)
             else -> throw SandboxException(
-                    Message.getMessageFromException(result.exception),
-                    result.identifier,
-                    runnableClass,
-                    ExecutionSummary(result.costs),
-                    result.exception
+                Message.getMessageFromException(result.exception),
+                result.identifier,
+                runnableClass,
+                ExecutionSummary(result.costs),
+                result.exception
             )
         }
     }
@@ -219,7 +219,7 @@ open class SandboxExecutor<in TInput, out TOutput>(
         }
     }
 
-    private companion object {
+    companion object {
         private val logger = loggerFor<SandboxExecutor<*, *>>()
     }
 }

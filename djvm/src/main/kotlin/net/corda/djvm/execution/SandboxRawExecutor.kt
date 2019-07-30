@@ -5,9 +5,7 @@ import net.corda.djvm.messages.Message
 import net.corda.djvm.source.ClassSource
 import java.lang.reflect.InvocationTargetException
 
-class SandboxRawExecutor(configuration: SandboxConfiguration)
-    : SandboxExecutor<Any?, Any?>(configuration, false) {
-
+class SandboxRawExecutor(configuration: SandboxConfiguration) : Executor<Any?, Any?>(configuration) {
     @Throws(Exception::class)
     override fun run(runnableClass: ClassSource, input: Any?): ExecutionSummaryWithResult<Any?> {
         val result = IsolatedTask(runnableClass.qualifiedClassName, configuration).run {
@@ -34,11 +32,11 @@ class SandboxRawExecutor(configuration: SandboxConfiguration)
         when (result.exception) {
             null -> return ExecutionSummaryWithResult(result.output, result.costs)
             else -> throw SandboxException(
-                    Message.getMessageFromException(result.exception),
-                    result.identifier,
-                    runnableClass,
-                    ExecutionSummary(result.costs),
-                    result.exception
+                Message.getMessageFromException(result.exception),
+                result.identifier,
+                runnableClass,
+                ExecutionSummary(result.costs),
+                result.exception
             )
         }
     }
