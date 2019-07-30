@@ -12,15 +12,15 @@ import java.util.function.Function
  *
  * @param configuration The configuration of the sandbox.
  */
-class DeterministicSandboxExecutor<TInput, TOutput>(
+class DeterministicSandboxExecutor<INPUT, OUTPUT>(
         configuration: SandboxConfiguration
-) : SandboxExecutor<TInput, TOutput>(configuration, false) {
+) : SandboxExecutor<INPUT, OUTPUT>(configuration, false) {
 
     /**
      * Short-hand for running a [Function] in a sandbox by its type reference.
      */
-    inline fun <reified TRunnable : Function<in TInput, out TOutput>> run(input: TInput):
-            ExecutionSummaryWithResult<TOutput> {
+    inline fun <reified TRunnable : Function<in INPUT, out OUTPUT>> run(input: INPUT):
+            ExecutionSummaryWithResult<OUTPUT> {
         return run(ClassSource.fromClassName(TRunnable::class.java.name), input)
     }
 
