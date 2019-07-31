@@ -295,9 +295,10 @@ fun toSandbox(className: kotlin.String): kotlin.String {
         return className
     }
 
-    val (actualName, sandboxName) = OBJECT_ARRAY.matchEntire(className)?.let {
+    val matchName = className.removePrefix(SANDBOX_PREFIX)
+    val (actualName, sandboxName) = OBJECT_ARRAY.matchEntire(matchName)?.let {
         Pair(it.groupValues[2], it.groupValues[1] + SANDBOX_PREFIX + it.groupValues[2] + ';')
-    } ?: Pair(className, SANDBOX_PREFIX + className)
+    } ?: Pair(matchName, SANDBOX_PREFIX + matchName)
 
     if (bannedClasses.any { it.matches(actualName) }) {
         throw ClassNotFoundException(className).sanitise(1)

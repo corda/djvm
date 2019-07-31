@@ -748,7 +748,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         override fun apply(input: String): Class<*> {
             val cl = object : ClassLoader() {
                 fun load(): Class<*> {
-                    return super.loadClass(input)
+                    return super.loadClass(input, true)
                 }
             }
             return cl.load()
