@@ -21,8 +21,8 @@ public final class String extends Object implements Comparable<String>, CharSequ
         }
     }
 
-    private static final String TRUE = new String("true");
-    private static final String FALSE = new String("false");
+    private static final String TRUE = DJVM.intern("true");
+    private static final String FALSE = DJVM.intern("false");
 
     private static final Constructor SHARED;
 
@@ -37,16 +37,16 @@ public final class String extends Object implements Comparable<String>, CharSequ
 
     private final java.lang.String value;
 
+    private String(java.lang.String value) {
+        this.value = value;
+    }
+
     public String() {
         this.value = "";
     }
 
     public String(String str) {
         this.value = str.value;
-    }
-
-    String(java.lang.String value) {
-        this.value = value;
     }
 
     public String(char[] value) {
@@ -62,13 +62,13 @@ public final class String extends Object implements Comparable<String>, CharSequ
     }
 
     @Deprecated
-    public String(byte[] ascii, int hibyte, int offset, int count) {
-        this.value = new java.lang.String(ascii, hibyte, offset, count);
+    public String(byte[] ascii, int hiByte, int offset, int count) {
+        this.value = new java.lang.String(ascii, hiByte, offset, count);
     }
 
     @Deprecated
-    public String(byte[] ascii, int hibyte) {
-        this.value = new java.lang.String(ascii, hibyte);
+    public String(byte[] ascii, int hiByte) {
+        this.value = new java.lang.String(ascii, hiByte);
     }
 
     public String(byte[] bytes, int offset, int length, String charsetName)
