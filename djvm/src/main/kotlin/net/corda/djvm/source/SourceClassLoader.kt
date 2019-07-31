@@ -96,6 +96,7 @@ class SourceClassLoader(
         private val logger = loggerFor<SourceClassLoader>()
     }
 
+    @Throws(Exception::class)
     override fun close() {
         bootstrap.use {
            userSource.close()

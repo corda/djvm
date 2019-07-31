@@ -66,6 +66,6 @@ class CryptoTest : TestBase(KOTLIN) {
             task = executor.toSandboxClass(PublicKeyFunction::class.java).newInstance(),
             input = sandboxKey
         ).toString()
-        assertThat(result).isEqualTo("PublicKey: Format='${key.format}', Algorithm='${key.algorithm}', Hash='${key.hash}'")
+        assertThat(result).isEqualTo("Format='${key.format}', Algorithm='${key.algorithm}', Hash='${key.hash}'")
     }
 }
