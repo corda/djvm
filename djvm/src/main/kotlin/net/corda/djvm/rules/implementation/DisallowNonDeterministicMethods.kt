@@ -10,8 +10,6 @@ import org.objectweb.asm.Opcodes.*
  */
 object DisallowNonDeterministicMethods : Emitter {
 
-    private const val CHARSET_PACKAGE = "sun/nio/cs/"
-    private const val SUN_SECURITY_PROVIDERS = "sun/security/jca/Provider"
     private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
 
@@ -106,33 +104,22 @@ object DisallowNonDeterministicMethods : Emitter {
             isClassLoader && instruction.memberName == "getResources" -> Choice.EMPTY_RESOURCES
             isClassLoader && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
 
-            // Required to load character sets.
-            className.startsWith(CHARSET_PACKAGE) -> when {
-                hasClassReflection || hasAnyClassLoading() -> Choice.FORBID
-                else -> Choice.PASS
-            }
-
-            // These two are required to load security providers.
-            className.startsWith(SUN_SECURITY_PROVIDERS) -> when {
-                hasClassReflection -> Choice.FORBID
-                else -> allowLoadClass()
-            }
             className == "java/security/Provider\$Service" -> allowLoadClass()
 
-            // Forbid classloading and reflection otherwise.
-            hasClassReflection || hasAnyClassLoading() -> Choice.FORBID
+            // Forbid reflection otherwise.
+            hasClassReflection -> Choice.FORBID
 
-            else -> Choice.PASS
+            else -> allowLoadClass()
         }
 
         private fun allowLoadClass(): Choice = when {
             !isClassLoader -> Choice.PASS
-            isLoadClass -> Choice.LOAD_CLASS
+            isLoadClass -> when (instruction.descriptor) {
+                "(Ljava/lang/String;)Ljava/lang/Class;" -> Choice.LOAD_CLASS
+                else -> Choice.FORBID
+            }
             instruction.memberName in CLASSLOADING_METHODS -> Choice.FORBID
             else -> Choice.PASS
         }
-
-        private fun hasAnyClassLoading(): Boolean =
-                isClassLoader && (isLoadClass || instruction.memberName in CLASSLOADING_METHODS)
     }
 }

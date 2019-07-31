@@ -54,5 +54,10 @@ object AlwaysUseExactMath : Emitter {
                     = className.startsWith("sun/security/") ||
                         className.startsWith("java/math/") ||
                         className.startsWith("java/util/regex/") ||
-                        className == "java/lang/Math"
+                        className == "java/lang/Math" ||
+                        /*
+                         * I REALLY didn't want to include non-JVM
+                         * packages here, but Corda NEEDS this!
+                         */
+                        className.startsWith("org/bouncycastle/math/")
 }

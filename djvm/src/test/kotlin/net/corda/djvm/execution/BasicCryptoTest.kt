@@ -144,4 +144,24 @@ class BasicCryptoTest : TestBase(KOTLIN) {
             return (seed ?.run(::SecureRandom) ?: SecureRandom()).nextDouble()
         }
     }
+
+    @ValueSource(strings = [ "RSA", "DSA" ])
+    @ParameterizedTest
+    fun `test decode public key`(algorithm: String) = parentedSandbox {
+        val executor = DeterministicSandboxExecutor<Array<Any>, ByteArray>(configuration)
+        val generator = KeyPairGenerator.getInstance(algorithm)
+        val keyPair = generator.genKeyPair()
+
+        val input = keyPair.public.encoded
+        assertThat(executor.run<DecodePublicKey>(arrayOf(algorithm, input)).result).isEqualTo(input)
+    }
+
+    class DecodePublicKey : Function<Array<Any>, ByteArray> {
+        override fun apply(data: Array<Any>): ByteArray {
+            val spec = X509EncodedKeySpec(data[1] as ByteArray)
+            val keyFactory = KeyFactory.getInstance(data[0] as String)
+            val publicKey = keyFactory.generatePublic(spec)
+            return publicKey.encoded
+        }
+    }
 }
