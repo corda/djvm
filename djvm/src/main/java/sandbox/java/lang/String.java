@@ -21,8 +21,8 @@ public final class String extends Object implements Comparable<String>, CharSequ
         }
     }
 
-    private static final String TRUE = DJVM.intern("true");
-    private static final String FALSE = DJVM.intern("false");
+    private static final String TRUE = new String("true").intern();
+    private static final String FALSE = new String("false").intern();
 
     private static final Constructor SHARED;
 

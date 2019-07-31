@@ -6,14 +6,15 @@ import net.corda.djvm.rewiring.SandboxClassLoadingException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
-import sandbox.SandboxFunction
-import sandbox.Task
+import java.util.function.Function
 import java.util.*
 
 class DJVMExceptionTest : TestBase(KOTLIN) {
     @Test
     fun testSingleException() = parentedSandbox {
-        val result = Task(SingleExceptionTask()).apply("Hello World")
+        val executor = TaskExecutor(classLoader)
+        val taskClass = executor.toSandboxClass(SingleExceptionTask::class.java)
+        val result = executor.execute(taskClass.newInstance(), "Hello World")
         assertThat(result).isInstanceOf(Throwable::class.java)
         result as Throwable
 
@@ -26,7 +27,9 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
 
     @Test
     fun testMultipleExceptions() = parentedSandbox {
-        val result = Task(MultipleExceptionsTask()).apply("Hello World")
+        val executor = TaskExecutor(classLoader)
+        val taskClass = executor.toSandboxClass(MultipleExceptionsTask::class.java)
+        val result = executor.execute(taskClass.newInstance(), "Hello World")
         assertThat(result).isInstanceOf(Throwable::class.java)
         result as Throwable
 
@@ -148,22 +151,18 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     }
 }
 
-class SingleExceptionTask : SandboxFunction<Any?, sandbox.java.lang.Throwable> {
-    override fun apply(input: Any?): sandbox.java.lang.Throwable? {
-        return sandbox.java.lang.Throwable(input as? sandbox.java.lang.String)
+class SingleExceptionTask : Function<Any?, Throwable?> {
+    override fun apply(input: Any?): Throwable? {
+        return Throwable(input as? String)
     }
 }
 
-class MultipleExceptionsTask : SandboxFunction<Any?, sandbox.java.lang.Throwable> {
-    override fun apply(input: Any?): sandbox.java.lang.Throwable? {
-        val root = sandbox.java.lang.Throwable(input as? sandbox.java.lang.String)
-        val nested = sandbox.java.lang.Throwable(root.message + "(1)", root)
-        return sandbox.java.lang.Throwable(nested.message + "(2)", nested)
+class MultipleExceptionsTask : Function<Any?, Throwable?> {
+    override fun apply(input: Any?): Throwable? {
+        val root = Throwable(input as? String)
+        val nested = Throwable(root.message + "(1)", root)
+        return Throwable(nested.message + "(2)", nested)
     }
-}
-
-private infix operator fun sandbox.java.lang.String.plus(s: String): sandbox.java.lang.String {
-    return sandbox.java.lang.String.valueOf(toString() + s)
 }
 
 private fun Array<StackTraceElement>.toLineNumbers(): IntArray {
