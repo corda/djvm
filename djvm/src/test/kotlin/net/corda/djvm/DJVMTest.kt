@@ -11,7 +11,7 @@ class DJVMTest : TestBase(KOTLIN) {
 
     @Test
     fun testDJVMString() {
-        val djvmString = sandbox.java.lang.String("New Value")
+        val djvmString = sandbox.java.lang.String.toDJVM("New Value")
         assertNotEquals(djvmString, "New Value")
         assertEquals(djvmString, "New Value".sandbox())
     }

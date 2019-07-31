@@ -41,7 +41,11 @@ public final class String extends Object implements Comparable<String>, CharSequ
         this.value = "";
     }
 
-    public String(java.lang.String value) {
+    public String(String str) {
+        this.value = str.value;
+    }
+
+    String(java.lang.String value) {
         this.value = value;
     }
 
