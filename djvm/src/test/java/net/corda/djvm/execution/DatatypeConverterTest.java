@@ -49,7 +49,9 @@ class DatatypeConverterTest extends TestBase {
     public static class BytesToHex implements Function<byte[], String> {
         @Override
         public String apply(byte[] input) {
-            return DatatypeConverter.printHexBinary(input).toUpperCase();
+            // Corda apparently depends on this returning in
+            // uppercase in order not to break hash values.
+            return DatatypeConverter.printHexBinary(input);
         }
     }
 }
