@@ -94,5 +94,33 @@ class SandboxConfiguration private constructor(
                 analysisConfiguration = analysisConfiguration,
                 parentClassLoader = parentClassLoader
         )
+
+        /**
+         * Create a fresh [SandboxConfiguration] that respects the parent/child
+         * relationships of the linked [AnalysisConfiguration] objects. This
+         * configuration will contain all rules, emitters and definition providers.
+         */
+        fun createFor(
+            analysisConfiguration: AnalysisConfiguration,
+            profile: ExecutionProfile,
+            enableTracing: Boolean
+        ): SandboxConfiguration {
+            return analysisConfiguration.parent?.let {
+                val parent = createFor(it, profile, enableTracing)
+                of(
+                    profile = parent.executionProfile,
+                    rules = parent.rules,
+                    emitters = parent.emitters,
+                    definitionProviders = parent.definitionProviders,
+                    enableTracing = enableTracing,
+                    analysisConfiguration = analysisConfiguration,
+                    parentClassLoader = SandboxClassLoader.createFor(parent)
+                )
+            } ?: of(
+                profile = profile,
+                enableTracing = enableTracing,
+                analysisConfiguration = analysisConfiguration
+            )
+        }
     }
 }

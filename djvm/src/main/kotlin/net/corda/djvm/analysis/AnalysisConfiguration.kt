@@ -31,6 +31,7 @@ import kotlin.Comparator
 /**
  * The configuration to use for an analysis.
  *
+ * @property parent This configuration's parent [AnalysisConfiguration].
  * @property whitelist The whitelist of class names.
  * @property pinnedClasses Classes that have already been declared in the sandbox namespace and that should be
  * made available inside the sandboxed environment. These classes belong to the application
@@ -46,6 +47,7 @@ import kotlin.Comparator
  * @property supportingClassLoader ClassLoader providing the classes to run inside the sandbox.
  */
 class AnalysisConfiguration private constructor(
+        val parent: AnalysisConfiguration?,
         val whitelist: Whitelist,
         val pinnedClasses: Set<String>,
         val classResolver: ClassResolver,
@@ -55,9 +57,9 @@ class AnalysisConfiguration private constructor(
         val prefixFilters: List<String>,
         val classModule: ClassModule,
         val memberModule: MemberModule,
-        val supportingClassLoader: SourceClassLoader
+        val supportingClassLoader: SourceClassLoader,
+        private val memberFormatter: MemberFormatter
 ) : AutoCloseable {
-    private val memberFormatter = MemberFormatter(classModule, memberModule)
 
     fun formatFor(member: MemberInformation): String = memberFormatter.format(member)
 
@@ -78,6 +80,13 @@ class AnalysisConfiguration private constructor(
         supportingClassLoader.close()
     }
 
+    @Throws(Exception::class)
+    fun closeAll() {
+        use {
+            parent?.closeAll()
+        }
+    }
+
     /**
      * Creates a child [AnalysisConfiguration] with this instance as its parent.
      * The child inherits the same [whitelist] and [pinnedClasses].
@@ -87,6 +96,7 @@ class AnalysisConfiguration private constructor(
         newMinimumSeverityLevel: Severity?
     ): AnalysisConfiguration {
         return AnalysisConfiguration(
+            parent = this,
             whitelist = whitelist,
             pinnedClasses = pinnedClasses,
             classResolver = classResolver,
@@ -96,7 +106,8 @@ class AnalysisConfiguration private constructor(
             prefixFilters = prefixFilters,
             classModule = classModule,
             memberModule = memberModule,
-            supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi)
+            supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi),
+            memberFormatter = memberFormatter
         )
     }
 
@@ -695,6 +706,7 @@ class AnalysisConfiguration private constructor(
             val classResolver = ClassResolver(actualPinnedClasses, TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
 
             return AnalysisConfiguration(
+                parent = null,
                 whitelist = actualWhitelist,
                 pinnedClasses = actualPinnedClasses,
                 classResolver = classResolver,
@@ -704,7 +716,8 @@ class AnalysisConfiguration private constructor(
                 prefixFilters = prefixFilters,
                 classModule = classModule,
                 memberModule = memberModule,
-                supportingClassLoader = SourceClassLoader(classResolver, userSource, bootstrapSource)
+                supportingClassLoader = SourceClassLoader(classResolver, userSource, bootstrapSource),
+                memberFormatter = MemberFormatter(classModule, memberModule)
             )
         }
     }
