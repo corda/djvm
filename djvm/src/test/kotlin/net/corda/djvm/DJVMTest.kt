@@ -4,16 +4,18 @@ import net.corda.djvm.SandboxType.KOTLIN
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import sandbox.java.lang.sandbox
 import java.text.DecimalFormatSymbols
+import java.util.function.Function
 
 class DJVMTest : TestBase(KOTLIN) {
 
     @Test
-    fun testDJVMString() {
-        val djvmString = sandbox.java.lang.String("New Value")
-        assertNotEquals(djvmString, "New Value")
-        assertEquals(djvmString, "New Value".sandbox())
+    fun testDJVMString() = parentedSandbox {
+        with(DJVM(classLoader)) {
+            val djvmString = stringOf("New Value")
+            assertNotEquals(djvmString, "New Value")
+            assertEquals(djvmString, sandbox("New Value"))
+        }
     }
 
     @Test
@@ -68,17 +70,25 @@ class DJVMTest : TestBase(KOTLIN) {
 
     @Test
     fun testObjectFormat() = parentedSandbox {
-        val result = with(DJVM(classLoader)) {
-            stringClass.getMethod("format", stringClass, Array<Any>::class.java)
-                .invoke(null, stringOf("%s"), arrayOf(object : sandbox.java.lang.Object() {})).toString()
-        }
+        val executor = TaskExecutor(classLoader)
+        val task = executor.toSandboxClass(NewObject::class.java).newInstance()
+        val result = executor.execute(task, null) as String
         assertThat(result).startsWith("sandbox.java.lang.Object@")
     }
 
+    class NewObject : Function<Any?, String> {
+        override fun apply(input: Any?): String {
+            return String.format("%s", object : Any() {})
+        }
+    }
+
     @Test
-    fun testStringEquality() {
-        val number = sandbox.java.lang.String.valueOf((Double.MIN_VALUE / 2.0) * 2.0)
-        require(number == "0.0".sandbox())
+    fun testStringEquality() = parentedSandbox {
+        with (DJVM(classLoader)) {
+            val number = stringClass.getMethod("valueOf", Double::class.javaPrimitiveType)
+                .invoke(null, (Double.MIN_VALUE / 2.0) * 2.0)
+            require(number == sandbox("0.0"))
+        }
     }
 
     @Test

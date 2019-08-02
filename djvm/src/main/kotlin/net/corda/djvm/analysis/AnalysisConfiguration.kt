@@ -17,8 +17,6 @@ import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
 import sun.security.x509.X500Name
 import sun.util.locale.provider.JRELocaleProviderAdapter
-import java.io.Closeable
-import java.io.IOException
 import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
@@ -27,6 +25,7 @@ import java.security.Security
 import java.util.*
 import java.util.Collections.*
 import javax.security.auth.x500.X500Principal
+import javax.xml.datatype.DatatypeFactory
 import kotlin.Comparator
 
 /**
@@ -57,7 +56,7 @@ class AnalysisConfiguration private constructor(
         val classModule: ClassModule,
         val memberModule: MemberModule,
         val supportingClassLoader: SourceClassLoader
-) : Closeable {
+) : AutoCloseable {
     private val memberFormatter = MemberFormatter(classModule, memberModule)
 
     fun formatFor(member: MemberInformation): String = memberFormatter.format(member)
@@ -74,7 +73,7 @@ class AnalysisConfiguration private constructor(
      */
     val stitchedClasses: Map<String, List<Member>> get() = STITCHED_CLASSES
 
-    @Throws(IOException::class)
+    @Throws(Exception::class)
     override fun close() {
         supportingClassLoader.close()
     }
@@ -496,6 +495,26 @@ class AnalysisConfiguration private constructor(
                         descriptor = "Lsandbox/javax/security/auth/x500/X500Principal;"
                     )
                     pushObject(1)
+                    returnObject()
+                }
+            }.withBody()
+             .build()
+        ).mapByClassName() + listOf(
+            object : MethodBuilder(
+                access = ACC_PUBLIC or ACC_STATIC,
+                className = sandboxed(DatatypeFactory::class.java),
+                memberName = "newInstance",
+                descriptor = "()Lsandbox/javax/xml/datatype/DatatypeFactory;"
+            ) {
+                /**
+                 * Reimplement [DatatypeFactory.newInstance] to use the JDK's basic implementation.
+                 *     return new com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl()
+                 */
+                override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    val implementationClass = sandboxed(com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl::class.java)
+                    new(implementationClass)
+                    duplicate()
+                    invokeSpecial(implementationClass, CONSTRUCTOR_NAME, "()V")
                     returnObject()
                 }
             }.withBody()

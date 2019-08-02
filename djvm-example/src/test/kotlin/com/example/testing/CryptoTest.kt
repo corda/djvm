@@ -4,6 +4,7 @@ import com.example.testing.SandboxType.KOTLIN
 import net.corda.core.crypto.CompositeKey
 import net.corda.core.crypto.Crypto
 import net.corda.core.crypto.SignatureScheme
+import net.corda.core.internal.hash
 import net.corda.djvm.execution.DeterministicSandboxExecutor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -29,7 +30,7 @@ class CryptoTest : TestBase(KOTLIN) {
         val executor = DeterministicSandboxExecutor<Array<Any>, ByteArray>(configuration)
         val keyPair = Crypto.generateKeyPair(signatureScheme)
         val input = keyPair.public.encoded
-        assertThat(executor.run<DecodePublicKey>(arrayOf(signatureScheme.schemeCodeName, input)).result)
+        assertThat(executor.run<TransformPublicKey>(arrayOf(signatureScheme.schemeCodeName, input)).result)
             .isEqualTo(input)
     }
 
@@ -47,7 +48,24 @@ class CryptoTest : TestBase(KOTLIN) {
 
         val executor = DeterministicSandboxExecutor<Array<Any>, ByteArray>(configuration)
         val input = compositeKey.encoded
-        assertThat(executor.run<DecodePublicKey>(arrayOf(Crypto.COMPOSITE_KEY.schemeCodeName, input)).result)
+        assertThat(executor.run<TransformPublicKey>(arrayOf(Crypto.COMPOSITE_KEY.schemeCodeName, input)).result)
             .isEqualTo(input)
+    }
+
+    @Test
+    fun `test marshalling a public key`() = sandbox {
+        val executor = Executor(classLoader)
+
+        val key = Crypto.generateKeyPair(Crypto.ECDSA_SECP256K1_SHA256).public
+        val sandboxKey = executor.execute(
+            task = executor.toSandboxClass(PublicKeyDecoder::class.java).newInstance(),
+            input = key.encoded
+        )
+
+        val result = executor.execute(
+            task = executor.toSandboxClass(PublicKeyFunction::class.java).newInstance(),
+            input = sandboxKey
+        ).toString()
+        assertThat(result).isEqualTo("Format='${key.format}', Algorithm='${key.algorithm}', Hash='${key.hash}'")
     }
 }
