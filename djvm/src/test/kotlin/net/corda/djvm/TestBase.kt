@@ -110,7 +110,7 @@ abstract class TestBase(type: SandboxType) {
         @AfterAll
         @JvmStatic
         fun destroyRootContext() {
-            parentConfiguration.analysisConfiguration.close()
+            parentConfiguration.analysisConfiguration.closeAll()
         }
     }
 
