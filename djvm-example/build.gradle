@@ -47,9 +47,7 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
     implementation "com.r3.corda.lib.tokens:tokens-contracts:$corda_tokens_version"
     implementation "com.r3.corda.lib.tokens:tokens-money:$corda_tokens_version"
-    implementation ("net.corda:corda-core:$corda_version") {
-        changing = true
-    }
+    implementation "net.corda:corda-core:$corda_version"
 
     testImplementation "net.corda:corda-djvm:$djvm_version"
     testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"
