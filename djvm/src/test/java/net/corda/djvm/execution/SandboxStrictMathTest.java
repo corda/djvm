@@ -44,7 +44,7 @@ class SandboxStrictMathTest extends TestBase {
     void testStrictMathHasTrigonometry() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Integer, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, StrictTrigonometry.class, 0);
+            ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictTrigonometry.class, 0);
             assertThat(success.getResult()).isEqualTo(new Double[] {
                 0.0,
                 -1.0,
@@ -77,7 +77,7 @@ class SandboxStrictMathTest extends TestBase {
     void testStrictMathRoots() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Double, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, StrictRoots.class, 64.0);
+            ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictRoots.class, 64.0);
             assertThat(success.getResult())
                 .isEqualTo(new Double[] { 8.0, 4.0, 13.0 });
             return null;
@@ -99,7 +99,7 @@ class SandboxStrictMathTest extends TestBase {
     void testStrictMaxMin() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Integer, Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, StrictMaxMin.class, 100);
+            ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, StrictMaxMin.class, 100);
             assertThat(success.getResult())
                 .isEqualTo(new Object[] { 100.0d, 0.0d, 100.0f, 0.0f, 100L, 0L, 100, 0 });
             return null;
@@ -126,7 +126,7 @@ class SandboxStrictMathTest extends TestBase {
     void testStrictAbsolute() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Integer, Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, StrictAbsolute.class, -100);
+            ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, StrictAbsolute.class, -100);
             assertThat(success.getResult())
                 .isEqualTo(new Object[] { 100.0d, 100.0f, 100L, 100 });
             return null;
@@ -150,7 +150,7 @@ class SandboxStrictMathTest extends TestBase {
         Double[] inputs = new Double[] { 2019.3, 2020.9 };
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Double[], Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, StrictRound.class, inputs);
+            ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, StrictRound.class, inputs);
             assertThat(success.getResult())
                 .isEqualTo(new Object[]{ 2019, 2019L, 2021, 2021L });
             return null;
@@ -206,7 +206,7 @@ class SandboxStrictMathTest extends TestBase {
     void testStrictAngles() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Integer, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, StrictAngles.class, 0);
+            ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictAngles.class, 0);
             assertThat(success.getResult())
                 .isEqualTo(new Object[]{ 180.0, StrictMath.PI });
             return null;
@@ -227,7 +227,7 @@ class SandboxStrictMathTest extends TestBase {
     void testStrictHyperbolics() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Double, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, StrictHyperbolics.class, 0.0);
+            ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictHyperbolics.class, 0.0);
             assertThat(success.getResult())
                 .isEqualTo(new Double[]{ 0.0, 1.0, 0.0 });
             return null;
