@@ -4,9 +4,12 @@ import com.example.testing.SandboxType.KOTLIN
 import net.corda.core.crypto.CompositeKey
 import net.corda.core.crypto.Crypto
 import net.corda.core.crypto.SignatureScheme
+import net.corda.core.identity.CordaX500Name
+import net.corda.core.identity.Party
 import net.corda.core.internal.hash
 import net.corda.djvm.execution.DeterministicSandboxExecutor
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.params.ParameterizedTest
@@ -14,6 +17,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
 import java.util.stream.Stream
+import kotlin.test.fail
 
 class CryptoTest : TestBase(KOTLIN) {
     class SignatureSchemeProvider : ArgumentsProvider {
@@ -67,5 +71,30 @@ class CryptoTest : TestBase(KOTLIN) {
             input = sandboxKey
         ).toString()
         assertThat(result).isEqualTo("Format='${key.format}', Algorithm='${key.algorithm}', Hash='${key.hash}'")
+    }
+
+    @Test
+    fun `test marshalling a Corda party`() = sandbox {
+        val owningKey = Crypto.generateKeyPair(Crypto.ECDSA_SECP256K1_SHA256).public
+        val party = Party(CordaX500Name("Alice Corp", "Madrid", "ES"), owningKey)
+
+        val inputs = Array<ByteArray?>(7) { null }
+        with(party.name) {
+            inputs[0] = commonName?.toByteArray()
+            inputs[1] = organisationUnit?.toByteArray()
+            inputs[2] = organisation.toByteArray()
+            inputs[3] = locality.toByteArray()
+            inputs[4] = state?.toByteArray()
+            inputs[5] = country.toByteArray()
+        }
+        inputs[6] = party.owningKey.encoded
+
+        val executor = Executor(classLoader)
+        val sandboxParty = executor.execute(
+            task = executor.toSandboxClass(PartyToSandbox::class.java).newInstance(),
+            input = inputs
+        ) ?: fail("Party cannot be null")
+        assertEquals("sandbox.net.corda.core.identity.Party", sandboxParty::class.java.name)
+        assertEquals("O=Alice Corp, L=Madrid, C=ES", sandboxParty.toString())
     }
 }

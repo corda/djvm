@@ -20,7 +20,7 @@ class SandboxCloneableTest extends TestBase {
     void testCloningInsideSandbox() {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, CloningMachine.class, "Jango Fett");
+            ExecutionSummaryWithResult<String> success = WithJava.run(executor, CloningMachine.class, "Jango Fett");
             assertThat(success.getResult()).isEqualTo("Jango Fett");
             return null;
         });

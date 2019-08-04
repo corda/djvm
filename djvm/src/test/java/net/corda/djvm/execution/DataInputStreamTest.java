@@ -34,7 +34,7 @@ class DataInputStreamTest extends TestBase {
 
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<byte[], Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, DataStreamer.class, input);
+            ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, DataStreamer.class, input);
             assertThat(success.getResult()).isEqualTo(new Object[]{
                 BIG_NUMBER,
                 NUMBER,

@@ -35,7 +35,7 @@ class SandboxStringTest extends TestBase {
         String[] inputs = new String[]{"one", "two", "three"};
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, JoinIterableStrings.class, inputs);
+            ExecutionSummaryWithResult<String> success = WithJava.run(executor, JoinIterableStrings.class, inputs);
             assertThat(success.getResult()).isEqualTo("one+two+three");
             return null;
         });
@@ -53,7 +53,7 @@ class SandboxStringTest extends TestBase {
         String[] inputs = new String[]{"ONE", "TWO", "THREE"};
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, JoinVarargStrings.class, inputs);
+            ExecutionSummaryWithResult<String> success = WithJava.run(executor, JoinVarargStrings.class, inputs);
             assertThat(success.getResult()).isEqualTo("ONE+TWO+THREE");
             return null;
         });
@@ -119,7 +119,7 @@ class SandboxStringTest extends TestBase {
     void decodeStringWithCharset(String charsetName) {
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, CreateString.class, charsetName);
+            ExecutionSummaryWithResult<String> success = WithJava.run(executor, CreateString.class, charsetName);
             assertThat(success.getResult()).isEqualTo(UNICODE_MESSAGE);
             return null;
         });

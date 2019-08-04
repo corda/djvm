@@ -23,7 +23,7 @@ class SandboxConcurrentHashMapTest extends TestBase {
         String[] inputs = new String[]{ "one", "One", "ONE" };
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, CreateMap.class, inputs);
+            ExecutionSummaryWithResult<String> success = WithJava.run(executor, CreateMap.class, inputs);
             assertThat(success.getResult()).isEqualTo("[one has 3]");
             return null;
         });
@@ -71,7 +71,7 @@ class SandboxConcurrentHashMapTest extends TestBase {
         Integer[] inputs = new Integer[]{ 1, 2, 3 };
         parentedSandbox(WARNING, true, ctx -> {
             SandboxExecutor<Integer[], Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, KeyStreamMap.class, inputs);
+            ExecutionSummaryWithResult<Integer> success = WithJava.run(executor, KeyStreamMap.class, inputs);
             assertThat(success.getResult()).isEqualTo(6);
             return null;
         });
