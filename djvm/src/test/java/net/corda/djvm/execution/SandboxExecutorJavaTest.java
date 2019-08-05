@@ -26,10 +26,10 @@ class SandboxExecutorJavaTest extends TestBase {
         //      to be marshalled into and out of the sandbox.
         Set<Class<?>> pinnedClasses = singleton(Transaction.class);
         sandbox(new Object[0], pinnedClasses, WARNING, true, ctx -> {
-            SandboxExecutor<Transaction, Void> contractExecutor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            SandboxExecutor<Transaction, Void> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Transaction tx = new Transaction(TX_ID);
             assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> WithJava.run(contractExecutor, ContractWrapper.class, tx))
+                .isThrownBy(() -> WithJava.run(executor, ContractWrapper.class, tx))
                 .withMessageContaining("Contract constraint violated: txId=" + TX_ID);
             return null;
         });
