@@ -106,6 +106,8 @@ open class Whitelist private constructor(
             "^java/lang/Object(\\..*)?\$".toRegex(),
             "^java/lang/StrictMath\\.(?!random:).*\$".toRegex(),
             "^java/lang/Void\$".toRegex(),
+            "^java/lang/annotation/(Annotation|Inherited|Repeatable)\$".toRegex(),
+            "^java/lang/annotation/Retention(.*)\$".toRegex(),
             "^java/lang/invoke/LambdaMetafactory\$".toRegex(),
             "^java/lang/reflect/Array(\\..*)?\$".toRegex(),
             "^java/lang/reflect/Constructor(\\..*)?\$".toRegex(),

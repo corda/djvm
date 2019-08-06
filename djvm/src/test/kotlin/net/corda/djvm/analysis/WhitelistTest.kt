@@ -60,4 +60,19 @@ class WhitelistTest : TestBase(KOTLIN) {
         assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicLongFieldUpdater")).isFalse()
         assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicReferenceFieldUpdater")).isFalse()
     }
+
+    @Test
+    fun `test Java annotations`() {
+        val whitelist = Whitelist.MINIMAL
+        assertThat(whitelist.matches("java/lang/annotation/Annotation")).isTrue()
+        assertThat(whitelist.matches("java/lang/annotation/ElementType")).isFalse()
+        assertThat(whitelist.matches("java/lang/annotation/Inherited")).isTrue()
+        assertThat(whitelist.matches("java/lang/annotation/Repeatable")).isTrue()
+        assertThat(whitelist.matches("java/lang/annotation/RetentionPolicy")).isTrue()
+        assertThat(whitelist.matches("java/lang/annotation/Retention")).isTrue()
+        assertThat(whitelist.matches("java/lang/annotation/Target")).isFalse()
+        assertThat(whitelist.matches("java/lang/annotation/AnnotationFormatError")).isFalse()
+        assertThat(whitelist.matches("java/lang/annotation/AnnotationTypeMismatchException")).isFalse()
+        assertThat(whitelist.matches("java/lang/annotation/IncompleteAnnotationException")).isFalse()
+    }
 }
