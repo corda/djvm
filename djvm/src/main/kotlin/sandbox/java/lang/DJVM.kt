@@ -41,6 +41,23 @@ fun Any.sandbox(): Any {
         is kotlin.Boolean -> Boolean.toDJVM(this)
         is kotlin.Enum<*> -> toDJVMEnum()
         is kotlin.Throwable -> toDJVMThrowable()
+        is java.time.Duration -> sandbox.java.time.Duration.ofSeconds(seconds, nano.toLong())
+        is java.time.Instant -> sandbox.java.time.Instant.ofEpochSecond(epochSecond, nano.toLong())
+        is java.time.LocalDate -> toDJVM()
+        is java.time.LocalDateTime -> sandbox.java.time.LocalDateTime.of(toLocalDate().toDJVM(), toLocalTime().toDJVM())
+        is java.time.LocalTime -> toDJVM()
+        is java.time.MonthDay -> sandbox.java.time.MonthDay.of(monthValue, dayOfMonth)
+        is java.time.OffsetDateTime -> sandbox.java.time.OffsetDateTime.of(toLocalDateTime().toDJVM(), offset.toDJVM() as sandbox.java.time.ZoneOffset)
+        is java.time.OffsetTime -> sandbox.java.time.OffsetTime.of(toLocalTime().toDJVM(), offset.toDJVM() as sandbox.java.time.ZoneOffset)
+        is java.time.Period -> sandbox.java.time.Period.of(years, months, days)
+        is java.time.Year -> sandbox.java.time.Year.of(value)
+        is java.time.YearMonth -> sandbox.java.time.YearMonth.of(year, monthValue)
+        is java.time.ZonedDateTime -> sandbox.java.time.ZonedDateTime.createDJVM(
+                toLocalDateTime().toDJVM(),
+                offset.toDJVM() as sandbox.java.time.ZoneOffset,
+                zone.toDJVM()
+        )
+        is java.time.ZoneId -> sandbox.java.time.ZoneId.of(String.toDJVM(id))
         is Array<*> -> toDJVMArray()
 
         // These types are white-listed inside the sandbox, which
@@ -98,6 +115,22 @@ fun Throwable.escapeSandbox(): kotlin.Throwable {
 }
 
 private fun Array<*>.fromDJVMArray(): Array<*> = Object.fromDJVM(this)
+
+private fun java.time.LocalDate.toDJVM(): sandbox.java.time.LocalDate {
+    return sandbox.java.time.LocalDate.of(year, monthValue, dayOfMonth)
+}
+
+private fun java.time.LocalTime.toDJVM(): sandbox.java.time.LocalTime {
+    return sandbox.java.time.LocalTime.of(hour, minute, second, nano)
+}
+
+private fun java.time.LocalDateTime.toDJVM(): sandbox.java.time.LocalDateTime {
+    return sandbox.java.time.LocalDateTime.of(toLocalDate().toDJVM(), toLocalTime().toDJVM())
+}
+
+private fun java.time.ZoneId.toDJVM(): sandbox.java.time.ZoneId {
+    return sandbox.java.time.ZoneId.of(String.toDJVM(id))
+}
 
 /**
  * Throws a [RuleViolationError] to exit the sandbox.
@@ -270,6 +303,14 @@ fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
 }
 
 /**
+ * Return a buffered [DataInputStream] for a system resource.
+ */
+fun loadSystemResource(name: kotlin.String): DataInputStream {
+    val input = getSystemResourceAsStream(name) ?: throw InternalError("Missing $name")
+    return DataInputStream(BufferedInputStream(input))
+}
+
+/**
  * Replacement function for Class<*>.forName(String, boolean, ClassLoader) which protects
  * against users loading classes from outside the sandbox.
  */
@@ -372,7 +413,7 @@ fun fromDJVM(t: Throwable?): kotlin.Throwable {
  * exception. The finally block only needs to be able to re-throw the
  * original exception when it finishes.
  */
-fun finally(t: kotlin.Throwable): Throwable {
+fun doFinally(t: kotlin.Throwable): Throwable {
     return sandboxedExceptions.remove(t) ?: DJVMThrowableWrapper(t)
 }
 
@@ -383,7 +424,7 @@ fun finally(t: kotlin.Throwable): Throwable {
  * Note: [DisallowCatchingBlacklistedExceptions] means that we don't
  * need to handle [ThreadDeath] or [VirtualMachineError] here.
  */
-fun catch(t: kotlin.Throwable): Throwable {
+fun doCatch(t: kotlin.Throwable): Throwable {
     if (t is SandboxClassLoadingException) {
         // Don't interfere with sandbox failures!
         throw t

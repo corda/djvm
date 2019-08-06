@@ -1,8 +1,6 @@
 package sandbox.java.util;
 
-import sandbox.java.io.BufferedInputStream;
 import sandbox.java.io.DataInputStream;
-import sandbox.java.io.InputStream;
 import sandbox.java.lang.DJVM;
 import sandbox.java.lang.String;
 import sandbox.java.security.AccessController;
@@ -44,11 +42,7 @@ public final class Currency extends sandbox.java.lang.Object implements Serializ
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
             @Override
             public Void run() {
-                InputStream currencies = DJVM.getSystemResourceAsStream("currency.data");
-                if (currencies == null) {
-                    throw new InternalError("Missing currency.data");
-                }
-                try (DataInputStream dis = new DataInputStream(new BufferedInputStream(currencies))) {
+                try (DataInputStream dis = DJVM.loadSystemResource("currency.data")) {
                     if (dis.readInt() != MAGIC_NUMBER) {
                         throw new InternalError("Currency data is possibly corrupted");
                     }

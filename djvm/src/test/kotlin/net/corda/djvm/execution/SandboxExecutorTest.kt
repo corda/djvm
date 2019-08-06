@@ -636,6 +636,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         "java.lang.DJVMNoResource",
         "java.lang.DJVMResourceKey",
         "java.lang.DJVMThrowableWrapper",
+        "java.time.DJVM",
         "java.util.concurrent.atomic.DJVM",
         "java.util.concurrent.locks.DJVMConditionObject",
         "javax.security.auth.x500.DJVM",
