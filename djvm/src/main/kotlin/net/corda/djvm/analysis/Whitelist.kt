@@ -113,7 +113,9 @@ open class Whitelist private constructor(
             "^java/lang/reflect/Constructor(\\..*)?\$".toRegex(),
             "^java/io/Closeable(\\..*)\$".toRegex(),
             "^java/io/Serializable\$".toRegex(),
-            "^java/util/concurrent/atomic/Atomic(Integer|Long|Reference)FieldUpdater\\.newUpdater:.*\$".toRegex()
+            "^java/util/concurrent/atomic/Atomic(Integer|Long|Reference)FieldUpdater\\.newUpdater:.*\$".toRegex(),
+            "^kotlin/Metadata\$".toRegex(),
+            "^kotlin/annotation/(.*)\$".toRegex()
         )
 
         /**
