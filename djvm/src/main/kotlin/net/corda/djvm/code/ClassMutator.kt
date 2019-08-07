@@ -33,7 +33,7 @@ class ClassMutator(
     private inner class PrependClassInitializer : Emitter {
         override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
             if (instruction is MethodEntry
-                    && instruction.method.memberName == "<clinit>" && instruction.method.descriptor == "()V"
+                    && instruction.method.memberName == CLASS_CONSTRUCTOR_NAME && instruction.method.descriptor == "()V"
                     && initializers.isNotEmpty()) {
                 writeByteCode(initializers)
                 initializers.clear()
@@ -81,7 +81,7 @@ class ClassMutator(
 
     private fun tryWriteClassInitializer(classVisitor: ClassVisitor) {
         if (initializers.isNotEmpty()) {
-            classVisitor.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null)?.also { mv ->
+            classVisitor.visitMethod(ACC_STATIC, CLASS_CONSTRUCTOR_NAME, "()V", null, null)?.also { mv ->
                 mv.visitCode()
                 EmitterModule(mv, configuration).writeByteCode(initializers)
                 mv.visitInsn(RETURN)

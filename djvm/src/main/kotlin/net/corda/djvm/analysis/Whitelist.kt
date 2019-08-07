@@ -107,15 +107,12 @@ open class Whitelist private constructor(
             "^java/lang/StrictMath\\.(?!random:).*\$".toRegex(),
             "^java/lang/Void\$".toRegex(),
             "^java/lang/annotation/(Annotation|Inherited|Repeatable)\$".toRegex(),
-            "^java/lang/annotation/Retention(.*)\$".toRegex(),
             "^java/lang/invoke/LambdaMetafactory\$".toRegex(),
             "^java/lang/reflect/Array(\\..*)?\$".toRegex(),
             "^java/lang/reflect/Constructor(\\..*)?\$".toRegex(),
             "^java/io/Closeable(\\..*)\$".toRegex(),
             "^java/io/Serializable\$".toRegex(),
-            "^java/util/concurrent/atomic/Atomic(Integer|Long|Reference)FieldUpdater\\.newUpdater:.*\$".toRegex(),
-            "^kotlin/Metadata\$".toRegex(),
-            "^kotlin/annotation/(.*)\$".toRegex()
+            "^java/util/concurrent/atomic/Atomic(Integer|Long|Reference)FieldUpdater\\.newUpdater:.*\$".toRegex()
         )
 
         /**

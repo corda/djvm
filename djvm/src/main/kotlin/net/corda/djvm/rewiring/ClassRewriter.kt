@@ -1,6 +1,7 @@
 package net.corda.djvm.rewiring
 
 import net.corda.djvm.SandboxConfiguration
+import net.corda.djvm.analysis.AnalysisConfiguration.Companion.SANDBOX_PREFIX
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.code.ClassMutator
@@ -10,13 +11,12 @@ import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
 import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.utilities.loggerFor
-import org.objectweb.asm.ClassReader
+import org.objectweb.asm.*
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
-import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
-import org.objectweb.asm.Label
-import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ACC_ABSTRACT
+import java.util.function.Consumer
+import java.util.function.Function
 
 /**
  * Functionality for rewriting parts of a class as it is being loaded.
@@ -78,6 +78,20 @@ open class ClassRewriter(
             }
 
             super.visit(version, access, className, signature, superName, stitchedInterfaces)
+        }
+
+        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+            return super.visitAnnotation(descriptor, visible)?.let {
+                if (visible && descriptor in analysisConfig.stitchedAnnotations) {
+                    AnnotationStitcher(api, it, descriptor, Consumer { ann ->
+                        ann.accept(this, Function { descriptor ->
+                            descriptor.replace(SANDBOX_PREFIX, "")
+                        })
+                    })
+                } else {
+                    it
+                }
+            }
         }
 
         override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {

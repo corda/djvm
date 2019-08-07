@@ -55,7 +55,8 @@ class AnnotatedJavaClassTest extends TestBase {
     public static class ReadAnnotation implements Function<String, String> {
         @Override
         public String apply(String input) {
-            return UserJavaData.class.getAnnotation(JavaAnnotation.class).toString();
+            JavaAnnotation value = UserJavaData.class.getAnnotation(JavaAnnotation.class);
+            return value == null ? null : value.toString();
         }
     }
 

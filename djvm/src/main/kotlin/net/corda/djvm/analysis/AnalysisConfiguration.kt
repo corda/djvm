@@ -1,10 +1,6 @@
 package net.corda.djvm.analysis
 
-import net.corda.djvm.code.DJVM_NAME
-import net.corda.djvm.code.CONSTRUCTOR_NAME
-import net.corda.djvm.code.EmitterModule
-import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
-import net.corda.djvm.code.djvmException
+import net.corda.djvm.code.*
 import net.corda.djvm.formatting.MemberFormatter
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.references.*
@@ -76,6 +72,11 @@ class AnalysisConfiguration private constructor(
      */
     val stitchedClasses: Map<String, List<Member>> get() = STITCHED_CLASSES
 
+    /*
+     * These annotations need to have their original versions stitched underneath.
+     */
+    val stitchedAnnotations: Set<String> = STITCHED_ANNOTATIONS
+
     @Throws(Exception::class)
     override fun close() {
         supportingClassLoader.close()
@@ -132,6 +133,16 @@ class AnalysisConfiguration private constructor(
          * The package name prefix to use for classes loaded into a sandbox.
          */
         const val SANDBOX_PREFIX: String = "sandbox/"
+
+        /**
+         * These meta-annotations configure how the JVM handles annotations,
+         * and these need to be preserved. Currently handling meta-annotations
+         * with [Enum] value.
+         */
+        private val STITCHED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
+            "Lsandbox/java/lang/annotation/Retention;",
+            "Lsandbox/java/lang/annotation/Target;"
+        ))
 
         /**
          * These classes will be duplicated into every sandbox's
@@ -630,7 +641,7 @@ class AnalysisConfiguration private constructor(
         private fun deleteClassInitializerFor(classType: Class<*>) = Member(
             access = ACC_STATIC,
             className = sandboxed(classType),
-            memberName = "<clinit>",
+            memberName = CLASS_CONSTRUCTOR_NAME,
             descriptor = "()V",
             genericsDetails = ""
         )

@@ -21,6 +21,7 @@ const val EMIT_AFTER_INVOKE: Int = EMIT_DEFAULT + 2
 const val OBJECT_NAME = "java/lang/Object"
 const val THROWABLE_NAME = "java/lang/Throwable"
 const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object";
+const val CLASS_CONSTRUCTOR_NAME = "<clinit>"
 const val CONSTRUCTOR_NAME = "<init>"
 
 /**

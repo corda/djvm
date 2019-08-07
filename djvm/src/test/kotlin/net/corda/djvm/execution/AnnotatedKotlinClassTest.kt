@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import java.util.function.Function
 import kotlin.reflect.full.findAnnotation
 
+@Disabled
 class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     @Test
     fun testSandboxAnnotation() = parentedSandbox {
@@ -23,7 +24,6 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
         assertThat(sandboxClass.kotlin.annotations).contains(annotationValue)
     }
 
-    @Disabled
     @Test
     fun testAnnotationInsideSandbox() = parentedSandbox {
         val executor = DeterministicSandboxExecutor<Any?, String>(configuration)
