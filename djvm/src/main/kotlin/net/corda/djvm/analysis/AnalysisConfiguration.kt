@@ -24,6 +24,7 @@ import java.security.SecureRandom
 import java.security.Security
 import java.util.*
 import java.util.Collections.*
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.security.auth.x500.X500Principal
 import javax.xml.datatype.DatatypeFactory
 import kotlin.Comparator
@@ -179,6 +180,8 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/DJVMResourceKey",
             "sandbox/java/lang/DJVMThrowableWrapper",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
+            "sandbox/java/time/DJVM",
+            "sandbox/java/time/zone/ZoneRulesProvider\$1",
             "sandbox/java/util/Currency\$1",
             "sandbox/java/util/concurrent/ConcurrentHashMap\$BaseEnumerator",
             "sandbox/java/util/concurrent/atomic/AtomicIntegerFieldUpdater\$AtomicIntegerFieldUpdaterImpl",
@@ -317,12 +320,10 @@ class AnalysisConfiguration private constructor(
          * The Java Security mechanisms also require some careful surgery to prevent them from
          * trying to invoke [sun.misc.Unsafe] and other assorted native methods.
          */
-        private val STITCHED_CLASSES: Map<String, List<Member>> = unmodifiable(listOf(
-            object : MethodBuilder(
-                access = ACC_FINAL or ACC_PROTECTED,
+        private val STITCHED_CLASSES: Map<String, List<Member>> = unmodifiable((
+            object : FromDJVMBuilder(
                 className = sandboxed(Enum::class.java),
-                memberName = "fromDJVM",
-                descriptor = "()Ljava/lang/Enum;",
+                bridgeDescriptor = "()Ljava/lang/Enum;",
                 signature = "()Ljava/lang/Enum<*>;"
             ) {
                 override fun writeBody(emitter: EmitterModule) = with(emitter) {
@@ -330,22 +331,9 @@ class AnalysisConfiguration private constructor(
                     invokeStatic(DJVM_NAME, "fromDJVMEnum", "(Lsandbox/java/lang/Enum;)Ljava/lang/Enum;")
                     returnObject()
                 }
-            }.withBody()
-             .build(),
-
-            object : MethodBuilder(
-                access = ACC_BRIDGE or ACC_SYNTHETIC or ACC_PROTECTED,
-                className = sandboxed(Enum::class.java),
-                memberName = "fromDJVM",
-                descriptor = "()Ljava/lang/Object;"
-            ) {
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    pushObject(0)
-                    invokeVirtual(className, memberName, "()Ljava/lang/Enum;")
-                    returnObject()
-                }
-            }.withBody()
-             .build()
+            }.build()
+        ).mapByClassName() + (
+            generateJavaTimeMethods()
         ).mapByClassName() + listOf(
             object : MethodBuilder(
                 access = ACC_STATIC or ACC_PRIVATE,
@@ -375,11 +363,13 @@ class AnalysisConfiguration private constructor(
             }.withBody()
              .build()
         ).mapByClassName() + listOf(
-            deleteClassInitialiserFor(Modifier::class.java)
+            deleteClassInitializerFor(Modifier::class.java)
         ).mapByClassName() + listOf(
-            deleteClassInitialiserFor(Random::class.java)
+            deleteClassInitializerFor(Random::class.java)
         ).mapByClassName() + listOf(
-            deleteClassInitialiserFor(SecurityManager::class.java)
+            deleteClassInitializerFor(SecurityManager::class.java)
+        ).mapByClassName() + listOf(
+            deleteClassInitializerFor(CopyOnWriteArrayList::class.java)
         ).mapByClassName() + listOf(
             object : MethodBuilder(
                 access = ACC_PRIVATE or ACC_STATIC,
@@ -620,8 +610,9 @@ class AnalysisConfiguration private constructor(
              .build()
         ).mapByClassName())
 
-        private fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
-        private fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
+        fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
+        fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
+
         private fun Iterable<Member>.mapByClassName(): Map<String, List<Member>>
                       = groupBy(Member::className).mapValues(Map.Entry<String, List<Member>>::value)
         private fun <T> unmodifiable(items: Set<T>): Set<T> {
@@ -631,10 +622,10 @@ class AnalysisConfiguration private constructor(
             return if (entry.value.isEmpty()) emptyList() else unmodifiableList(entry.value)
         }
         private fun <K,V> unmodifiable(items: Map<K, List<V>>): Map<K, List<V>> {
-            return if (items.isEmpty()) emptyMap() else unmodifiableMap(items.mapValues(Companion::unmodifiable))
+            return if (items.isEmpty()) emptyMap() else unmodifiableMap(items.mapValues(::unmodifiable))
         }
 
-        private fun deleteClassInitialiserFor(classType: Class<*>) = Member(
+        private fun deleteClassInitializerFor(classType: Class<*>) = Member(
             access = ACC_STATIC,
             className = sandboxed(classType),
             memberName = "<clinit>",
@@ -720,32 +711,6 @@ class AnalysisConfiguration private constructor(
                 memberFormatter = MemberFormatter(classModule, memberModule)
             )
         }
-    }
-
-    private open class MethodBuilder(
-            protected val access: Int,
-            protected val className: String,
-            protected val memberName: String,
-            protected val descriptor: String,
-            protected val signature: String = ""
-    ) {
-        private val bodies = mutableListOf<MethodBody>()
-
-        protected open fun writeBody(emitter: EmitterModule) {}
-
-        fun withBody(): MethodBuilder {
-            bodies.add(::writeBody)
-            return this
-        }
-
-        fun build() = Member(
-            access = access,
-            className = className,
-            memberName = memberName,
-            descriptor = descriptor,
-            genericsDetails = signature,
-            body = bodies
-        )
     }
 
     private class MemberFilter(private val whitelist: Whitelist) {

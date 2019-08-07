@@ -37,6 +37,7 @@ configurations {
 
             dependencySubstitution {
                 substitute module("net.corda:corda-core:$corda_version") with module("net.corda:corda-core-deterministic:$corda_version")
+                substitute module("net.corda:corda-serialization:$corda_version") with module("net.corda:corda-serialization-deterministic:$corda_version")
             }
         }
     }
@@ -48,6 +49,7 @@ dependencies {
     implementation "com.r3.corda.lib.tokens:tokens-contracts:$corda_tokens_version"
     implementation "com.r3.corda.lib.tokens:tokens-money:$corda_tokens_version"
     implementation "net.corda:corda-core:$corda_version"
+    implementation "net.corda:corda-serialization:$corda_version"
 
     testImplementation "net.corda:corda-djvm:$djvm_version"
     testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"

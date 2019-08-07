@@ -6,7 +6,10 @@ import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
-class TaskExecutor(private val classLoader: SandboxClassLoader) {
+class TaskExecutor
+    @Throws(ClassNotFoundException::class, NoSuchMethodException::class, SecurityException::class)
+    constructor(private val classLoader: SandboxClassLoader
+) {
     private val constructor: Constructor<out Any>
     private val executeMethod: Method
 
@@ -16,10 +19,12 @@ class TaskExecutor(private val classLoader: SandboxClassLoader) {
         executeMethod = taskClass.getMethod("apply", Any::class.java)
     }
 
+    @Throws(ClassNotFoundException::class)
     fun toSandboxClass(clazz: Class<*>): Class<*> {
         return classLoader.loadClassForSandbox(ClassSource.fromClassName(clazz.name))
     }
 
+    @Throws(Throwable::class)
     fun execute(task: Any, input: Any?): Any? {
         return try {
             executeMethod.invoke(constructor.newInstance(task), input)
