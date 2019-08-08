@@ -65,6 +65,7 @@ class WhitelistTest : TestBase(KOTLIN) {
     fun `test Java annotations`() {
         val whitelist = Whitelist.MINIMAL
         assertThat(whitelist.matches("java/lang/annotation/Annotation")).isTrue()
+        assertThat(whitelist.matches("java/lang/annotation/Documented")).isTrue()
         assertThat(whitelist.matches("java/lang/annotation/ElementType")).isFalse()
         assertThat(whitelist.matches("java/lang/annotation/Inherited")).isTrue()
         assertThat(whitelist.matches("java/lang/annotation/Repeatable")).isTrue()
