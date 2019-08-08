@@ -5,4 +5,6 @@ import kotlin.annotation.AnnotationTarget.*
 
 @Retention(RUNTIME)
 @Target(CLASS)
-annotation class KotlinAnnotation
+annotation class KotlinAnnotation(
+    val value: String = "<default-value>"
+)

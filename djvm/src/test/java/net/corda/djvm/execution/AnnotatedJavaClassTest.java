@@ -30,7 +30,8 @@ class AnnotatedJavaClassTest extends TestBase {
                     = (Class<? extends Annotation>) loadClass(ctx, JavaAnnotation.class.getName()).getType();
                 Annotation annotationValue = sandboxClass.getAnnotation(sandboxAnnotation);
                 assertThat(annotationValue).isNotNull();
-                assertThat(annotationValue.toString()).isEqualTo("@sandbox.net.corda.djvm.JavaAnnotation()");
+                assertThat(annotationValue.toString())
+                    .isEqualTo("@sandbox.net.corda.djvm.JavaAnnotation(value=Hello Java!)");
             } catch (Exception e) {
                 fail(e);
             }
@@ -44,7 +45,8 @@ class AnnotatedJavaClassTest extends TestBase {
             try {
                 SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
                 ExecutionSummaryWithResult<String> success = WithJava.run(executor, ReadAnnotation.class, null);
-                assertThat(success.getResult()).isEqualTo("@sandbox.net.corda.djvm.JavaAnnotation()");
+                assertThat(success.getResult())
+                    .isEqualTo("@sandbox.net.corda.djvm.JavaAnnotation(value=Hello Java!)");
             } catch (Exception e) {
                 fail(e);
             }
@@ -61,6 +63,6 @@ class AnnotatedJavaClassTest extends TestBase {
     }
 
     @SuppressWarnings("WeakerAccess")
-    @JavaAnnotation
+    @JavaAnnotation("Hello Java!")
     static class UserJavaData {}
 }

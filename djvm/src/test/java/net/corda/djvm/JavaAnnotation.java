@@ -9,4 +9,5 @@ import static java.lang.annotation.RetentionPolicy.*;
 @Retention(RUNTIME)
 @Target(TYPE)
 public @interface JavaAnnotation {
+    String value() default "<default-value>";
 }
