@@ -33,6 +33,7 @@ import kotlin.Comparator
  * @property pinnedClasses Classes that have already been declared in the sandbox namespace and that should be
  * made available inside the sandboxed environment. These classes belong to the application
  * classloader and so are shared across all sandboxes.
+ * @property stitchedAnnotations Descriptors for annotation classes whose unsandboxed values must be preserved.
  * @property classResolver Functionality used to resolve the qualified name and relevant information about a class.
  * @property exceptionResolver Resolves the internal names of synthetic exception classes.
  * @property minimumSeverityLevel The minimum severity level to log and report.
@@ -47,6 +48,7 @@ class AnalysisConfiguration private constructor(
         val parent: AnalysisConfiguration?,
         val whitelist: Whitelist,
         val pinnedClasses: Set<String>,
+        val stitchedAnnotations: Set<String>,
         val classResolver: ClassResolver,
         val exceptionResolver: ExceptionResolver,
         val minimumSeverityLevel: Severity,
@@ -72,11 +74,6 @@ class AnalysisConfiguration private constructor(
      */
     val stitchedClasses: Map<String, List<Member>> get() = STITCHED_CLASSES
 
-    /*
-     * These annotations need to have their original versions stitched underneath.
-     */
-    val stitchedAnnotations: Set<String> = STITCHED_ANNOTATIONS
-
     @Throws(Exception::class)
     override fun close() {
         supportingClassLoader.close()
@@ -95,12 +92,14 @@ class AnalysisConfiguration private constructor(
      */
     fun createChild(
         userSource: UserSource,
-        newMinimumSeverityLevel: Severity?
+        newMinimumSeverityLevel: Severity?,
+        visibleAnnotations: Set<Class<out Annotation>>
     ): AnalysisConfiguration {
         return AnalysisConfiguration(
             parent = this,
             whitelist = whitelist,
             pinnedClasses = pinnedClasses,
+            stitchedAnnotations = stitchedAnnotations.merge(visibleAnnotations),
             classResolver = classResolver,
             exceptionResolver = exceptionResolver,
             minimumSeverityLevel = newMinimumSeverityLevel ?: minimumSeverityLevel,
@@ -139,9 +138,9 @@ class AnalysisConfiguration private constructor(
          * and these need to be preserved. Currently handling meta-annotations
          * with [Enum] value.
          */
-        private val STITCHED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
-            "Lsandbox/java/lang/annotation/Retention;",
-            "Lsandbox/java/lang/annotation/Target;"
+        private val STITCHED_ANNOTATIONS: Set<String> = emptySet<String>().merge(setOf(
+            java.lang.annotation.Retention::class.java,
+            java.lang.annotation.Target::class.java
         ))
 
         /**
@@ -626,6 +625,16 @@ class AnalysisConfiguration private constructor(
         fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
         fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
 
+        private fun sandboxDescriptor(clazz: Class<*>): String = "L$SANDBOX_PREFIX${Type.getInternalName(clazz)};"
+
+        private fun Set<String>.merge(extra: Collection<Class<out Annotation>>): Set<String> {
+            return if (extra.isEmpty()) {
+                this
+            } else {
+                unmodifiable(this + extra.map(::sandboxDescriptor))
+            }
+        }
+
         private fun Iterable<Member>.mapByClassName(): Map<String, List<Member>>
                       = groupBy(Member::className).mapValues(Map.Entry<String, List<Member>>::value)
         private fun <T> unmodifiable(items: Set<T>): Set<T> {
@@ -686,6 +695,7 @@ class AnalysisConfiguration private constructor(
             userSource: UserSource,
             whitelist: Whitelist,
             pinnedClasses: Set<String> = emptySet(),
+            visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
             analyzeAnnotations: Boolean = false,
             prefixFilters: List<String> = emptyList(),
@@ -713,6 +723,7 @@ class AnalysisConfiguration private constructor(
                 parent = null,
                 whitelist = actualWhitelist,
                 pinnedClasses = actualPinnedClasses,
+                stitchedAnnotations = STITCHED_ANNOTATIONS.merge(visibleAnnotations),
                 classResolver = classResolver,
                 exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, actualPinnedClasses, SANDBOX_PREFIX),
                 minimumSeverityLevel = minimumSeverityLevel,

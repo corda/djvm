@@ -232,7 +232,8 @@ abstract class TestBase(type: SandboxType) {
             try {
                 parentConfiguration.analysisConfiguration.createChild(
                     userSource = UserPathSource(classPaths),
-                    newMinimumSeverityLevel = minimumSeverityLevel
+                    newMinimumSeverityLevel = minimumSeverityLevel,
+                    visibleAnnotations = emptySet()
                 ).use { analysisConfiguration ->
                     SandboxRuntimeContext(SandboxConfiguration.of(
                         parentConfiguration.executionProfile,

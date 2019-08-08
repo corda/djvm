@@ -63,9 +63,18 @@ abstract class TestBase(type: SandboxType) {
         SandboxType.JAVA -> TESTING_LIBRARIES.filter { isDirectory(it) }
     }
 
+    fun sandbox(action: SandboxRuntimeContext.() -> Unit) {
+        return sandbox(Severity.WARNING, emptySet(), false, action)
+    }
+
+    fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit) {
+        return sandbox(Severity.WARNING, visibleAnnotations, false, action)
+    }
+
     fun sandbox(
-        minimumSeverityLevel: Severity = Severity.WARNING,
-        enableTracing: Boolean = true,
+        minimumSeverityLevel: Severity,
+        visibleAnnotations: Set<Class<out Annotation>>,
+        enableTracing: Boolean,
         action: SandboxRuntimeContext.() -> Unit
     ) {
         var thrownException: Throwable? = null
@@ -73,7 +82,8 @@ abstract class TestBase(type: SandboxType) {
             try {
                 configuration.analysisConfiguration.createChild(
                     userSource = UserPathSource(classPaths),
-                    newMinimumSeverityLevel = minimumSeverityLevel
+                    newMinimumSeverityLevel = minimumSeverityLevel,
+                    visibleAnnotations = visibleAnnotations
                 ).use { analysisConfiguration ->
                     SandboxRuntimeContext(SandboxConfiguration.of(
                         configuration.executionProfile,
