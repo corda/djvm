@@ -5,7 +5,6 @@ import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.util.EnumMap;
@@ -21,7 +20,7 @@ class SandboxEnumJavaTest extends TestBase {
 
     @Test
     void testEnumInsideSandbox() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Integer, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String[]> output = WithJava.run(executor, TransformEnum.class, 0);
             assertThat(output.getResult())
@@ -39,7 +38,7 @@ class SandboxEnumJavaTest extends TestBase {
 
     @Test
     void testReturnEnumFromSandbox() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, ExampleEnum> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<ExampleEnum> output = WithJava.run(executor, FetchEnum.class, "THREE");
             assertThat(output.getResult())
@@ -56,7 +55,7 @@ class SandboxEnumJavaTest extends TestBase {
 
     @Test
     void testWeCanIdentifyClassAsEnum() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<ExampleEnum, Boolean> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Boolean> output = WithJava.run(executor, AssertEnum.class, ExampleEnum.THREE);
             assertThat(output.getResult()).isTrue();
@@ -73,7 +72,7 @@ class SandboxEnumJavaTest extends TestBase {
 
     @Test
     void testWeCanCreateEnumMap() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<ExampleEnum, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, UseEnumMap.class, ExampleEnum.TWO);
             assertThat(output.getResult()).isEqualTo(1);
@@ -92,7 +91,7 @@ class SandboxEnumJavaTest extends TestBase {
 
     @Test
     void testWeCanCreateEnumSet() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<ExampleEnum, Boolean> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Boolean> output = WithJava.run(executor, UseEnumSet.class, ExampleEnum.ONE);
             assertThat(output.getResult()).isTrue();
@@ -109,7 +108,7 @@ class SandboxEnumJavaTest extends TestBase {
 
     @Test
     void testWeCanReadConstantEnum() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Object, ExampleEnum> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<ExampleEnum> output = WithJava.run(executor, ConstantEnum.class, null);
             assertThat(output.getResult()).isEqualTo(ExampleEnum.ONE);
@@ -128,7 +127,7 @@ class SandboxEnumJavaTest extends TestBase {
 
     @Test
     void testWeCanReadStaticConstantEnum() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Object, ExampleEnum> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<ExampleEnum> output = WithJava.run(executor, StaticConstantEnum.class, null);
             assertThat(output.getResult()).isEqualTo(ExampleEnum.TWO);

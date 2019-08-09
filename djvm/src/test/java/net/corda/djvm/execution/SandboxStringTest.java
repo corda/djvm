@@ -5,7 +5,6 @@ import net.corda.djvm.TestBase;
 import static java.util.Arrays.*;
 import static java.util.stream.Collectors.joining;
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,7 +32,7 @@ class SandboxStringTest extends TestBase {
     @Test
     void testJoiningIterableInsideSandbox() {
         String[] inputs = new String[]{"one", "two", "three"};
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, JoinIterableStrings.class, inputs);
             assertThat(success.getResult()).isEqualTo("one+two+three");
@@ -51,7 +50,7 @@ class SandboxStringTest extends TestBase {
     @Test
     void testJoiningVarargInsideSandbox() {
         String[] inputs = new String[]{"ONE", "TWO", "THREE"};
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, JoinVarargStrings.class, inputs);
             assertThat(success.getResult()).isEqualTo("ONE+TWO+THREE");
@@ -68,7 +67,7 @@ class SandboxStringTest extends TestBase {
 
     @Test
     void testStringConstant() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertThat(WithJava.run(executor, StringConstant.class, "Wibble!").getResult())
                 .isEqualTo("Wibble!");
@@ -92,7 +91,7 @@ class SandboxStringTest extends TestBase {
 
     @Test
     void encodeStringWithUnknownCharset() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, byte[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable exception = assertThrows(RuntimeException.class, () -> WithJava.run(executor, GetEncoding.class, "Nonsense-101"));
             assertThat(exception)
@@ -117,7 +116,7 @@ class SandboxStringTest extends TestBase {
     @ParameterizedTest
     @ValueSource(strings = {"UTF-8", "UTF-16", "UTF-32"})
     void decodeStringWithCharset(String charsetName) {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, CreateString.class, charsetName);
             assertThat(success.getResult()).isEqualTo(UNICODE_MESSAGE);
@@ -138,7 +137,7 @@ class SandboxStringTest extends TestBase {
 
     @Test
     void testCaseInsensitiveComparison() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> assertThat(WithJava.run(executor, CaseInsensitiveCompare.class, "hello world!").getResult())
@@ -162,7 +161,7 @@ class SandboxStringTest extends TestBase {
     @Test
     void testStream() {
         String[] inputs = new String[] {"dog", "cat", "mouse", "squirrel"};
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertThat(WithJava.run(executor, Concatenate.class, inputs).getResult())
                 .isEqualTo("{dog + cat + mouse + squirrel}");
@@ -180,7 +179,7 @@ class SandboxStringTest extends TestBase {
     @Test
     void testSorting() {
         String[] inputs = Stream.of("Wolf", "Cat", "Tree", "Pig").map(String::toUpperCase).toArray(String[]::new);
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String[], String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertThat(WithJava.run(executor, Sorted.class, inputs).getResult())
                  .containsExactly("CAT", "PIG", "TREE", "WOLF");
@@ -200,7 +199,7 @@ class SandboxStringTest extends TestBase {
     @Test
     void testComplexStream() {
         String[] inputs = new String[] { "one", "two", "three", "four", "five" };
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String[], String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertThat(WithJava.run(executor, ComplexStream.class, inputs).getResult())
                 .containsExactly("ONE", "TWO", "THREE", "FOUR", "FIVE");
@@ -218,7 +217,7 @@ class SandboxStringTest extends TestBase {
     @Test
     void testSpliterator() {
         String[] inputs = new String[] { "one", "two", "three", "four" };
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String[], String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertThat(WithJava.run(executor, Spliterate.class, inputs).getResult())
                 .containsExactlyInAnyOrder("one+two", "three+four");

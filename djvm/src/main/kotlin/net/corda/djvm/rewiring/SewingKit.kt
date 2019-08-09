@@ -33,12 +33,6 @@ class AnnotationStitcher(
     }
 }
 
-interface AnnotationElement {
-    val name: String?
-
-    fun accept(av: AnnotationVisitor, transform: Function<String, String>)
-}
-
 abstract class AnnotationAccumulator(api: Int, av: AnnotationVisitor) : AnnotationVisitor(api, av) {
     private val entries = mutableListOf<AnnotationElement>()
 
@@ -69,7 +63,13 @@ abstract class AnnotationAccumulator(api: Int, av: AnnotationVisitor) : Annotati
     }
 }
 
-class AnnotationArray(
+private interface AnnotationElement {
+    val name: String?
+
+    fun accept(av: AnnotationVisitor, transform: Function<String, String>)
+}
+
+private class AnnotationArray(
     api: Int,
     av: AnnotationVisitor,
     override val name: String
@@ -80,7 +80,7 @@ class AnnotationArray(
     }
 }
 
-class AnnotationValue(
+private class AnnotationValue(
     override val name: String?,
     val value: Any?
 ) : AnnotationElement {
@@ -90,7 +90,7 @@ class AnnotationValue(
     }
 }
 
-class AnnotationEnum(
+private class AnnotationEnum(
     override val name: String?,
     val descriptor: String,
     val value: String

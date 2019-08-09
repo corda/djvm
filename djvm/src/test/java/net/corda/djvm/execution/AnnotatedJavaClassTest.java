@@ -9,7 +9,6 @@ import java.lang.annotation.Annotation;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -22,7 +21,7 @@ class AnnotatedJavaClassTest extends TestBase {
     void testSandboxAnnotation() {
         assertThat(UserJavaData.class.getAnnotation(JavaAnnotation.class)).isNotNull();
 
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
                 @SuppressWarnings("unchecked")
@@ -41,7 +40,7 @@ class AnnotatedJavaClassTest extends TestBase {
 
     @Test
     void testAnnotationInsideSandbox() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
                 ExecutionSummaryWithResult<String> success = WithJava.run(executor, ReadAnnotation.class, null);

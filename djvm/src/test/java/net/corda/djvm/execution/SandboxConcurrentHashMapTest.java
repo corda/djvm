@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SandboxConcurrentHashMapTest extends TestBase {
@@ -21,7 +20,7 @@ class SandboxConcurrentHashMapTest extends TestBase {
     @Test
     void testJoiningIterableInsideSandbox() {
         String[] inputs = new String[]{ "one", "One", "ONE" };
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, CreateMap.class, inputs);
             assertThat(success.getResult()).isEqualTo("[one has 3]");
@@ -69,7 +68,7 @@ class SandboxConcurrentHashMapTest extends TestBase {
     @Test
     void testStreamOfKeys() {
         Integer[] inputs = new Integer[]{ 1, 2, 3 };
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Integer[], Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> success = WithJava.run(executor, KeyStreamMap.class, inputs);
             assertThat(success.getResult()).isEqualTo(6);
