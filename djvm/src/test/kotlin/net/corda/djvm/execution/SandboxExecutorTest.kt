@@ -630,6 +630,8 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
     @ParameterizedTest
     @ValueSource(strings = [
+        "BasicInput",
+        "BasicOutput",
         "java.io.DJVMInputStream",
         "java.lang.DJVM",
         "java.lang.DJVMException",

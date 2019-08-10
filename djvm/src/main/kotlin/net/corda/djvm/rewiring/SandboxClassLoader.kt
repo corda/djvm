@@ -15,7 +15,9 @@ import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.Type
+import java.lang.reflect.InvocationTargetException
 import java.net.URL
+import java.util.function.Function
 
 /**
  * Class loader that enables registration of rewired classes.
@@ -78,6 +80,54 @@ class SandboxClassLoader private constructor(
         throwableClass,
         parent
     )
+
+    /**
+     * Returns an instance of [Function] that can transform a
+     * basic Java object into its equivalent inside the sandbox.
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        IllegalAccessException::class,
+        InstantiationException::class,
+        NoSuchMethodException::class,
+        SecurityException::class
+    )
+    fun createBasicInput(): Function<in Any?, out Any?> {
+        val inputClass = loadClass("sandbox.BasicInput")
+        val applyMethod = inputClass.getDeclaredMethod("apply", Any::class.java)
+        val inputTask = inputClass.newInstance()
+        return Function { input ->
+            try {
+                applyMethod(inputTask, input)
+            } catch (e: InvocationTargetException) {
+                throw e.targetException
+            }
+        }
+    }
+
+    /**
+     * Returns an instance of [Function] that can transform
+     * a basic sandbox object into its equivalent Java object.
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        IllegalAccessException::class,
+        InstantiationException::class,
+        NoSuchMethodException::class,
+        SecurityException::class
+    )
+    fun createBasicOutput(): Function<in Any?, out Any?> {
+        val outputClass = loadClass("sandbox.BasicOutput")
+        val applyMethod = outputClass.getDeclaredMethod("apply", Any::class.java)
+        val outputTask = outputClass.newInstance()
+        return Function { output ->
+            try {
+                applyMethod(outputTask, output)
+            } catch (e: InvocationTargetException) {
+                throw e.targetException
+            }
+        }
+    }
 
     /**
      * Given a class name, provide its corresponding [LoadedClass] for the sandbox.

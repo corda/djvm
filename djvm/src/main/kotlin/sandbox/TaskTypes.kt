@@ -8,7 +8,15 @@ import sandbox.java.lang.unsandbox
 typealias SandboxFunction<INPUT, OUTPUT> = sandbox.java.util.function.Function<INPUT, OUTPUT>
 
 internal fun isEntryPoint(elt: StackTraceElement): Boolean {
-    return elt.className == "sandbox.Task" && elt.methodName == "apply"
+    return elt.methodName == "apply" && isTaskClass(elt.className)
+}
+
+private const val SANDBOX_PREFIX = "sandbox."
+
+private fun isTaskClass(className: String): Boolean {
+    return className.startsWith(SANDBOX_PREFIX) && className.substring(SANDBOX_PREFIX.length).let {
+        it == "Task" || it == "RawTask" || it == "BasicInput" || it == "BasicOutput"
+    }
 }
 
 class Task(private val function: SandboxFunction<in Any?, out Any?>?) : SandboxFunction<Any?, Any?> {
@@ -42,5 +50,29 @@ class RawTask(private val function: SandboxFunction<Any?, Any?>?) : SandboxFunct
         } catch (t: Throwable) {
             throw t.escapeSandbox()
         }
+    }
+}
+
+@Suppress("unused")
+class BasicInput : SandboxFunction<Any?, Any?> {
+    /**
+     * This function runs inside the sandbox and
+     * transforms a basic Java object into its
+     * equivalent sandbox object.
+     */
+    override fun apply(input: Any?): Any? {
+        return input?.sandbox()
+    }
+}
+
+@Suppress("unused")
+class BasicOutput : SandboxFunction<Any?, Any?> {
+    /**
+     * This function runs inside the sandbox and
+     * transforms a basic sandbox object into its
+     * equivalent Java object.
+     */
+    override fun apply(output: Any?): Any? {
+        return output?.unsandbox()
     }
 }

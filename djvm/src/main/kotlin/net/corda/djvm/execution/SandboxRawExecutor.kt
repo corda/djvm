@@ -21,7 +21,7 @@ class SandboxRawExecutor(configuration: SandboxConfiguration) : Executor<Any?, A
             val task = taskClass.getDeclaredConstructor(functionClass).newInstance(runnable)
 
             // Execute the task...
-            val method = taskClass.getMethod("apply", Any::class.java)
+            val method = taskClass.getDeclaredMethod("apply", Any::class.java)
             try {
                 method.invoke(task, input)
             } catch (ex: InvocationTargetException) {

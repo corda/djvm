@@ -85,7 +85,7 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
             val task = taskClass.getDeclaredConstructor(functionClass).newInstance(runnable)
 
             // Execute the task...
-            val method = taskClass.getMethod("apply", Any::class.java)
+            val method = taskClass.getDeclaredMethod("apply", Any::class.java)
             try {
                 @Suppress("UNCHECKED_CAST")
                 method.invoke(task, input) as? OUTPUT
