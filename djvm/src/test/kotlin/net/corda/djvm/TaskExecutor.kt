@@ -16,7 +16,7 @@ class TaskExecutor
     init {
         val taskClass = classLoader.loadClass("sandbox.Task")
         constructor = taskClass.getDeclaredConstructor(classLoader.loadClass("sandbox.java.util.function.Function"))
-        executeMethod = taskClass.getMethod("apply", Any::class.java)
+        executeMethod = taskClass.getDeclaredMethod("apply", Any::class.java)
     }
 
     @Throws(ClassNotFoundException::class)

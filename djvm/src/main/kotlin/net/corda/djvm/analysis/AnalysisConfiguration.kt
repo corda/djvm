@@ -168,6 +168,8 @@ class AnalysisConfiguration private constructor(
             sun.security.action.GetBooleanAction::class.java,
             sun.security.action.GetPropertyAction::class.java
         ).sandboxed() + setOf(
+            "sandbox/BasicInput",
+            "sandbox/BasicOutput",
             "sandbox/RawTask",
             "sandbox/Task",
             "sandbox/TaskTypes",

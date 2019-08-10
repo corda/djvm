@@ -353,9 +353,7 @@ private val bannedClasses = setOf(
     "^javax?\\..*\\.DJVM\$".toRegex(),
     "^java\\.io\\.DJVM[^.]++\$".toRegex(),
     "^java\\.util\\.concurrent\\.locks\\.DJVM[^.]++\$".toRegex(),
-    "^RawTask\$".toRegex(),
-    "^RuntimeCostAccounter\$".toRegex(),
-    "^Task(.*)?\$".toRegex()
+    "^[^.]++\$".toRegex()
 )
 
 /**
