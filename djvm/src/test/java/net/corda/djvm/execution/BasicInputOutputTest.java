@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class BasicInputOutputTest extends TestBase {
-    private static final String MESSAGE = "Hwllo World!";
+    private static final String MESSAGE = "Hello World!";
     private static final Long BIG_NUMBER = 123456789000L;
 
     BasicInputOutputTest() {

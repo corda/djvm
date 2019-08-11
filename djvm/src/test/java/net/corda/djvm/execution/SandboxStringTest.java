@@ -96,7 +96,7 @@ class SandboxStringTest extends TestBase {
             SandboxExecutor<String, byte[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable exception = assertThrows(RuntimeException.class, () -> WithJava.run(executor, GetEncoding.class, "Nonsense-101"));
             assertThat(exception)
-                .isExactlyInstanceOf(RuntimeException.class)
+                .isExactlyInstanceOf(SandboxRuntimeException.class)
                 .hasCauseExactlyInstanceOf(UnsupportedEncodingException.class)
                 .hasMessage("Nonsense-101");
             return null;

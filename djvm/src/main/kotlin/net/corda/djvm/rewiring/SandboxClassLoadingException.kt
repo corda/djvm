@@ -1,6 +1,7 @@
 package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.AnalysisContext
+import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.messages.Message
 import net.corda.djvm.messages.MessageCollection
 import net.corda.djvm.references.ClassHierarchy
@@ -19,7 +20,7 @@ class SandboxClassLoadingException(
         val messages: MessageCollection = context.messages,
         val classes: ClassHierarchy = context.classes,
         val classOrigins: Map<String, Set<EntityReference>> = context.classOrigins
-) : RuntimeException("Failed to load class") {
+) : SandboxRuntimeException("Failed to load class") {
 
     /**
      * The detailed description of the exception.

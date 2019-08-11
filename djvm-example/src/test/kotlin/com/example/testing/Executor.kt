@@ -13,7 +13,7 @@ class Executor(private val classLoader: SandboxClassLoader) {
     init {
         val taskClass = classLoader.loadClass("sandbox.RawTask")
         constructor = taskClass.getDeclaredConstructor(classLoader.loadClass("sandbox.java.util.function.Function"))
-        executeMethod = taskClass.getMethod("apply", Any::class.java)
+        executeMethod = taskClass.getDeclaredMethod("apply", Any::class.java)
     }
 
     fun toSandboxClass(clazz: Class<*>): Class<*> {
@@ -22,7 +22,7 @@ class Executor(private val classLoader: SandboxClassLoader) {
 
     fun execute(task: Any, input: Any?): Any? {
         return try {
-            executeMethod.invoke(constructor.newInstance(task), input)
+            executeMethod(constructor.newInstance(task), input)
         } catch (ex: InvocationTargetException) {
             throw ex.targetException
         }
