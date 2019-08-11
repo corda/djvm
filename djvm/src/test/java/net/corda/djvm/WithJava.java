@@ -3,6 +3,7 @@ package net.corda.djvm;
 import net.corda.djvm.execution.ExecutionSummaryWithResult;
 import net.corda.djvm.execution.SandboxException;
 import net.corda.djvm.execution.SandboxExecutor;
+import net.corda.djvm.execution.SandboxRuntimeException;
 import net.corda.djvm.source.ClassSource;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +31,6 @@ public interface WithJava {
 
     @NotNull
     static RuntimeException asRuntime(Throwable t) {
-        return (t instanceof RuntimeException) ? (RuntimeException) t : new RuntimeException(t.getMessage(), t);
+        return (t instanceof RuntimeException) ? (RuntimeException) t : new SandboxRuntimeException(t.getMessage(), t);
     }
 }

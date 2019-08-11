@@ -8,6 +8,7 @@ import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMExceptionOwner
 import net.corda.djvm.analysis.ExceptionResolver.Companion.isDJVMException
 import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.code.asResourcePath
+import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.references.ClassReference
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.SourceClassLoader
@@ -93,16 +94,7 @@ class SandboxClassLoader private constructor(
         SecurityException::class
     )
     fun createBasicInput(): Function<in Any?, out Any?> {
-        val inputClass = loadClass("sandbox.BasicInput")
-        val applyMethod = inputClass.getDeclaredMethod("apply", Any::class.java)
-        val inputTask = inputClass.newInstance()
-        return Function { input ->
-            try {
-                applyMethod(inputTask, input)
-            } catch (e: InvocationTargetException) {
-                throw e.targetException
-            }
-        }
+        return createBasicTask("sandbox.BasicInput")
     }
 
     /**
@@ -117,14 +109,29 @@ class SandboxClassLoader private constructor(
         SecurityException::class
     )
     fun createBasicOutput(): Function<in Any?, out Any?> {
-        val outputClass = loadClass("sandbox.BasicOutput")
-        val applyMethod = outputClass.getDeclaredMethod("apply", Any::class.java)
-        val outputTask = outputClass.newInstance()
-        return Function { output ->
+        return createBasicTask("sandbox.BasicOutput")
+    }
+
+    @Throws(
+        ClassNotFoundException::class,
+        IllegalAccessException::class,
+        InstantiationException::class,
+        NoSuchMethodException::class,
+        SecurityException::class
+    )
+    private fun createBasicTask(taskName: String): Function<in Any?, out Any?>  {
+        val taskClass = loadClass(taskName)
+        val applyMethod = taskClass.getDeclaredMethod("apply", Any::class.java)
+        val task = taskClass.newInstance()
+        return Function { value ->
             try {
-                applyMethod(outputTask, output)
+                applyMethod(task, value)
             } catch (e: InvocationTargetException) {
-                throw e.targetException
+                val target = e.targetException
+                throw when (target) {
+                    is RuntimeException, is Error -> target
+                    else -> SandboxRuntimeException(target.message, target)
+                }
             }
         }
     }
