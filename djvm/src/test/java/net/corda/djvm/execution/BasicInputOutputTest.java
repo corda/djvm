@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -21,7 +20,7 @@ class BasicInputOutputTest extends TestBase {
 
     @Test
     void testBasicInput() {
-        parentedSandbox(WARNING, false, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 Function<Object, ?> inputTask = ctx.getClassLoader().createBasicInput();
                 Object sandboxObject = inputTask.apply(MESSAGE);
@@ -36,7 +35,7 @@ class BasicInputOutputTest extends TestBase {
 
     @Test
     void testBasicOutput() {
-        parentedSandbox(WARNING, false, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 Function<Object, ?> inputTask = ctx.getClassLoader().createBasicInput();
                 Object sandboxObject = inputTask.apply(BIG_NUMBER);

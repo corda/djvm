@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,7 +17,7 @@ class SandboxCloneableTest extends TestBase {
 
     @Test
     void testCloningInsideSandbox() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, CloningMachine.class, "Jango Fett");
             assertThat(success.getResult()).isEqualTo("Jango Fett");
@@ -57,7 +56,7 @@ class SandboxCloneableTest extends TestBase {
 
     @Test
     void testFailedCloningInsideSandbox() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable throwable = assertThrows(RuntimeException.class, () -> WithJava.run(executor, ForceProjector.class, "Obi Wan"));
             assertThat(throwable)

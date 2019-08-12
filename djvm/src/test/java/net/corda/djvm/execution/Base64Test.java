@@ -9,7 +9,6 @@ import java.util.function.Function;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -23,7 +22,7 @@ class Base64Test extends TestBase {
 
     @Test
     void testBase64ToBinary() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, byte[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<byte[]> success = WithJava.run(executor, Base64ToBytes.class, BASE64);
             assertNotNull(success.getResult());
@@ -41,7 +40,7 @@ class Base64Test extends TestBase {
 
     @Test
     void testBinaryToBase64() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<byte[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, BytesToBase64.class, MESSAGE.getBytes(UTF_8));
             assertThat(success.getResult()).isEqualTo(BASE64);

@@ -12,7 +12,6 @@ import java.util.function.Function;
 
 import static net.corda.djvm.Utilities.*;
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,7 +22,7 @@ class MaliciousClassLoaderTest extends TestBase {
 
     @Test
     void testWithAnEvilClassLoader() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(NoSuchMethodError.class, () -> WithJava.run(executor, ActOfEvil.class, PureEvil.class.getName()));
             assertThat(ex)
@@ -62,7 +61,7 @@ class MaliciousClassLoaderTest extends TestBase {
 
     @Test
     void testWithEvilParentClassLoader() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(executor, ActOfEvilParent.class, PureEvil.class.getName()));
             assertThat(ex)
@@ -101,7 +100,7 @@ class MaliciousClassLoaderTest extends TestBase {
 
     @Test
     void testAccessingParentClassLoader() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, ClassLoader> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ClassLoader result = WithJava.run(executor, GetParentClassLoader.class, "").getResult();
             assertThat(result)
@@ -131,7 +130,7 @@ class MaliciousClassLoaderTest extends TestBase {
 
     @Test
     void testClassLoaderForPinnedClass() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, ClassLoader> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ClassLoader result = WithJava.run(executor, GetPinnedClassLoader.class, "").getResult();
             assertThat(result)

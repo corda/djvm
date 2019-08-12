@@ -222,9 +222,16 @@ abstract class TestBase(type: SandboxType) {
         throw thrownException ?: return
     }
 
+    fun parentedSandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit)
+            = parentedSandbox(Severity.WARNING, visibleAnnotations, true, action)
+
+    fun parentedSandbox(action: SandboxRuntimeContext.() -> Unit)
+            = parentedSandbox(Severity.WARNING, emptySet(), true, action)
+
     fun parentedSandbox(
-        minimumSeverityLevel: Severity = Severity.WARNING,
-        enableTracing: Boolean = true,
+        minimumSeverityLevel: Severity,
+        visibleAnnotations: Set<Class<out Annotation>>,
+        enableTracing: Boolean,
         action: SandboxRuntimeContext.() -> Unit
     ) {
         var thrownException: Throwable? = null
@@ -232,7 +239,8 @@ abstract class TestBase(type: SandboxType) {
             try {
                 parentConfiguration.analysisConfiguration.createChild(
                     userSource = UserPathSource(classPaths),
-                    newMinimumSeverityLevel = minimumSeverityLevel
+                    newMinimumSeverityLevel = minimumSeverityLevel,
+                    visibleAnnotations = visibleAnnotations
                 ).use { analysisConfiguration ->
                     SandboxRuntimeContext(SandboxConfiguration.of(
                         parentConfiguration.executionProfile,

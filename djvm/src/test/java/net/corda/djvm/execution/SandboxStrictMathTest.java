@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,7 +22,7 @@ class SandboxStrictMathTest extends TestBase {
 
     @Test
     void testStrictMathHasNoRandom() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Integer, Double> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable error = assertThrows(NoSuchMethodError.class, () -> WithJava.run(executor, StrictRandom.class, 0));
             assertThat(error)
@@ -42,7 +41,7 @@ class SandboxStrictMathTest extends TestBase {
 
     @Test
     void testStrictMathHasTrigonometry() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Integer, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictTrigonometry.class, 0);
             assertThat(success.getResult()).isEqualTo(new Double[] {
@@ -75,7 +74,7 @@ class SandboxStrictMathTest extends TestBase {
 
     @Test
     void testStrictMathRoots() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Double, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictRoots.class, 64.0);
             assertThat(success.getResult())
@@ -97,7 +96,7 @@ class SandboxStrictMathTest extends TestBase {
 
     @Test
     void testStrictMaxMin() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Integer, Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, StrictMaxMin.class, 100);
             assertThat(success.getResult())
@@ -124,7 +123,7 @@ class SandboxStrictMathTest extends TestBase {
 
     @Test
     void testStrictAbsolute() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Integer, Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, StrictAbsolute.class, -100);
             assertThat(success.getResult())
@@ -148,7 +147,7 @@ class SandboxStrictMathTest extends TestBase {
     @Test
     void testStrictRound() {
         Double[] inputs = new Double[] { 2019.3, 2020.9 };
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Double[], Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, StrictRound.class, inputs);
             assertThat(success.getResult())
@@ -171,7 +170,7 @@ class SandboxStrictMathTest extends TestBase {
 
     @Test
     void testStrictExponents() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Integer, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Double[] result = WithJava.run(executor, StrictExponents.class, 0).getResult();
             assertNotNull(result);
@@ -204,7 +203,7 @@ class SandboxStrictMathTest extends TestBase {
 
     @Test
     void testStrictAngles() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Integer, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictAngles.class, 0);
             assertThat(success.getResult())
@@ -225,7 +224,7 @@ class SandboxStrictMathTest extends TestBase {
 
     @Test
     void testStrictHyperbolics() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Double, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictHyperbolics.class, 0.0);
             assertThat(success.getResult())
@@ -247,7 +246,7 @@ class SandboxStrictMathTest extends TestBase {
 
     @Test
     void testStrictRemainder() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Double, Double> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> assertThat(WithJava.run(executor, StrictRemainder.class, 10.0).getResult()).isEqualTo(3.0),

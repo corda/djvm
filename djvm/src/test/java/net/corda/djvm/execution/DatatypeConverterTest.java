@@ -8,7 +8,6 @@ import javax.xml.bind.DatatypeConverter;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DatatypeConverterTest extends TestBase {
@@ -21,7 +20,7 @@ class DatatypeConverterTest extends TestBase {
 
     @Test
     void testHexToBinary() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, byte[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<byte[]> success = WithJava.run(executor, HexToBytes.class, TEXT);
             assertThat(success.getResult()).isEqualTo(BINARY);
@@ -38,7 +37,7 @@ class DatatypeConverterTest extends TestBase {
 
     @Test
     void testBinaryToHex() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<byte[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, BytesToHex.class, BINARY);
             assertThat(success.getResult()).isEqualTo(TEXT);

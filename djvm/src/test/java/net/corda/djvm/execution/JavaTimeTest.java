@@ -9,7 +9,6 @@ import java.time.zone.ZoneRulesProvider;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,7 +25,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testInstant() {
         Instant instant = Instant.now();
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, instant);
@@ -45,7 +44,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testDuration() {
         Duration duration = Duration.ofHours(2);
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, duration);
@@ -64,7 +63,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testLocalDate() {
         LocalDate localDate = LocalDate.now();
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, localDate);
@@ -83,7 +82,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testLocalTime() {
         LocalTime localTime = LocalTime.now();
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, localTime);
@@ -102,7 +101,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testLocalDateTime() {
         LocalDateTime localDateTime = LocalDateTime.now();
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, localDateTime);
@@ -121,7 +120,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testMonthDay() {
         MonthDay monthDay = MonthDay.now();
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, monthDay);
@@ -140,7 +139,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testOffsetDateTime() {
         OffsetDateTime offsetDateTime = OffsetDateTime.now();
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, offsetDateTime);
@@ -159,7 +158,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testOffsetTime() {
         OffsetTime offsetTime = OffsetTime.now();
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, offsetTime);
@@ -178,7 +177,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testPeriod() {
         Period period = Period.of(1, 2, 3);
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, period);
@@ -197,7 +196,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testYear() {
         Year year = Year.now();
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, year);
@@ -216,7 +215,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testYearMonth() {
         YearMonth yearMonth = YearMonth.now();
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, yearMonth);
@@ -235,7 +234,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testZonedDateTime() {
         ZonedDateTime zonedDateTime = ZonedDateTime.now();
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, zonedDateTime);
@@ -254,7 +253,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testZoneOffset() {
         ZoneOffset zoneOffset = ZoneOffset.ofHours(7);
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 Object toStringResult = run(executor, TemporalToString.class, zoneOffset);
@@ -272,7 +271,7 @@ class JavaTimeTest extends TestBase {
 
     @Test
     void testAllZoneIDs() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 String[] zoneIDs = (String[]) run(executor, AllZoneIDs.class, null);

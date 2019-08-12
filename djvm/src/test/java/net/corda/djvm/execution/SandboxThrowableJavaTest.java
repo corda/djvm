@@ -30,7 +30,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testUserExceptionHandling() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String[]> output = WithJava.run(executor, ThrowAndCatchJavaExample.class, "Hello World!");
             assertThat(output.getResult())
@@ -41,7 +41,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testCheckedExceptions() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> {
@@ -59,7 +59,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testMultiCatchExceptions() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<Integer, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> {
@@ -129,7 +129,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testSuppressedJvmExceptions() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable exception = assertThrows(IllegalArgumentException.class,
                 () -> WithJava.run(executor, WithSuppressedJvmExceptions.class, "Hello World!")
@@ -148,7 +148,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testSuppressedUserExceptions() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable exception = assertThrows(IllegalArgumentException.class,
                 () -> WithJava.run(executor, WithSuppressedUserExceptions.class, "Hello World!")

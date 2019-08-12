@@ -2,7 +2,6 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
 import net.corda.djvm.WithJava;
-import static net.corda.djvm.messages.Severity.WARNING;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
@@ -18,7 +17,7 @@ class SecurityManagerTest extends TestBase {
 
     @Test
     void testReplacingSecurityManager() {
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             RuntimeException ex = assertThrows(RuntimeException.class, () -> WithJava.run(executor, ReplacingSecurityManager.class, ""));
             assertThat(ex)

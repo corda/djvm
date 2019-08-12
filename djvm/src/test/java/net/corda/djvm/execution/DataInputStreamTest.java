@@ -8,7 +8,6 @@ import java.io.*;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DataInputStreamTest extends TestBase {
@@ -32,7 +31,7 @@ class DataInputStreamTest extends TestBase {
         }
         byte[] input = baos.toByteArray();
 
-        parentedSandbox(WARNING, true, ctx -> {
+        parentedSandbox(ctx -> {
             SandboxExecutor<byte[], Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, DataStreamer.class, input);
             assertThat(success.getResult()).isEqualTo(new Object[]{
