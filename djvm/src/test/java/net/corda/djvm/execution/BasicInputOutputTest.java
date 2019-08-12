@@ -3,7 +3,7 @@ package net.corda.djvm.execution;
 import net.corda.djvm.TestBase;
 import org.junit.jupiter.api.Test;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +22,7 @@ class BasicInputOutputTest extends TestBase {
     void testBasicInput() {
         parentedSandbox(ctx -> {
             try {
-                Function<Object, ?> inputTask = ctx.getClassLoader().createBasicInput();
+                UnaryOperator<? super Object> inputTask = ctx.getClassLoader().createBasicInput();
                 Object sandboxObject = inputTask.apply(MESSAGE);
                 assertEquals("sandbox.java.lang.String", sandboxObject.getClass().getName());
                 assertEquals(MESSAGE, sandboxObject.toString());
@@ -37,10 +37,10 @@ class BasicInputOutputTest extends TestBase {
     void testBasicOutput() {
         parentedSandbox(ctx -> {
             try {
-                Function<Object, ?> inputTask = ctx.getClassLoader().createBasicInput();
+                UnaryOperator<? super Object> inputTask = ctx.getClassLoader().createBasicInput();
                 Object sandboxObject = inputTask.apply(BIG_NUMBER);
 
-                Function<Object, ?> outputTask = ctx.getClassLoader().createBasicOutput();
+                UnaryOperator<? super Object> outputTask = ctx.getClassLoader().createBasicOutput();
                 Object output = outputTask.apply(sandboxObject);
                 assertThat(output)
                     .isExactlyInstanceOf(Long.class)
