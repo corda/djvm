@@ -75,8 +75,8 @@ bintrayConfig {
     repo = 'corda'
     org = 'r3'
     licenses = ['Apache-2.0']
-    vcsUrl = 'https://github.com/corda/corda'
-    projectUrl = 'https://github.com/corda/corda'
+    vcsUrl = 'https://github.com/corda/djvm'
+    projectUrl = 'https://github.com/corda/djvm'
     gpgSign = true
     gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
     publications = [
