@@ -1,7 +1,8 @@
-package net.corda.djvm.serialization
+package net.corda.djvm.serialization.serializers
 
 import net.corda.core.serialization.SerializationContext
 import net.corda.djvm.rewiring.SandboxClassLoader
+import net.corda.djvm.serialization.loadClassForSandbox
 import net.corda.serialization.internal.amqp.*
 import org.apache.qpid.proton.codec.Data
 import java.lang.reflect.Type

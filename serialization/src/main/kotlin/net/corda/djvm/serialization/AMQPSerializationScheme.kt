@@ -6,6 +6,8 @@ import net.corda.core.serialization.SerializedBytes
 import net.corda.core.utilities.ByteSequence
 import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.rewiring.SandboxClassLoader
+import net.corda.djvm.serialization.serializers.SandboxInstantSerializer
+import net.corda.djvm.serialization.serializers.SandboxPrimitiveSerializer
 import net.corda.serialization.internal.CordaSerializationMagic
 import net.corda.serialization.internal.SerializationScheme
 import net.corda.serialization.internal.amqp.*

@@ -1,9 +1,6 @@
 package net.corda.djvm.serialization
 
 import net.corda.core.serialization.CordaSerializable
-import net.corda.core.serialization.SerializationContext
-import net.corda.core.serialization.SerializationContext.UseCase
-import net.corda.core.serialization.internal.SerializationEnvironment
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_EMITTERS
@@ -18,12 +15,6 @@ import net.corda.djvm.messages.Severity.*
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.UserPathSource
-import net.corda.serialization.internal.BuiltInExceptionsWhitelist
-import net.corda.serialization.internal.GlobalTransientClassWhiteList
-import net.corda.serialization.internal.SerializationContextImpl
-import net.corda.serialization.internal.SerializationFactoryImpl
-import net.corda.serialization.internal.amqp.amqpMagic
-import net.corda.serialization.internal.amqp.createSerializerFactoryFactory
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.fail
@@ -121,23 +112,6 @@ abstract class TestBase(type: SandboxType) {
             }
         }.join()
         throw thrownException ?: return
-    }
-
-    fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): SerializationEnvironment {
-        val p2pContext: SerializationContext = SerializationContextImpl(
-            preferredSerializationVersion = amqpMagic,
-            deserializationClassLoader = DelegatingClassLoader(classLoader),
-            whitelist = GlobalTransientClassWhiteList(BuiltInExceptionsWhitelist()),
-            properties = emptyMap(),
-            objectReferencesEnabled = true,
-            useCase = UseCase.P2P,
-            encoding = null
-        )
-
-        val factory = SerializationFactoryImpl(mutableMapOf()).apply {
-            registerScheme(SandboxAMQPSerializationScheme(classLoader, createSerializerFactoryFactory()))
-        }
-        return SerializationEnvironment.with(factory, p2pContext = p2pContext)
     }
 
     fun createExecutorFor(classLoader: SandboxClassLoader): BiFunction<in Any, in Any?, out Any?> {

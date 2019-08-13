@@ -1,7 +1,8 @@
-package net.corda.djvm.serialization
+package net.corda.djvm.serialization.serializers
 
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.InstantDeserializer
+import net.corda.djvm.serialization.loadClassForSandbox
 import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.custom.InstantSerializer
