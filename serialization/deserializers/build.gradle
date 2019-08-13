@@ -1,0 +1,31 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'net.corda.plugins.publish-utils'
+    id 'com.jfrog.artifactory'
+    id 'java-library'
+    id 'idea'
+}
+
+description 'Deserializers for the DJVM'
+
+dependencies {
+    api "net.corda:corda-core:$corda_version"
+    api "net.corda:corda-serialization:$corda_version"
+}
+
+jar {
+    manifest {
+        attributes('Sealed': true)
+    }
+}
+
+publish {
+    name 'corda-djvm-deserializers'
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
