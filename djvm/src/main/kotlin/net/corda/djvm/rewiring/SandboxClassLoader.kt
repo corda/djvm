@@ -306,7 +306,7 @@ class SandboxClassLoader private constructor(
         val clazz: Class<*> = try {
             when {
                 whitelistedClasses.matches(sourceName.asResourcePath) -> supportingClassLoader.loadClass(sourceName)
-                else -> defineClass(resolvedName, byteCode.bytes, 0, byteCode.bytes.size)
+                else -> defineClass(resolvedName, byteCode)
             }
         } catch (exception: SecurityException) {
             throw SecurityException("Cannot redefine class '$resolvedName'", exception)
@@ -325,6 +325,17 @@ class SandboxClassLoader private constructor(
         return classWithByteCode
     }
 
+    private fun defineClass(name: String, byteCode: ByteCode): Class<*> {
+        val idx = name.lastIndexOf('.')
+        if (idx > 0) {
+            val packageName = name.substring(0, idx)
+            if (getPackage(packageName) == null) {
+                definePackage(packageName, null, null, null, null, null, null, null)
+            }
+        }
+        return defineClass(name, byteCode.bytes, 0, byteCode.bytes.size)
+    }
+
     private fun loadUnmodifiedByteCode(internalClassName: String): ByteCode {
         return ByteCode((getSystemResourceAsStream("$internalClassName.class")
                 ?: throw ClassNotFoundException(internalClassName)).readBytes(), false)
@@ -339,7 +350,7 @@ class SandboxClassLoader private constructor(
         return loadedClasses.getOrPut(className) {
             val superName = analysisConfiguration.exceptionResolver.getThrowableSuperName(throwable)
             val byteCode = ThrowableWrapperFactory.toByteCode(className, superName)
-            LoadedClass(defineClass(className.asPackagePath, byteCode.bytes, 0, byteCode.bytes.size), byteCode)
+            LoadedClass(defineClass(className.asPackagePath, byteCode), byteCode)
         }
     }
 

@@ -865,6 +865,23 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
+    fun `test users cannot read package`() = parentedSandbox {
+        assertThat(GetClassPackage().apply(null))
+            .isEqualTo(GetClassPackage::class.java.getPackage()?.toString())
+
+        val executor = DeterministicSandboxExecutor<String?, String?>(configuration)
+        executor.run<GetClassPackage>(null).apply {
+            assertThat(result).isNull()
+        }
+    }
+
+    class GetClassPackage : Function<String?, String?> {
+        override fun apply(input: String?): String? {
+            return javaClass.getPackage()?.toString()
+        }
+    }
+
+    @Test
     fun `test creating arrays of arrays`() = parentedSandbox {
         val executor = DeterministicSandboxExecutor<Any, Array<Any>>(configuration)
         executor.run<ArraysOfArrays>("THINGY").apply {

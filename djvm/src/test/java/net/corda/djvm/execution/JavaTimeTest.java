@@ -2,6 +2,7 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.TaskExecutor;
 import net.corda.djvm.TestBase;
+import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
 
 import java.time.*;
@@ -17,7 +18,7 @@ class JavaTimeTest extends TestBase {
         super(JAVA);
     }
 
-    private Object run(TaskExecutor executor, Class<?> task, Object data) throws Throwable {
+    private Object run(TaskExecutor executor, Class<?> task, Object data) throws Exception {
         Object toStringTask = executor.toSandboxClass(task).newInstance();
         return executor.execute(toStringTask, data);
     }
@@ -34,8 +35,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, instant);
                 assertThat(identityResult).isEqualTo(instant);
                 assertThat(identityResult).isNotSameAs(instant);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -53,8 +54,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, duration);
                 assertThat(identityResult).isEqualTo(duration);
                 assertThat(identityResult).isNotSameAs(duration);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -72,8 +73,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, localDate);
                 assertThat(identityResult).isEqualTo(localDate);
                 assertThat(identityResult).isNotSameAs(localDate);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -91,8 +92,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, localTime);
                 assertThat(identityResult).isEqualTo(localTime);
                 assertThat(identityResult).isNotSameAs(localTime);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -110,8 +111,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, localDateTime);
                 assertThat(identityResult).isEqualTo(localDateTime);
                 assertThat(identityResult).isNotSameAs(localDateTime);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -129,8 +130,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, monthDay);
                 assertThat(identityResult).isEqualTo(monthDay);
                 assertThat(identityResult).isNotSameAs(monthDay);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -148,8 +149,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, offsetDateTime);
                 assertThat(identityResult).isEqualTo(offsetDateTime);
                 assertThat(identityResult).isNotSameAs(offsetDateTime);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -167,8 +168,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, offsetTime);
                 assertThat(identityResult).isEqualTo(offsetTime);
                 assertThat(identityResult).isNotSameAs(offsetTime);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -186,8 +187,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, period);
                 assertThat(identityResult).isEqualTo(period);
                 assertThat(identityResult).isNotSameAs(period);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -205,8 +206,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, year);
                 assertThat(identityResult).isEqualTo(year);
                 assertThat(identityResult).isNotSameAs(year);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -224,8 +225,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, yearMonth);
                 assertThat(identityResult).isEqualTo(yearMonth);
                 assertThat(identityResult).isNotSameAs(yearMonth);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -243,8 +244,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, zonedDateTime);
                 assertThat(identityResult).isEqualTo(zonedDateTime);
                 assertThat(identityResult).isNotSameAs(zonedDateTime);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -262,8 +263,8 @@ class JavaTimeTest extends TestBase {
                 Object identityResult = run(executor, IdentityTransformation.class, zoneOffset);
                 assertThat(identityResult).isEqualTo(zoneOffset);
                 assertThat(identityResult).isSameAs(zoneOffset);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -276,8 +277,22 @@ class JavaTimeTest extends TestBase {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 String[] zoneIDs = (String[]) run(executor, AllZoneIDs.class, null);
                 assertThat(zoneIDs).hasSize(600);
-            } catch (Throwable t) {
-                fail(t);
+            } catch (Exception e) {
+                fail(e);
+            }
+            return null;
+        });
+    }
+
+    @Test
+    void testDefaultZoneID() {
+        parentedSandbox(ctx -> {
+            try {
+                TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
+                RuleViolationError ex = assertThrows(RuleViolationError.class, () -> run(executor, DefaultZoneId.class, null));
+                assertThat(ex).hasMessage("Native method has been deleted; java.util.TimeZone.getSystemTimeZoneID(String)");
+            } catch (Exception e) {
+                fail(e);
             }
             return null;
         });
@@ -301,6 +316,13 @@ class JavaTimeTest extends TestBase {
         @Override
         public String[] apply(Object o) {
             return ZoneRulesProvider.getAvailableZoneIds().toArray(new String[0]);
+        }
+    }
+
+    public static class DefaultZoneId implements Function<Object, String> {
+        @Override
+        public String apply(Object o) {
+            return ZoneId.systemDefault().getId();
         }
     }
 }
