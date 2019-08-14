@@ -9,19 +9,10 @@ import java.lang.reflect.Type
 import java.util.function.UnaryOperator
 
 class SandboxPrimitiveSerializer(
+    clazz: Class<*>,
     classLoader: SandboxClassLoader,
     private val basicInput: UnaryOperator<Any?>
-) : CustomSerializer.Is<Any>(classLoader.loadClassForSandbox(String::class.java)) {
-    override val deserializationAliases = setOf(
-        Char::class.javaObjectType,
-        Byte::class.javaObjectType,
-        Short::class.javaObjectType,
-        Int::class.javaObjectType,
-        Long::class.javaObjectType,
-        Float::class.javaObjectType,
-        Double::class.javaObjectType,
-        Boolean::class.javaObjectType
-    ).map { classLoader.loadClassForSandbox(it) }.toSet()
+) : CustomSerializer.Is<Any>(classLoader.loadClassForSandbox(clazz)) {
 
     override val schemaForDocumentation: Schema = Schema(emptyList())
 

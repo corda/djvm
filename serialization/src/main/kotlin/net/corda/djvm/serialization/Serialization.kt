@@ -2,6 +2,7 @@
 package net.corda.djvm.serialization
 
 import net.corda.core.serialization.SerializationContext
+import net.corda.core.serialization.SerializationContext.UseCase
 import net.corda.core.serialization.internal.SerializationEnvironment
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.source.ClassSource
@@ -24,7 +25,7 @@ fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): Serializatio
         properties = emptyMap(),
         objectReferencesEnabled = true,
         carpenterDisabled = true,
-        useCase = SerializationContext.UseCase.P2P,
+        useCase = UseCase.P2P,
         encoding = null
     )
 

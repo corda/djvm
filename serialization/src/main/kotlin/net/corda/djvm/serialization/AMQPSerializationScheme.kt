@@ -41,7 +41,15 @@ class SandboxAMQPSerializationScheme(
     private fun getSerializerFactory(context: SerializationContext): SerializerFactory {
         return serializerFactoryFactory.make(context).apply {
             register(SandboxInstantSerializer(classLoader, executor, this))
-            register(SandboxPrimitiveSerializer(classLoader, sandboxBasicInput))
+            register(SandboxPrimitiveSerializer(String::class.java, classLoader, sandboxBasicInput))
+            register(SandboxPrimitiveSerializer(Char::class.javaObjectType, classLoader, sandboxBasicInput))
+            register(SandboxPrimitiveSerializer(Byte::class.javaObjectType, classLoader, sandboxBasicInput))
+            register(SandboxPrimitiveSerializer(Short::class.javaObjectType, classLoader, sandboxBasicInput))
+            register(SandboxPrimitiveSerializer(Int::class.javaObjectType, classLoader, sandboxBasicInput))
+            register(SandboxPrimitiveSerializer(Long::class.javaObjectType, classLoader, sandboxBasicInput))
+            register(SandboxPrimitiveSerializer(Float::class.javaObjectType, classLoader, sandboxBasicInput))
+            register(SandboxPrimitiveSerializer(Double::class.javaObjectType, classLoader, sandboxBasicInput))
+            register(SandboxPrimitiveSerializer(Boolean::class.javaObjectType, classLoader, sandboxBasicInput))
         }
     }
 
