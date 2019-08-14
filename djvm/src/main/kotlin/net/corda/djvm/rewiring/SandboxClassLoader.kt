@@ -183,33 +183,35 @@ class SandboxClassLoader private constructor(
      */
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
-        var clazz = findLoadedClass(name)
-        if (clazz == null) {
-            val source = ClassSource.fromClassName(name)
-            val isSandboxClass = analysisConfiguration.isSandboxClass(source.internalClassName)
-
-            if (!isSandboxClass || parent is SandboxClassLoader) {
-                try {
-                    clazz = super.loadClass(name, false)
-                } catch (e: ClassNotFoundException) {
-                } catch (e: SandboxClassLoadingException) {
-                    e.messages.clearProvisional()
-                }
-            }
-
+        synchronized (getClassLoadingLock(name)) {
+            var clazz = findLoadedClass(name)
             if (clazz == null) {
-                if (isSandboxClass) {
-                    clazz = loadSandboxClass(source, context).type
-                } else {
-                    // We shouldn't reach here, but this function should never return null.
-                    throw ClassNotFoundException(name)
+                val source = ClassSource.fromClassName(name)
+                val isSandboxClass = analysisConfiguration.isSandboxClass(source.internalClassName)
+
+                if (!isSandboxClass || parent is SandboxClassLoader) {
+                    try {
+                        clazz = super.loadClass(name, false)
+                    } catch (e: ClassNotFoundException) {
+                    } catch (e: SandboxClassLoadingException) {
+                        e.messages.clearProvisional()
+                    }
+                }
+
+                if (clazz == null) {
+                    if (isSandboxClass) {
+                        clazz = loadSandboxClass(source, context).type
+                    } else {
+                        // We shouldn't reach here, but this function should never return null.
+                        throw ClassNotFoundException(name)
+                    }
                 }
             }
+            if (resolve) {
+                resolveClass(clazz)
+            }
+            return clazz
         }
-        if (resolve) {
-            resolveClass(clazz)
-        }
-        return clazz
     }
 
     /**
