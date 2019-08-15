@@ -30,7 +30,7 @@ class DeserializeStringTest : TestBase(KOTLIN) {
                 sandboxString
             ) ?: fail("Result cannot be null")
 
-            assertEquals(result.toString(), stringMessage.message)
+            assertEquals(stringMessage.message, result.toString())
         }
     }
 
@@ -56,38 +56,12 @@ class DeserializeStringTest : TestBase(KOTLIN) {
                 sandboxArray
             ) ?: fail("Result cannot be null")
 
-            assertEquals(result.toString(), stringArray.lines.joinToString())
+            assertEquals(stringArray.lines.joinToString(), result.toString())
         }
     }
 
     class ShowStringArray : Function<StringArray, String> {
         override fun apply(data: StringArray): String {
-            return data.lines.joinToString()
-        }
-    }
-
-    @Test
-    fun `test deserializing string list`() {
-        val stringList = StringList(listOf("Hello", "World", "!"))
-        val data = SerializedBytes<Any>(stringList.serialize().bytes)
-
-        sandbox {
-            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
-
-            val sandboxList = data.deserialize()
-
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowStringList::class.java).newInstance(),
-                sandboxList
-            ) ?: fail("Result cannot be null")
-
-            assertEquals(result.toString(), stringList.lines.joinToString())
-        }
-    }
-
-    class ShowStringList : Function<StringList, String> {
-        override fun apply(data: StringList): String {
             return data.lines.joinToString()
         }
     }
@@ -110,7 +84,7 @@ class DeserializeStringTest : TestBase(KOTLIN) {
                 sandboxListArray
             ) ?: fail("Result cannot be null")
 
-            assertEquals(result.toString(), stringListArray.data.flatMap(Array<String>::toList).joinToString())
+            assertEquals(stringListArray.data.flatMap(Array<String>::toList).joinToString(), result.toString())
         }
     }
 
@@ -126,9 +100,6 @@ data class StringMessage(val message: String)
 
 @CordaSerializable
 class StringArray(val lines: Array<String>)
-
-@CordaSerializable
-class StringList(val lines: List<String>)
 
 @CordaSerializable
 class StringListOfArray(val data: List<Array<String>>)

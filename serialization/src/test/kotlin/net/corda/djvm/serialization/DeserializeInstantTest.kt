@@ -31,7 +31,7 @@ class DeserializeInstantTest : TestBase(KOTLIN) {
                 sandboxInstant
             ) ?: fail("Result cannot be null")
 
-            assertEquals(result.toString(), instant.toString())
+            assertEquals(instant.toString(), result.toString())
         }
     }
 

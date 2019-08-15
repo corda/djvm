@@ -2,7 +2,7 @@ package net.corda.djvm.serialization
 
 import net.corda.core.serialization.ClassWhitelist
 
-class SandboxExceptionsWhitelist : ClassWhitelist {
+class SandboxWhitelist : ClassWhitelist {
     companion object {
         private val packageName = "^sandbox\\.(?:java|kotlin)(?:[.]|$)".toRegex()
     }
