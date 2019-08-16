@@ -50,6 +50,7 @@ class SandboxAMQPSerializationScheme(
             register(SandboxPrimitiveSerializer(Double::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Boolean::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxCollectionSerializer(classLoader, executor, this))
+            register(SandboxMapSerializer(classLoader, executor, this))
         }
     }
 
