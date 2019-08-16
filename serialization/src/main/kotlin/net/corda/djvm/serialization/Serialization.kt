@@ -11,9 +11,6 @@ import net.corda.serialization.internal.SerializationContextImpl
 import net.corda.serialization.internal.SerializationFactoryImpl
 import net.corda.serialization.internal.amqp.amqpMagic
 import net.corda.serialization.internal.amqp.createSerializerFactoryFactory
-import org.jboss.logging.Param
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
 
 fun SandboxClassLoader.loadClassForSandbox(clazz: Class<*>): Class<Any> {
     @Suppress("unchecked_cast")
@@ -36,26 +33,4 @@ fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): Serializatio
         registerScheme(SandboxAMQPSerializationScheme(classLoader, createSerializerFactoryFactory()))
     }
     return SerializationEnvironment.with(factory, p2pContext = p2pContext)
-}
-
-fun ParameterizedType.createFingerprintProxy(proxyType: Type): ParameterizedType = ParameterizedTypeProxy(
-    rawType = proxyType,
-    ownerType = ownerType,
-    actualTypeArguments = actualTypeArguments
-)
-
-fun Class<*>.asTypeErasedProxy(parameterCount: Int): ParameterizedType = ParameterizedTypeProxy(
-    rawType = this,
-    ownerType = null,
-    actualTypeArguments = Array(parameterCount) { Any::class.java }
-)
-
-private class ParameterizedTypeProxy(
-    private val rawType: Type,
-    private val ownerType: Type?,
-    private val actualTypeArguments: Array<Type>
-) : ParameterizedType {
-    override fun getRawType() = rawType
-    override fun getOwnerType() = ownerType
-    override fun getActualTypeArguments() = actualTypeArguments
 }

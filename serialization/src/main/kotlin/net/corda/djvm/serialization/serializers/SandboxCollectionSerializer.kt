@@ -3,11 +3,11 @@ package net.corda.djvm.serialization.serializers
 import net.corda.core.serialization.SerializationContext
 import net.corda.core.utilities.NonEmptySet
 import net.corda.djvm.rewiring.SandboxClassLoader
-import net.corda.djvm.serialization.asTypeErasedProxy
-import net.corda.djvm.serialization.createFingerprintProxy
 import net.corda.djvm.serialization.deserializers.CreateCollection
 import net.corda.djvm.serialization.loadClassForSandbox
 import net.corda.serialization.internal.amqp.*
+import net.corda.serialization.internal.model.LocalTypeInformation
+import net.corda.serialization.internal.model.TypeIdentifier
 import org.apache.qpid.proton.amqp.Symbol
 import org.apache.qpid.proton.codec.Data
 import java.lang.reflect.ParameterizedType
@@ -48,16 +48,14 @@ class SandboxCollectionSerializer(
 
     override val schemaForDocumentation: Schema = Schema(emptyList())
 
-    override fun specialiseFor(declaredType: Type): AMQPSerializer<Any> {
-        val parameterizedType = when (declaredType) {
-            is ParameterizedType -> declaredType
-            is Class<*> -> declaredType.asTypeErasedProxy(parameterCount = 1)
-            else -> throw AMQPNotSerializableException(declaredType, "type=${declaredType.typeName} is not serializable")
+    override fun specialiseFor(declaredType: Type): AMQPSerializer<Any>? {
+        if (declaredType !is ParameterizedType) {
+            return null
         }
 
         @Suppress("unchecked_cast")
-        val rawType = parameterizedType.rawType as Class<Any>
-        return ConcreteCollectionSerializer(parameterizedType, getBestMatchFor(rawType), creator, localFactory)
+        val rawType = declaredType.rawType as Class<Any>
+        return ConcreteCollectionSerializer(declaredType, getBestMatchFor(rawType), creator, localFactory)
     }
 
     override fun readObject(obj: Any, schemas: SerializationSchemas, input: DeserializationInput, context: SerializationContext): Any {
@@ -79,7 +77,11 @@ private class ConcreteCollectionSerializer(
 
     override val typeDescriptor: Symbol by lazy {
         factory.createDescriptor(
-            type.createFingerprintProxy(matchingType.value)
+            LocalTypeInformation.ACollection(
+                observedType = declaredType.rawType,
+                typeIdentifier = TypeIdentifier.forGenericType(declaredType),
+                elementType =factory.getTypeInformation(declaredType.actualTypeArguments[0])
+            )
         )
     }
 

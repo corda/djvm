@@ -7,7 +7,9 @@ class CreateMap : Function<Array<Any>, Map<Any?, Any?>> {
     private val concreteConstructors: Map<Class<out Map<*, *>>, (Array<Array<Any>>) -> Map<Any?, Any?>> = mapOf(
         Map::class.java to ::createMap,
         SortedMap::class.java to ::createSortedMap,
-        NavigableMap::class.java to ::createNavigableMap
+        LinkedHashMap::class.java to ::createLinkedHashMap,
+        NavigableMap::class.java to ::createNavigableMap,
+        TreeMap::class.java to ::createTreeMap
     )
 
     private fun createMap(values: Array<Array<Any>>): Map<Any?, Any?> {
@@ -15,11 +17,19 @@ class CreateMap : Function<Array<Any>, Map<Any?, Any?>> {
     }
 
     private fun createSortedMap(values: Array<Array<Any>>): SortedMap<Any?, out Any?> {
-        return Collections.unmodifiableSortedMap(values.map { it[0] to it[1] }.toMap(TreeMap()))
+        return Collections.unmodifiableSortedMap(createTreeMap(values))
     }
 
     private fun createNavigableMap(values: Array<Array<Any>>): NavigableMap<Any?, out Any?> {
-        return Collections.unmodifiableNavigableMap(values.map { it[0] to it[1] }.toMap(TreeMap()))
+        return Collections.unmodifiableNavigableMap(createTreeMap(values))
+    }
+
+    private fun createLinkedHashMap(values: Array<Array<Any>>): LinkedHashMap<Any?, out Any?> {
+        return values.map { it[0] to it[1] }.toMap(LinkedHashMap())
+    }
+
+    private fun createTreeMap(values: Array<Array<Any>>): TreeMap<Any?, out Any?> {
+        return values.map { it[0] to it[1] }.toMap(TreeMap())
     }
 
     @Suppress("unchecked_cast")

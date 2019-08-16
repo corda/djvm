@@ -103,6 +103,68 @@ class DeserializeMapsTest : TestBase(KOTLIN) {
             return data.values.entries.joinToString()
         }
     }
+
+    @Test
+    fun `test deserializing linked hash map`() {
+        val linkedHashMap = StringLinkedHashMap(linkedMapOf(
+            "Close" to "Goodbye, Cruel World",
+            "Open" to "Hello World",
+            "During" to "Having Fun!"
+        ))
+        val data = SerializedBytes<Any>(linkedHashMap.serialize().bytes)
+
+        sandbox {
+            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
+
+            val sandboxMap = data.deserialize()
+
+            val executor = createExecutorFor(classLoader)
+            val result = executor.apply(
+                classLoader.loadClassForSandbox(ShowStringLinkedHashMap::class.java).newInstance(),
+                sandboxMap
+            ) ?: fail("Result cannot be null")
+
+            assertEquals(linkedHashMap.values.entries.joinToString(), result.toString())
+            assertEquals("Close=Goodbye, Cruel World, Open=Hello World, During=Having Fun!", result.toString())
+        }
+    }
+
+    class ShowStringLinkedHashMap : Function<StringLinkedHashMap, String> {
+        override fun apply(data: StringLinkedHashMap): String {
+            return data.values.entries.joinToString()
+        }
+    }
+
+    @Test
+    fun `test deserializing tree map`() {
+        val treeMap = StringTreeMap(mapOf(
+            10000 to "Goodbye, Cruel World",
+            1000 to "Hello World",
+            5000 to "Having Fun!"
+        ).toMap(TreeMap()))
+        val data = SerializedBytes<Any>(treeMap.serialize().bytes)
+
+        sandbox {
+            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
+
+            val sandboxMap = data.deserialize()
+
+            val executor = createExecutorFor(classLoader)
+            val result = executor.apply(
+                classLoader.loadClassForSandbox(ShowStringTreeMap::class.java).newInstance(),
+                sandboxMap
+            ) ?: fail("Result cannot be null")
+
+            assertEquals(treeMap.values.entries.joinToString(), result.toString())
+            assertEquals("1000=Hello World, 5000=Having Fun!, 10000=Goodbye, Cruel World", result.toString())
+        }
+    }
+
+    class ShowStringTreeMap : Function<StringTreeMap, String> {
+        override fun apply(data: StringTreeMap): String {
+            return data.values.entries.joinToString()
+        }
+    }
 }
 
 @CordaSerializable
@@ -113,3 +175,9 @@ class StringSortedMap(val values: SortedMap<Int, String>)
 
 @CordaSerializable
 class StringNavigableMap(val values: NavigableMap<Long, String>)
+
+@CordaSerializable
+class StringLinkedHashMap(val values: LinkedHashMap<String, String>)
+
+@CordaSerializable
+class StringTreeMap(val values: TreeMap<Int, String>)

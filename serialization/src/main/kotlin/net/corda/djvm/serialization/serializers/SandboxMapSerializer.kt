@@ -2,11 +2,11 @@ package net.corda.djvm.serialization.serializers
 
 import net.corda.core.serialization.SerializationContext
 import net.corda.djvm.rewiring.SandboxClassLoader
-import net.corda.djvm.serialization.asTypeErasedProxy
-import net.corda.djvm.serialization.createFingerprintProxy
 import net.corda.djvm.serialization.deserializers.CreateMap
 import net.corda.djvm.serialization.loadClassForSandbox
 import net.corda.serialization.internal.amqp.*
+import net.corda.serialization.internal.model.LocalTypeInformation
+import net.corda.serialization.internal.model.TypeIdentifier
 import org.apache.qpid.proton.amqp.Symbol
 import org.apache.qpid.proton.codec.Data
 import java.lang.reflect.ParameterizedType
@@ -32,6 +32,8 @@ class SandboxMapSerializer(
     // The order matters here - the first match should be the most specific one.
     // Kotlin preserves the ordering for us by associating into a LinkedHashMap.
     private val supportedTypes: Map<Class<Any>, Class<out Map<*, *>>> = listOf(
+        TreeMap::class.java,
+        LinkedHashMap::class.java,
         NavigableMap::class.java,
         SortedMap::class.java,
         Map::class.java
@@ -44,16 +46,14 @@ class SandboxMapSerializer(
 
     override val schemaForDocumentation: Schema = Schema(emptyList())
 
-    override fun specialiseFor(declaredType: Type): AMQPSerializer<Any> {
-        val parameterizedType = when (declaredType) {
-            is ParameterizedType -> declaredType
-            is Class<*> -> declaredType.asTypeErasedProxy(parameterCount = 2)
-            else -> throw AMQPNotSerializableException(declaredType, "type=${declaredType.typeName} is not serializable")
+    override fun specialiseFor(declaredType: Type): AMQPSerializer<Any>? {
+        if (declaredType !is ParameterizedType) {
+            return null
         }
 
         @Suppress("unchecked_cast")
-        val rawType = parameterizedType.rawType as Class<Any>
-        return ConcreteMapSerializer(parameterizedType, getBestMatchFor(rawType), creator, localFactory)
+        val rawType = declaredType.rawType as Class<Any>
+        return ConcreteMapSerializer(declaredType, getBestMatchFor(rawType), creator, localFactory)
     }
 
     override fun readObject(obj: Any, schemas: SerializationSchemas, input: DeserializationInput, context: SerializationContext): Any {
@@ -75,7 +75,12 @@ private class ConcreteMapSerializer(
 
     override val typeDescriptor: Symbol by lazy {
         factory.createDescriptor(
-            type.createFingerprintProxy(matchingType.value)
+            LocalTypeInformation.AMap(
+                observedType = declaredType.rawType,
+                typeIdentifier = TypeIdentifier.forGenericType(declaredType),
+                keyType =factory.getTypeInformation(declaredType.actualTypeArguments[0]),
+                valueType = factory.getTypeInformation(declaredType.actualTypeArguments[1])
+            )
         )
     }
 
