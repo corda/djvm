@@ -41,7 +41,6 @@ class SandboxAMQPSerializationScheme(
         return serializerFactoryFactory.make(context).apply {
             register(SandboxInstantSerializer(classLoader, executor, this))
             register(SandboxPrimitiveSerializer(String::class.java, classLoader, sandboxBasicInput))
-            register(SandboxPrimitiveSerializer(Char::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Byte::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Short::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Int::class.javaObjectType, classLoader, sandboxBasicInput))
@@ -49,6 +48,7 @@ class SandboxAMQPSerializationScheme(
             register(SandboxPrimitiveSerializer(Float::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Double::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Boolean::class.javaObjectType, classLoader, sandboxBasicInput))
+            register(SandboxCharacterSerializer(classLoader, sandboxBasicInput))
             register(SandboxCollectionSerializer(classLoader, executor, this))
             register(SandboxMapSerializer(classLoader, executor, this))
         }
