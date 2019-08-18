@@ -1,29 +1,17 @@
-buildscript {
-    ext {
-        corda_djvm_version = '5.0-SNAPSHOT'
-        artifactory_contextUrl = 'https://software.r3.com/artifactory'
-    }
-
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
 plugins {
-    id 'net.corda.plugins.publish-utils' version '4.0.45' apply false
-    id 'com.github.johnrengelman.shadow' version '5.1.0' apply false
-    id 'com.jfrog.artifactory' version '4.9.6' apply false
-    id 'com.jfrog.bintray' version '1.4' apply false
-    id 'org.owasp.dependencycheck' version '5.1.0'
-    id 'com.gradle.build-scan' version '2.2.1'
+    id 'org.jetbrains.kotlin.jvm' apply false
+    id 'net.corda.plugins.publish-utils'
+    id 'com.jfrog.artifactory'
+    id 'org.owasp.dependencycheck'
+    id 'com.gradle.build-scan'
 }
 
 import static org.gradle.api.JavaVersion.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+ext {
+    artifactory_contextUrl = 'https://software.r3.com/artifactory'
+}
 
 subprojects {
     group 'net.corda'
@@ -68,9 +56,6 @@ subprojects {
         systemProperty 'user.timezone', 'UTC'
     }
 }
-
-apply plugin: 'net.corda.plugins.publish-utils'
-apply plugin: 'com.jfrog.artifactory'
 
 bintrayConfig {
     user = System.getenv('CORDA_BINTRAY_USER')
