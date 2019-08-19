@@ -30,7 +30,7 @@ allprojects {
 
     configurations{
         // This is for the latest deterministic Corda SNAPSHOT artifacts...
-        [compileClasspath, runtimeClasspath].forEach { cfg ->
+        [ compileClasspath, runtimeClasspath ].forEach { cfg ->
             cfg.resolutionStrategy {
                 // Always check the repository for a newer SNAPSHOT.
                 cacheChangingModulesFor 0, 'seconds'

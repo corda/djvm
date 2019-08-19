@@ -22,7 +22,7 @@ class SandboxEnumSerializer(
     private val describer: Function<Class<*>, Array<Any>>
 
     init {
-        val describeTask: Any = classLoader.loadClassForSandbox(DescribeEnum::class.java).newInstance()
+        val describeTask = classLoader.loadClassForSandbox(DescribeEnum::class.java).newInstance()
         describer = Function { inputs ->
             @Suppress("unchecked_cast")
             executor.apply(describeTask, inputs) as Array<Any>

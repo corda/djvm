@@ -7,6 +7,7 @@ import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.custom.InstantSerializer
 import java.time.Instant
+import java.util.Collections.singleton
 import java.util.function.BiFunction
 
 class SandboxInstantSerializer(classLoader: SandboxClassLoader,
@@ -19,7 +20,7 @@ class SandboxInstantSerializer(classLoader: SandboxClassLoader,
 ) {
     private val task = classLoader.loadClassForSandbox(InstantDeserializer::class.java).newInstance()
 
-    override val deserializationAliases = setOf(Instant::class.java)
+    override val deserializationAliases: Set<Class<*>> = singleton(Instant::class.java)
 
     override fun toProxy(obj: Any): Any = throw UnsupportedOperationException("Read Only!")
 

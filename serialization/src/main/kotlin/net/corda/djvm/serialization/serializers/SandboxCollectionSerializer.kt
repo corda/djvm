@@ -24,7 +24,7 @@ class SandboxCollectionSerializer(
     private val creator: Function<Array<Any>, out Any?>
 
     init {
-        val createTask: Any = classLoader.loadClassForSandbox(CreateCollection::class.java).newInstance()
+        val createTask = classLoader.loadClassForSandbox(CreateCollection::class.java).newInstance()
         creator = Function { inputs ->
             executor.apply(createTask, inputs)
         }

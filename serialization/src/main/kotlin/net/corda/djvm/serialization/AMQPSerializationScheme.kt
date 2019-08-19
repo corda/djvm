@@ -52,6 +52,7 @@ class SandboxAMQPSerializationScheme(
             register(SandboxCollectionSerializer(classLoader, executor, this))
             register(SandboxMapSerializer(classLoader, executor, this))
             register(SandboxEnumSerializer(classLoader, executor, this))
+            register(SandboxPublicKeySerializer(classLoader, executor))
         }
     }
 
