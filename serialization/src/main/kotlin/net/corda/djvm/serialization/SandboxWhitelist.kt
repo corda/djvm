@@ -8,6 +8,6 @@ class SandboxWhitelist : ClassWhitelist {
     }
 
     override fun hasListed(type: Class<*>): Boolean {
-        return packageName.containsMatchIn(type.name.dropLast(type.simpleName.length + 1))
+        return packageName.containsMatchIn(type.`package`.name)
     }
 }
