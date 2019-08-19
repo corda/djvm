@@ -51,6 +51,7 @@ class SandboxAMQPSerializationScheme(
             register(SandboxCharacterSerializer(classLoader, sandboxBasicInput))
             register(SandboxCollectionSerializer(classLoader, executor, this))
             register(SandboxMapSerializer(classLoader, executor, this))
+            register(SandboxEnumSerializer(classLoader, executor, this))
         }
     }
 

@@ -68,7 +68,7 @@ class SandboxCollectionSerializer(
 }
 
 private class ConcreteCollectionSerializer(
-    private val declaredType: ParameterizedType,
+    declaredType: ParameterizedType,
     private val matchingType: Map.Entry<Class<Any>, Class<out Collection<*>>>,
     private val creator: Function<Array<Any>, out Any?>,
     factory: LocalSerializerFactory
@@ -91,8 +91,8 @@ private class ConcreteCollectionSerializer(
         input: DeserializationInput,
         context: SerializationContext
     ): Any {
-        val inboundType = declaredType.actualTypeArguments[0]
-        return ifThrowsAppend({ declaredType.typeName }) {
+        val inboundType = type.actualTypeArguments[0]
+        return ifThrowsAppend({ type.typeName }) {
             val args = (obj as List<*>).map {
                 input.readObjectOrNull(redescribe(it, inboundType), schemas, inboundType, context)
             }.toTypedArray()

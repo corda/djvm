@@ -10,6 +10,7 @@ import java.lang.Double
 import java.lang.Float
 import java.lang.Long
 import java.lang.Short
+import java.util.Collections.singleton
 import java.util.Collections.unmodifiableMap
 
 /**
@@ -32,7 +33,10 @@ class SandboxSerializerFactoryFactory : SerializerFactoryFactory {
 
         val classCarpenter = createClassCarpenter(context)
         val descriptorBasedSerializerRegistry = DefaultDescriptorBasedSerializerRegistry()
-        val customSerializerRegistry = CachingCustomSerializerRegistry(descriptorBasedSerializerRegistry)
+        val customSerializerRegistry = CachingCustomSerializerRegistry(
+            descriptorBasedSerializerRegistry = descriptorBasedSerializerRegistry,
+            allowedFor = singleton(classLoader.loadClass("sandbox.java.lang.Object"))
+        )
 
         val localTypeModel = ConfigurableLocalTypeModel(
             WhitelistBasedTypeModelConfiguration(context.whitelist, customSerializerRegistry)

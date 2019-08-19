@@ -66,7 +66,7 @@ class SandboxMapSerializer(
 }
 
 private class ConcreteMapSerializer(
-    private val declaredType: ParameterizedType,
+    declaredType: ParameterizedType,
     private val matchingType: Map.Entry<Class<Any>, Class<out Map<*, *>>>,
     private val creator: Function<Array<Any>, out Any?>,
     factory: LocalSerializerFactory
@@ -90,9 +90,9 @@ private class ConcreteMapSerializer(
         input: DeserializationInput,
         context: SerializationContext
     ): Any {
-        val inboundKeyType = declaredType.actualTypeArguments[0]
-        val inboundValueType = declaredType.actualTypeArguments[1]
-        return ifThrowsAppend({ declaredType.typeName }) {
+        val inboundKeyType = type.actualTypeArguments[0]
+        val inboundValueType = type.actualTypeArguments[1]
+        return ifThrowsAppend({ type.typeName }) {
             val entries = (obj as Map<*, *>).map {
                 arrayOf(
                     input.readObjectOrNull(redescribe(it.key, inboundKeyType), schemas, inboundKeyType, context),
