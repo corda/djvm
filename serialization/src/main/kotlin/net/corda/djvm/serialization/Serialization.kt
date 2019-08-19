@@ -10,7 +10,6 @@ import net.corda.serialization.internal.GlobalTransientClassWhiteList
 import net.corda.serialization.internal.SerializationContextImpl
 import net.corda.serialization.internal.SerializationFactoryImpl
 import net.corda.serialization.internal.amqp.amqpMagic
-import net.corda.serialization.internal.amqp.createSerializerFactoryFactory
 
 fun SandboxClassLoader.loadClassForSandbox(clazz: Class<*>): Class<Any> {
     @Suppress("unchecked_cast")
@@ -30,7 +29,7 @@ fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): Serializatio
     )
 
     val factory = SerializationFactoryImpl(mutableMapOf()).apply {
-        registerScheme(SandboxAMQPSerializationScheme(classLoader, createSerializerFactoryFactory()))
+        registerScheme(SandboxAMQPSerializationScheme(classLoader, SandboxSerializerFactoryFactory()))
     }
     return SerializationEnvironment.with(factory, p2pContext = p2pContext)
 }
