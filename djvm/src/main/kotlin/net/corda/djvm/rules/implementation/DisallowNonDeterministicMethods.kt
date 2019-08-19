@@ -24,7 +24,7 @@ object DisallowNonDeterministicMethods : Emitter {
                         Choice.FORBID -> forbid(instruction)
                         Choice.LOAD_CLASS -> loadClass()
                         Choice.INIT_CLASSLOADER -> initClassLoader()
-                        Choice.GET_PARENT -> returnNull(POP)
+                        Choice.GET_PARENT, Choice.GET_PACKAGE -> returnNull(POP)
                         Choice.NO_RESOURCE -> returnNull(POP2)
                         Choice.EMPTY_RESOURCES -> emptyResources(POP2)
                         else -> Unit
@@ -82,6 +82,7 @@ object DisallowNonDeterministicMethods : Emitter {
         FORBID,
         LOAD_CLASS,
         INIT_CLASSLOADER,
+        GET_PACKAGE,
         GET_PARENT,
         NO_RESOURCE,
         EMPTY_RESOURCES,
@@ -103,6 +104,7 @@ object DisallowNonDeterministicMethods : Emitter {
             isClassLoader && instruction.memberName == "getParent" -> Choice.GET_PARENT
             isClassLoader && instruction.memberName == "getResources" -> Choice.EMPTY_RESOURCES
             isClassLoader && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
+            isClass && instruction.memberName == "getPackage" -> Choice.GET_PACKAGE
 
             className == "java/security/Provider\$Service" -> allowLoadClass()
 

@@ -183,33 +183,35 @@ class SandboxClassLoader private constructor(
      */
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
-        var clazz = findLoadedClass(name)
-        if (clazz == null) {
-            val source = ClassSource.fromClassName(name)
-            val isSandboxClass = analysisConfiguration.isSandboxClass(source.internalClassName)
-
-            if (!isSandboxClass || parent is SandboxClassLoader) {
-                try {
-                    clazz = super.loadClass(name, false)
-                } catch (e: ClassNotFoundException) {
-                } catch (e: SandboxClassLoadingException) {
-                    e.messages.clearProvisional()
-                }
-            }
-
+        synchronized (getClassLoadingLock(name)) {
+            var clazz = findLoadedClass(name)
             if (clazz == null) {
-                if (isSandboxClass) {
-                    clazz = loadSandboxClass(source, context).type
-                } else {
-                    // We shouldn't reach here, but this function should never return null.
-                    throw ClassNotFoundException(name)
+                val source = ClassSource.fromClassName(name)
+                val isSandboxClass = analysisConfiguration.isSandboxClass(source.internalClassName)
+
+                if (!isSandboxClass || parent is SandboxClassLoader) {
+                    try {
+                        clazz = super.loadClass(name, false)
+                    } catch (e: ClassNotFoundException) {
+                    } catch (e: SandboxClassLoadingException) {
+                        e.messages.clearProvisional()
+                    }
+                }
+
+                if (clazz == null) {
+                    if (isSandboxClass) {
+                        clazz = loadSandboxClass(source, context).type
+                    } else {
+                        // We shouldn't reach here, but this function should never return null.
+                        throw ClassNotFoundException(name)
+                    }
                 }
             }
+            if (resolve) {
+                resolveClass(clazz)
+            }
+            return clazz
         }
-        if (resolve) {
-            resolveClass(clazz)
-        }
-        return clazz
     }
 
     /**
@@ -306,7 +308,7 @@ class SandboxClassLoader private constructor(
         val clazz: Class<*> = try {
             when {
                 whitelistedClasses.matches(sourceName.asResourcePath) -> supportingClassLoader.loadClass(sourceName)
-                else -> defineClass(resolvedName, byteCode.bytes, 0, byteCode.bytes.size)
+                else -> defineClass(resolvedName, byteCode)
             }
         } catch (exception: SecurityException) {
             throw SecurityException("Cannot redefine class '$resolvedName'", exception)
@@ -325,6 +327,17 @@ class SandboxClassLoader private constructor(
         return classWithByteCode
     }
 
+    private fun defineClass(name: String, byteCode: ByteCode): Class<*> {
+        val idx = name.lastIndexOf('.')
+        if (idx > 0) {
+            val packageName = name.substring(0, idx)
+            if (getPackage(packageName) == null) {
+                definePackage(packageName, null, null, null, null, null, null, null)
+            }
+        }
+        return defineClass(name, byteCode.bytes, 0, byteCode.bytes.size)
+    }
+
     private fun loadUnmodifiedByteCode(internalClassName: String): ByteCode {
         return ByteCode((getSystemResourceAsStream("$internalClassName.class")
                 ?: throw ClassNotFoundException(internalClassName)).readBytes(), false)
@@ -339,7 +352,7 @@ class SandboxClassLoader private constructor(
         return loadedClasses.getOrPut(className) {
             val superName = analysisConfiguration.exceptionResolver.getThrowableSuperName(throwable)
             val byteCode = ThrowableWrapperFactory.toByteCode(className, superName)
-            LoadedClass(defineClass(className.asPackagePath, byteCode.bytes, 0, byteCode.bytes.size), byteCode)
+            LoadedClass(defineClass(className.asPackagePath, byteCode), byteCode)
         }
     }
 

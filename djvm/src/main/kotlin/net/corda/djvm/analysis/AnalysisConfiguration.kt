@@ -346,6 +346,8 @@ class AnalysisConfiguration private constructor(
             }.build()
         ).mapByClassName() + (
             generateJavaTimeMethods()
+        ).mapByClassName() + (
+            generateJavaPackageMethods()
         ).mapByClassName() + listOf(
             object : MethodBuilder(
                 access = ACC_STATIC or ACC_PRIVATE,

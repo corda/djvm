@@ -159,9 +159,15 @@ class EmitterModule(
     fun pushNull() = instruction(ACONST_NULL)
 
     /**
+     * Emit instruction for pushing zero (Integer) onto the stack.
+     */
+    fun pushIntegerZero() = instruction(ICONST_0)
+
+    /**
      * Emit instruction for pushing "false" onto the stack.
      */
-    fun pushFalse() = instruction(ICONST_0)
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun pushFalse() = pushIntegerZero()
 
     /**
      * Emit instruction for pushing an integer value
