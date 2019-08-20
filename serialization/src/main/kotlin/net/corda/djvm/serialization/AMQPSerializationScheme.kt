@@ -13,6 +13,7 @@ import net.corda.serialization.internal.amqp.*
 import java.lang.reflect.InvocationTargetException
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.util.*
 import java.util.function.BiFunction
 
 class SandboxAMQPSerializationScheme(
@@ -56,6 +57,7 @@ class SandboxAMQPSerializationScheme(
             register(SandboxYearSerializer(classLoader, executor, this))
             register(SandboxZonedDateTimeSerializer(classLoader, executor, this))
             register(SandboxZoneIdSerializer(classLoader, executor, this))
+            register(SandboxPrimitiveSerializer(UUID::class.java, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(String::class.java, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Byte::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Short::class.javaObjectType, classLoader, sandboxBasicInput))

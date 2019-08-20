@@ -43,6 +43,7 @@ fun Any.sandbox(): Any {
         is kotlin.Enum<*> -> toDJVMEnum()
         is kotlin.Throwable -> toDJVMThrowable()
         is java.util.Date -> Date(time)
+        is java.util.UUID -> UUID(mostSignificantBits, leastSignificantBits)
         is java.time.Duration -> sandbox.java.time.Duration.ofSeconds(seconds, nano.toLong())
         is java.time.Instant -> sandbox.java.time.Instant.ofEpochSecond(epochSecond, nano.toLong())
         is java.time.LocalDate -> toDJVM()

@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * This is a dummy class. We will load the actual Enum class at run-time.
  */
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings("unused")
 public abstract class Enum<E extends Enum<E>> extends Object implements Comparable<E>, Serializable {
 
     private final String name;
