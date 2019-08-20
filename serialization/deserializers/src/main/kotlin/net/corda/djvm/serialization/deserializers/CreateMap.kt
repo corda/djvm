@@ -9,7 +9,8 @@ class CreateMap : Function<Array<Any>, Map<Any?, Any?>> {
         SortedMap::class.java to ::createSortedMap,
         LinkedHashMap::class.java to ::createLinkedHashMap,
         NavigableMap::class.java to ::createNavigableMap,
-        TreeMap::class.java to ::createTreeMap
+        TreeMap::class.java to ::createTreeMap,
+        EnumMap::class.java to ::createEnumMap
     )
 
     private fun createMap(values: Array<Array<Any>>): Map<Any?, Any?> {
@@ -30,6 +31,12 @@ class CreateMap : Function<Array<Any>, Map<Any?, Any?>> {
 
     private fun createTreeMap(values: Array<Array<Any>>): TreeMap<Any?, out Any?> {
         return values.map { it[0] to it[1] }.toMap(TreeMap())
+    }
+
+    private fun createEnumMap(values: Array<Array<Any>>): Map<Any?, Any?> {
+        val map = values.map { it[0] to it[1] }.toMap()
+        @Suppress("unchecked_cast")
+        return EnumMap(map as Map<JustForCasting, Any?>) as Map<Any?, Any?>
     }
 
     @Suppress("unchecked_cast")

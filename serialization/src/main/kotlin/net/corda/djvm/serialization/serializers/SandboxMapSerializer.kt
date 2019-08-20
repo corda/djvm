@@ -36,6 +36,7 @@ class SandboxMapSerializer(
         LinkedHashMap::class.java,
         NavigableMap::class.java,
         SortedMap::class.java,
+        EnumMap::class.java,
         Map::class.java
     ).associateBy {
         classLoader.loadClassForSandbox(it)

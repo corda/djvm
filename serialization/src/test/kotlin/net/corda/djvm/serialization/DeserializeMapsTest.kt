@@ -165,6 +165,36 @@ class DeserializeMapsTest : TestBase(KOTLIN) {
             return data.values.entries.joinToString()
         }
     }
+
+    @Test
+    fun `test deserializing enum map`() {
+        val enumMap = EnumMap(mapOf(
+            ExampleEnum.ONE to "One!",
+            ExampleEnum.TWO to "Two!"
+        ))
+        val data = SerializedBytes<Any>(enumMap.serialize().bytes)
+
+        sandbox {
+            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
+
+            val sandboxMap = data.deserialize()
+
+            val executor = createExecutorFor(classLoader)
+            val result = executor.apply(
+                classLoader.loadClassForSandbox(ShowEnumMap::class.java).newInstance(),
+                sandboxMap
+            ) ?: fail("Result cannot be null")
+
+            assertEquals(enumMap.toString(), result.toString())
+            assertEquals("{ONE=One!, TWO=Two!}", result.toString())
+        }
+    }
+
+    class ShowEnumMap : Function<EnumMap<*, String>, String> {
+        override fun apply(data: EnumMap<*, String>): String {
+            return data.toString()
+        }
+    }
 }
 
 @CordaSerializable
