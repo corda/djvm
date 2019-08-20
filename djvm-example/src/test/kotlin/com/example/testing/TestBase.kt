@@ -1,5 +1,6 @@
 package com.example.testing
 
+import net.corda.core.serialization.CordaSerializable
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration
@@ -38,6 +39,7 @@ abstract class TestBase(type: SandboxType) {
             val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
                 whitelist = Whitelist.MINIMAL,
+                visibleAnnotations = setOf(CordaSerializable::class.java),
                 bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
             )
             configuration = SandboxConfiguration.of(
