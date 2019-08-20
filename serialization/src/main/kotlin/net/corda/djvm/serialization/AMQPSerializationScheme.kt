@@ -41,6 +41,7 @@ class SandboxAMQPSerializationScheme(
 
     private fun getSerializerFactory(context: SerializationContext): SerializerFactory {
         return serializerFactoryFactory.make(context).apply {
+            register(SandboxBitSetSerializer(classLoader, executor, this))
             register(SandboxDurationSerializer(classLoader, executor, this))
             register(SandboxInstantSerializer(classLoader, executor, this))
             register(SandboxLocalDateSerializer(classLoader, executor, this))
