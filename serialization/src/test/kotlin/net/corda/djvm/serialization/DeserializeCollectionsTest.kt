@@ -1,5 +1,6 @@
 package net.corda.djvm.serialization
 
+import greymalkin.ExternalEnum
 import net.corda.core.serialization.CordaSerializable
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
@@ -177,6 +178,33 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
             return data.lines.joinToString()
         }
     }
+
+    @Test
+    fun `test deserializing enum set`() {
+        val enumSet = HasEnumSet(EnumSet.of(ExternalEnum.DOH))
+        val data = SerializedBytes<Any>(enumSet.serialize().bytes)
+
+        sandbox {
+            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
+
+            val sandboxSet = data.deserialize()
+
+            val executor = createExecutorFor(classLoader)
+            val result = executor.apply(
+                classLoader.loadClassForSandbox(ShowHasEnumSet::class.java).newInstance(),
+                sandboxSet
+            ) ?: fail("Result cannot be null")
+
+            assertEquals(enumSet.values.toString(), result.toString())
+            assertEquals("[DOH]", result.toString())
+        }
+    }
+
+    class ShowHasEnumSet : Function<HasEnumSet, String> {
+        override fun apply(data: HasEnumSet): String {
+            return data.values.toString()
+        }
+    }
 }
 
 @CordaSerializable
@@ -196,3 +224,6 @@ class ShortCollection(val numbers: Collection<Short>)
 
 @CordaSerializable
 class NonEmptyStringSet(val lines: NonEmptySet<String>)
+
+@CordaSerializable
+class HasEnumSet(val values: EnumSet<ExternalEnum>)

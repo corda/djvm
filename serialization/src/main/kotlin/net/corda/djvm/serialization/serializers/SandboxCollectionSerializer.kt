@@ -30,6 +30,12 @@ class SandboxCollectionSerializer(
         }
     }
 
+    private val unsupportedTypes: Set<Class<Any>> = listOf(
+        EnumSet::class.java
+    ).map {
+        classLoader.loadClassForSandbox(it)
+    }.toSet()
+
     // The order matters here - the first match should be the most specific one.
     // Kotlin preserves the ordering for us by associating into a LinkedHashMap.
     private val supportedTypes: Map<Class<Any>, Class<out Collection<*>>> = listOf(
@@ -47,6 +53,10 @@ class SandboxCollectionSerializer(
         = supportedTypes.entries.first { it.key.isAssignableFrom(type) }
 
     override val schemaForDocumentation: Schema = Schema(emptyList())
+
+    override fun isSerializerFor(clazz: Class<*>): Boolean {
+        return super.isSerializerFor(clazz) && unsupportedTypes.none { it.isAssignableFrom(clazz) }
+    }
 
     override fun specialiseFor(declaredType: Type): AMQPSerializer<Any>? {
         if (declaredType !is ParameterizedType) {
