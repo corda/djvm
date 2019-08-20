@@ -34,7 +34,7 @@ class DeserializeEnumTest : TestBase(KOTLIN) {
 
             assertEquals(ShowExampleData().apply(example), result.toString())
             assertEquals("Example: name='${value.name}', ordinal='${value.ordinal}'", result.toString())
-            assertEquals("sandbox.java.lang.String", result::class.java.name)
+            assertEquals(SANDBOX_STRING, result::class.java.name)
         }
     }
 

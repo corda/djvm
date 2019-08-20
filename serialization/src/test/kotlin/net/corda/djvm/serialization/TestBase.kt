@@ -30,6 +30,8 @@ import kotlin.concurrent.thread
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 abstract class TestBase(type: SandboxType) {
     companion object {
+        const val SANDBOX_STRING = "sandbox.java.lang.String"
+
         @JvmField
         val DETERMINISTIC_RT: Path = Paths.get(
             System.getProperty("deterministic-rt.path") ?: fail("deterministic-rt.path property not set"))

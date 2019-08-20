@@ -10,38 +10,44 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
-import java.time.Instant
+import java.math.BigDecimal
 import java.util.function.Function
 
 @ExtendWith(LocalSerialization::class)
-class DeserializeInstantTest : TestBase(KOTLIN) {
+class DeserializeBigDecimalTest : TestBase(KOTLIN) {
+    companion object {
+        const val VERY_BIG_DECIMAL = 994349993939.32737232
+    }
+
     @Test
-    fun `test deserializing instant`() {
-        val instant = InstantData(Instant.now())
-        val data = SerializedBytes<Any>(instant.serialize().bytes)
+    fun `test deserializing big decimal`() {
+        val bigDecimal = BigDecimalData(BigDecimal.valueOf(VERY_BIG_DECIMAL))
+        val data = SerializedBytes<Any>(bigDecimal.serialize().bytes)
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxInstant = data.deserialize()
+            val sandboxBigInteger = data.deserialize()
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowInstant::class.java).newInstance(),
-                sandboxInstant
+                    classLoader.loadClassForSandbox(ShowBigDecimal::class.java).newInstance(),
+                    sandboxBigInteger
             ) ?: fail("Result cannot be null")
 
-            assertEquals(instant.toString(), result.toString())
+            assertEquals(ShowBigDecimal().apply(bigDecimal), result.toString())
             assertEquals(SANDBOX_STRING, result::class.java.name)
         }
     }
 
-    class ShowInstant : Function<InstantData, String> {
-        override fun apply(instant: InstantData): String {
-            return instant.toString()
+    class ShowBigDecimal : Function<BigDecimalData, String> {
+        override fun apply(data: BigDecimalData): String {
+            return with(data) {
+                "BigDecimal: $number"
+            }
         }
     }
 }
 
 @CordaSerializable
-data class InstantData(val time: Instant)
+data class BigDecimalData(val number: BigDecimal)

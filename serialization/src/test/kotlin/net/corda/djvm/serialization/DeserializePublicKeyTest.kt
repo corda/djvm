@@ -52,6 +52,7 @@ class DeserializePublicKeyTest : TestBase(KOTLIN) {
             ) ?: fail("Result cannot be null")
 
             assertEquals(ShowPublicKey().apply(publicKey), result.toString())
+            assertEquals(SANDBOX_STRING, result::class.java.name)
         }
     }
 

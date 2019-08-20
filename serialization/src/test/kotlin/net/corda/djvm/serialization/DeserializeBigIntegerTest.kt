@@ -10,38 +10,44 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
-import java.time.Instant
+import java.math.BigInteger
 import java.util.function.Function
 
 @ExtendWith(LocalSerialization::class)
-class DeserializeInstantTest : TestBase(KOTLIN) {
+class DeserializeBigIntegerTest : TestBase(KOTLIN) {
+    companion object {
+        const val VERY_BIG_NUMBER = 1234567890123456789
+    }
+
     @Test
-    fun `test deserializing instant`() {
-        val instant = InstantData(Instant.now())
-        val data = SerializedBytes<Any>(instant.serialize().bytes)
+    fun `test deserializing big integer`() {
+        val bigInteger = BigIntegerData(BigInteger.valueOf(VERY_BIG_NUMBER))
+        val data = SerializedBytes<Any>(bigInteger.serialize().bytes)
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxInstant = data.deserialize()
+            val sandboxBigInteger = data.deserialize()
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowInstant::class.java).newInstance(),
-                sandboxInstant
+                classLoader.loadClassForSandbox(ShowBigInteger::class.java).newInstance(),
+                sandboxBigInteger
             ) ?: fail("Result cannot be null")
 
-            assertEquals(instant.toString(), result.toString())
+            assertEquals(ShowBigInteger().apply(bigInteger), result.toString())
             assertEquals(SANDBOX_STRING, result::class.java.name)
         }
     }
 
-    class ShowInstant : Function<InstantData, String> {
-        override fun apply(instant: InstantData): String {
-            return instant.toString()
+    class ShowBigInteger : Function<BigIntegerData, String> {
+        override fun apply(data: BigIntegerData): String {
+            return with(data) {
+                "BigInteger: $number"
+            }
         }
     }
 }
 
 @CordaSerializable
-data class InstantData(val time: Instant)
+data class BigIntegerData(val number: BigInteger)

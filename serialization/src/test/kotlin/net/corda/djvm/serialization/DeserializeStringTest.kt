@@ -31,6 +31,7 @@ class DeserializeStringTest : TestBase(KOTLIN) {
             ) ?: fail("Result cannot be null")
 
             assertEquals(stringMessage.message, result.toString())
+            assertEquals(SANDBOX_STRING, result::class.java.name)
         }
     }
 

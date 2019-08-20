@@ -11,6 +11,8 @@ import net.corda.serialization.internal.CordaSerializationMagic
 import net.corda.serialization.internal.SerializationScheme
 import net.corda.serialization.internal.amqp.*
 import java.lang.reflect.InvocationTargetException
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.function.BiFunction
 
 class SandboxAMQPSerializationScheme(
@@ -53,6 +55,10 @@ class SandboxAMQPSerializationScheme(
             register(SandboxMapSerializer(classLoader, executor, this))
             register(SandboxEnumSerializer(classLoader, executor, this))
             register(SandboxPublicKeySerializer(classLoader, executor))
+            register(SandboxToStringSerializer(BigDecimal::class.java, classLoader, executor, sandboxBasicInput))
+            register(SandboxToStringSerializer(BigInteger::class.java, classLoader, executor, sandboxBasicInput))
+            register(SandboxToStringSerializer(StringBuffer::class.java, classLoader, executor, sandboxBasicInput))
+            register(SandboxCurrencySerializer(classLoader, executor, sandboxBasicInput))
         }
     }
 

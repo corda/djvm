@@ -33,7 +33,7 @@ class DeserializeGenericsTest : TestBase(KOTLIN) {
             ) ?: fail("Result cannot be null")
 
             assertEquals("Hello World!", result.toString())
-            assertEquals("sandbox.java.lang.String", result::class.java.name)
+            assertEquals(SANDBOX_STRING, result::class.java.name)
         }
     }
 

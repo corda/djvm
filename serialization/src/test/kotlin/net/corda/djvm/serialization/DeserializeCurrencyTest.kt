@@ -10,38 +10,40 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
-import java.time.Instant
+import java.util.*
 import java.util.function.Function
 
 @ExtendWith(LocalSerialization::class)
-class DeserializeInstantTest : TestBase(KOTLIN) {
+class DeserializeCurrencyTest : TestBase(KOTLIN) {
     @Test
-    fun `test deserializing instant`() {
-        val instant = InstantData(Instant.now())
-        val data = SerializedBytes<Any>(instant.serialize().bytes)
+    fun `test deserializing currency`() {
+        val currency = CurrencyData(Currency.getInstance("GBP"))
+        val data = SerializedBytes<Any>(currency.serialize().bytes)
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxInstant = data.deserialize()
+            val sandboxCurrency = data.deserialize()
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowInstant::class.java).newInstance(),
-                sandboxInstant
+                classLoader.loadClassForSandbox(ShowCurrency::class.java).newInstance(),
+                sandboxCurrency
             ) ?: fail("Result cannot be null")
 
-            assertEquals(instant.toString(), result.toString())
+            assertEquals(ShowCurrency().apply(currency), result.toString())
             assertEquals(SANDBOX_STRING, result::class.java.name)
         }
     }
 
-    class ShowInstant : Function<InstantData, String> {
-        override fun apply(instant: InstantData): String {
-            return instant.toString()
+    class ShowCurrency : Function<CurrencyData, String> {
+        override fun apply(data: CurrencyData): String {
+            return with(data) {
+                "Currency: $currency"
+            }
         }
     }
 }
 
 @CordaSerializable
-data class InstantData(val time: Instant)
+data class CurrencyData(val currency: Currency)
