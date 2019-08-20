@@ -9,35 +9,35 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
-import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.function.Function
 
 @ExtendWith(LocalSerialization::class)
-class DeserializeInstantTest : TestBase(KOTLIN) {
+class DeserializeOffsetDateTimeTest : TestBase(KOTLIN) {
     @Test
-    fun `test deserializing instant`() {
-        val instant = Instant.now()
-        val data = SerializedBytes<Any>(instant.serialize().bytes)
+    fun `test deserializing offset date-time`() {
+        val dateTime = OffsetDateTime.now()
+        val data = SerializedBytes<Any>(dateTime.serialize().bytes)
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxInstant = data.deserialize()
+            val sandboxDateTime = data.deserialize()
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowInstant::class.java).newInstance(),
-                sandboxInstant
+                classLoader.loadClassForSandbox(ShowOffsetDateTime::class.java).newInstance(),
+                sandboxDateTime
             ) ?: fail("Result cannot be null")
 
-            assertEquals(instant.toString(), result.toString())
+            assertEquals(dateTime.toString(), result.toString())
             assertEquals(SANDBOX_STRING, result::class.java.name)
         }
     }
 
-    class ShowInstant : Function<Instant, String> {
-        override fun apply(instant: Instant): String {
-            return instant.toString()
+    class ShowOffsetDateTime : Function<OffsetDateTime, String> {
+        override fun apply(dateTime: OffsetDateTime): String {
+            return dateTime.toString()
         }
     }
 }

@@ -9,35 +9,35 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
-import java.time.Instant
+import java.time.YearMonth
 import java.util.function.Function
 
 @ExtendWith(LocalSerialization::class)
-class DeserializeInstantTest : TestBase(KOTLIN) {
+class DeserializeYearMonthTest : TestBase(KOTLIN) {
     @Test
-    fun `test deserializing instant`() {
-        val instant = Instant.now()
-        val data = SerializedBytes<Any>(instant.serialize().bytes)
+    fun `test deserializing year-month`() {
+        val yearMonth = YearMonth.now()
+        val data = SerializedBytes<Any>(yearMonth.serialize().bytes)
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxInstant = data.deserialize()
+            val sandboxYearMonth = data.deserialize()
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowInstant::class.java).newInstance(),
-                sandboxInstant
+                classLoader.loadClassForSandbox(ShowYearMonth::class.java).newInstance(),
+                sandboxYearMonth
             ) ?: fail("Result cannot be null")
 
-            assertEquals(instant.toString(), result.toString())
+            assertEquals(yearMonth.toString(), result.toString())
             assertEquals(SANDBOX_STRING, result::class.java.name)
         }
     }
 
-    class ShowInstant : Function<Instant, String> {
-        override fun apply(instant: Instant): String {
-            return instant.toString()
+    class ShowYearMonth : Function<YearMonth, String> {
+        override fun apply(yearMonth: YearMonth): String {
+            return yearMonth.toString()
         }
     }
 }

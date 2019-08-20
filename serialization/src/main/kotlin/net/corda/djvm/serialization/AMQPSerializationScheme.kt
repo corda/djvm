@@ -41,7 +41,19 @@ class SandboxAMQPSerializationScheme(
 
     private fun getSerializerFactory(context: SerializationContext): SerializerFactory {
         return serializerFactoryFactory.make(context).apply {
+            register(SandboxDurationSerializer(classLoader, executor, this))
             register(SandboxInstantSerializer(classLoader, executor, this))
+            register(SandboxLocalDateSerializer(classLoader, executor, this))
+            register(SandboxLocalDateTimeSerializer(classLoader, executor, this))
+            register(SandboxLocalTimeSerializer(classLoader, executor, this))
+            register(SandboxMonthDaySerializer(classLoader, executor, this))
+            register(SandboxOffsetDateTimeSerializer(classLoader, executor, this))
+            register(SandboxOffsetTimeSerializer(classLoader, executor, this))
+            register(SandboxPeriodSerializer(classLoader, executor, this))
+            register(SandboxYearMonthSerializer(classLoader, executor, this))
+            register(SandboxYearSerializer(classLoader, executor, this))
+            register(SandboxZonedDateTimeSerializer(classLoader, executor, this))
+            register(SandboxZoneIdSerializer(classLoader, executor, this))
             register(SandboxPrimitiveSerializer(String::class.java, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Byte::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Short::class.javaObjectType, classLoader, sandboxBasicInput))

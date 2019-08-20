@@ -1,27 +1,27 @@
 package net.corda.djvm.serialization.serializers
 
 import net.corda.djvm.rewiring.SandboxClassLoader
-import net.corda.djvm.serialization.deserializers.InstantDeserializer
+import net.corda.djvm.serialization.deserializers.MonthDayDeserializer
 import net.corda.djvm.serialization.loadClassForSandbox
 import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
-import net.corda.serialization.internal.amqp.custom.InstantSerializer
-import java.time.Instant
+import net.corda.serialization.internal.amqp.custom.MonthDaySerializer.MonthDayProxy
+import java.time.MonthDay
 import java.util.Collections.singleton
 import java.util.function.BiFunction
 
-class SandboxInstantSerializer(
+class SandboxMonthDaySerializer(
     classLoader: SandboxClassLoader,
     private val executor: BiFunction<in Any, in Any?, out Any?>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
-    clazz = classLoader.loadClassForSandbox(Instant::class.java),
-    proxyClass = classLoader.loadClassForSandbox(InstantSerializer.InstantProxy::class.java),
+    clazz = classLoader.loadClassForSandbox(MonthDay::class.java),
+    proxyClass = classLoader.loadClassForSandbox(MonthDayProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.loadClassForSandbox(InstantDeserializer::class.java).newInstance()
+    private val task = classLoader.loadClassForSandbox(MonthDayDeserializer::class.java).newInstance()
 
-    override val deserializationAliases: Set<Class<*>> = singleton(Instant::class.java)
+    override val deserializationAliases: Set<Class<*>> = singleton(MonthDay::class.java)
 
     override fun toProxy(obj: Any): Any = throw UnsupportedOperationException("Read Only!")
 

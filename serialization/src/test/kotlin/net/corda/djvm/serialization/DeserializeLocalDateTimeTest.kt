@@ -9,35 +9,35 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
-import java.time.Instant
+import java.time.LocalDateTime
 import java.util.function.Function
 
 @ExtendWith(LocalSerialization::class)
-class DeserializeInstantTest : TestBase(KOTLIN) {
+class DeserializeLocalDateTimeTest : TestBase(KOTLIN) {
     @Test
-    fun `test deserializing instant`() {
-        val instant = Instant.now()
-        val data = SerializedBytes<Any>(instant.serialize().bytes)
+    fun `test deserializing local date-time`() {
+        val dateTime = LocalDateTime.now()
+        val data = SerializedBytes<Any>(dateTime.serialize().bytes)
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxInstant = data.deserialize()
+            val sandboxDateTime = data.deserialize()
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowInstant::class.java).newInstance(),
-                sandboxInstant
+                classLoader.loadClassForSandbox(ShowLocalDateTime::class.java).newInstance(),
+                sandboxDateTime
             ) ?: fail("Result cannot be null")
 
-            assertEquals(instant.toString(), result.toString())
+            assertEquals(dateTime.toString(), result.toString())
             assertEquals(SANDBOX_STRING, result::class.java.name)
         }
     }
 
-    class ShowInstant : Function<Instant, String> {
-        override fun apply(instant: Instant): String {
-            return instant.toString()
+    class ShowLocalDateTime : Function<LocalDateTime, String> {
+        override fun apply(dateTime: LocalDateTime): String {
+            return dateTime.toString()
         }
     }
 }
