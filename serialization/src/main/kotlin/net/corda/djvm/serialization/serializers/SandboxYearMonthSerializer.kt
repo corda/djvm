@@ -23,7 +23,7 @@ class SandboxYearMonthSerializer(
 
     override val deserializationAliases: Set<Class<*>> = singleton(YearMonth::class.java)
 
-    override fun toProxy(obj: Any): Any = throw UnsupportedOperationException("Read Only!")
+    override fun toProxy(obj: Any): Any = abortReadOnly()
 
     override fun fromProxy(proxy: Any): Any {
         return executor.apply(task, proxy)!!

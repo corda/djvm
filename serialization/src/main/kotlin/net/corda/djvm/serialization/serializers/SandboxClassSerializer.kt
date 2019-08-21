@@ -31,7 +31,7 @@ class SandboxClassSerializer(
         }
     }
 
-    override fun toProxy(obj: Any): Any = throw UnsupportedOperationException("Read Only!")
+    override fun toProxy(obj: Any): Any = abortReadOnly()
 
     override fun fromProxy(proxy: Any): Any {
         return try {

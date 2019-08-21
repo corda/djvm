@@ -40,6 +40,6 @@ class SandboxToStringSerializer(
     }
 
     override fun writeDescribedObject(obj: Any, data: Data, type: Type, output: SerializationOutput, context: SerializationContext) {
-        throw UnsupportedOperationException("Read Only")
+        abortReadOnly()
     }
 }

@@ -111,10 +111,10 @@ private class ConcreteCollectionSerializer(
     }
 
     override fun writeClassInfo(output: SerializationOutput) {
-        throw UnsupportedOperationException("Read Only")
+        abortReadOnly()
     }
 
     override fun writeObject(obj: Any, data: Data, type: Type, output: SerializationOutput, context: SerializationContext, debugIndent: Int) {
-        throw UnsupportedOperationException("Read Only!")
+        abortReadOnly()
     }
 }

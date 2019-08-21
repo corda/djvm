@@ -31,3 +31,8 @@ private fun Throwable.resetMessage(newMsg: String) {
     detailMessageField.isAccessible = true
     detailMessageField.set(this, newMsg)
 }
+
+/**
+ * We currently only support deserialisation, and so we're going to need this.
+ */
+fun abortReadOnly(): Nothing = throw UnsupportedOperationException("Read Only!")

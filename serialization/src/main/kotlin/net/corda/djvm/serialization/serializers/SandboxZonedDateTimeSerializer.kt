@@ -40,7 +40,7 @@ class SandboxZonedDateTimeSerializer(
 
     override val deserializationAliases: Set<Class<*>> = singleton(ZonedDateTime::class.java)
 
-    override fun toProxy(obj: Any): Any = throw UnsupportedOperationException("Read Only!")
+    override fun toProxy(obj: Any): Any = abortReadOnly()
 
     override fun fromProxy(proxy: Any): Any {
         return creator.apply(task, proxy)!!
