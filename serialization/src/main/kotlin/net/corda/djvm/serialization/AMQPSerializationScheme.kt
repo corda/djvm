@@ -43,6 +43,7 @@ class SandboxAMQPSerializationScheme(
     private fun getSerializerFactory(context: SerializationContext): SerializerFactory {
         return serializerFactoryFactory.make(context).apply {
             register(SandboxBitSetSerializer(classLoader, executor, this))
+            register(SandboxCertPathSerializer(classLoader, executor, this))
             register(SandboxDurationSerializer(classLoader, executor, this))
             register(SandboxEnumSetSerializer(classLoader, executor, this))
             register(SandboxInstantSerializer(classLoader, executor, this))
@@ -75,6 +76,8 @@ class SandboxAMQPSerializationScheme(
             register(SandboxToStringSerializer(BigInteger::class.java, classLoader, executor, sandboxBasicInput))
             register(SandboxToStringSerializer(StringBuffer::class.java, classLoader, executor, sandboxBasicInput))
             register(SandboxCurrencySerializer(classLoader, executor, sandboxBasicInput))
+            register(SandboxX509CertificateSerializer(classLoader, executor))
+            register(SandboxX509CRLSerializer(classLoader, executor))
         }
     }
 
