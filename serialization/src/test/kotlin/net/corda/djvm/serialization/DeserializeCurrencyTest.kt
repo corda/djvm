@@ -1,8 +1,6 @@
 package net.corda.djvm.serialization
 
 import net.corda.core.serialization.CordaSerializable
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -18,12 +16,12 @@ class DeserializeCurrencyTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing currency`() {
         val currency = CurrencyData(Currency.getInstance("GBP"))
-        val data = SerializedBytes<Any>(currency.serialize().bytes)
+        val data = currency.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxCurrency = data.deserialize()
+            val sandboxCurrency = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

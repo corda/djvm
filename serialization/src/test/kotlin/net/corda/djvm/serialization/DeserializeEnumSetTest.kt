@@ -1,8 +1,6 @@
 package net.corda.djvm.serialization
 
 import greymalkin.ExternalEnum
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.KOTLIN
@@ -20,12 +18,12 @@ class DeserializeEnumSetTest : TestBase(KOTLIN) {
     @EnumSource(ExternalEnum::class)
     fun `test deserialize enum set`(value: ExternalEnum) {
         val enumSet = EnumSet.of(value)
-        val data = SerializedBytes<Any>(enumSet.serialize().bytes)
+        val data = enumSet.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxEnumSet = data.deserialize()
+            val sandboxEnumSet = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

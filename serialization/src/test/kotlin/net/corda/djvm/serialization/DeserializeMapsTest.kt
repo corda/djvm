@@ -1,8 +1,6 @@
 package net.corda.djvm.serialization
 
 import net.corda.core.serialization.CordaSerializable
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -18,12 +16,12 @@ class DeserializeMapsTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing map`() {
         val stringMap = StringMap(mapOf("Open" to "Hello World", "Close" to "Goodbye, Cruel World"))
-        val data = SerializedBytes<Any>(stringMap.serialize().bytes)
+        val data = stringMap.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxMap = data.deserialize()
+            val sandboxMap = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -49,12 +47,12 @@ class DeserializeMapsTest : TestBase(KOTLIN) {
             10 to "Hello World",
             50 to "Having Fun!"
         ))
-        val data = SerializedBytes<Any>(sortedMap.serialize().bytes)
+        val data = sortedMap.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxMap = data.deserialize()
+            val sandboxMap = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -80,12 +78,12 @@ class DeserializeMapsTest : TestBase(KOTLIN) {
             1000L to "Hello World",
             5000L to "Having Fun!"
         ).toMap(TreeMap()))
-        val data = SerializedBytes<Any>(navigableMap.serialize().bytes)
+        val data = navigableMap.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxMap = data.deserialize()
+            val sandboxMap = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -111,12 +109,12 @@ class DeserializeMapsTest : TestBase(KOTLIN) {
             "Open" to "Hello World",
             "During" to "Having Fun!"
         ))
-        val data = SerializedBytes<Any>(linkedHashMap.serialize().bytes)
+        val data = linkedHashMap.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxMap = data.deserialize()
+            val sandboxMap = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -142,12 +140,12 @@ class DeserializeMapsTest : TestBase(KOTLIN) {
             1000 to "Hello World",
             5000 to "Having Fun!"
         ).toMap(TreeMap()))
-        val data = SerializedBytes<Any>(treeMap.serialize().bytes)
+        val data = treeMap.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxMap = data.deserialize()
+            val sandboxMap = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -172,12 +170,12 @@ class DeserializeMapsTest : TestBase(KOTLIN) {
             ExampleEnum.ONE to "One!",
             ExampleEnum.TWO to "Two!"
         ))
-        val data = SerializedBytes<Any>(enumMap.serialize().bytes)
+        val data = enumMap.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxMap = data.deserialize()
+            val sandboxMap = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

@@ -1,7 +1,5 @@
 package net.corda.djvm.serialization
 
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -29,12 +27,12 @@ class DeserializeZoneIdTest : TestBase(KOTLIN) {
     @ArgumentsSource(ZoneIdProvider::class)
     @ParameterizedTest(name = "{index} => {0}")
     fun `test deserializing zone id`(zoneId: ZoneId) {
-        val data = SerializedBytes<Any>(zoneId.serialize().bytes)
+        val data = zoneId.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxZoneId = data.deserialize()
+            val sandboxZoneId = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

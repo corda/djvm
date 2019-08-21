@@ -1,7 +1,5 @@
 package net.corda.djvm.serialization
 
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -17,12 +15,12 @@ class DeserializeOffsetTimeTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing instant`() {
         val time = OffsetTime.now()
-        val data = SerializedBytes<Any>(time.serialize().bytes)
+        val data = time.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxTime = data.deserialize()
+            val sandboxTime = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

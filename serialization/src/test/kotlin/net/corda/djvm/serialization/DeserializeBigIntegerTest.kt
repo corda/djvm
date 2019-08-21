@@ -1,8 +1,6 @@
 package net.corda.djvm.serialization
 
 import net.corda.core.serialization.CordaSerializable
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -22,12 +20,12 @@ class DeserializeBigIntegerTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing big integer`() {
         val bigInteger = BigIntegerData(BigInteger.valueOf(VERY_BIG_NUMBER))
-        val data = SerializedBytes<Any>(bigInteger.serialize().bytes)
+        val data = bigInteger.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxBigInteger = data.deserialize()
+            val sandboxBigInteger = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

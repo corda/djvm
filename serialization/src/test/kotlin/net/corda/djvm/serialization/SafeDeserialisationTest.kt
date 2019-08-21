@@ -1,7 +1,6 @@
 package net.corda.djvm.serialization
 
 import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -28,7 +27,7 @@ class SafeDeserialisationTest : TestBase(KOTLIN) {
         val context = (_contextSerializationEnv.get() ?: fail("No serialization environment!")).p2pContext
 
         val innocent = InnocentData(MESSAGE, NUMBER)
-        val innocentData = SerializedBytes<Any>(innocent.serialize().bytes)
+        val innocentData = innocent.serialize()
         val envelope = DeserializationInput.getEnvelope(innocentData, context.encodingWhitelist).apply {
             val innocentType = schema.types[0] as CompositeType
             (schema.types as MutableList<TypeNotation>)[0] = CompositeType(
@@ -44,7 +43,7 @@ class SafeDeserialisationTest : TestBase(KOTLIN) {
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxData = evilData.deserialize()
+            val sandboxData = evilData.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

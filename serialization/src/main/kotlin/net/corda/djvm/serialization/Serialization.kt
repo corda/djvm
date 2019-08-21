@@ -3,6 +3,8 @@ package net.corda.djvm.serialization
 
 import net.corda.core.serialization.SerializationContext
 import net.corda.core.serialization.SerializationContext.UseCase
+import net.corda.core.serialization.SerializationFactory
+import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.internal.SerializationEnvironment
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.source.ClassSource
@@ -32,4 +34,22 @@ fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): Serializatio
         registerScheme(SandboxAMQPSerializationScheme(classLoader, SandboxSerializerFactoryFactory()))
     }
     return SerializationEnvironment.with(factory, p2pContext = p2pContext)
+}
+
+inline fun <reified T : Any> SerializedBytes<T>.deserializeFor(classLoader: SandboxClassLoader): Any {
+    val clazz = classLoader.loadClassForSandbox(T::class.java)
+    return deserializeTo(clazz, classLoader)
+}
+
+fun SerializedBytes<*>.deserializeTo(clazz: Class<*>, classLoader: SandboxClassLoader): Any {
+    return deserializeTo(clazz, classLoader, SerializationFactory.defaultFactory)
+}
+
+fun SerializedBytes<*>.deserializeTo(clazz: Class<*>, classLoader: SandboxClassLoader, factory: SerializationFactory): Any {
+    val obj = factory.deserialize(this, Any::class.java, factory.defaultContext)
+    return if (clazz.isInstance(obj)) {
+        obj
+    } else {
+        classLoader.createBasicInput().apply(obj)!!
+    }
 }

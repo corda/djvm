@@ -1,7 +1,5 @@
 package net.corda.djvm.serialization
 
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -17,12 +15,12 @@ class DeserializeLocalDateTimeTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing local date-time`() {
         val dateTime = LocalDateTime.now()
-        val data = SerializedBytes<Any>(dateTime.serialize().bytes)
+        val data = dateTime.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxDateTime = data.deserialize()
+            val sandboxDateTime = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

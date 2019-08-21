@@ -5,8 +5,6 @@ import net.corda.core.crypto.Crypto
 import net.corda.core.crypto.SignatureScheme
 import net.corda.core.internal.hash
 import net.corda.core.serialization.CordaSerializable
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -38,12 +36,12 @@ class DeserializePublicKeyTest : TestBase(KOTLIN) {
     fun `test deserializing public key`(signatureScheme: SignatureScheme) {
         val keyPair = Crypto.generateKeyPair(signatureScheme)
         val publicKey = PublicKeyData(keyPair.public)
-        val data = SerializedBytes<Any>(publicKey.serialize().bytes)
+        val data = publicKey.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxKey = data.deserialize()
+            val sandboxKey = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -68,12 +66,12 @@ class DeserializePublicKeyTest : TestBase(KOTLIN) {
             .addKey(key3, weight = 1)
             .build(2)
         val compositeData = PublicKeyData(compositeKey)
-        val data = SerializedBytes<Any>(compositeData.serialize().bytes)
+        val data = compositeData.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxKey = data.deserialize()
+            val sandboxKey = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

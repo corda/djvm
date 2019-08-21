@@ -1,8 +1,6 @@
 package net.corda.djvm.serialization
 
 import net.corda.core.serialization.CordaSerializable
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.KOTLIN
@@ -19,12 +17,12 @@ class DeserializeEnumTest : TestBase(KOTLIN) {
     @EnumSource(ExampleEnum::class)
     fun `test deserialize basic enum`(value: ExampleEnum) {
         val example = ExampleData(value)
-        val data = SerializedBytes<Any>(example.serialize().bytes)
+        val data =example.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxExample = data.deserialize()
+            val sandboxExample = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

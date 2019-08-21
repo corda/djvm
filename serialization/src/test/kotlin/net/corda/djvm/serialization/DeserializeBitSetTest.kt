@@ -1,7 +1,5 @@
 package net.corda.djvm.serialization
 
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -19,12 +17,12 @@ class DeserializeBitSetTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing bitset`() {
         val bitSet = BitSet.valueOf(byteArrayOf(0x00, 0x70, 0x55, 0x3A, 0x48, 0x12))
-        val data = SerializedBytes<Any>(bitSet.serialize().bytes)
+        val data = bitSet.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxBitSet = data.deserialize()
+            val sandboxBitSet = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

@@ -1,8 +1,6 @@
 package net.corda.djvm.serialization
 
 import net.corda.core.serialization.CordaSerializable
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -14,14 +12,28 @@ import java.util.*
 @ExtendWith(LocalSerialization::class)
 class DeserializePrimitivesTest : TestBase(KOTLIN) {
     @Test
-    fun `test wrapped uuid`() {
-        val uuid = WrappedUUID(UUID.randomUUID())
-        val data = SerializedBytes<Any>(uuid.serialize().bytes)
+    fun `test naked uuid`() {
+        val uuid = UUID.randomUUID()
+        val data = uuid.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxUUID = data.deserialize()
+            val sandboxUUID = data.deserializeFor(classLoader)
+            assertEquals(uuid.toString(), sandboxUUID.toString())
+            assertEquals("sandbox.${uuid::class.java.name}", sandboxUUID::class.java.name)
+        }
+    }
+
+    @Test
+    fun `test wrapped uuid`() {
+        val uuid = WrappedUUID(UUID.randomUUID())
+        val data = uuid.serialize()
+
+        sandbox {
+            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
+
+            val sandboxUUID = data.deserializeFor(classLoader)
             assertEquals(uuid.toString(), sandboxUUID.toString())
             assertEquals("sandbox.${uuid::class.java.name}", sandboxUUID::class.java.name)
         }

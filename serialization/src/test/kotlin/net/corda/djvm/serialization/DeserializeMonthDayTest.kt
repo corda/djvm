@@ -1,7 +1,5 @@
 package net.corda.djvm.serialization
 
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -17,12 +15,12 @@ class DeserializeMonthDayTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing month-day`() {
         val monthDay = MonthDay.now()
-        val data = SerializedBytes<Any>(monthDay.serialize().bytes)
+        val data = monthDay.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxMonthDay = data.deserialize()
+            val sandboxMonthDay = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

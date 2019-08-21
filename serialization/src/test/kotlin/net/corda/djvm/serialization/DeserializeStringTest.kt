@@ -1,8 +1,6 @@
 package net.corda.djvm.serialization
 
 import net.corda.core.serialization.CordaSerializable
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -17,12 +15,12 @@ class DeserializeStringTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing string`() {
         val stringMessage = StringMessage("Hello World!")
-        val data = SerializedBytes<Any>(stringMessage.serialize().bytes)
+        val data = stringMessage.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxString = data.deserialize()
+            val sandboxString = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -44,12 +42,12 @@ class DeserializeStringTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing string array`() {
         val stringArray = StringArray(arrayOf("Hello", "World", "!"))
-        val data = SerializedBytes<Any>(stringArray.serialize().bytes)
+        val data = stringArray.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxArray = data.deserialize()
+            val sandboxArray = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -72,12 +70,12 @@ class DeserializeStringTest : TestBase(KOTLIN) {
         val stringListArray = StringListOfArray(listOf(
             arrayOf("Hello"), arrayOf("World"), arrayOf("!"))
         )
-        val data = SerializedBytes<Any>(stringListArray.serialize().bytes)
+        val data = stringListArray.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxListArray = data.deserialize()
+            val sandboxListArray = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

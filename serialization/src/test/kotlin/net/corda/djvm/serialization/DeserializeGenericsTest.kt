@@ -1,8 +1,6 @@
 package net.corda.djvm.serialization
 
 import net.corda.core.serialization.CordaSerializable
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -19,12 +17,12 @@ class DeserializeGenericsTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing generic wrapper`() {
         val wrappedString = GenericWrapper(data = "Hello World!")
-        val data = SerializedBytes<Any>(wrappedString.serialize().bytes)
+        val data = wrappedString.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxWrapper = data.deserialize()
+            val sandboxWrapper = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -49,12 +47,12 @@ class DeserializeGenericsTest : TestBase(KOTLIN) {
             first = GenericWrapper("Hello World"),
             second = GenericWrapper('!')
         )
-        val data = SerializedBytes<Any>(wrapped.serialize().bytes)
+        val data = wrapped.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxWrapped = data.deserialize()
+            val sandboxWrapped = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(

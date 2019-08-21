@@ -1,8 +1,6 @@
 package net.corda.djvm.serialization
 
 import greymalkin.ExternalData
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.djvm.serialization.SandboxType.*
@@ -20,12 +18,12 @@ class DeserializeClassTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing existing class`() {
         val myClass = ExternalData::class.java
-        val data = SerializedBytes<Any>(myClass.serialize().bytes)
+        val data = myClass.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxInstant = data.deserialize()
+            val sandboxInstant = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -42,12 +40,12 @@ class DeserializeClassTest : TestBase(KOTLIN) {
     fun `test deserializing missing class`() {
         // The DJVM will refuse to find this class because it belongs to net.corda.djvm.**.
         val myClass = VeryEvilData::class.java
-        val data = SerializedBytes<Any>(myClass.serialize().bytes)
+        val data = myClass.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val ex = assertThrows<NotSerializableException>{ data.deserialize() }
+            val ex = assertThrows<NotSerializableException>{ data.deserializeFor(classLoader) }
             assertThat(ex)
                 .isExactlyInstanceOf(NotSerializableException::class.java)
                 .hasMessageContaining("VeryEvilData was not found by the node,")

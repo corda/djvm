@@ -2,8 +2,6 @@ package net.corda.djvm.serialization
 
 import greymalkin.ExternalEnum
 import net.corda.core.serialization.CordaSerializable
-import net.corda.core.serialization.SerializedBytes
-import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
 import net.corda.core.utilities.NonEmptySet
@@ -20,12 +18,12 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing string list`() {
         val stringList = StringList(listOf("Hello", "World", "!"))
-        val data = SerializedBytes<Any>(stringList.serialize().bytes)
+        val data = stringList.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxList = data.deserialize()
+            val sandboxList = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -47,12 +45,12 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing integer set`() {
         val integerSet = IntegerSet(linkedSetOf(10, 3, 15, 2, 10))
-        val data = SerializedBytes<Any>(integerSet.serialize().bytes)
+        val data = integerSet.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxSet = data.deserialize()
+            val sandboxSet = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -74,12 +72,12 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing integer sorted set`() {
         val integerSortedSet = IntegerSortedSet(sortedSetOf(10, 15, 1000, 3, 2, 10))
-        val data = SerializedBytes<Any>(integerSortedSet.serialize().bytes)
+        val data = integerSortedSet.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxSet = data.deserialize()
+            val sandboxSet = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -101,12 +99,12 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing long navigable set`() {
         val longNavigableSet = LongNavigableSet(sortedSetOf(99955L, 10, 15, 1000, 3, 2, 10))
-        val data = SerializedBytes<Any>(longNavigableSet.serialize().bytes)
+        val data = longNavigableSet.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxSet = data.deserialize()
+            val sandboxSet = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -128,12 +126,12 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing short collection`() {
         val shortCollection = ShortCollection(listOf(10, 200, 3000))
-        val data = SerializedBytes<Any>(shortCollection.serialize().bytes)
+        val data = shortCollection.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxCollection = data.deserialize()
+            val sandboxCollection = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -155,12 +153,12 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing non-empty string set`() {
         val nonEmptyStrings = NonEmptyStringSet(NonEmptySet.of("Hello", "World", "!"))
-        val data = SerializedBytes<Any>(nonEmptyStrings.serialize().bytes)
+        val data = nonEmptyStrings.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxSet = data.deserialize()
+            val sandboxSet = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
@@ -182,12 +180,12 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
     @Test
     fun `test deserializing enum set`() {
         val enumSet = HasEnumSet(EnumSet.of(ExternalEnum.DOH))
-        val data = SerializedBytes<Any>(enumSet.serialize().bytes)
+        val data = enumSet.serialize()
 
         sandbox {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
 
-            val sandboxSet = data.deserialize()
+            val sandboxSet = data.deserializeFor(classLoader)
 
             val executor = createExecutorFor(classLoader)
             val result = executor.apply(
