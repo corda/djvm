@@ -29,6 +29,7 @@ open class ClassRewriter(
         private val classLoader: SourceClassLoader
 ) {
     private val analysisConfig = configuration.analysisConfiguration
+    private val remapper = SandboxRemapper(analysisConfig.classResolver, analysisConfig.whitelist)
 
     /**
      * Process class and allow user to rewrite parts/all of its content through provided hooks.
@@ -41,6 +42,7 @@ open class ClassRewriter(
         val writer = SandboxClassWriter(reader, classLoader, analysisConfig, options = COMPUTE_FRAMES)
         val classRemapper = SandboxClassRemapper(
             ClassExceptionRemapper(SandboxStitcher(writer)),
+            remapper,
             analysisConfig
         )
         val visitor = ClassMutator(

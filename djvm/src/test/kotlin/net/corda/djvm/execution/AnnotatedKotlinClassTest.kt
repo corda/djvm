@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import java.util.function.Function
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.primaryConstructor
 
 class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     // The @kotlin.Metadata annotation is unavailable for Kotlin < 1.3.
@@ -27,7 +28,6 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
         val annotationValue = sandboxClass.getAnnotation(sandboxAnnotation)
         assertThat(annotationValue.toString())
             .isEqualTo("@sandbox.net.corda.djvm.KotlinAnnotation(value=Hello Kotlin!)")
-        assertThat(sandboxClass.kotlin.annotations).contains(annotationValue)
     }
 
     @Disabled("This test needs java.lang.Class.getEnclosingMethod() inside the sandbox.")
@@ -47,7 +47,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testPreservingKotlinMetadataAnnotation() = parentedSandbox(setOf(kotlinMetadata) ) {
+    fun testPreservingKotlinMetadataAnnotation() = parentedSandbox {
         val sandboxClass = loadClass<UserKotlinData>().type
         @Suppress("unchecked_cast")
         val sandboxMetadataClass = loadClass(kotlinMetadata.name).type as Class<out Annotation>
@@ -81,7 +81,27 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
             }
         }
     }
+
+    @Test
+    fun `test sandboxed class still knows its own primary constructor`() = parentedSandbox {
+        val sandboxClass = loadClass<UserKotlinData>().type
+        val primaryConstructor = sandboxClass.kotlin.primaryConstructor ?: fail("Primary constructor missing!")
+
+        val sandboxData = with(DJVM(classLoader)) {
+            primaryConstructor.call(sandbox("Sandbox Magic!"), sandbox(123), 999L)
+        }
+        assertNotNull(sandboxData)
+        assertEquals("sandbox.${UserKotlinData::class.java.name}", sandboxData::class.java.name)
+        assertEquals("UserData: message='Sandbox Magic!', number=123, bigNumber=999", sandboxData.toString())
+    }
 }
 
 @KotlinAnnotation("Hello Kotlin!")
-class UserKotlinData
+@Suppress("unused")
+class UserKotlinData(val message: String, val number: Int?, val bigNumber: Long) {
+    constructor(message: String, number: Int) : this(message, number, 0)
+    constructor(message: String, bigNumber: Long) : this(message, 0, bigNumber)
+    constructor(message: String) : this(message, null, 0)
+
+    override fun toString(): String = "UserData: message='$message', number=$number, bigNumber=$bigNumber"
+}

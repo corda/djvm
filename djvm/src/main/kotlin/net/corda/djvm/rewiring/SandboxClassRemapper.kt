@@ -3,15 +3,19 @@ package net.corda.djvm.rewiring
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.references.MemberInformation
+import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ACC_ANNOTATION
 import org.objectweb.asm.commons.ClassRemapper
 
-class SandboxClassRemapper(private val nonClassMapper: ClassVisitor, private val configuration: AnalysisConfiguration)
-    : ClassRemapper(nonClassMapper, SandboxRemapper(configuration.classResolver, configuration.whitelist)
-) {
+class SandboxClassRemapper(
+    private val nonClassMapper: ClassVisitor,
+    remapper: SandboxRemapper,
+    private val configuration: AnalysisConfiguration
+) : ClassRemapper(nonClassMapper, remapper) {
     companion object {
+        const val KOTLIN_METADATA = "Lkotlin/Metadata;"
         val RETURNS_STRING = "\\)\\[*Ljava/lang/String;\$".toRegex()
     }
 
@@ -29,6 +33,20 @@ class SandboxClassRemapper(private val nonClassMapper: ClassVisitor, private val
     ) {
         classAccess = access
         super.visit(version, access, name, signature, superName, interfaces)
+    }
+
+    /**
+     * Remap all of the descriptors within Kotlin's [Metadata] annotation.
+     * THIS ASSUMES THAT WE WILL NEVER WHITELIST KOTLIN CLASSES!!
+     */
+    override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+        return super.visitAnnotation(descriptor, visible)?.let {
+            if (descriptor == KOTLIN_METADATA) {
+                KotlinMetadataVisitor(api, it, remapper)
+            } else {
+                it
+            }
+        }
     }
 
     /**

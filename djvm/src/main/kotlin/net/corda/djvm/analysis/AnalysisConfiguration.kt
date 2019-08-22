@@ -136,9 +136,9 @@ class AnalysisConfiguration private constructor(
         /**
          * These meta-annotations configure how the JVM handles annotations,
          * and these need to be preserved. Currently handling meta-annotations
-         * with [Enum] value.
+         * that have an [Enum] value, and Kotlin's "magic" [Metadata] annotation.
          */
-        private val STITCHED_ANNOTATIONS: Set<String> = emptySet<String>().merge(setOf(
+        private val STITCHED_ANNOTATIONS: Set<String> = setOf("Lsandbox/kotlin/Metadata;").merge(setOf(
             java.lang.annotation.Retention::class.java,
             java.lang.annotation.Target::class.java
         ))
