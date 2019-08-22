@@ -17,7 +17,7 @@ class SandboxToStringSerializer(
     unsafeClass: Class<*>,
     classLoader: SandboxClassLoader,
     executor: BiFunction<in Any, in Any?, out Any?>,
-    basicInput: UnaryOperator<Any?>
+    basicInput: UnaryOperator<in Any?>
 ) : CustomSerializer.Is<Any>(classLoader.loadClassForSandbox(unsafeClass)) {
     private val creator: Function<Any?, Any?>
 

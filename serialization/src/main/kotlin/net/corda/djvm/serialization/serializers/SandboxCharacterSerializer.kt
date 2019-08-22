@@ -10,7 +10,7 @@ import java.util.function.UnaryOperator
 
 class SandboxCharacterSerializer(
     classLoader: SandboxClassLoader,
-    private val basicInput: UnaryOperator<Any?>
+    private val basicInput: UnaryOperator<in Any?>
 ) : CustomSerializer.Is<Any>(classLoader.loadClassForSandbox(Char::class.javaObjectType)) {
 
     override val schemaForDocumentation: Schema = Schema(emptyList())

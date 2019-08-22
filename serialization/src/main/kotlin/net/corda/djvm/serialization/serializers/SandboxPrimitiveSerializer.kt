@@ -11,7 +11,7 @@ import java.util.function.UnaryOperator
 class SandboxPrimitiveSerializer(
     clazz: Class<*>,
     classLoader: SandboxClassLoader,
-    private val basicInput: UnaryOperator<Any?>
+    private val basicInput: UnaryOperator<in Any?>
 ) : CustomSerializer.Is<Any>(classLoader.loadClassForSandbox(clazz)) {
 
     override val schemaForDocumentation: Schema = Schema(emptyList())

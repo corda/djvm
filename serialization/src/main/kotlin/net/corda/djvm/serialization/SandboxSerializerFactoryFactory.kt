@@ -12,11 +12,15 @@ import java.lang.Long
 import java.lang.Short
 import java.util.Collections.singleton
 import java.util.Collections.unmodifiableMap
+import java.util.function.Function
 
 /**
  * This has all been lovingly copied from [SerializerFactoryBuilder].
  */
-class SandboxSerializerFactoryFactory : SerializerFactoryFactory {
+class SandboxSerializerFactoryFactory(
+    private val primitiveSerializerFactory: Function<Class<*>, AMQPSerializer<Any>>
+) : SerializerFactoryFactory {
+
     override fun make(context: SerializationContext): SerializerFactory {
         val classLoader = context.deserializationClassLoader
 
@@ -50,6 +54,7 @@ class SandboxSerializerFactoryFactory : SerializerFactoryFactory {
             fingerPrinter = fingerPrinter,
             classloader = classLoader,
             descriptorBasedSerializerRegistry = descriptorBasedSerializerRegistry,
+            primitiveSerializerFactory = primitiveSerializerFactory,
             customSerializerRegistry = customSerializerRegistry,
             onlyCustomSerializers = false
         )

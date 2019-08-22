@@ -4,41 +4,23 @@ import net.corda.core.serialization.SerializationContext
 import net.corda.core.serialization.SerializationContext.UseCase
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.utilities.ByteSequence
-import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.serializers.*
 import net.corda.serialization.internal.CordaSerializationMagic
 import net.corda.serialization.internal.SerializationScheme
 import net.corda.serialization.internal.amqp.*
-import java.lang.reflect.InvocationTargetException
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.*
 import java.util.function.BiFunction
+import java.util.function.UnaryOperator
 
-class SandboxAMQPSerializationScheme(
+class AMQPSerializationScheme(
     private val classLoader: SandboxClassLoader,
+    private val sandboxBasicInput: UnaryOperator<in Any?>,
+    private val executor: BiFunction<in Any, in Any?, out Any?>,
     private val serializerFactoryFactory: SerializerFactoryFactory
 ) : SerializationScheme {
-    private val sandboxBasicInput = classLoader.createBasicInput()
-    private val executor: BiFunction<in Any, in Any?, out Any?>
-
-    init {
-        val taskClass = classLoader.loadClass("sandbox.RawTask")
-        val taskApply = taskClass.getDeclaredMethod("apply", Any::class.java)
-        val taskConstructor = taskClass.getDeclaredConstructor(classLoader.loadClass("sandbox.java.util.function.Function"))
-        executor = BiFunction { userTask, arg ->
-            try {
-                taskApply(taskConstructor.newInstance(userTask), arg)
-            } catch (ex: InvocationTargetException) {
-                val target = ex.targetException
-                throw when (target) {
-                    is RuntimeException, is Error -> target
-                    else -> SandboxRuntimeException(target.message, target)
-                }
-            }
-        }
-    }
 
     private fun getSerializerFactory(context: SerializationContext): SerializerFactory {
         return serializerFactoryFactory.make(context).apply {
