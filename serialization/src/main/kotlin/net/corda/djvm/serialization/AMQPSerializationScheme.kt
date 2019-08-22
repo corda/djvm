@@ -58,6 +58,7 @@ class SandboxAMQPSerializationScheme(
             register(SandboxYearSerializer(classLoader, executor, this))
             register(SandboxZonedDateTimeSerializer(classLoader, executor, this))
             register(SandboxZoneIdSerializer(classLoader, executor, this))
+            register(SandboxOptionalSerializer(classLoader, executor, this))
             register(SandboxPrimitiveSerializer(UUID::class.java, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(String::class.java, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Byte::class.javaObjectType, classLoader, sandboxBasicInput))
