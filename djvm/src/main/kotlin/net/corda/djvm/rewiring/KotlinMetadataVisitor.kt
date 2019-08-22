@@ -3,6 +3,16 @@ package net.corda.djvm.rewiring
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.commons.Remapper
 
+/**
+ * Maps the descriptor strings inside [Metadata.d2] into the sandbox.*
+ * package space. This means that Kotlin reflection will now generate
+ * the new sandboxed method and field signatures when it "rehydrates"
+ * the ProtoBuf data inside the [Metadata.d1] field.
+ *
+ * From an end-user perspective, this realigns Kotlin reflection with
+ * Java reflection and allows Kotlin reflection to (e.g.) identify and
+ * invoke the new class's primary constructor.
+ */
 class KotlinMetadataVisitor(
     api: Int,
     av: AnnotationVisitor,
