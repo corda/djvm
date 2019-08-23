@@ -14,8 +14,8 @@ private const val OF = "of"
  * methods that will be stitched into the [sandbox.java.time] classes.
  */
 fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
-        className = sandboxed(java.time.Duration::class.java),
-        bridgeDescriptor = "()Ljava/time/Duration;"
+    className = sandboxed(java.time.Duration::class.java),
+    bridgeDescriptor = "()Ljava/time/Duration;"
 ) {
     /**
      * Implements Duration.fromDJVM():
@@ -31,8 +31,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.Instant::class.java),
-        bridgeDescriptor = "()Ljava/time/Instant;"
+    className = sandboxed(java.time.Instant::class.java),
+    bridgeDescriptor = "()Ljava/time/Instant;"
 ) {
     /**
      * Implements Instant.fromDJVM():
@@ -48,8 +48,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.LocalDate::class.java),
-        bridgeDescriptor = "()Ljava/time/LocalDate;"
+    className = sandboxed(java.time.LocalDate::class.java),
+    bridgeDescriptor = "()Ljava/time/LocalDate;"
 ) {
     /**
      * Implements LocalDate.fromDJVM():
@@ -66,8 +66,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.LocalDateTime::class.java),
-        bridgeDescriptor = "()Ljava/time/LocalDateTime;"
+    className = sandboxed(java.time.LocalDateTime::class.java),
+    bridgeDescriptor = "()Ljava/time/LocalDateTime;"
 ) {
     /**
      * Implements LocalDateTime.fromDJVM():
@@ -84,8 +84,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.LocalTime::class.java),
-        bridgeDescriptor = "()Ljava/time/LocalTime;"
+    className = sandboxed(java.time.LocalTime::class.java),
+    bridgeDescriptor = "()Ljava/time/LocalTime;"
 ) {
     /**
      * Implements LocalTime.fromDJVM():
@@ -104,8 +104,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.MonthDay::class.java),
-        bridgeDescriptor = "()Ljava/time/MonthDay;"
+    className = sandboxed(java.time.MonthDay::class.java),
+    bridgeDescriptor = "()Ljava/time/MonthDay;"
 ) {
     /**
      * Implements MonthDay.fromDJVM():
@@ -120,8 +120,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.OffsetDateTime::class.java),
-        bridgeDescriptor = "()Ljava/time/OffsetDateTime;"
+    className = sandboxed(java.time.OffsetDateTime::class.java),
+    bridgeDescriptor = "()Ljava/time/OffsetDateTime;"
 ) {
     /**
      * Implements OffsetDateTime.fromDJVM():
@@ -139,8 +139,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.OffsetTime::class.java),
-        bridgeDescriptor = "()Ljava/time/OffsetTime;"
+    className = sandboxed(java.time.OffsetTime::class.java),
+    bridgeDescriptor = "()Ljava/time/OffsetTime;"
 ) {
     /**
      * Implements OffsetTime.fromDJVM():
@@ -158,8 +158,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.Period::class.java),
-        bridgeDescriptor = "()Ljava/time/Period;"
+    className = sandboxed(java.time.Period::class.java),
+    bridgeDescriptor = "()Ljava/time/Period;"
 ) {
     /**
      * Implements Period.fromDJVM():
@@ -176,8 +176,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.Year::class.java),
-        bridgeDescriptor = "()Ljava/time/Year;"
+    className = sandboxed(java.time.Year::class.java),
+    bridgeDescriptor = "()Ljava/time/Year;"
 ) {
     /**
      * Implements Year.fromDJVM():
@@ -190,8 +190,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.YearMonth::class.java),
-        bridgeDescriptor = "()Ljava/time/YearMonth;"
+    className = sandboxed(java.time.YearMonth::class.java),
+    bridgeDescriptor = "()Ljava/time/YearMonth;"
 ) {
     /**
      * Implements YearMonth.fromDJVM():
@@ -206,8 +206,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.ZonedDateTime::class.java),
-        bridgeDescriptor = "()Ljava/time/ZonedDateTime;"
+    className = sandboxed(java.time.ZonedDateTime::class.java),
+    bridgeDescriptor = "()Ljava/time/ZonedDateTime;"
 ) {
     /**
      * Implements ZonedDateTime.fromDJVM():
@@ -224,8 +224,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         returnObject()
     }
 }.build() + object : FromDJVMBuilder(
-        className = sandboxed(java.time.ZoneId::class.java),
-        bridgeDescriptor = "()Ljava/time/ZoneId;"
+    className = sandboxed(java.time.ZoneId::class.java),
+    bridgeDescriptor = "()Ljava/time/ZoneId;"
 ) {
     /**
      * Implements ZoneId.fromDJVM():

@@ -12,6 +12,7 @@ import org.objectweb.asm.Opcodes.ACC_ENUM
 import org.objectweb.asm.Type
 import sandbox.isEntryPoint
 import sandbox.java.io.*
+import sandbox.java.nio.ByteOrder
 import sandbox.java.util.*
 import java.lang.reflect.Constructor
 
@@ -267,6 +268,15 @@ fun hashCode(obj: Any?): Int {
  */
 fun intern(s: kotlin.String): String {
     return String.toDJVM(s).intern()
+}
+
+/**
+ * Determine the platform's native [sandbox.java.nio.ByteOrder] value.
+ */
+val nativeOrder: ByteOrder = when (java.nio.ByteOrder.nativeOrder()) {
+    java.nio.ByteOrder.BIG_ENDIAN -> ByteOrder.BIG_ENDIAN
+    java.nio.ByteOrder.LITTLE_ENDIAN -> ByteOrder.LITTLE_ENDIAN
+    else -> throw InternalError("Unknown platform byte-order")
 }
 
 /**
