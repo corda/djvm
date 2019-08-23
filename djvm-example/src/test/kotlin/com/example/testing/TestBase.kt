@@ -1,12 +1,17 @@
 package com.example.testing
 
+import net.corda.core.serialization.ConstructorForDeserialization
 import net.corda.core.serialization.CordaSerializable
 import net.corda.djvm.SandboxConfiguration
+import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
+import net.corda.djvm.SandboxConfiguration.Companion.ALL_EMITTERS
+import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
 import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.analysis.Whitelist
-import net.corda.djvm.execution.ExecutionProfile
+import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
+import net.corda.djvm.execution.ExecutionProfile.*
 import net.corda.djvm.messages.Severity
+import net.corda.djvm.messages.Severity.*
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.UserPathSource
@@ -38,15 +43,18 @@ abstract class TestBase(type: SandboxType) {
         fun setupClassLoader() {
             val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
-                whitelist = Whitelist.MINIMAL,
-                visibleAnnotations = setOf(CordaSerializable::class.java),
+                whitelist = MINIMAL,
+                visibleAnnotations = setOf(
+                    CordaSerializable::class.java,
+                    ConstructorForDeserialization::class.java
+                ),
                 bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
             )
             configuration = SandboxConfiguration.of(
-                ExecutionProfile.UNLIMITED,
-                SandboxConfiguration.ALL_RULES,
-                SandboxConfiguration.ALL_EMITTERS,
-                SandboxConfiguration.ALL_DEFINITION_PROVIDERS,
+                UNLIMITED,
+                ALL_RULES,
+                ALL_EMITTERS,
+                ALL_DEFINITION_PROVIDERS,
                 true,
                 rootConfiguration
             )
@@ -66,11 +74,11 @@ abstract class TestBase(type: SandboxType) {
     }
 
     fun sandbox(action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(Severity.WARNING, emptySet(), false, action)
+        return sandbox(WARNING, emptySet(), false, action)
     }
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(Severity.WARNING, visibleAnnotations, false, action)
+        return sandbox(WARNING, visibleAnnotations, false, action)
     }
 
     fun sandbox(

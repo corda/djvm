@@ -37,7 +37,7 @@ class LocalSerialization : BeforeEachCallback, AfterEachCallback {
         val factory = SerializationFactoryImpl(mutableMapOf()).apply {
             registerScheme(AMQPSerializationScheme(emptySet(), emptySet(), AccessOrderLinkedHashMap(128)))
         }
-        return SerializationEnvironment.with(factory, AMQP_P2P_CONTEXT)
+        return SerializationEnvironment.with(factory, p2pContext = AMQP_P2P_CONTEXT)
     }
 
     private class AMQPSerializationScheme(

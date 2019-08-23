@@ -1,5 +1,6 @@
 package net.corda.djvm.serialization
 
+import net.corda.core.serialization.ConstructorForDeserialization
 import net.corda.core.serialization.CordaSerializable
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
@@ -49,7 +50,10 @@ abstract class TestBase(type: SandboxType) {
             val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
                 whitelist = MINIMAL,
-                visibleAnnotations = setOf(CordaSerializable::class.java),
+                visibleAnnotations = setOf(
+                    CordaSerializable::class.java,
+                    ConstructorForDeserialization::class.java
+                ),
                 bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
             )
             configuration = SandboxConfiguration.of(

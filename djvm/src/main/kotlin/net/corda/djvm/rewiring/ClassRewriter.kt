@@ -86,8 +86,8 @@ open class ClassRewriter(
             return super.visitAnnotation(descriptor, visible)?.let {
                 if (visible && descriptor in analysisConfig.stitchedAnnotations) {
                     AnnotationStitcher(api, it, descriptor, Consumer { ann ->
-                        ann.accept(this, Function { descriptor ->
-                            descriptor.replace(SANDBOX_PREFIX, "")
+                        ann.accept(this, Function { annotation ->
+                            annotation.replace(SANDBOX_PREFIX, "")
                         })
                     })
                 } else {
@@ -97,7 +97,7 @@ open class ClassRewriter(
         }
 
         override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-            return if (extraMethods.isEmpty()) {
+            val methodVisitor = if (extraMethods.isEmpty()) {
                 super.visitMethod(access, name, descriptor, signature, exceptions)
             } else {
                 val idx = extraMethods.indexOfFirst { it.memberName == name && it.descriptor == descriptor && it.genericsDetails.emptyAsNull == signature }
@@ -107,6 +107,8 @@ open class ClassRewriter(
                         // Replace an existing method, or delete it entirely if
                         // the replacement has no method body and isn't abstract.
                         super.visitMethod(access, name, descriptor, signature, exceptions)?.run {
+                            // This COMPLETELY replaces the original method, and
+                            // will also discard any annotations it may have had.
                             writeMethodBody(this, replacement.body)
                         }
                     }
@@ -115,6 +117,7 @@ open class ClassRewriter(
                     super.visitMethod(access, name, descriptor, signature, exceptions)
                 }
             }
+            return methodVisitor?.let(::MethodAnnotationStitcher)
         }
 
         override fun visitEnd() {
@@ -134,6 +137,25 @@ open class ClassRewriter(
             EmitterModule(mv, analysisConfig).writeByteCode(body)
             mv.visitMaxs(-1, -1)
             mv.visitEnd()
+        }
+    }
+
+    /**
+     * Methods may have annotations that could need stitching, so ensure we visit these too.
+     */
+    private inner class MethodAnnotationStitcher(parent: MethodVisitor) : MethodVisitor(API_VERSION, parent) {
+        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+            return super.visitAnnotation(descriptor, visible)?.let {
+                if (visible && descriptor in analysisConfig.stitchedAnnotations) {
+                    AnnotationStitcher(api, it, descriptor, Consumer { ann ->
+                        ann.accept(this, Function { annotation ->
+                            annotation.replace(SANDBOX_PREFIX, "")
+                        })
+                    })
+                } else {
+                    it
+                }
+            }
         }
     }
 

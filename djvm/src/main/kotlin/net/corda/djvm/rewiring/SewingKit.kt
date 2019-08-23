@@ -3,6 +3,7 @@ package net.corda.djvm.rewiring
 
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.MethodVisitor
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
@@ -30,6 +31,10 @@ class AnnotationStitcher(
 
     fun accept(cv: ClassVisitor, transform: Function<String, String>) {
         accept(transform, Supplier { cv.visitAnnotation(transform.apply(descriptor), true) })
+    }
+
+    fun accept(mv: MethodVisitor, transform: Function<String, String>) {
+        accept(transform, Supplier { mv.visitAnnotation(transform.apply(descriptor), true) })
     }
 }
 
