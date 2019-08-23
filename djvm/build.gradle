@@ -124,6 +124,7 @@ shadowJar {
     exclude 'sandbox/java/util/ResourceBundle*.class'
     exclude 'sandbox/javax/security/auth/x500/X500Principal.class'
     exclude 'sandbox/sun/security/x509/X500Name.class'
+    exclude 'sandbox/sun/util/calendar/ZoneInfoFile.class'
 }
 assemble.dependsOn shadowJar
 

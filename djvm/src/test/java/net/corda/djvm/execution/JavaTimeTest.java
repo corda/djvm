@@ -2,7 +2,6 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.TaskExecutor;
 import net.corda.djvm.TestBase;
-import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
 
 import java.time.*;
@@ -289,8 +288,8 @@ class JavaTimeTest extends TestBase {
         parentedSandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
-                RuleViolationError ex = assertThrows(RuleViolationError.class, () -> run(executor, DefaultZoneId.class, null));
-                assertThat(ex).hasMessage("Native method has been deleted; java.util.TimeZone.getSystemTimeZoneID(String)");
+                String defaultZoneID = (String) run(executor, DefaultZoneId.class, null);
+                assertThat(defaultZoneID).isEqualTo("GMT");
             } catch (Exception e) {
                 fail(e);
             }
