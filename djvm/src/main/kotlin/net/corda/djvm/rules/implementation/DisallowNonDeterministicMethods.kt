@@ -106,7 +106,8 @@ object DisallowNonDeterministicMethods : Emitter {
             isClassLoader && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
             isClass && instruction.memberName == "getPackage" -> Choice.GET_PACKAGE
 
-            className == "java/security/Provider\$Service" -> allowLoadClass()
+            className == "java/security/Provider\$Service"
+                || className == "sun/security/x509/CertificateExtensions" -> allowLoadClass()
 
             // Forbid reflection otherwise.
             hasClassReflection -> Choice.FORBID

@@ -291,10 +291,49 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     /**
      * Delete the original no-argument constructor.
      */
-    MethodBuilder(
+    Member(
         access = ACC_PUBLIC,
         className = "sandbox/java/time/zone/TzdbZoneRulesProvider",
         memberName = CONSTRUCTOR_NAME,
-        descriptor = "()V"
-    ).build()
+        descriptor = "()V",
+        genericsDetails = ""
+    ),
+
+    /**
+     * Rewrite the native methods that try to determine the system [java.util.TimeZone].
+     * Returning null forces Java to use UTC here.
+     */
+    object : MethodBuilder(
+        access = ACC_PRIVATE or ACC_STATIC,
+        className = sandboxed(java.util.TimeZone::class.java),
+        memberName = "getSystemTimeZoneID",
+        descriptor = "(Lsandbox/java/lang/String;)Lsandbox/java/lang/String;"
+    ) {
+        /**
+         * Replace [java.util.TimeZone.getSystemTimeZoneID]:
+         *     return null
+         */
+        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+            pushNull()
+            returnObject()
+        }
+    }.withBody()
+     .build(),
+
+    object : MethodBuilder(
+        access = ACC_PRIVATE or ACC_STATIC,
+        className = sandboxed(java.util.TimeZone::class.java),
+        memberName = "getSystemGMTOffsetID",
+        descriptor = "()Lsandbox/java/lang/String;"
+    ) {
+        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+            /**
+             * Replace [java.util.TimeZone.getSystemGMTOffsetID]:
+             *     return null
+             */
+            pushNull()
+            returnObject()
+        }
+    }.withBody()
+     .build()
 )

@@ -205,7 +205,8 @@ class AnalysisConfiguration private constructor(
             "sandbox/sun/misc/SharedSecrets\$1",
             "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl",
             "sandbox/sun/security/provider/ByteArrayAccess",
-            "sandbox/sun/security/x509/X500Name\$1"
+            "sandbox/sun/security/x509/X500Name\$1",
+            "sandbox/sun/util/calendar/ZoneInfoFile\$1"
         ))
 
         /**

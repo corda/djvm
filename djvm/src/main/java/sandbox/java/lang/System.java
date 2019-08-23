@@ -29,6 +29,10 @@ public final class System extends Object {
         return null;
     }
 
+    public static String setProperty(String name, String value) {
+        return null;
+    }
+
     @Nullable
     public static SecurityManager getSecurityManager() {
         return null;
