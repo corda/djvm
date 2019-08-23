@@ -40,32 +40,6 @@ class DeserializeStringTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test deserializing string array`() {
-        val stringArray = StringArray(arrayOf("Hello", "World", "!"))
-        val data = stringArray.serialize()
-
-        sandbox {
-            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
-
-            val sandboxArray = data.deserializeFor(classLoader)
-
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowStringArray::class.java).newInstance(),
-                sandboxArray
-            ) ?: fail("Result cannot be null")
-
-            assertEquals(stringArray.lines.joinToString(), result.toString())
-        }
-    }
-
-    class ShowStringArray : Function<StringArray, String> {
-        override fun apply(data: StringArray): String {
-            return data.lines.joinToString()
-        }
-    }
-
-    @Test
     fun `test deserializing string list of arrays`() {
         val stringListArray = StringListOfArray(listOf(
             arrayOf("Hello"), arrayOf("World"), arrayOf("!"))
@@ -96,9 +70,6 @@ class DeserializeStringTest : TestBase(KOTLIN) {
 
 @CordaSerializable
 data class StringMessage(val message: String)
-
-@CordaSerializable
-class StringArray(val lines: Array<String>)
 
 @CordaSerializable
 class StringListOfArray(val data: List<Array<String>>)

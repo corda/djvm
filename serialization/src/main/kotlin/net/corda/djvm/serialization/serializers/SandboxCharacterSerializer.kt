@@ -16,7 +16,15 @@ class SandboxCharacterSerializer(
     override val schemaForDocumentation: Schema = Schema(emptyList())
 
     override fun readObject(obj: Any, schemas: SerializationSchemas, input: DeserializationInput, context: SerializationContext): Any {
-        return basicInput.apply((obj as? Short)?.toChar() ?: obj)!!
+        return basicInput.apply(convertToChar(obj))!!
+    }
+
+    private fun convertToChar(obj: Any): Any {
+        return when (obj) {
+            is Short -> obj.toChar()
+            is Int -> obj.toChar()
+            else -> obj
+        }
     }
 
     override fun writeDescribedObject(obj: Any, data: Data, type: Type, output: SerializationOutput, context: SerializationContext) {
