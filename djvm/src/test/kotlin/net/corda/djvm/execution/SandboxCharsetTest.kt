@@ -74,4 +74,18 @@ class SandboxCharsetTest : TestBase(KOTLIN) {
             return String(data, charset)
         }
     }
+
+    @Test
+    fun `test default charset`() = parentedSandbox {
+        val contractExecutor = DeterministicSandboxExecutor<Void?, String>(configuration)
+        contractExecutor.run<DefaultCharset>(null).apply {
+            assertThat(result).isEqualTo("UTF-8")
+        }
+    }
+
+    class DefaultCharset : Function<Void?, String> {
+        override fun apply(input: Void?): String {
+            return Charset.defaultCharset().name()
+        }
+    }
 }
