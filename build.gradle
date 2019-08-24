@@ -63,6 +63,9 @@ subprojects {
 
         // Prevent the project from creating temporary files outside of the build directory.
         systemProperty 'java.io.tmpdir', buildDir.absolutePath
+
+        // Configure the host timezone to match the DJVM's.
+        systemProperty 'user.timezone', 'UTC'
     }
 }
 

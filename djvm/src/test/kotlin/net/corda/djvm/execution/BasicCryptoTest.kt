@@ -7,9 +7,12 @@ import java.util.function.Function
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.fail
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.*
 import java.security.*
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
 import java.security.spec.X509EncodedKeySpec
 import java.util.stream.Stream
 
@@ -162,6 +165,40 @@ class BasicCryptoTest : TestBase(KOTLIN) {
             val keyFactory = KeyFactory.getInstance(data[0] as String)
             val publicKey = keyFactory.generatePublic(spec)
             return publicKey.encoded
+        }
+    }
+
+    @Test
+    fun `test certificates`() {
+        val certificate = javaClass.classLoader.getResourceAsStream("testing.cert")?.use { input ->
+            input.readBytes()
+        } ?: fail("Certificate not found")
+
+        parentedSandbox {
+            val executor = DeterministicSandboxExecutor<Array<Any>, String>(configuration)
+            val summary = executor.run<DecodeCertificate>(arrayOf("X.509", certificate))
+            assertThat(summary.result)
+                .isEqualTo("""Certificate:
+                             |- type:                X.509
+                             |- version:             3
+                             |- issuer:              CN=localhost, O=R3, L=London, C=UK
+                             |- signature algorithm: SHA256withRSA
+                             |  - algorithm OID:     1.2.840.113549.1.1.11
+                             |""".trimMargin())
+        }
+    }
+
+    class DecodeCertificate : Function<Array<Any>, String> {
+        override fun apply(data: Array<Any>): String {
+            val factory = CertificateFactory.getInstance(data[0] as String)
+            val certificate = factory.generateCertificate((data[1] as ByteArray).inputStream()) as X509Certificate
+            return """Certificate:
+                     |- type:                ${certificate.type}
+                     |- version:             ${certificate.version}
+                     |- issuer:              ${certificate.issuerX500Principal}
+                     |- signature algorithm: ${certificate.sigAlgName}
+                     |  - algorithm OID:     ${certificate.sigAlgOID}
+                     |""".trimMargin()
         }
     }
 }

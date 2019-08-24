@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.*;
 import java.time.zone.ZoneRulesProvider;
+import java.util.TimeZone;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
@@ -289,7 +290,21 @@ class JavaTimeTest extends TestBase {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 String defaultZoneID = (String) run(executor, DefaultZoneId.class, null);
-                assertThat(defaultZoneID).isEqualTo("GMT");
+                assertThat(defaultZoneID).isEqualTo("UTC");
+            } catch (Exception e) {
+                fail(e);
+            }
+            return null;
+        });
+    }
+
+    @Test
+    void testDefaultTimeZone() {
+        parentedSandbox(ctx -> {
+            try {
+                TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
+                String defaultTimeZone = (String) run(executor, DefaultTimeZone.class, null);
+                assertThat(defaultTimeZone).isEqualTo("UTC");
             } catch (Exception e) {
                 fail(e);
             }
@@ -322,6 +337,13 @@ class JavaTimeTest extends TestBase {
         @Override
         public String apply(Object o) {
             return ZoneId.systemDefault().getId();
+        }
+    }
+
+    public static class DefaultTimeZone implements Function<Object, String> {
+        @Override
+        public String apply(Object o) {
+            return TimeZone.getDefault().getID();
         }
     }
 }
