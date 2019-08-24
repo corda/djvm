@@ -1,14 +1,11 @@
 #!/bin/sh
 
-rm -f key.pem cert.pem
+KEYPASS=deterministic
+STOREPASS=deterministic
 
-openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem <<EOF
-UK
-.
-London
-R3
-.
-localhost
-dev@r3.com
-EOF
+rm -f keystore testing.cert
 
+keytool -keystore keystore -storetype pkcs12 -genkey -dname 'CN=localhost, O=R3, L=London, C=UK' -keyalg RSA -validity 3650 -keypass ${KEYPASS} -storepass ${STOREPASS}
+keytool -keystore keystore -storetype pkcs12 -export -keyalg RSA -file testing.cert -keypass ${KEYPASS} -storepass ${STOREPASS}
+
+rm -f keystore
