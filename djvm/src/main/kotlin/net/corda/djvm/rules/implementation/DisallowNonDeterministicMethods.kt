@@ -12,6 +12,11 @@ object DisallowNonDeterministicMethods : Emitter {
 
     private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
+    private val REFLECTING_CLASSES = setOf(
+        "sun/security/x509/CertificateExtensions",
+        "sun/security/x509/CRLExtensions",
+        "sun/security/x509/OtherName"
+    )
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         val className = (context.member ?: return).className
@@ -106,13 +111,17 @@ object DisallowNonDeterministicMethods : Emitter {
             isClassLoader && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
             isClass && instruction.memberName == "getPackage" -> Choice.GET_PACKAGE
 
-            className == "java/security/Provider\$Service"
-                || className == "sun/security/x509/CertificateExtensions" -> allowLoadClass()
+            className == "java/security/Provider\$Service" -> allowLoadClass()
 
             // Forbid reflection otherwise.
-            hasClassReflection -> Choice.FORBID
+            hasClassReflection -> forbidReflection(className)
 
             else -> allowLoadClass()
+        }
+
+        private fun forbidReflection(className: String): Choice = when(className) {
+            in REFLECTING_CLASSES -> Choice.PASS
+            else -> Choice.FORBID
         }
 
         private fun allowLoadClass(): Choice = when {
