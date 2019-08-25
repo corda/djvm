@@ -102,12 +102,6 @@ public final class Character extends Object implements Comparable<Character>, Se
 
     @Override
     @NotNull
-    public java.lang.String toString() {
-        return java.lang.Character.toString(value);
-    }
-
-    @Override
-    @NotNull
     public String toDJVMString() {
         return toString(value);
     }

@@ -84,8 +84,8 @@ public final class Long extends Number implements Comparable<Long> {
 
     @Override
     @NotNull
-    public java.lang.String toString() {
-        return java.lang.Long.toString(value);
+    public String toDJVMString() {
+        return Long.toString(value);
     }
 
     public static String toString(long l) {

@@ -196,7 +196,7 @@ public class ConcurrentHashMap<K, V> extends AbstractMap<K, V> implements Concur
 
         @Override
         @NotNull
-        public final String toString() {
+        public final sandbox.java.lang.String toDJVMString() {
             throw new UnsupportedOperationException(UNSUPPORTED);
         }
 

@@ -82,8 +82,8 @@ public final class Double extends Number implements Comparable<Double> {
 
     @Override
     @NotNull
-    public java.lang.String toString() {
-        return java.lang.Double.toString(value);
+    public String toDJVMString() {
+        return Double.toString(value);
     }
 
     @Override

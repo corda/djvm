@@ -68,8 +68,8 @@ public final class Byte extends Number implements Comparable<Byte> {
 
     @Override
     @NotNull
-    public java.lang.String toString() {
-        return java.lang.Byte.toString(value);
+    public String toDJVMString() {
+        return Byte.toString(value);
     }
 
     @Override

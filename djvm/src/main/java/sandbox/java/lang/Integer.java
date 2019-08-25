@@ -76,8 +76,8 @@ public final class Integer extends Number implements Comparable<Integer> {
 
     @Override
     @NotNull
-    public java.lang.String toString() {
-        return java.lang.Integer.toString(value);
+    public String toDJVMString() {
+        return Integer.toString(value);
     }
 
     @Override

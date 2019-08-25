@@ -1,8 +1,11 @@
 package sandbox.java.lang;
 
-import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 
+/**
+ * This is a dummy class that implements just enough of {@link java.lang.Number}
+ * to allow us to compile {@link sandbox.java.lang.Long}, etc.
+ */
 @SuppressWarnings("unused")
 public abstract class Number extends Object implements Serializable {
 
@@ -13,9 +16,4 @@ public abstract class Number extends Object implements Serializable {
     public abstract short shortValue();
     public abstract byte byteValue();
 
-    @Override
-    @NotNull
-    public String toDJVMString() {
-        return String.toDJVM(toString());
-    }
 }

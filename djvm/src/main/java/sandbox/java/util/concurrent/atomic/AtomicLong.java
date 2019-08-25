@@ -1,7 +1,9 @@
 package sandbox.java.util.concurrent.atomic;
 
 import org.jetbrains.annotations.NotNull;
+import sandbox.java.lang.Long;
 import sandbox.java.lang.Number;
+import sandbox.java.lang.String;
 import sandbox.java.util.function.LongBinaryOperator;
 import sandbox.java.util.function.LongUnaryOperator;
 import java.io.Serializable;
@@ -136,7 +138,7 @@ public class AtomicLong extends Number implements Serializable {
 
     @Override
     @NotNull
-    public java.lang.String toString() {
-        return java.lang.Long.toString(value);
+    public String toDJVMString() {
+        return Long.toString(value);
     }
 }

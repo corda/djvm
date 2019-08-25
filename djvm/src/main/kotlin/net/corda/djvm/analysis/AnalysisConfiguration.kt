@@ -155,7 +155,6 @@ class AnalysisConfiguration private constructor(
             java.lang.Float::class.java,
             java.lang.Integer::class.java,
             java.lang.Long::class.java,
-            java.lang.Number::class.java,
             java.lang.Runtime::class.java,
             java.lang.Short::class.java,
             java.lang.StrictMath::class.java,
