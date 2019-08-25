@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.*;
 import java.time.zone.ZoneRulesProvider;
+import java.util.Date;
 import java.util.TimeZone;
 import java.util.function.Function;
 
@@ -14,6 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class JavaTimeTest extends TestBase {
+    private static final long OFFSET_SECONDS = 5000L;
+
     JavaTimeTest() {
         super(JAVA);
     }
@@ -312,6 +315,40 @@ class JavaTimeTest extends TestBase {
         });
     }
 
+    @Test
+    void testDate() {
+        Date now = new Date();
+        parentedSandbox(ctx -> {
+            try {
+                TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
+                String result = (String) run(executor, ShowDate.class, now);
+                assertThat(result).isEqualTo(now.toString());
+            } catch (Exception e) {
+                fail(e);
+            }
+            return null;
+        });
+    }
+
+    @Test
+    void testReturningDate() {
+        Date now = new Date();
+        Date later = new AddToDate().apply(now);
+
+        parentedSandbox(ctx -> {
+            try {
+                TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
+                Date result = (Date) run(executor, AddToDate.class, now);
+                assertNotSame(later, result);
+                assertEquals(later, result);
+            } catch (Exception e) {
+                fail(e);
+            }
+            return null;
+        });
+    }
+
+
     public static class TemporalToString implements Function<Object, String> {
         @Override
         public String apply(Object temporal) {
@@ -344,6 +381,20 @@ class JavaTimeTest extends TestBase {
         @Override
         public String apply(Object o) {
             return TimeZone.getDefault().getID();
+        }
+    }
+
+    public static class ShowDate implements Function<Date, String> {
+        @Override
+        public String apply(Date date) {
+            return date.toString();
+        }
+    }
+
+    public static class AddToDate implements Function<Date, Date> {
+        @Override
+        public Date apply(Date date) {
+            return new Date(date.getTime() + OFFSET_SECONDS);
         }
     }
 }
