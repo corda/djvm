@@ -58,6 +58,8 @@ public abstract class ResourceBundle extends sandbox.java.lang.Object {
 
     /**
      * Example implementation. The real one will be stitched here at runtime.
+     * @param name The {@link ResourceBundle}'s base name.
+     * @param locale The {@link ResourceBundle}'s target locale.
      */
     public void init(String name, Locale locale) {
         this.name = name;
