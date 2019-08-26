@@ -555,12 +555,9 @@ fun getBundle(baseName: String, locale: Locale, control: ResourceBundle.Control)
         val key = "${baseName}_$locale"
         throw fromDJVM(MissingResourceException(String.toDJVM(message), String.toDJVM(key), intern("")))
     } else {
-        val parentField = ResourceBundle::class.java.getDeclaredField("parent").apply {
-            isAccessible = true
-        }
         var idx = candidateBundles.size - 1
         while (idx > 0) {
-            parentField.set(candidateBundles[idx - 1], candidateBundles[idx])
+            candidateBundles[idx - 1].childOf(candidateBundles[idx])
             --idx
         }
 
@@ -573,7 +570,9 @@ private fun loadResourceBundle(control: ResourceBundle.Control, key: DJVMResourc
     val bundle = try {
         val bundleClass = systemClassLoader.loadClass(toSandbox(bundleName.toString()))
         if (ResourceBundle::class.java.isAssignableFrom(bundleClass)) {
-            bundleClass.newInstance() as ResourceBundle
+            (bundleClass.newInstance() as ResourceBundle).also {
+                it.init(key.baseName, key.locale)
+            }
         } else {
             DJVMNoResource
         }

@@ -303,7 +303,15 @@ class JavaTimeTest extends TestBase {
 
     @Test
     void testDefaultTimeZone() {
-        parentedSandbox(ctx -> {
+        // We need to use a standalone sandbox here until we can
+        // recreate parent classloaders from cached byte-code.
+        // The problem is that each sandbox should know about those
+        // strings which have already been interned by the parent
+        // classloader when (e.g.) they were loaded into static
+        // final fields.
+        //
+        // THIS ISSUE AFFECTS ANYTHING THAT LOADS RESOURCE BUNDLES.
+        sandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 String defaultTimeZone = (String) run(executor, DefaultTimeZone.class, null);
@@ -325,6 +333,8 @@ class JavaTimeTest extends TestBase {
         // strings which have already been interned by the parent
         // classloader when (e.g.) they were loaded into static
         // final fields.
+        //
+        // THIS ISSUE AFFECTS ANYTHING THAT LOADS RESOURCE BUNDLES.
         sandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
