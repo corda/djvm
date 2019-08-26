@@ -44,8 +44,8 @@ public final class Float extends Number implements Comparable<Float> {
 
     @Override
     @NotNull
-    public java.lang.String toString() {
-        return java.lang.Float.toString(value);
+    public String toDJVMString() {
+        return Float.toString(value);
     }
 
     @Override

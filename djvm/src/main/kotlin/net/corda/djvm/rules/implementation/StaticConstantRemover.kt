@@ -1,6 +1,7 @@
 package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.analysis.AnalysisRuntimeContext
+import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.MemberDefinitionProvider
 import net.corda.djvm.references.Member
@@ -22,7 +23,7 @@ object StaticConstantRemover : MemberDefinitionProvider {
         fun writeInitializer(emitter: EmitterModule): Unit = with(emitter) {
             val value = member.value ?: return
             loadConstant(value)
-            invokeStatic("sandbox/java/lang/String", "toDJVM", "(Ljava/lang/String;)Lsandbox/java/lang/String;", false)
+            invokeStatic(DJVM_NAME, "intern", "(Ljava/lang/String;)Lsandbox/java/lang/String;", false)
             putStatic(member.className, member.memberName, "Lsandbox/java/lang/String;")
         }
     }

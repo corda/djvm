@@ -42,6 +42,7 @@ fun Any.sandbox(): Any {
         is kotlin.Boolean -> Boolean.toDJVM(this)
         is kotlin.Enum<*> -> toDJVMEnum()
         is kotlin.Throwable -> toDJVMThrowable()
+        is java.util.Date -> Date(time)
         is java.time.Duration -> sandbox.java.time.Duration.ofSeconds(seconds, nano.toLong())
         is java.time.Instant -> sandbox.java.time.Instant.ofEpochSecond(epochSecond, nano.toLong())
         is java.time.LocalDate -> toDJVM()
@@ -540,20 +541,31 @@ private val sandboxThrowable: Class<*> = Throwable::class.java
  * Resource Bundles.
  */
 fun getBundle(baseName: String, locale: Locale, control: ResourceBundle.Control): ResourceBundle {
-    control.getCandidateLocales(baseName, locale).forEach { candidateLocale ->
+    val candidateBundles = control.getCandidateLocales(baseName, locale).map { candidateLocale ->
         val resourceKey = DJVMResourceKey(baseName, candidateLocale)
-        val bundle = resourceCache[resourceKey] ?: run {
+        resourceCache.getOrPut(resourceKey) {
             loadResourceBundle(control, resourceKey)
         }
-
-        if (bundle != DJVMNoResource) {
-            return bundle
-        }
+    }.filter {
+        it != DJVMNoResource
     }
 
-    val message = "Cannot find bundle for base name $baseName, locale $locale"
-    val key = "${baseName}_$locale"
-    throw fromDJVM(MissingResourceException(String.toDJVM(message), String.toDJVM(key), intern("")))
+    if (candidateBundles.isEmpty()) {
+        val message = "Cannot find bundle for base name $baseName, locale $locale"
+        val key = "${baseName}_$locale"
+        throw fromDJVM(MissingResourceException(String.toDJVM(message), String.toDJVM(key), intern("")))
+    } else {
+        val parentField = ResourceBundle::class.java.getDeclaredField("parent").apply {
+            isAccessible = true
+        }
+        var idx = candidateBundles.size - 1
+        while (idx > 0) {
+            parentField.set(candidateBundles[idx - 1], candidateBundles[idx])
+            --idx
+        }
+
+        return candidateBundles.first()
+    }
 }
 
 private fun loadResourceBundle(control: ResourceBundle.Control, key: DJVMResourceKey): ResourceBundle {

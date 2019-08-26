@@ -1,7 +1,9 @@
 package sandbox.java.util.concurrent.atomic;
 
 import org.jetbrains.annotations.NotNull;
+import sandbox.java.lang.Integer;
 import sandbox.java.lang.Number;
+import sandbox.java.lang.String;
 import sandbox.java.util.function.IntBinaryOperator;
 import sandbox.java.util.function.IntUnaryOperator;
 
@@ -137,7 +139,7 @@ public class AtomicInteger extends Number implements Serializable {
 
     @Override
     @NotNull
-    public java.lang.String toString() {
-        return java.lang.Integer.toString(value);
+    public String toDJVMString() {
+        return Integer.toString(value);
     }
 }

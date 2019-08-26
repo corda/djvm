@@ -13,11 +13,11 @@ import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.messages.Severity
+import net.corda.djvm.messages.Severity.*
 import net.corda.djvm.references.ClassHierarchy
 import net.corda.djvm.rewiring.LoadedClass
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rules.Rule
-import net.corda.djvm.rules.implementation.*
 import net.corda.djvm.source.*
 import net.corda.djvm.validation.RuleValidator
 import org.junit.jupiter.api.AfterAll
@@ -41,27 +41,6 @@ import kotlin.reflect.jvm.jvmName
 abstract class TestBase(type: SandboxType) {
 
     companion object {
-
-        // We need at least these emitters to handle the Java API classes.
-        @JvmField
-        val BASIC_EMITTERS: List<Emitter> = unmodifiableList(listOf(
-            AlwaysInheritFromSandboxedObject,
-            ArgumentUnwrapper,
-            DisallowCatchingBlacklistedExceptions,
-            HandleExceptionUnwrapper,
-            ReturnTypeWrapper,
-            RewriteClassMethods,
-            RewriteObjectMethods,
-            StringConstantWrapper,
-            ThrowExceptionWrapper
-        ))
-
-        // We need at least these providers to handle the Java API classes.
-        @JvmField
-        val BASIC_DEFINITION_PROVIDERS: List<DefinitionProvider> = unmodifiableList(listOf(
-            AlwaysInheritFromSandboxedObject,
-            StaticConstantRemover
-        ))
 
         @JvmField
         val BLANK = emptySet<Any>()
@@ -143,8 +122,8 @@ abstract class TestBase(type: SandboxType) {
      * Short-hand for analysing and validating a class.
      */
     inline fun <reified T> validate(
-            minimumSeverityLevel: Severity = Severity.INFORMATIONAL,
-            noinline block: (RuleValidator.(AnalysisContext) -> Unit)
+        minimumSeverityLevel: Severity = INFORMATIONAL,
+        noinline block: (RuleValidator.(AnalysisContext) -> Unit)
     ) {
         val reader = ClassReader(T::class.java.name)
         AnalysisConfiguration.createRoot(
@@ -165,15 +144,31 @@ abstract class TestBase(type: SandboxType) {
      * the current thread, so this allows inspection of the cost summary object, etc. from within the provided delegate.
      */
     fun sandbox(
+        visibleAnnotations: Set<Class<out Annotation>>,
+        action: SandboxRuntimeContext.() -> Unit
+    ) {
+        return sandbox(
+            pinnedClasses = emptySet(),
+            visibleAnnotations = visibleAnnotations,
+            minimumSeverityLevel = WARNING,
+            enableTracing = true,
+            action = action
+        )
+    }
+
+    fun sandbox(action: SandboxRuntimeContext.() -> Unit) = sandbox(emptySet(), action)
+
+    fun sandbox(
         vararg options: Any,
         pinnedClasses: Set<Class<*>> = emptySet(),
-        minimumSeverityLevel: Severity = Severity.WARNING,
+        visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
+        minimumSeverityLevel: Severity = WARNING,
         enableTracing: Boolean = true,
         action: SandboxRuntimeContext.() -> Unit
     ) {
         val rules = mutableListOf<Rule>()
-        val emitters = mutableListOf<Emitter>().apply { addAll(BASIC_EMITTERS) }
-        val definitionProviders = mutableListOf<DefinitionProvider>().apply { addAll(BASIC_DEFINITION_PROVIDERS) }
+        val emitters = mutableListOf<Emitter>().apply { addAll(ALL_EMITTERS) }
+        val definitionProviders = mutableListOf<DefinitionProvider>().apply { addAll(ALL_DEFINITION_PROVIDERS) }
         val classSources = mutableListOf<ClassSource>()
         var executionProfile = ExecutionProfile.UNLIMITED
         var whitelist = Whitelist.MINIMAL
@@ -200,6 +195,7 @@ abstract class TestBase(type: SandboxType) {
                     userSource = UserPathSource(classPaths),
                     whitelist = whitelist,
                     pinnedClasses = pinnedTestClasses,
+                    visibleAnnotations = visibleAnnotations,
                     minimumSeverityLevel = minimumSeverityLevel,
                     bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
                 ).use { analysisConfiguration ->
@@ -223,10 +219,10 @@ abstract class TestBase(type: SandboxType) {
     }
 
     fun parentedSandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit)
-            = parentedSandbox(Severity.WARNING, visibleAnnotations, true, action)
+            = parentedSandbox(WARNING, visibleAnnotations, true, action)
 
     fun parentedSandbox(action: SandboxRuntimeContext.() -> Unit)
-            = parentedSandbox(Severity.WARNING, emptySet(), true, action)
+            = parentedSandbox(WARNING, emptySet(), true, action)
 
     fun parentedSandbox(
         minimumSeverityLevel: Severity,
@@ -363,7 +359,7 @@ abstract class TestBase(type: SandboxType) {
         fun objectArrayOf(vararg objs: Any): Array<in Any> {
             @Suppress("unchecked_cast")
             return (java.lang.reflect.Array.newInstance(objectClass, objs.size) as Array<in Any>).also {
-                for (i in 0 until objs.size) {
+                for (i in objs.indices) {
                     it[i] = objectClass.cast(objs[i])
                 }
             }

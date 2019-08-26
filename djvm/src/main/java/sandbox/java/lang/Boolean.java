@@ -43,12 +43,6 @@ public final class Boolean extends Object implements Comparable<Boolean>, Serial
 
     @Override
     @NotNull
-    public java.lang.String toString() {
-        return java.lang.Boolean.toString(value);
-    }
-
-    @Override
-    @NotNull
     public String toDJVMString() {
         return toString(value);
     }

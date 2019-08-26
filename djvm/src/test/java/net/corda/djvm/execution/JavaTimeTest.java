@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.*;
 import java.time.zone.ZoneRulesProvider;
+import java.util.Date;
 import java.util.TimeZone;
 import java.util.function.Function;
 
@@ -14,6 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class JavaTimeTest extends TestBase {
+    private static final long OFFSET_SECONDS = 5000L;
+
     JavaTimeTest() {
         super(JAVA);
     }
@@ -304,13 +307,54 @@ class JavaTimeTest extends TestBase {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 String defaultTimeZone = (String) run(executor, DefaultTimeZone.class, null);
-                assertThat(defaultTimeZone).isEqualTo("UTC");
+                assertThat(defaultTimeZone).isEqualTo("Coordinated Universal Time");
             } catch (Exception e) {
                 fail(e);
             }
             return null;
         });
     }
+
+    @Test
+    void testDate() {
+        Date now = new Date();
+
+        // We need to use a standalone sandbox here until we can
+        // recreate parent classloaders from cached byte-code.
+        // The problem is that each sandbox should know about those
+        // strings which have already been interned by the parent
+        // classloader when (e.g.) they were loaded into static
+        // final fields.
+        sandbox(ctx -> {
+            try {
+                TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
+                String result = (String) run(executor, ShowDate.class, now);
+                assertThat(result).isEqualTo(now.toString());
+            } catch (Exception e) {
+                fail(e);
+            }
+            return null;
+        });
+    }
+
+    @Test
+    void testReturningDate() {
+        Date now = new Date();
+        Date later = new AddToDate().apply(now);
+
+        parentedSandbox(ctx -> {
+            try {
+                TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
+                Date result = (Date) run(executor, AddToDate.class, now);
+                assertNotSame(later, result);
+                assertEquals(later, result);
+            } catch (Exception e) {
+                fail(e);
+            }
+            return null;
+        });
+    }
+
 
     public static class TemporalToString implements Function<Object, String> {
         @Override
@@ -343,7 +387,21 @@ class JavaTimeTest extends TestBase {
     public static class DefaultTimeZone implements Function<Object, String> {
         @Override
         public String apply(Object o) {
-            return TimeZone.getDefault().getID();
+            return TimeZone.getDefault().getDisplayName();
+        }
+    }
+
+    public static class ShowDate implements Function<Date, String> {
+        @Override
+        public String apply(Date date) {
+            return date.toString();
+        }
+    }
+
+    public static class AddToDate implements Function<Date, Date> {
+        @Override
+        public Date apply(Date date) {
+            return new Date(date.getTime() + OFFSET_SECONDS);
         }
     }
 }

@@ -238,6 +238,22 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         invokeStatic("java/time/ZoneId", OF, "(Ljava/lang/String;)Ljava/time/ZoneId;")
         returnObject()
     }
+}.build() + object : FromDJVMBuilder(
+    className = sandboxed(java.util.Date::class.java),
+    bridgeDescriptor = "()Ljava/util/Date;"
+) {
+    /**
+     * Implements Date.fromDJVM():
+     *     return java.time.Date(getTime())
+     */
+    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        new("java/util/Date")
+        duplicate()
+        pushObject(0)
+        invokeVirtual(className, "getTime", "()J")
+        invokeSpecial("java/util/Date", CONSTRUCTOR_NAME, "(J)V")
+        returnObject()
+    }
 }.build() + listOf(
     /**
      * Create an accessor for [sandbox.java.time.ZonedDateTime.ofLenient]:
@@ -288,6 +304,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         }
     }.withBody()
      .build(),
+
     /**
      * Delete the original no-argument constructor.
      */
