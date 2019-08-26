@@ -50,6 +50,7 @@ class AMQPSerializationScheme(
             register(SandboxPrimitiveSerializer(Float::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Double::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxPrimitiveSerializer(Boolean::class.javaObjectType, classLoader, sandboxBasicInput))
+            register(SandboxPrimitiveSerializer(Date::class.javaObjectType, classLoader, sandboxBasicInput))
             register(SandboxCharacterSerializer(classLoader, sandboxBasicInput))
             register(SandboxCollectionSerializer(classLoader, executor, this))
             register(SandboxMapSerializer(classLoader, executor, this))

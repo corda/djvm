@@ -38,7 +38,38 @@ class DeserializePrimitivesTest : TestBase(KOTLIN) {
             assertEquals("sandbox.${uuid::class.java.name}", sandboxUUID::class.java.name)
         }
     }
+
+    @Test
+    fun `test naked date`() {
+        val now = Date()
+        val data = now.serialize()
+
+        sandbox {
+            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
+
+            val sandboxNow = data.deserializeFor(classLoader)
+            assertEquals(now.toString(), sandboxNow.toString())
+            assertEquals("sandbox.${now::class.java.name}", sandboxNow::class.java.name)
+        }
+    }
+
+    @Test
+    fun `test wrapped date`() {
+        val now = WrappedDate(Date())
+        val data = now.serialize()
+
+        sandbox {
+            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
+
+            val sandboxNow = data.deserializeFor(classLoader)
+            assertEquals(now.toString(), sandboxNow.toString())
+            assertEquals("sandbox.${now::class.java.name}", sandboxNow::class.java.name)
+        }
+    }
 }
 
 @CordaSerializable
 data class WrappedUUID(val uuid: UUID)
+
+@CordaSerializable
+data class WrappedDate(val date: Date)
