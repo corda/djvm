@@ -28,7 +28,7 @@ class DeserializeCertificatesTest : TestBase(KOTLIN) {
         // The sandbox's localisation may not match that of the host.
         // E.g. line separator characters and time zone format.
         fun localise(str: String): String {
-            return str.replace("GMT+00:00", "UTC").replace("\n", System.lineSeparator())
+            return str.replace("\n", System.lineSeparator())
         }
 
         val factory: CertificateFactory = CertificateFactory.getInstance("X.509")

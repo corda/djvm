@@ -6,11 +6,11 @@ import org.apache.qpid.proton.amqp.Binary
 import org.apache.qpid.proton.amqp.Symbol
 import org.apache.qpid.proton.codec.Data
 import java.lang.reflect.Type
-import java.util.function.UnaryOperator
+import java.util.function.Function
 
 class PrimitiveSerializer(
     override val type: Class<*>,
-    private val sandboxBasicInput: UnaryOperator<in Any?>
+    private val sandboxBasicInput: Function<in Any?, out Any?>
 ) : AMQPSerializer<Any> {
     override val typeDescriptor: Symbol = typeDescriptorFor(type)
 

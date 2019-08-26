@@ -13,11 +13,11 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.*
 import java.util.function.BiFunction
-import java.util.function.UnaryOperator
+import java.util.function.Function
 
 class AMQPSerializationScheme(
     private val classLoader: SandboxClassLoader,
-    private val sandboxBasicInput: UnaryOperator<in Any?>,
+    private val sandboxBasicInput: Function<in Any?, out Any?>,
     private val executor: BiFunction<in Any, in Any?, out Any?>,
     private val serializerFactoryFactory: SerializerFactoryFactory
 ) : SerializationScheme {
@@ -61,6 +61,14 @@ class AMQPSerializationScheme(
             register(SandboxCurrencySerializer(classLoader, executor, sandboxBasicInput))
             register(SandboxX509CertificateSerializer(classLoader, executor))
             register(SandboxX509CRLSerializer(classLoader, executor))
+            register(SandboxUnsignedLongSerializer(classLoader, executor))
+            register(SandboxUnsignedIntegerSerializer(classLoader, executor))
+            register(SandboxUnsignedShortSerializer(classLoader, executor))
+            register(SandboxUnsignedByteSerializer(classLoader, executor))
+            register(SandboxDecimal128Serializer(classLoader, executor))
+            register(SandboxDecimal64Serializer(classLoader, executor))
+            register(SandboxDecimal32Serializer(classLoader, executor))
+            register(SandboxSymbolSerializer(classLoader, executor, sandboxBasicInput))
         }
     }
 

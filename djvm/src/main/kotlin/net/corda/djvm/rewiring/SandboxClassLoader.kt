@@ -18,7 +18,7 @@ import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.Type
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
-import java.util.function.UnaryOperator
+import java.util.function.Function
 
 /**
  * Class loader that enables registration of rewired classes.
@@ -83,7 +83,7 @@ class SandboxClassLoader private constructor(
     )
 
     /**
-     * Returns an instance of [UnaryOperator] that can transform a
+     * Returns an instance of [Function] that can transform a
      * basic Java object into its equivalent inside the sandbox.
      */
     @Throws(
@@ -93,12 +93,12 @@ class SandboxClassLoader private constructor(
         NoSuchMethodException::class,
         SecurityException::class
     )
-    fun createBasicInput(): UnaryOperator<in Any?> {
+    fun createBasicInput(): Function<in Any?, out Any?> {
         return createBasicTask("sandbox.BasicInput")
     }
 
     /**
-     * Returns an instance of [UnaryOperator] that can transform
+     * Returns an instance of [Function] that can transform
      * a basic sandbox object into its equivalent Java object.
      */
     @Throws(
@@ -108,7 +108,7 @@ class SandboxClassLoader private constructor(
         NoSuchMethodException::class,
         SecurityException::class
     )
-    fun createBasicOutput(): UnaryOperator<in Any?> {
+    fun createBasicOutput(): Function<in Any?, out Any?> {
         return createBasicTask("sandbox.BasicOutput")
     }
 
@@ -119,11 +119,11 @@ class SandboxClassLoader private constructor(
         NoSuchMethodException::class,
         SecurityException::class
     )
-    private fun createBasicTask(taskName: String): UnaryOperator<in Any?> {
+    private fun createBasicTask(taskName: String): Function<in Any?, out Any?> {
         val taskClass = loadClass(taskName)
         val applyMethod = taskClass.getDeclaredMethod("apply", Any::class.java)
         val task = taskClass.newInstance()
-        return UnaryOperator { value ->
+        return Function { value ->
             try {
                 applyMethod(task, value)
             } catch (e: InvocationTargetException) {

@@ -6,12 +6,12 @@ import net.corda.djvm.serialization.loadClassForSandbox
 import net.corda.serialization.internal.amqp.*
 import org.apache.qpid.proton.codec.Data
 import java.lang.reflect.Type
-import java.util.function.UnaryOperator
+import java.util.function.Function
 
 class SandboxPrimitiveSerializer(
     clazz: Class<*>,
     classLoader: SandboxClassLoader,
-    private val basicInput: UnaryOperator<in Any?>
+    private val basicInput: Function<in Any?, out Any?>
 ) : CustomSerializer.Is<Any>(classLoader.loadClassForSandbox(clazz)) {
 
     override val schemaForDocumentation: Schema = Schema(emptyList())
