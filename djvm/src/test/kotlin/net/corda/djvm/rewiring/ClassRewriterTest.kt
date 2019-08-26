@@ -15,7 +15,8 @@ import java.util.*
 class ClassRewriterTest : TestBase(KOTLIN) {
 
     @Test
-    fun `empty transformer does nothing`() = sandbox(BLANK) {
+    fun `empty transformer does nothing`() = sandbox(BLANK, enableTracing = false) {
+        // An empty transformer doesn't contain the tracing emitters either.
         val callable = newCallable<Empty>()
         assertThat(callable).isSandboxed()
         callable.createAndInvoke()

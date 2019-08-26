@@ -7,6 +7,7 @@ import net.corda.djvm.rules.RuleViolationError;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
+import static java.util.Collections.*;
 import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.Utilities.*;
 import static net.corda.djvm.messages.Severity.*;
@@ -14,7 +15,6 @@ import static net.corda.djvm.messages.Severity.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -106,8 +106,8 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testMultiCatchWithDisallowedExceptions() {
-        Set<Class<?>> pinnedClasses = Collections.singleton(Utilities.class);
-        sandbox(new Object[0], pinnedClasses, WARNING, true, ctx -> {
+        Set<Class<?>> pinnedClasses = singleton(Utilities.class);
+        sandbox(new Object[0], pinnedClasses, emptySet(), WARNING, true, ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> {

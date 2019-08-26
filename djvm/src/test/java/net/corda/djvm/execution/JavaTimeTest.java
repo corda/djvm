@@ -307,7 +307,7 @@ class JavaTimeTest extends TestBase {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 String defaultTimeZone = (String) run(executor, DefaultTimeZone.class, null);
-                assertThat(defaultTimeZone).isEqualTo("UTC");
+                assertThat(defaultTimeZone).isEqualTo("Coordinated Universal Time");
             } catch (Exception e) {
                 fail(e);
             }
@@ -318,7 +318,14 @@ class JavaTimeTest extends TestBase {
     @Test
     void testDate() {
         Date now = new Date();
-        parentedSandbox(ctx -> {
+
+        // We need to use a standalone sandbox here until we can
+        // recreate parent classloaders from cached byte-code.
+        // The problem is that each sandbox should know about those
+        // strings which have already been interned by the parent
+        // classloader when (e.g.) they were loaded into static
+        // final fields.
+        sandbox(ctx -> {
             try {
                 TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
                 String result = (String) run(executor, ShowDate.class, now);
@@ -380,7 +387,7 @@ class JavaTimeTest extends TestBase {
     public static class DefaultTimeZone implements Function<Object, String> {
         @Override
         public String apply(Object o) {
-            return TimeZone.getDefault().getID();
+            return TimeZone.getDefault().getDisplayName();
         }
     }
 
