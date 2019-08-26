@@ -555,12 +555,9 @@ fun getBundle(baseName: String, locale: Locale, control: ResourceBundle.Control)
         val key = "${baseName}_$locale"
         throw fromDJVM(MissingResourceException(String.toDJVM(message), String.toDJVM(key), intern("")))
     } else {
-        val parentField = ResourceBundle::class.java.getDeclaredField("parent").apply {
-            isAccessible = true
-        }
         var idx = candidateBundles.size - 1
         while (idx > 0) {
-            parentField.set(candidateBundles[idx - 1], candidateBundles[idx])
+            candidateBundles[idx - 1].childOf(candidateBundles[idx])
             --idx
         }
 

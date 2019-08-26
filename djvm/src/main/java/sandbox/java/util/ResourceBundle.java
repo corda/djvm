@@ -10,6 +10,8 @@ import sandbox.java.lang.String;
 public abstract class ResourceBundle extends sandbox.java.lang.Object {
     private static final java.lang.String NOT_IMPLEMENTED = "Dummy class - not implemented";
 
+    private ResourceBundle parent;
+
     protected abstract Object handleGetObject(String key);
     public abstract Enumeration<String> getKeys();
 
@@ -39,6 +41,17 @@ public abstract class ResourceBundle extends sandbox.java.lang.Object {
 
     public Set<String> keySet() {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED);
+    }
+
+    /**
+     * Example implementation. The real one will be stitched here at runtime.
+     * @param parent The {@link ResourceBundle} that will become this bundle's
+     *               parent, assuming it doesn't already have a parent.
+     */
+    public void childOf(ResourceBundle parent) {
+        if (this.parent == null) {
+            this.parent = parent;
+        }
     }
 
     /**
