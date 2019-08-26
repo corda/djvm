@@ -170,7 +170,7 @@ class AnalysisConfiguration private constructor(
             java.util.concurrent.atomic.AtomicInteger::class.java,
             java.util.concurrent.atomic.AtomicLong::class.java,
             java.util.concurrent.locks.ReentrantLock::class.java,
-            kotlin.Any::class.java,
+            Any::class.java,
             sun.misc.JavaLangAccess::class.java,
             sun.misc.SharedSecrets::class.java,
             sun.misc.VM::class.java,
