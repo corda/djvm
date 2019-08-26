@@ -10,17 +10,19 @@ import sandbox.java.lang.String;
 public abstract class ResourceBundle extends sandbox.java.lang.Object {
     private static final java.lang.String NOT_IMPLEMENTED = "Dummy class - not implemented";
 
-    private ResourceBundle parent;
+    protected ResourceBundle parent;
+    private String name;
+    private Locale locale;
 
     protected abstract Object handleGetObject(String key);
     public abstract Enumeration<String> getKeys();
 
     public String getBaseBundleName() {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED);
+        return name;
     }
 
     public Locale getLocale() {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED);
+        return locale;
     }
 
     public final String getString(String key) {
@@ -52,6 +54,14 @@ public abstract class ResourceBundle extends sandbox.java.lang.Object {
         if (this.parent == null) {
             this.parent = parent;
         }
+    }
+
+    /**
+     * Example implementation. The real one will be stitched here at runtime.
+     */
+    public void init(String name, Locale locale) {
+        this.name = name;
+        this.locale = locale;
     }
 
     /**

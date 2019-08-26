@@ -137,7 +137,33 @@ fun generateJavaResourceBundleMethods(): List<Member> = listOf(
             returnVoid()
         }
     }.withBody()
-     .build()
+     .build(),
+
+    object : MethodBuilder(
+        access = ACC_PUBLIC,
+        className = sandboxed(ResourceBundle::class.java),
+        memberName = "init",
+        descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;)V"
+    ) {
+        /**
+         * Implements ResourceBundle.init(String name, Locale locale):
+         *     this.name = name
+         *     this.locale = locale
+         *     return
+         */
+        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+            pushObject(0)
+            pushObject(1)
+            popField(className, "name", "Lsandbox/java/lang/String;")
+
+            pushObject(0)
+            pushObject(2)
+            popField(className, "locale", "Lsandbox/java/util/Locale;")
+
+            returnVoid()
+        }
+    }.withBody()
+    .build()
 )
 
 private fun EmitterModule.returnResourceBundle() {

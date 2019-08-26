@@ -570,7 +570,9 @@ private fun loadResourceBundle(control: ResourceBundle.Control, key: DJVMResourc
     val bundle = try {
         val bundleClass = systemClassLoader.loadClass(toSandbox(bundleName.toString()))
         if (ResourceBundle::class.java.isAssignableFrom(bundleClass)) {
-            bundleClass.newInstance() as ResourceBundle
+            (bundleClass.newInstance() as ResourceBundle).also {
+                it.init(key.baseName, key.locale)
+            }
         } else {
             DJVMNoResource
         }
