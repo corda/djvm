@@ -302,8 +302,8 @@ class AnalysisConfiguration private constructor(
                 className = sandboxed(CharSequence::class.java),
                 memberName = "toString",
                 descriptor = "()Ljava/lang/String;"
-            ).build()
-        ).mapByClassName() + listOf(
+            ).build(),
+
             object : MethodBuilder(
                 access = ACC_PUBLIC or ACC_SYNTHETIC or ACC_BRIDGE,
                 className = sandboxed(Iterable::class.java),
@@ -331,6 +331,11 @@ class AnalysisConfiguration private constructor(
          * trying to invoke [sun.misc.Unsafe] and other assorted native methods.
          */
         private val STITCHED_CLASSES: Map<String, List<Member>> = unmodifiable((
+            generateJavaTimeMethods() +
+            generateJavaResourceBundleMethods() +
+            generateJavaPackageMethods() +
+            generateJavaBitsMethods() +
+
             object : FromDJVMBuilder(
                 className = sandboxed(Enum::class.java),
                 bridgeDescriptor = "()Ljava/lang/Enum;",
@@ -341,13 +346,14 @@ class AnalysisConfiguration private constructor(
                     invokeStatic(DJVM_NAME, "fromDJVMEnum", "(Lsandbox/java/lang/Enum;)Ljava/lang/Enum;")
                     returnObject()
                 }
-            }.build()
-        ).mapByClassName() + (
-            generateJavaTimeMethods()
-            + generateJavaResourceBundleMethods()
-            + generateJavaPackageMethods()
-            + generateJavaBitsMethods()
-        ).mapByClassName() + listOf(
+            }.build() +
+
+        listOf(
+            deleteClassInitializerFor(Modifier::class.java),
+            deleteClassInitializerFor(Random::class.java),
+            deleteClassInitializerFor(SecurityManager::class.java),
+            deleteClassInitializerFor(CopyOnWriteArrayList::class.java),
+
             object : MethodBuilder(
                 access = ACC_STATIC or ACC_PRIVATE,
                 className = sandboxed(Charset::class.java),
@@ -360,8 +366,8 @@ class AnalysisConfiguration private constructor(
                     returnObject()
                 }
             }.withBody()
-             .build()
-        ).mapByClassName() + listOf(
+             .build(),
+
             object : MethodBuilder(
                 access = ACC_STATIC or ACC_PRIVATE,
                 className = sandboxed(Security::class.java),
@@ -374,13 +380,8 @@ class AnalysisConfiguration private constructor(
                     returnVoid()
                 }
             }.withBody()
-             .build()
-        ).mapByClassName() + listOf(
-            deleteClassInitializerFor(Modifier::class.java),
-            deleteClassInitializerFor(Random::class.java),
-            deleteClassInitializerFor(SecurityManager::class.java),
-            deleteClassInitializerFor(CopyOnWriteArrayList::class.java)
-        ).mapByClassName() + listOf(
+             .build(),
+
             object : MethodBuilder(
                 access = ACC_PRIVATE or ACC_STATIC,
                 className = sandboxed(SecureRandom::class.java),
@@ -392,8 +393,8 @@ class AnalysisConfiguration private constructor(
                     returnObject()
                 }
             }.withBody()
-             .build()
-        ).mapByClassName() + listOf(
+             .build(),
+
             object : MethodBuilder(
                 access = ACC_PRIVATE or ACC_STATIC,
                 className = sandboxed(JRELocaleProviderAdapter::class.java),
@@ -405,8 +406,8 @@ class AnalysisConfiguration private constructor(
                     returnInteger()
                 }
             }.withBody()
-             .build()
-        ).mapByClassName() + listOf(
+             .build(),
+
             // Create factory function to wrap java.io.InputStream.
             object : MethodBuilder(
                 access = ACC_PUBLIC or ACC_STATIC,
@@ -430,8 +431,8 @@ class AnalysisConfiguration private constructor(
                     returnObject()
                 }
             }.withBody()
-             .build()
-        ).mapByClassName() + listOf(
+             .build(),
+
             /**
              * Create [sandbox.javax.security.auth.x500.X500Principal.unwrap] method
              * to expose existing private [X500Principal.thisX500Name] field.
@@ -452,8 +453,8 @@ class AnalysisConfiguration private constructor(
                     returnObject()
                 }
             }.withBody()
-             .build()
-        ).mapByClassName() + listOf(
+             .build(),
+
             /**
              * Reimplement these methods so that they don't require reflection.
              */
@@ -509,8 +510,8 @@ class AnalysisConfiguration private constructor(
                     returnObject()
                 }
             }.withBody()
-             .build()
-        ).mapByClassName() + listOf(
+             .build(),
+
             object : MethodBuilder(
                 access = ACC_PUBLIC or ACC_STATIC,
                 className = sandboxed(DatatypeFactory::class.java),
@@ -530,7 +531,7 @@ class AnalysisConfiguration private constructor(
                 }
             }.withBody()
              .build()
-        ).mapByClassName())
+        )).mapByClassName())
 
         fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
         fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
