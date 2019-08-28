@@ -2,6 +2,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'net.corda.plugins.publish-utils'
     id 'com.jfrog.artifactory'
+    id 'com.jfrog.bintray'
     id 'java-library'
     id 'idea'
 }
@@ -22,7 +23,6 @@ configurations {
 
 allprojects {
     repositories {
-        mavenLocal()
         maven {
             url "$artifactory_contextUrl/corda-dev"
         }
