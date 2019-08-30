@@ -29,10 +29,10 @@ class DataInputStreamTest extends TestBase {
             dos.writeUTF(MESSAGE);
             dos.writeDouble(BIG_FRACTION);
         }
-        byte[] input = baos.toByteArray();
+        InputStream input = new ByteArrayInputStream(baos.toByteArray());
 
         parentedSandbox(ctx -> {
-            SandboxExecutor<byte[], Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            SandboxExecutor<InputStream, Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, DataStreamer.class, input);
             assertThat(success.getResult()).isEqualTo(new Object[]{
                 BIG_NUMBER,
@@ -44,11 +44,10 @@ class DataInputStreamTest extends TestBase {
         });
     }
 
-    public static class DataStreamer implements Function<byte[], Object[]> {
+    public static class DataStreamer implements Function<InputStream, Object[]> {
         @Override
-        public Object[] apply(byte[] bytes) {
-            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-            try (DataInputStream dis = new DataInputStream(bais)) {
+        public Object[] apply(InputStream input) {
+            try (DataInputStream dis = new DataInputStream(input)) {
                 return new Object[] {
                     dis.readLong(),
                     dis.readInt(),

@@ -57,13 +57,13 @@ class JarInputStreamTest extends TestBase {
 
     @Test
     void testReadingData() throws IOException {
-        byte[] input;
+        InputStream input;
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             Files.copy(testJar.getPath(), baos);
-            input = baos.toByteArray();
+            input = new ByteArrayInputStream(baos.toByteArray());
         }
         parentedSandbox(ctx -> {
-            SandboxExecutor<byte[], String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
+            SandboxExecutor<InputStream, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String[]> success = WithJava.run(executor, JarStreamer.class, input);
             assertNotNull(success.getResult());
             assertThat(success.getResult())
@@ -78,11 +78,11 @@ class JarInputStreamTest extends TestBase {
         });
     }
 
-    public static class JarStreamer implements Function<byte[], String[]> {
+    public static class JarStreamer implements Function<InputStream, String[]> {
         @Override
-        public String[] apply(byte[] blob) {
+        public String[] apply(InputStream input) {
             try (
-                JarInputStream jar = new JarInputStream(new ByteArrayInputStream(blob));
+                JarInputStream jar = new JarInputStream(input);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream()
             ) {
                 Manifest manifest = jar.getManifest();
