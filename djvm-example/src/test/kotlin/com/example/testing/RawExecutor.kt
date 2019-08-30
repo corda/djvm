@@ -1,12 +1,13 @@
 package com.example.testing
 
+import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.source.ClassSource
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
-class Executor(private val classLoader: SandboxClassLoader) {
+class RawExecutor(private val classLoader: SandboxClassLoader) {
     private val constructor: Constructor<out Any>
     private val executeMethod: Method
 
@@ -24,7 +25,11 @@ class Executor(private val classLoader: SandboxClassLoader) {
         return try {
             executeMethod(constructor.newInstance(task), input)
         } catch (ex: InvocationTargetException) {
-            throw ex.targetException
+            val target = ex.targetException
+            throw when (target) {
+                is Error, is RuntimeException -> target
+                else -> SandboxRuntimeException(target.message, target)
+            }
         }
     }
 }
