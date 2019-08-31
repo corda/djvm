@@ -108,7 +108,7 @@ object DisallowNonDeterministicMethods : Emitter {
             }
             isClassLoader && instruction.memberName == "getParent" -> Choice.GET_PARENT
             isClassLoader && instruction.memberName == "getResources" -> Choice.EMPTY_RESOURCES
-            isClassLoader && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
+            (isClassLoader || isClass) && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
             isClass && instruction.memberName == "getPackage" -> Choice.GET_PACKAGE
 
             className == "java/security/Provider\$Service" -> allowLoadClass()

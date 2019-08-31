@@ -851,6 +851,25 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
+    fun `test users cannot load class resource URL`() {
+        val resourceName = "local-resource.txt"
+        assertThat(javaClass.getResource(resourceName)).isNotNull()
+
+        parentedSandbox {
+            val executor = DeterministicSandboxExecutor<String, String?>(configuration)
+            executor.run<GetClassResourceURL>(resourceName).apply {
+                assertThat(result).isNull()
+            }
+        }
+    }
+
+    class GetClassResourceURL : Function<String, String?> {
+        override fun apply(resourceName: String): String? {
+            return javaClass.getResource(resourceName)?.path
+        }
+    }
+
+    @Test
     fun `test users cannot load resource stream`() = parentedSandbox {
         val executor = DeterministicSandboxExecutor<String, Int?>(configuration)
         executor.run<GetResourceStream>("META-INF/MANIFEST.MF").apply {
