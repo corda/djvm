@@ -50,6 +50,13 @@ object RewriteClassMethods : Emitter {
                         descriptor = "(Ljava/lang/Class;)Ljava/lang/ClassLoader;"
                     )
                     preventDefault()
+                } else if (instruction.memberName == "getResourceAsStream" && instruction.descriptor == "(Ljava/lang/String;)Ljava/io/InputStream;") {
+                    invokeStatic(
+                        owner = DJVM_NAME,
+                        name = "getClassResourceAsStream",
+                        descriptor = "(Ljava/lang/Class;Ljava/lang/String;)Lsandbox/java/io/InputStream;"
+                    )
+                    preventDefault()
                 }
 
                 INVOKESTATIC -> if (instruction.memberName == "forName") {

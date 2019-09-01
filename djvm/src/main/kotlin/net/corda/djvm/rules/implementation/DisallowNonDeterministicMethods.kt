@@ -32,6 +32,7 @@ object DisallowNonDeterministicMethods : Emitter {
                         Choice.GET_PARENT, Choice.GET_PACKAGE -> returnNull(POP)
                         Choice.NO_RESOURCE -> returnNull(POP2)
                         Choice.EMPTY_RESOURCES -> emptyResources(POP2)
+                        Choice.RESOURCE_STREAM -> loadResourceStream()
                         else -> Unit
                     }
                 }
@@ -79,6 +80,15 @@ object DisallowNonDeterministicMethods : Emitter {
         preventDefault()
     }
 
+    private fun EmitterModule.loadResourceStream() {
+        invokeStatic(
+            owner = DJVM_NAME,
+            name = "getClassLoaderResourceAsStream",
+            descriptor = "(Ljava/lang/ClassLoader;Ljava/lang/String;)Lsandbox/java/io/InputStream;"
+        )
+        preventDefault()
+    }
+
     private fun isObjectMonitor(instruction: MemberAccessInstruction): Boolean =
         (instruction.descriptor == "()V" && instruction.memberName in MONITOR_METHODS)
             || (instruction.memberName == "wait" && (instruction.descriptor == "(J)V" || instruction.descriptor == "(JI)V"))
@@ -90,6 +100,7 @@ object DisallowNonDeterministicMethods : Emitter {
         GET_PACKAGE,
         GET_PARENT,
         NO_RESOURCE,
+        RESOURCE_STREAM,
         EMPTY_RESOURCES,
         PASS
     }
@@ -108,7 +119,8 @@ object DisallowNonDeterministicMethods : Emitter {
             }
             isClassLoader && instruction.memberName == "getParent" -> Choice.GET_PARENT
             isClassLoader && instruction.memberName == "getResources" -> Choice.EMPTY_RESOURCES
-            (isClassLoader || isClass) && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
+            isClassLoader && instruction.memberName == "getResourceAsStream" -> Choice.RESOURCE_STREAM
+            (isClassLoader || isClass) && instruction.memberName == "getResource" -> Choice.NO_RESOURCE
             isClass && instruction.memberName == "getPackage" -> Choice.GET_PACKAGE
 
             className == "java/security/Provider\$Service" -> allowLoadClass()

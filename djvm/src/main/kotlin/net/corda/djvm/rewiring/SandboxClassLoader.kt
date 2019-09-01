@@ -360,7 +360,8 @@ class SandboxClassLoader private constructor(
      * Allow access to resources in the source classloader.
      */
     override fun getResource(resourceName: String): URL? {
-        return supportingClassLoader.getResource(resourceName)
+        val resource = (parent as? SandboxClassLoader)?.getResource(resourceName)
+        return resource ?: supportingClassLoader.getResource(resourceName)
     }
 
     companion object {

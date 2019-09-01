@@ -2,15 +2,23 @@ package net.corda.djvm.execution
 
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
+import net.corda.djvm.code.asResourcePath
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.function.Function
 
 class LoadingResourcesTest : TestBase(KOTLIN) {
+    companion object {
+        const val manifestResourceName = "META-INF/MANIFEST.MF"
+
+        const val relativeResourceName = "local-resource.txt"
+        val absoluteResourceName = (this::class.java.`package`.name).asResourcePath + '/' + relativeResourceName
+    }
+
     @Test
     fun `test users cannot load system resources`() = parentedSandbox {
         val executor = DeterministicSandboxExecutor<String, Boolean>(configuration)
-        executor.run<GetSystemResources>("META-INF/MANIFEST.MF").apply {
+        executor.run<GetSystemResources>(manifestResourceName).apply {
             assertThat(result).isFalse()
         }
     }
@@ -24,7 +32,7 @@ class LoadingResourcesTest : TestBase(KOTLIN) {
     @Test
     fun `test users cannot load system resource URL`() = parentedSandbox {
         val executor = DeterministicSandboxExecutor<String, String?>(configuration)
-        executor.run<GetSystemResourceURL>("META-INF/MANIFEST.MF").apply {
+        executor.run<GetSystemResourceURL>(manifestResourceName).apply {
             assertThat(result).isNull()
         }
     }
@@ -37,22 +45,22 @@ class LoadingResourcesTest : TestBase(KOTLIN) {
 
     @Test
     fun `test users cannot load system resource stream`() = parentedSandbox {
-        val executor = DeterministicSandboxExecutor<String, Int?>(configuration)
-        executor.run<GetSystemResourceStream>("META-INF/MANIFEST.MF").apply {
+        val executor = DeterministicSandboxExecutor<String, ByteArray?>(configuration)
+        executor.run<GetSystemResourceStream>(manifestResourceName).apply {
             assertThat(result).isNull()
         }
     }
 
-    class GetSystemResourceStream : Function<String, Int?> {
-        override fun apply(resourceName: String): Int? {
-            return ClassLoader.getSystemResourceAsStream(resourceName)?.available()
+    class GetSystemResourceStream : Function<String, ByteArray?> {
+        override fun apply(resourceName: String): ByteArray? {
+            return ClassLoader.getSystemResourceAsStream(resourceName)?.readBytes()
         }
     }
 
     @Test
     fun `test users cannot load resources`() = parentedSandbox {
         val executor = DeterministicSandboxExecutor<String, Boolean>(configuration)
-        executor.run<GetResources>("META-INF/MANIFEST.MF").apply {
+        executor.run<GetResources>(manifestResourceName).apply {
             assertThat(result).isFalse()
         }
     }
@@ -66,7 +74,7 @@ class LoadingResourcesTest : TestBase(KOTLIN) {
     @Test
     fun `test users cannot load resource URL`() = parentedSandbox {
         val executor = DeterministicSandboxExecutor<String, String?>(configuration)
-        executor.run<GetResourceURL>("META-INF/MANIFEST.MF").apply {
+        executor.run<GetResourceURL>(manifestResourceName).apply {
             assertThat(result).isNull()
         }
     }
@@ -79,12 +87,11 @@ class LoadingResourcesTest : TestBase(KOTLIN) {
 
     @Test
     fun `test users cannot load class resource URL`() {
-        val resourceName = "local-resource.txt"
-        assertThat(javaClass.getResource(resourceName)).isNotNull()
+        assertThat(javaClass.getResource(relativeResourceName)).isNotNull()
 
         parentedSandbox {
             val executor = DeterministicSandboxExecutor<String, String?>(configuration)
-            executor.run<GetClassResourceURL>(resourceName).apply {
+            executor.run<GetClassResourceURL>(relativeResourceName).apply {
                 assertThat(result).isNull()
             }
         }
@@ -97,16 +104,59 @@ class LoadingResourcesTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot load resource stream`() = parentedSandbox {
-        val executor = DeterministicSandboxExecutor<String, Int?>(configuration)
-        executor.run<GetResourceStream>("META-INF/MANIFEST.MF").apply {
-            assertThat(result).isNull()
+    fun `test users can load class resource stream`() {
+        val contents = javaClass.getResourceAsStream(relativeResourceName)?.readBytes()
+        assertThat(contents).isNotEmpty()
+
+        parentedSandbox {
+            val executor = DeterministicSandboxExecutor<String, ByteArray?>(configuration)
+            executor.run<GetClassResourceStream>(relativeResourceName).apply {
+                assertThat(result).isEqualTo(contents)
+            }
         }
     }
 
-    class GetResourceStream : Function<String, Int?> {
-        override fun apply(resourceName: String): Int? {
-            return ClassLoader.getSystemClassLoader().getResourceAsStream(resourceName)?.available()
+    class GetClassResourceStream : Function<String, ByteArray?> {
+        override fun apply(resourceName: String): ByteArray? {
+            return javaClass.getResourceAsStream(resourceName)?.readBytes()
+        }
+    }
+
+    @Test
+    fun `test users can load classloader resource stream`() {
+        val contents = javaClass.classLoader.getResourceAsStream(absoluteResourceName)?.readBytes()
+        assertThat(contents).isNotEmpty()
+
+        parentedSandbox {
+            val executor = DeterministicSandboxExecutor<String, ByteArray?>(configuration)
+            executor.run<GetClassLoaderResourceStream>(absoluteResourceName).apply {
+                assertThat(result).isEqualTo(contents)
+            }
+        }
+    }
+
+    class GetClassLoaderResourceStream : Function<String, ByteArray?> {
+        override fun apply(resourceName: String): ByteArray? {
+            return javaClass.classLoader.getResourceAsStream(resourceName)?.readBytes()
+        }
+    }
+
+    @Test
+    fun `test users can load system classloader resource stream`() {
+        val contents = javaClass.classLoader.getResourceAsStream(absoluteResourceName)?.readBytes()
+        assertThat(contents).isNotEmpty()
+
+        parentedSandbox {
+            val executor = DeterministicSandboxExecutor<String, ByteArray?>(configuration)
+            executor.run<GetSystemClassLoaderResourceStream>(absoluteResourceName).apply {
+                assertThat(result).isNotEmpty()
+            }
+        }
+    }
+
+    class GetSystemClassLoaderResourceStream : Function<String, ByteArray?> {
+        override fun apply(resourceName: String): ByteArray? {
+            return ClassLoader.getSystemClassLoader().getResourceAsStream(resourceName)?.readBytes()
         }
     }
 }

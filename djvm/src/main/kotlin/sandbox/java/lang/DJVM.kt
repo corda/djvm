@@ -5,6 +5,7 @@ package sandbox.java.lang
 import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_EXCEPTIONS
 import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMException
+import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
 import net.corda.djvm.rules.implementation.*
@@ -17,6 +18,7 @@ import sandbox.java.util.*
 import java.lang.reflect.Constructor
 
 private const val SANDBOX_PREFIX = "sandbox."
+private const val SANDBOX_PATH_PREFIX = "sandbox/"
 private val OBJECT_ARRAY = "^(\\[++L)([^;]++);\$".toRegex()
 private val PRIMITIVE_ARRAY = "^(\\[)++[IJSCBZFD]\$".toRegex()
 
@@ -321,6 +323,27 @@ fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
 fun loadSystemResource(name: kotlin.String): DataInputStream {
     val input = getSystemResourceAsStream(name) ?: throw InternalError("Missing $name")
     return DataInputStream(BufferedInputStream(input))
+}
+
+/**
+ * Replacement function for [ClassLoader.getResourceAsStream].
+ */
+fun getClassLoaderResourceAsStream(cl: ClassLoader, name: kotlin.String): InputStream? {
+    if (cl !is SandboxClassLoader) {
+        return null
+    }
+    return InputStream.toDJVM(cl.getResourceAsStream(name.removePrefix(SANDBOX_PATH_PREFIX)))
+}
+
+/**
+ * Replacement function for [Class.getResourceAsStream].
+ */
+fun getClassResourceAsStream(clazz: Class<*>, name: kotlin.String): InputStream? {
+    val classLoader = clazz.classLoader
+    if (classLoader !is SandboxClassLoader) {
+        return null
+    }
+    return null
 }
 
 /**
