@@ -53,9 +53,20 @@ object RewriteClassMethods : Emitter {
                 } else if (instruction.memberName == "getResourceAsStream" && instruction.descriptor == "(Ljava/lang/String;)Ljava/io/InputStream;") {
                     invokeStatic(
                         owner = DJVM_NAME,
-                        name = "getClassResourceAsStream",
+                        name = instruction.memberName,
                         descriptor = "(Ljava/lang/Class;Ljava/lang/String;)Lsandbox/java/io/InputStream;"
                     )
+                    preventDefault()
+                } else if (instruction.memberName == "getResource" && instruction.descriptor == "(Ljava/lang/String;)Ljava/net/URL;") {
+                    invokeStatic(
+                        owner = DJVM_NAME,
+                        name = instruction.memberName,
+                        descriptor = "(Ljava/lang/Class;Ljava/lang/String;)Lsandbox/java/net/URL;"
+                    )
+                    preventDefault()
+                } else if (instruction.memberName == "getPackage") {
+                    instruction(POP)
+                    pushNull()
                     preventDefault()
                 }
 

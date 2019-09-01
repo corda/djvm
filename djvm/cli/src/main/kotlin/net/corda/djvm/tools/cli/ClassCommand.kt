@@ -192,7 +192,9 @@ abstract class ClassCommand : CommandBase() {
                         minimumSeverityLevel = level,
                         analyzeAnnotations = analyzeAnnotations,
                         prefixFilters = prefixFilters.toList()
-                )
+                ),
+                parentClassLoader = null,
+                urlProtocols = emptySet()
         )
     }
 

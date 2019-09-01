@@ -16,9 +16,13 @@ import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.Type
+import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
+import java.util.*
+import java.util.Collections.emptyEnumeration
 import java.util.function.Function
+import kotlin.NoSuchElementException
 
 /**
  * Class loader that enables registration of rewired classes.
@@ -364,6 +368,14 @@ class SandboxClassLoader private constructor(
         return resource ?: supportingClassLoader.getResource(resourceName)
     }
 
+    @Throws(IOException::class)
+    override fun getResources(resourceName: String): Enumeration<URL> {
+        val resources = (parent as? SandboxClassLoader)?.getResources(resourceName)
+        return CompoundEnumeration(arrayOf(
+            resources ?: emptyEnumeration(), supportingClassLoader.getResources(resourceName)
+        ))
+    }
+
     companion object {
         private val logger = loggerFor<SandboxClassLoader>()
         private val UNMODIFIED = ByteCode(ByteArray(0), false)
@@ -390,4 +402,28 @@ class SandboxClassLoader private constructor(
         }
     }
 
+}
+
+/**
+ * Rewrite this class because it has been removed from Java 9+.
+ */
+private class CompoundEnumeration<E>(private val enums: Array<Enumeration<E>>) : Enumeration<E> {
+    private var index: Int = 0
+
+    override fun hasMoreElements(): Boolean {
+        while (index < enums.size) {
+            if (enums[index].hasMoreElements()) {
+                return true
+            }
+            ++index
+        }
+        return false
+    }
+
+    override fun nextElement(): E {
+        if (hasMoreElements()) {
+            return enums[index].nextElement()
+        }
+        throw NoSuchElementException()
+    }
 }

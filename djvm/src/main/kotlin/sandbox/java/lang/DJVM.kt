@@ -5,6 +5,7 @@ package sandbox.java.lang
 import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_EXCEPTIONS
 import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMException
+import net.corda.djvm.code.asResourcePath
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
@@ -13,9 +14,13 @@ import org.objectweb.asm.Opcodes.ACC_ENUM
 import org.objectweb.asm.Type
 import sandbox.isEntryPoint
 import sandbox.java.io.*
+import sandbox.java.net.URL
 import sandbox.java.nio.ByteOrder
 import sandbox.java.util.*
+import sandbox.java.util.Collections.emptyEnumeration
+import java.io.IOException
 import java.lang.reflect.Constructor
+import java.net.MalformedURLException
 
 private const val SANDBOX_PREFIX = "sandbox."
 private const val SANDBOX_PATH_PREFIX = "sandbox/"
@@ -44,6 +49,7 @@ fun Any.sandbox(): Any {
         is kotlin.Boolean -> Boolean.toDJVM(this)
         is kotlin.Enum<*> -> toDJVMEnum()
         is kotlin.Throwable -> toDJVMThrowable()
+        is java.net.URL -> URL.toDJVM(this)
         is java.util.Date -> Date(time)
         is java.io.InputStream -> InputStream.toDJVM(this)
         is java.util.UUID -> UUID(mostSignificantBits, leastSignificantBits)
@@ -276,6 +282,17 @@ fun intern(s: kotlin.String): String {
 }
 
 /**
+ * Checks whether this protocol is on the list of "allowed" protocols.
+ */
+@Throws(MalformedURLException::class)
+fun validateProtocol(protocol: kotlin.String): kotlin.String {
+    if (!SandboxRuntimeContext.instance.isAllowedProtocol(protocol)) {
+        throw MalformedURLException("Forbidden protocol: $protocol")
+    }
+    return protocol
+}
+
+/**
  * Determine the platform's native [sandbox.java.nio.ByteOrder] value.
  */
 val nativeOrder: ByteOrder = when (java.nio.ByteOrder.nativeOrder()) {
@@ -311,39 +328,108 @@ fun getClassLoader(type: Class<*>): ClassLoader {
  * Replacement function for [ClassLoader.getSystemResourceAsStream].
  */
 fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
-    // Read system resources from the classloader that contains the Java APIs.
-    // I'd prefer to use this class's own classloader really, except that Kotlin
-    // cannot provide me with the .class for this "file".
-    return InputStream.toDJVM(sandboxThrowable.classLoader.getResourceAsStream(name))
-}
-
-/**
- * Return a buffered [DataInputStream] for a system resource.
- */
-fun loadSystemResource(name: kotlin.String): DataInputStream {
-    val input = getSystemResourceAsStream(name) ?: throw InternalError("Missing $name")
-    return DataInputStream(BufferedInputStream(input))
+    return getResourceAsStream(systemClassLoader, name)
 }
 
 /**
  * Replacement function for [ClassLoader.getResourceAsStream].
  */
-fun getClassLoaderResourceAsStream(cl: ClassLoader, name: kotlin.String): InputStream? {
-    if (cl !is SandboxClassLoader) {
+fun getResourceAsStream(classLoader: ClassLoader, name: kotlin.String): InputStream? {
+    if (classLoader !is SandboxClassLoader) {
         return null
     }
-    return InputStream.toDJVM(cl.getResourceAsStream(name.removePrefix(SANDBOX_PATH_PREFIX)))
+    return InputStream.toDJVM(classLoader.getResourceAsStream(name.removePrefix(SANDBOX_PATH_PREFIX)))
+}
+
+/**
+ * Replacement function for [ClassLoader.getSystemResource].
+ */
+fun getSystemResource(name: kotlin.String): URL? {
+    return getResource(systemClassLoader, name)
+}
+
+/**
+ * Replacement function for [ClassLoader.getResource].
+ */
+fun getResource(classLoader: ClassLoader, name: kotlin.String): URL? {
+    if (classLoader !is SandboxClassLoader) {
+        return null
+    }
+    return URL.toDJVM(classLoader.getResource(name.removePrefix(SANDBOX_PATH_PREFIX)))
+}
+
+/**
+ * Replacement function for [ClassLoader.getSystemResources].
+ */
+fun getSystemResources(name: kotlin.String): Enumeration<URL> {
+    return getResources(systemClassLoader, name)
+}
+
+/**
+ * Replacement function for [ClassLoader.getResources].
+ */
+@Throws(IOException::class)
+fun getResources(classLoader: ClassLoader, name: kotlin.String): Enumeration<URL> {
+    if (classLoader !is SandboxClassLoader) {
+        return emptyEnumeration()
+    }
+
+    val resources = try {
+        classLoader.getResources(name.removePrefix(SANDBOX_PATH_PREFIX))
+    } catch (e: IOException) {
+        throw fromDJVM(doCatch(e))
+    }
+
+    return DJVMURLs(resources)
 }
 
 /**
  * Replacement function for [Class.getResourceAsStream].
  */
-fun getClassResourceAsStream(clazz: Class<*>, name: kotlin.String): InputStream? {
+fun getResourceAsStream(clazz: Class<*>, name: kotlin.String): InputStream? {
     val classLoader = clazz.classLoader
     if (classLoader !is SandboxClassLoader) {
         return null
     }
-    return null
+    return getResourceAsStream(classLoader, name.absoluteFor(clazz))
+}
+
+/**
+ * Replacement function for [Class.getResource].
+ */
+fun getResource(clazz: Class<*>, name: kotlin.String): URL? {
+    val classLoader = clazz.classLoader
+    if (classLoader !is SandboxClassLoader) {
+        return null
+    }
+    return getResource(classLoader, name.absoluteFor(clazz))
+}
+
+private fun kotlin.String.absoluteFor(clazz: Class<*>): kotlin.String {
+    return if (this.startsWith('/')) {
+        substring(1)
+    } else {
+        var baseClazz = clazz
+        while (baseClazz.isArray) {
+            baseClazz = baseClazz.componentType
+        }
+        baseClazz.`package`.name.asResourcePath + '/' + this
+    }
+}
+
+/**
+ * Return a buffered [DataInputStream] for a boot resource.
+ */
+fun loadBootResource(name: kotlin.String): DataInputStream {
+    val input = getBootResourceAsStream(name) ?: throw InternalError("Missing $name")
+    return DataInputStream(BufferedInputStream(input))
+}
+
+private fun getBootResourceAsStream(name: kotlin.String): InputStream? {
+    // Read system resources from the classloader that contains the Java APIs.
+    // I'd prefer to use this class's own classloader really, except that Kotlin
+    // cannot provide me with the .class for this "file".
+    return InputStream.toDJVM(sandboxThrowable.classLoader.getResourceAsStream(name))
 }
 
 /**
@@ -388,6 +474,7 @@ private val bannedClasses = setOf(
     "^net\\.corda\\.djvm\\..*\$".toRegex(),
     "^javax?\\..*\\.DJVM\$".toRegex(),
     "^java\\.io\\.DJVM[^.]++\$".toRegex(),
+    "java\\.net\\.DJVM[^.]++\$".toRegex(),
     "^java\\.util\\.concurrent\\.locks\\.DJVM[^.]++\$".toRegex(),
     "^[^.]++\$".toRegex()
 )
@@ -616,4 +703,15 @@ private object DJVMNoResource : ResourceBundle() {
     override fun handleGetObject(key: String?): Any? = null
     override fun getKeys(): Enumeration<String>? = null
     override fun toDJVMString(): String = intern("NON-EXISTENT BUNDLE")
+}
+
+private class DJVMURLs(private val resources: java.util.Enumeration<java.net.URL>) : Enumeration<URL> {
+    override fun hasMoreElements() = resources.hasMoreElements()
+    override fun nextElement(): URL {
+        return try {
+            URL.toDJVM(resources.nextElement())
+        } catch (e: NoSuchElementException) {
+            throw fromDJVM(doCatch(e))
+        }
+    }
 }

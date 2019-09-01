@@ -27,7 +27,8 @@ class SandboxConfiguration private constructor(
         val definitionProviders: List<DefinitionProvider>,
         val executionProfile: ExecutionProfile,
         val analysisConfiguration: AnalysisConfiguration,
-        val parentClassLoader: SandboxClassLoader?
+        val parentClassLoader: SandboxClassLoader?,
+        val urlProtocols: Set<String>
 ) {
     companion object {
         @JvmField
@@ -83,7 +84,8 @@ class SandboxConfiguration private constructor(
             definitionProviders: List<DefinitionProvider> = ALL_DEFINITION_PROVIDERS,
             enableTracing: Boolean = true,
             analysisConfiguration: AnalysisConfiguration,
-            parentClassLoader: SandboxClassLoader? = null
+            parentClassLoader: SandboxClassLoader?,
+            urlProtocols: Set<String>
         ) = SandboxConfiguration(
                 executionProfile = profile,
                 rules = rules,
@@ -92,7 +94,8 @@ class SandboxConfiguration private constructor(
                 },
                 definitionProviders = definitionProviders,
                 analysisConfiguration = analysisConfiguration,
-                parentClassLoader = parentClassLoader
+                parentClassLoader = parentClassLoader,
+                urlProtocols = urlProtocols
         )
 
         /**
@@ -102,11 +105,12 @@ class SandboxConfiguration private constructor(
          */
         fun createFor(
             analysisConfiguration: AnalysisConfiguration,
+            urlProtocols: Set<String>,
             profile: ExecutionProfile,
             enableTracing: Boolean
         ): SandboxConfiguration {
             return analysisConfiguration.parent?.let {
-                val parent = createFor(it, profile, enableTracing)
+                val parent = createFor(it, urlProtocols, profile, enableTracing)
                 of(
                     profile = parent.executionProfile,
                     rules = parent.rules,
@@ -114,12 +118,15 @@ class SandboxConfiguration private constructor(
                     definitionProviders = parent.definitionProviders,
                     enableTracing = enableTracing,
                     analysisConfiguration = analysisConfiguration,
-                    parentClassLoader = SandboxClassLoader.createFor(parent)
+                    parentClassLoader = SandboxClassLoader.createFor(parent),
+                    urlProtocols = urlProtocols
                 )
             } ?: of(
                 profile = profile,
                 enableTracing = enableTracing,
-                analysisConfiguration = analysisConfiguration
+                analysisConfiguration = analysisConfiguration,
+                parentClassLoader = null,
+                urlProtocols = urlProtocols
             )
         }
     }

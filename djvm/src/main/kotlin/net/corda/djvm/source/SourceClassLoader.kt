@@ -19,6 +19,7 @@ import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 import kotlin.streams.toList
 
 /**
@@ -40,6 +41,9 @@ interface ApiSource : Source
 interface UserSource : Source {
     @Throws(ClassNotFoundException::class)
     fun loadClass(className: String): Class<*>
+
+    @Throws(IOException::class)
+    fun findResources(name: String): Enumeration<URL>
 
     fun getURLs(): Array<URL>
 }
@@ -178,6 +182,17 @@ class SourceClassLoader(
         }
 
         return userSource.findResource(name)
+    }
+
+    /**
+     * Search for the resource among the user's own sources only.
+     * This function is not used when generating the sandbox code
+     * and is provided to allow the sandbox to search its own
+     * classpath at runtime.
+     */
+    @Throws(IOException::class)
+    override fun getResources(name: String): Enumeration<URL> {
+        return userSource.findResources(name)
     }
 }
 

@@ -35,6 +35,11 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
     }
 
     /**
+     * Check whether we are allowed to create URLs with this protocol inside the sandbox.
+     */
+    fun isAllowedProtocol(protocol: String): Boolean = protocol in configuration.urlProtocols
+
+    /**
      * Run a set of actions within the provided sandbox context.
      */
     fun use(action: SandboxRuntimeContext.() -> Unit) {

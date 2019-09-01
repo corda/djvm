@@ -42,7 +42,7 @@ public final class Currency extends sandbox.java.lang.Object implements Serializ
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
             @Override
             public Void run() {
-                try (DataInputStream dis = DJVM.loadSystemResource("currency.data")) {
+                try (DataInputStream dis = DJVM.loadBootResource("currency.data")) {
                     if (dis.readInt() != MAGIC_NUMBER) {
                         throw new InternalError("Currency data is possibly corrupted");
                     }

@@ -23,7 +23,7 @@ public abstract class ZoneRulesProvider extends sandbox.java.lang.Object {
          */
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
-                try (DataInputStream input = DJVM.loadSystemResource("tzdb.dat")) {
+                try (DataInputStream input = DJVM.loadBootResource("tzdb.dat")) {
                     registerProvider(new TzdbZoneRulesProvider(input));
                     loaded.clear();
                 } catch (Exception ex) {

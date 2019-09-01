@@ -19,7 +19,7 @@ public final class ZoneInfoFile extends sandbox.java.lang.Object {
          */
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
-                try (DataInputStream input = DJVM.loadSystemResource("tzdb.dat")) {
+                try (DataInputStream input = DJVM.loadBootResource("tzdb.dat")) {
                     ZoneInfoFile.load(input);
                 } catch (Exception e) {
                     throw new InternalError(e);

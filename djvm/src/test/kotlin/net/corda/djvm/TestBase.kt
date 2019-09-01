@@ -81,7 +81,9 @@ abstract class TestBase(type: SandboxType) {
                 ALL_EMITTERS,
                 ALL_DEFINITION_PROVIDERS,
                 true,
-                rootConfiguration
+                rootConfiguration,
+                null,
+                emptySet()
             )
             parentClassLoader = SandboxClassLoader.createFor(parentConfiguration)
         }
@@ -205,7 +207,9 @@ abstract class TestBase(type: SandboxType) {
                         emitters.distinctBy(Any::javaClass),
                         definitionProviders.distinctBy(Any::javaClass),
                         enableTracing,
-                        analysisConfiguration
+                        analysisConfiguration,
+                        null,
+                        emptySet()
                     )).use {
                         assertThat(runtimeCosts).areZero()
                         action(this)
@@ -245,7 +249,8 @@ abstract class TestBase(type: SandboxType) {
                         parentConfiguration.definitionProviders,
                         enableTracing,
                         analysisConfiguration,
-                        parentClassLoader
+                        parentClassLoader,
+                        emptySet()
                     )).use {
                         assertThat(runtimeCosts).areZero()
                         action(this)

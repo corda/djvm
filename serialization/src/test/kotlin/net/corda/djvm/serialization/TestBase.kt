@@ -64,7 +64,9 @@ abstract class TestBase(type: SandboxType) {
                 ALL_EMITTERS,
                 ALL_DEFINITION_PROVIDERS,
                 true,
-                rootConfiguration
+                rootConfiguration,
+                null,
+                emptySet()
             )
             classLoader = SandboxClassLoader.createFor(configuration)
         }
@@ -110,7 +112,8 @@ abstract class TestBase(type: SandboxType) {
                         configuration.definitionProviders,
                         enableTracing,
                         analysisConfiguration,
-                        classLoader
+                        classLoader,
+                        emptySet()
                     )).use {
                         action(this)
                     }

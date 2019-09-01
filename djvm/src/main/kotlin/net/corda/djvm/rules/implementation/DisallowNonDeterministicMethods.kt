@@ -29,9 +29,9 @@ object DisallowNonDeterministicMethods : Emitter {
                         Choice.FORBID -> forbid(instruction)
                         Choice.LOAD_CLASS -> loadClass()
                         Choice.INIT_CLASSLOADER -> initClassLoader()
-                        Choice.GET_PARENT, Choice.GET_PACKAGE -> returnNull(POP)
-                        Choice.NO_RESOURCE -> returnNull(POP2)
-                        Choice.EMPTY_RESOURCES -> emptyResources(POP2)
+                        Choice.GET_PARENT -> returnNull(POP)
+                        Choice.GET_RESOURCE -> loadResource()
+                        Choice.GET_RESOURCES -> loadResources()
                         Choice.RESOURCE_STREAM -> loadResourceStream()
                         else -> Unit
                     }
@@ -43,8 +43,18 @@ object DisallowNonDeterministicMethods : Emitter {
                             invokeStatic(DJVM_NAME, instruction.memberName, instruction.descriptor)
                             preventDefault()
                         }
-                        instruction.memberName == "getSystemResources" -> emptyResources(POP)
-                        instruction.memberName.startsWith("getSystemResource") -> returnNull(POP)
+                        instruction.memberName == "getSystemResourceAsStream" -> {
+                            invokeStatic(DJVM_NAME, instruction.memberName, "(Ljava/lang/String;)Lsandbox/java/io/InputStream;")
+                            preventDefault()
+                        }
+                        instruction.memberName == "getSystemResources" -> {
+                            invokeStatic(DJVM_NAME, instruction.memberName, "(Ljava/lang/String;)Lsandbox/java/util/Enumeration;")
+                            preventDefault()
+                        }
+                        instruction.memberName == "getSystemResource" -> {
+                            invokeStatic(DJVM_NAME, instruction.memberName, "(Ljava/lang/String;)Lsandbox/java/net/URL;")
+                            preventDefault()
+                        }
                         else -> forbid(instruction)
                     }
                 }
@@ -74,17 +84,29 @@ object DisallowNonDeterministicMethods : Emitter {
         preventDefault()
     }
 
-    private fun EmitterModule.emptyResources(popCode: Int) {
-        instruction(popCode)
-        invokeStatic("sandbox/java/util/Collections", "emptyEnumeration", "()Lsandbox/java/util/Enumeration;")
-        preventDefault()
-    }
-
     private fun EmitterModule.loadResourceStream() {
         invokeStatic(
             owner = DJVM_NAME,
-            name = "getClassLoaderResourceAsStream",
+            name = "getResourceAsStream",
             descriptor = "(Ljava/lang/ClassLoader;Ljava/lang/String;)Lsandbox/java/io/InputStream;"
+        )
+        preventDefault()
+    }
+
+    private fun EmitterModule.loadResource() {
+        invokeStatic(
+            owner = DJVM_NAME,
+            name = "getResource",
+            descriptor = "(Ljava/lang/ClassLoader;Ljava/lang/String;)Lsandbox/java/net/URL;"
+        )
+        preventDefault()
+    }
+
+    private fun EmitterModule.loadResources() {
+        invokeStatic(
+            owner = DJVM_NAME,
+            name = "getResources",
+            descriptor = "(Ljava/lang/ClassLoader;Ljava/lang/String;)Lsandbox/java/util/Enumeration;"
         )
         preventDefault()
     }
@@ -97,11 +119,10 @@ object DisallowNonDeterministicMethods : Emitter {
         FORBID,
         LOAD_CLASS,
         INIT_CLASSLOADER,
-        GET_PACKAGE,
         GET_PARENT,
-        NO_RESOURCE,
+        GET_RESOURCE,
+        GET_RESOURCES,
         RESOURCE_STREAM,
-        EMPTY_RESOURCES,
         PASS
     }
 
@@ -112,16 +133,15 @@ object DisallowNonDeterministicMethods : Emitter {
         private val isLoadClass: Boolean = instruction.memberName == "loadClass"
 
         fun runFor(className: String): Choice = when {
-            isClassLoader && instruction.memberName == CONSTRUCTOR_NAME -> if (instruction.descriptor == "()V") {
-                Choice.INIT_CLASSLOADER
-            } else {
-                Choice.FORBID
-            }
+                isClassLoader && instruction.memberName == CONSTRUCTOR_NAME -> if (instruction.descriptor == "()V") {
+                    Choice.INIT_CLASSLOADER
+                } else {
+                    Choice.FORBID
+                }
             isClassLoader && instruction.memberName == "getParent" -> Choice.GET_PARENT
-            isClassLoader && instruction.memberName == "getResources" -> Choice.EMPTY_RESOURCES
+            isClassLoader && instruction.memberName == "getResources" -> Choice.GET_RESOURCES
             isClassLoader && instruction.memberName == "getResourceAsStream" -> Choice.RESOURCE_STREAM
-            (isClassLoader || isClass) && instruction.memberName == "getResource" -> Choice.NO_RESOURCE
-            isClass && instruction.memberName == "getPackage" -> Choice.GET_PACKAGE
+            isClassLoader && instruction.memberName == "getResource" -> Choice.GET_RESOURCE
 
             className == "java/security/Provider\$Service" -> allowLoadClass()
 
