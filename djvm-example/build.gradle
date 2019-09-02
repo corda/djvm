@@ -50,8 +50,10 @@ dependencies {
     implementation "com.r3.corda.lib.tokens:tokens-money:$corda_tokens_version"
     implementation "net.corda:corda-core:$corda_version"
     implementation "net.corda:corda-serialization:$corda_version"
+    implementation "net.corda:corda-djvm-deserializers:$djvm_version"
 
     testImplementation "net.corda:corda-djvm:$djvm_version"
+    testImplementation "net.corda:corda-djvm-serialization:$djvm_version"
     testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"
     jdkRt "net.corda:deterministic-rt:latest.integration"
 
@@ -61,13 +63,14 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
 
-    sandboxTesting sourceSets.getByName("main").runtimeClasspath
+    sandboxTesting sourceSets.getByName('main').runtimeClasspath
     sandboxTesting "org.slf4j:slf4j-nop:$slf4j_version"
 }
 
 tasks.withType(JavaCompile) {
     sourceCompatibility = VERSION_1_8
     targetCompatibility = VERSION_1_8
+    options.compilerArgs << '-parameters'
     options.encoding = 'UTF-8'
 }
 
@@ -76,6 +79,7 @@ tasks.withType(KotlinCompile) {
         languageVersion = '1.3'
         apiVersion = '1.3'
         jvmTarget = VERSION_1_8
+        javaParameters = true    // Required for reflection / deserialization
         freeCompilerArgs = ['-Xjvm-default=enable']
     }
 }
@@ -88,7 +92,7 @@ tasks.withType(Test) {
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 
     if (djvmProject) {
-        dependsOn djvmProject.task(':djvm:assemble')
+        dependsOn = [ djvmProject.task(':djvm:assemble'), djvmProject.task(':serialization:assemble') ]
     }
 }
 

@@ -333,6 +333,7 @@ class AnalysisConfiguration private constructor(
         private val STITCHED_CLASSES: Map<String, List<Member>> = unmodifiable((
             generateJavaTimeMethods() +
             generateJavaResourceBundleMethods() +
+            generateJavaUuidMethods() +
             generateJavaPackageMethods() +
             generateJavaBitsMethods() +
 

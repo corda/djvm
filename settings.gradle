@@ -18,3 +18,5 @@ rootProject.name = "deterministic-jvm-sandbox"
 
 include 'djvm'
 include 'djvm:cli'
+include 'serialization'
+include 'serialization:deserializers'
