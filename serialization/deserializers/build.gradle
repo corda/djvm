@@ -1,8 +1,5 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
-    id 'net.corda.plugins.publish-utils'
-    id 'com.jfrog.artifactory'
-    id 'com.jfrog.bintray'
     id 'java-library'
     id 'idea'
 }
@@ -20,9 +17,9 @@ jar {
     }
 }
 
-publish {
-    name 'corda-djvm-deserializers'
-}
+//publish {
+//    name 'corda-djvm-deserializers'
+//}
 
 idea {
     module {

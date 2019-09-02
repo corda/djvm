@@ -68,9 +68,7 @@ bintrayConfig {
     gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
     publications = [
         'corda-djvm',
-        'corda-djvm-cli',
-        'corda-djvm-serialization',
-        'corda-djvm-deserializers'
+        'corda-djvm-cli'
     ]
     license {
         name = 'Apache-2.0'

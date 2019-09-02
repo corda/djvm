@@ -1,8 +1,5 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
-    id 'net.corda.plugins.publish-utils'
-    id 'com.jfrog.artifactory'
-    id 'com.jfrog.bintray'
     id 'java-library'
     id 'idea'
 }
@@ -93,9 +90,9 @@ tasks.withType(Test) {
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 }
 
-publish {
-    name 'corda-djvm-serialization'
-}
+//publish {
+//    name 'corda-djvm-serialization'
+//}
 
 idea {
     module {
