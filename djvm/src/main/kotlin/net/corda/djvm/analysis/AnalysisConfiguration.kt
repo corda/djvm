@@ -169,6 +169,7 @@ class AnalysisConfiguration private constructor(
             java.util.concurrent.ConcurrentHashMap.KeySetView::class.java,
             java.util.concurrent.atomic.AtomicInteger::class.java,
             java.util.concurrent.atomic.AtomicLong::class.java,
+            java.util.concurrent.atomic.AtomicReference::class.java,
             java.util.concurrent.locks.ReentrantLock::class.java,
             java.util.zip.CRC32::class.java,
             java.util.zip.Inflater::class.java,
