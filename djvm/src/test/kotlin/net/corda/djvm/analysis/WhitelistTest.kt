@@ -46,6 +46,16 @@ class WhitelistTest : TestBase(KOTLIN) {
     }
 
     @Test
+    fun `test closeables are whitelisted`() {
+        val whitelist = Whitelist.MINIMAL
+        assertThat(whitelist.matches("java/lang/AutoCloseable")).isTrue()
+        assertThat(whitelist.matches("java/lang/AutoCloseable.close:()V")).isTrue()
+
+        assertThat(whitelist.matches("java/io/Closeable")).isTrue()
+        assertThat(whitelist.matches("java/io/Closeable.close:()V")).isTrue()
+    }
+
+    @Test
     fun `test atomic field updater factories are whitelisted`() {
         val whitelist = Whitelist.MINIMAL
         assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicIntegerFieldUpdater.newUpdater:(Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicIntegerFieldUpdater;")).isTrue()

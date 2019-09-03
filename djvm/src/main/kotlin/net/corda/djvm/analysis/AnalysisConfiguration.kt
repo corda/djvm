@@ -170,6 +170,8 @@ class AnalysisConfiguration private constructor(
             java.util.concurrent.atomic.AtomicInteger::class.java,
             java.util.concurrent.atomic.AtomicLong::class.java,
             java.util.concurrent.locks.ReentrantLock::class.java,
+            java.util.zip.CRC32::class.java,
+            java.util.zip.Inflater::class.java,
             Any::class.java,
             sun.misc.JavaLangAccess::class.java,
             sun.misc.SharedSecrets::class.java,
