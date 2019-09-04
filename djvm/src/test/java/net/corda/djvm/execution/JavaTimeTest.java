@@ -23,7 +23,7 @@ class JavaTimeTest extends TestBase {
 
     private Object run(TaskExecutor executor, Class<?> task, Object data) throws Exception {
         Object toStringTask = executor.toSandboxClass(task).newInstance();
-        return executor.execute(toStringTask, data);
+        return executor.apply(toStringTask, data);
     }
 
     @Test

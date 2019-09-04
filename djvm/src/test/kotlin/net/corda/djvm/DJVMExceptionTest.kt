@@ -14,7 +14,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     fun testSingleException() = parentedSandbox {
         val executor = TaskExecutor(classLoader)
         val taskClass = executor.toSandboxClass(SingleExceptionTask::class.java)
-        val result = executor.execute(taskClass.newInstance(), "Hello World")
+        val result = executor.apply(taskClass.newInstance(), "Hello World")
         assertThat(result).isInstanceOf(Throwable::class.java)
         result as Throwable
 
@@ -29,7 +29,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     fun testMultipleExceptions() = parentedSandbox {
         val executor = TaskExecutor(classLoader)
         val taskClass = executor.toSandboxClass(MultipleExceptionsTask::class.java)
-        val result = executor.execute(taskClass.newInstance(), "Hello World")
+        val result = executor.apply(taskClass.newInstance(), "Hello World")
         assertThat(result).isInstanceOf(Throwable::class.java)
         result as Throwable
 

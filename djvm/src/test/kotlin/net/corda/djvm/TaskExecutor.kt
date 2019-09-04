@@ -5,12 +5,13 @@ import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.source.ClassSource
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
+import java.util.function.BiFunction
 import java.util.function.Function
 
 class TaskExecutor
-    @Throws(ClassNotFoundException::class, NoSuchMethodException::class, SecurityException::class)
+    @Throws(ClassNotFoundException::class, NoSuchMethodException::class)
     constructor(private val classLoader: SandboxClassLoader
-) {
+) : BiFunction<Any, Any?, Any?> {
     private val constructor: Constructor<out Function<in Any?, out Any?>>
 
     init {
@@ -25,7 +26,7 @@ class TaskExecutor
         return classLoader.loadClassForSandbox(ClassSource.fromClassName(clazz.name))
     }
 
-    fun execute(task: Any, input: Any?): Any? {
+    override fun apply(task: Any, input: Any?): Any? {
         return try {
             constructor.newInstance(task).apply(input)
         } catch (ex: Throwable) {

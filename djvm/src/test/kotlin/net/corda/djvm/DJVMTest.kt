@@ -72,7 +72,7 @@ class DJVMTest : TestBase(KOTLIN) {
     fun testObjectFormat() = parentedSandbox {
         val executor = TaskExecutor(classLoader)
         val task = executor.toSandboxClass(NewObject::class.java).newInstance()
-        val result = executor.execute(task, null) as String
+        val result = executor.apply(task, null) as String
         assertThat(result).startsWith("sandbox.java.lang.Object@")
     }
 

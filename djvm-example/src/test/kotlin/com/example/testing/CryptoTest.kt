@@ -44,7 +44,7 @@ class CryptoTest : TestBase(KOTLIN) {
             val sandboxKey = data.deserializeFor(classLoader)
 
             val executor = RawExecutor(classLoader)
-            val result = executor.execute(
+            val result = executor.apply(
                 task = executor.toSandboxClass(PublicKeyFunction::class.java).newInstance(),
                 input = sandboxKey
             )
@@ -71,7 +71,7 @@ class CryptoTest : TestBase(KOTLIN) {
             val sandboxKey = data.deserializeFor(classLoader)
 
             val executor = RawExecutor(classLoader)
-            val result = executor.execute(
+            val result = executor.apply(
                 task = executor.toSandboxClass(PublicKeyFunction::class.java).newInstance(),
                 input = sandboxKey
             )
