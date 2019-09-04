@@ -182,6 +182,7 @@ class AnalysisConfiguration private constructor(
         ).sandboxed() + setOf(
             "sandbox/BasicInput",
             "sandbox/BasicOutput",
+            "sandbox/ImportTask",
             "sandbox/RawTask",
             "sandbox/Task",
             "sandbox/TaskTypes",

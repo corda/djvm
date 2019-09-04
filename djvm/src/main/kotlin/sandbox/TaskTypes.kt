@@ -4,6 +4,7 @@ package sandbox
 import sandbox.java.lang.escapeSandbox
 import sandbox.java.lang.sandbox
 import sandbox.java.lang.unsandbox
+import java.util.Collections.unmodifiableSet
 
 import java.util.function.Function
 
@@ -14,11 +15,16 @@ internal fun isEntryPoint(elt: StackTraceElement): Boolean {
 }
 
 private const val SANDBOX_PREFIX = "sandbox."
+private val taskClasses = unmodifiableSet(setOf(
+    "Task",
+    "RawTask",
+    "BasicInput",
+    "BasicOutput",
+    "ImportTask"
+))
 
 private fun isTaskClass(className: String): Boolean {
-    return className.startsWith(SANDBOX_PREFIX) && className.substring(SANDBOX_PREFIX.length).let {
-        it == "Task" || it == "RawTask" || it == "BasicInput" || it == "BasicOutput"
-    }
+    return className.startsWith(SANDBOX_PREFIX) && className.substring(SANDBOX_PREFIX.length) in taskClasses
 }
 
 class Task(private val function: SandboxFunction<in Any?, out Any?>?) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
@@ -76,5 +82,16 @@ class BasicOutput : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
      */
     override fun apply(output: Any?): Any? {
         return output?.unsandbox()
+    }
+}
+
+@Suppress("unused")
+class ImportTask(private val function: Function<Any?, Any?>) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
+    /**
+     * This allows [function] to be executed both
+     * inside and outside the sandbox.
+     */
+    override fun apply(input: Any?): Any? {
+        return function.apply(input)
     }
 }

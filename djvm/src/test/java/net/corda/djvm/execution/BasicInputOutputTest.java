@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.rewiring.SandboxClassLoader;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
@@ -50,5 +51,33 @@ class BasicInputOutputTest extends TestBase {
             }
             return null;
         });
+    }
+
+    @Test
+    void testImportTask() {
+        parentedSandbox(ctx -> {
+            try {
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                Function<? super String, ?> importTask = classLoader.createForImport(new DoMagic());
+
+                @SuppressWarnings("unchecked")
+                Class<? extends Function<? super String, ?>> rawTaskClass
+                        = (Class<? extends Function<? super String, ?>>) classLoader.loadClass("sandbox.RawTask");
+                Class<?> sandboxFunction = classLoader.loadClass("sandbox.java.util.function.Function");
+                Function<? super String, ?> rawTask = rawTaskClass.getDeclaredConstructor(sandboxFunction).newInstance(importTask);
+
+                assertEquals(new DoMagic().apply(MESSAGE), rawTask.apply(MESSAGE));
+            } catch (Exception e) {
+                fail(e);
+            }
+            return null;
+        });
+    }
+
+    public static class DoMagic implements Function<String, String> {
+        @Override
+        public String apply(String input) {
+            return String.format(">>> %s <<<", input);
+        }
     }
 }

@@ -632,6 +632,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     @ValueSource(strings = [
         "BasicInput",
         "BasicOutput",
+        "ImportTask",
         "java.io.DJVMInputStream",
         "java.lang.DJVM",
         "java.lang.DJVMException",

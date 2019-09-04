@@ -16,6 +16,7 @@ import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.Type
+import java.lang.reflect.InvocationTargetException
 import java.net.URL
 import java.util.function.Function
 
@@ -88,9 +89,7 @@ class SandboxClassLoader private constructor(
     @Throws(
         ClassNotFoundException::class,
         IllegalAccessException::class,
-        InstantiationException::class,
-        NoSuchMethodException::class,
-        SecurityException::class
+        InstantiationException::class
     )
     fun createBasicInput(): Function<in Any?, out Any?> {
         return createBasicTask("sandbox.BasicInput")
@@ -103,9 +102,7 @@ class SandboxClassLoader private constructor(
     @Throws(
         ClassNotFoundException::class,
         IllegalAccessException::class,
-        InstantiationException::class,
-        NoSuchMethodException::class,
-        SecurityException::class
+        InstantiationException::class
     )
     fun createBasicOutput(): Function<in Any?, out Any?> {
         return createBasicTask("sandbox.BasicOutput")
@@ -114,9 +111,7 @@ class SandboxClassLoader private constructor(
     @Throws(
         ClassNotFoundException::class,
         IllegalAccessException::class,
-        InstantiationException::class,
-        NoSuchMethodException::class,
-        SecurityException::class
+        InstantiationException::class
     )
     private fun createBasicTask(taskName: String): Function<in Any?, out Any?> {
         val taskClass = loadClass(taskName)
@@ -132,6 +127,23 @@ class SandboxClassLoader private constructor(
                 }
             }
         }
+    }
+
+    /**
+     * Wraps an instance of [Function] inside a task that implements
+     * both [Function] and [sandbox.java.util.function.Function].
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        IllegalAccessException::class,
+        InstantiationException::class,
+        InvocationTargetException::class,
+        NoSuchMethodException::class
+    )
+    fun <T> createForImport(task: Function<in T?, out Any?>): Function<in T?, out Any?> {
+        val taskClass = loadClass("sandbox.ImportTask")
+        @Suppress("unchecked_cast")
+        return taskClass.getDeclaredConstructor(Function::class.java).newInstance(task) as Function<in T?, out Any?>
     }
 
     /**
