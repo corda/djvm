@@ -16,7 +16,6 @@ import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.Type
-import java.lang.reflect.InvocationTargetException
 import java.net.URL
 import java.util.function.Function
 
@@ -121,13 +120,12 @@ class SandboxClassLoader private constructor(
     )
     private fun createBasicTask(taskName: String): Function<in Any?, out Any?> {
         val taskClass = loadClass(taskName)
-        val applyMethod = taskClass.getDeclaredMethod("apply", Any::class.java)
-        val task = taskClass.newInstance()
+        @Suppress("unchecked_cast")
+        val task = taskClass.newInstance() as Function<in Any?, out Any?>
         return Function { value ->
             try {
-                applyMethod(task, value)
-            } catch (e: InvocationTargetException) {
-                val target = e.targetException
+                task.apply(value)
+            } catch (target: Throwable) {
                 throw when (target) {
                     is RuntimeException, is Error -> target
                     else -> SandboxRuntimeException(target.message, target)

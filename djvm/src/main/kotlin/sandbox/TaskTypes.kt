@@ -5,6 +5,8 @@ import sandbox.java.lang.escapeSandbox
 import sandbox.java.lang.sandbox
 import sandbox.java.lang.unsandbox
 
+import java.util.function.Function
+
 typealias SandboxFunction<INPUT, OUTPUT> = sandbox.java.util.function.Function<INPUT, OUTPUT>
 
 internal fun isEntryPoint(elt: StackTraceElement): Boolean {
@@ -19,7 +21,7 @@ private fun isTaskClass(className: String): Boolean {
     }
 }
 
-class Task(private val function: SandboxFunction<in Any?, out Any?>?) : SandboxFunction<Any?, Any?> {
+class Task(private val function: SandboxFunction<in Any?, out Any?>?) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
      * This function runs inside the sandbox. It marshalls the input
      * object to its sandboxed equivalent, executes the user's code
@@ -39,7 +41,7 @@ class Task(private val function: SandboxFunction<in Any?, out Any?>?) : SandboxF
 }
 
 @Suppress("unused")
-class RawTask(private val function: SandboxFunction<Any?, Any?>?) : SandboxFunction<Any?, Any?> {
+class RawTask(private val function: SandboxFunction<Any?, Any?>?) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
      * This function runs inside the sandbox, and performs NO marshalling
      * of the input and output objects. This must be done by the caller.
@@ -54,7 +56,7 @@ class RawTask(private val function: SandboxFunction<Any?, Any?>?) : SandboxFunct
 }
 
 @Suppress("unused")
-class BasicInput : SandboxFunction<Any?, Any?> {
+class BasicInput : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
      * This function runs inside the sandbox and
      * transforms a basic Java object into its
@@ -66,7 +68,7 @@ class BasicInput : SandboxFunction<Any?, Any?> {
 }
 
 @Suppress("unused")
-class BasicOutput : SandboxFunction<Any?, Any?> {
+class BasicOutput : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
      * This function runs inside the sandbox and
      * transforms a basic sandbox object into its

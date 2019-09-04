@@ -5,16 +5,16 @@ import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.source.ClassSource
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
-import java.lang.reflect.Method
+import java.util.function.Function
 
 class RawExecutor(private val classLoader: SandboxClassLoader) {
-    private val constructor: Constructor<out Any>
-    private val executeMethod: Method
+    private val constructor: Constructor<out Function<in Any?, out Any?>>
 
     init {
         val taskClass = classLoader.loadClass("sandbox.RawTask")
+        @Suppress("unchecked_cast")
         constructor = taskClass.getDeclaredConstructor(classLoader.loadClass("sandbox.java.util.function.Function"))
-        executeMethod = taskClass.getDeclaredMethod("apply", Any::class.java)
+            as Constructor<out Function<in Any?, out Any?>>
     }
 
     fun toSandboxClass(clazz: Class<*>): Class<*> {
@@ -23,9 +23,9 @@ class RawExecutor(private val classLoader: SandboxClassLoader) {
 
     fun execute(task: Any, input: Any?): Any? {
         return try {
-            executeMethod(constructor.newInstance(task), input)
-        } catch (ex: InvocationTargetException) {
-            val target = ex.targetException
+            constructor.newInstance(task).apply(input)
+        } catch (ex: Throwable) {
+            val target = (ex as? InvocationTargetException)?.targetException ?: ex
             throw when (target) {
                 is Error, is RuntimeException -> target
                 else -> SandboxRuntimeException(target.message, target)

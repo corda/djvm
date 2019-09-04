@@ -3,7 +3,7 @@ package net.corda.djvm.execution
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.messages.Message
 import net.corda.djvm.source.ClassSource
-import java.lang.reflect.InvocationTargetException
+import java.util.function.Function
 
 class SandboxRawExecutor(configuration: SandboxConfiguration) : Executor<Any?, Any?>(configuration) {
     @Throws(Exception::class)
@@ -18,15 +18,12 @@ class SandboxRawExecutor(configuration: SandboxConfiguration) : Executor<Any?, A
             // Fetch this sandbox's instance of Class<Function> so we can retrieve RawTask(Function)
             // and then instantiate the RawTask.
             val functionClass = classLoader.loadClass("sandbox.java.util.function.Function")
-            val task = taskClass.getDeclaredConstructor(functionClass).newInstance(runnable)
+
+            @Suppress("unchecked_cast")
+            val task = taskClass.getDeclaredConstructor(functionClass).newInstance(runnable) as Function<Any?, Any?>
 
             // Execute the task...
-            val method = taskClass.getDeclaredMethod("apply", Any::class.java)
-            try {
-                method.invoke(task, input)
-            } catch (ex: InvocationTargetException) {
-                throw ex.targetException
-            }
+            task.apply(input)
         }
 
         when (result.exception) {

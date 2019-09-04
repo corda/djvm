@@ -21,12 +21,14 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.fail
 import java.io.File
+import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.Files.exists
 import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.function.BiFunction
+import java.util.function.Function
 import kotlin.concurrent.thread
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
@@ -124,13 +126,14 @@ abstract class TestBase(type: SandboxType) {
 
     fun createExecutorFor(classLoader: SandboxClassLoader): BiFunction<in Any, in Any?, out Any?> {
         val taskClass = classLoader.loadClass("sandbox.RawTask")
-        val taskApply = taskClass.getDeclaredMethod("apply", Any::class.java)
+        @Suppress("unchecked_cast")
         val taskConstructor = taskClass.getDeclaredConstructor(classLoader.loadClass("sandbox.java.util.function.Function"))
+                as Constructor<out Function<in Any?, out Any?>>
         return BiFunction { userTask, arg ->
             try {
-                taskApply(taskConstructor.newInstance(userTask), arg)
-            } catch (ex: InvocationTargetException) {
-                val target = ex.targetException
+                taskConstructor.newInstance(userTask).apply(arg)
+            } catch (ex: Throwable) {
+                val target = (ex as? InvocationTargetException)?.targetException ?: ex
                 throw when (target) {
                     is RuntimeException, is Error -> target
                     else -> SandboxRuntimeException(target.message, target)

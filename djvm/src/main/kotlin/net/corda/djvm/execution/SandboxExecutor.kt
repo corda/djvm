@@ -12,7 +12,7 @@ import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.ReferenceValidationSummary
-import java.lang.reflect.InvocationTargetException
+import java.util.function.Function
 
 /**
  * The executor is responsible for spinning up a sandboxed environment and launching the referenced code block inside
@@ -34,7 +34,7 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
     private val whitelist = configuration.analysisConfiguration.whitelist
 
     /**
-     * Executes a [java.util.function.Function] implementation.
+     * Executes a [sandbox.java.util.function.Function] implementation.
      *
      * @param runnableClass The entry point of the sandboxed code to run.
      * @param input The input to provide to the sandboxed environment.
@@ -82,16 +82,13 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
             // Fetch this sandbox's instance of Class<Function> so we can retrieve Task(Function)
             // and then instantiate the Task.
             val functionClass = classLoader.loadClass("sandbox.java.util.function.Function")
-            val task = taskClass.getDeclaredConstructor(functionClass).newInstance(runnable)
+
+            @Suppress("unchecked_cast")
+            val task = taskClass.getDeclaredConstructor(functionClass).newInstance(runnable) as Function<Any?, Any?>
 
             // Execute the task...
-            val method = taskClass.getDeclaredMethod("apply", Any::class.java)
-            try {
-                @Suppress("UNCHECKED_CAST")
-                method.invoke(task, input) as? OUTPUT
-            } catch (ex: InvocationTargetException) {
-                throw ex.targetException
-            }
+            @Suppress("UNCHECKED_CAST")
+            task.apply(input) as? OUTPUT
         }
         logger.trace("Execution of {} with input {} resulted in {}", runnableClass, input, result)
         when (result.exception) {

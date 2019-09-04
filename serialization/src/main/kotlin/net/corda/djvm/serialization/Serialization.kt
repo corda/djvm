@@ -16,6 +16,7 @@ import net.corda.serialization.internal.SerializationContextImpl
 import net.corda.serialization.internal.SerializationFactoryImpl
 import net.corda.serialization.internal.amqp.AMQPSerializer
 import net.corda.serialization.internal.amqp.amqpMagic
+import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.util.function.BiFunction
 import java.util.function.Function
@@ -38,13 +39,14 @@ fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): Serializatio
     )
 
     val taskClass = classLoader.loadClass("sandbox.RawTask")
-    val taskApply = taskClass.getDeclaredMethod("apply", Any::class.java)
+    @Suppress("unchecked_cast")
     val taskConstructor = taskClass.getDeclaredConstructor(classLoader.loadClassForSandbox(Function::class.java))
+            as Constructor<out Function<in Any?, out Any?>>
     val executor: BiFunction<in Any, in Any?, out Any?> = BiFunction { userTask, arg ->
         try {
-            taskApply(taskConstructor.newInstance(userTask), arg)
-        } catch (ex: InvocationTargetException) {
-            val target = ex.targetException
+            taskConstructor.newInstance(userTask).apply(arg)
+        } catch (ex: Throwable) {
+            val target = (ex as? InvocationTargetException)?.targetException ?: ex
             throw when (target) {
                 is RuntimeException, is Error -> target
                 else -> SandboxRuntimeException(target.message, target)
