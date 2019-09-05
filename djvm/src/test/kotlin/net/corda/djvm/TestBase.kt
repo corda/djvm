@@ -35,7 +35,6 @@ import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections.unmodifiableList
-import java.util.function.BiFunction
 import java.util.function.Function
 import kotlin.concurrent.thread
 import kotlin.reflect.jvm.jvmName
@@ -100,15 +99,12 @@ abstract class TestBase(type: SandboxType) {
             InstantiationException::class,
             IllegalAccessException::class
         )
-        fun <T, R> SandboxClassLoader.createTaskFor(
-            executor: BiFunction<in Any, in Any?, out Any?>,
+        fun <T, R> SandboxClassLoader.typedTaskFor(
+            executor: Function<in Any, out Function<in Any?, out Any?>>,
             taskClass: Class<out Function<T, R>>
         ): Function<T, R> {
-            val userTask = toSandboxClass(taskClass).newInstance()
-            return Function { data ->
-                @Suppress("unchecked_cast")
-                executor.apply(userTask, data) as R
-            }
+            @Suppress("unchecked_cast")
+            return createTaskFor(executor, taskClass) as Function<T, R>
         }
     }
 

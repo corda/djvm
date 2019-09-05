@@ -13,22 +13,16 @@ import org.apache.qpid.proton.codec.Data
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.*
-import java.util.function.BiFunction
 import java.util.function.Function
 
 class SandboxCollectionSerializer(
     classLoader: SandboxClassLoader,
-    executor: BiFunction<in Any, in Any?, out Any?>,
+    executor: Function<in Any, out Function<in Any?, out Any?>>,
     private val localFactory: LocalSerializerFactory
 ) : CustomSerializer.Implements<Any>(clazz = classLoader.toSandboxAnyClass(Collection::class.java)) {
+    @Suppress("unchecked_cast")
     private val creator: Function<Array<Any>, out Any?>
-
-    init {
-        val createTask = classLoader.toSandboxClass(CreateCollection::class.java).newInstance()
-        creator = Function { inputs ->
-            executor.apply(createTask, inputs)
-        }
-    }
+        = classLoader.createTaskFor(executor, CreateCollection::class.java) as Function<Array<Any>, out Any?>
 
     private val unsupportedTypes: Set<Class<Any>> = listOf(
         EnumSet::class.java

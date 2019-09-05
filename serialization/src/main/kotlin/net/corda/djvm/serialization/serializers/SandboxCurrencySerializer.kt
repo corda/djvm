@@ -9,21 +9,18 @@ import org.apache.qpid.proton.codec.Data
 import java.lang.reflect.Type
 import java.util.*
 import java.util.Collections.singleton
-import java.util.function.BiFunction
 import java.util.function.Function
 
 class SandboxCurrencySerializer(
     classLoader: SandboxClassLoader,
-    executor: BiFunction<in Any, in Any?, out Any?>,
+    executor: Function<in Any, out Function<in Any?, out Any?>>,
     basicInput: Function<in Any?, out Any?>
 ) : CustomSerializer.Is<Any>(classLoader.toSandboxAnyClass(Currency::class.java)) {
     private val creator: Function<Any?, Any?>
 
     init {
-        val createTask = classLoader.toSandboxAnyClass(CreateCurrency::class.java).newInstance()
-        creator = basicInput.andThen { input ->
-            executor.apply(createTask, input)
-        }
+        val createTask = classLoader.createTaskFor(executor, CreateCurrency::class.java)
+        creator = basicInput.andThen(createTask)
     }
 
     override val deserializationAliases: Set<Class<*>> = singleton(Currency::class.java)

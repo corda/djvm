@@ -60,11 +60,8 @@ class BasicInputOutputTest extends TestBase {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 Function<? super String, ?> importTask = classLoader.createForImport(new DoMagic());
 
-                @SuppressWarnings("unchecked")
-                Class<? extends Function<? super String, ?>> rawTaskClass
-                        = (Class<? extends Function<? super String, ?>>) classLoader.loadClass("sandbox.RawTask");
-                Class<?> sandboxFunction = classLoader.loadClass("sandbox.java.util.function.Function");
-                Function<? super String, ?> rawTask = rawTaskClass.getDeclaredConstructor(sandboxFunction).newInstance(importTask);
+                Function<? super Object, ? extends Function<? super Object, ?>> rawExecutor = classLoader.createRawExecutor();
+                Function<? super String, ?> rawTask = rawExecutor.apply(importTask);
 
                 assertEquals(new DoMagic().apply(MESSAGE), rawTask.apply(MESSAGE));
             } catch (Exception e) {

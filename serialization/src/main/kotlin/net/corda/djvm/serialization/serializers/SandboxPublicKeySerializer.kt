@@ -9,21 +9,15 @@ import org.apache.qpid.proton.codec.Data
 import java.lang.reflect.Type
 import java.security.PublicKey
 import java.util.Collections.singleton
-import java.util.function.BiFunction
 import java.util.function.Function
 
 class SandboxPublicKeySerializer(
     classLoader: SandboxClassLoader,
-    executor: BiFunction<in Any, in Any?, out Any?>
+    executor: Function<in Any, out Function<in Any?, out Any?>>
 ) : CustomSerializer.Implements<Any>(classLoader.toSandboxAnyClass(PublicKey::class.java)) {
+    @Suppress("unchecked_cast")
     private val decoder: Function<ByteArray, out Any?>
-
-    init {
-        val decodeTask = classLoader.toSandboxClass(PublicKeyDecoder::class.java).newInstance()
-        decoder = Function { inputs ->
-            executor.apply(decodeTask, inputs)
-        }
-    }
+        = classLoader.createTaskFor(executor, PublicKeyDecoder::class.java) as Function<ByteArray, out Any?>
 
     override val schemaForDocumentation: Schema = Schema(emptyList())
 

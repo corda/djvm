@@ -11,19 +11,19 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.Collections.singleton
-import java.util.function.BiFunction
+import java.util.function.Function
 
 class SandboxZonedDateTimeSerializer(
     classLoader: SandboxClassLoader,
-    executor: BiFunction<in Any, in Any?, out Any?>,
+    executor: Function<in Any, out Function<in Any?, out Any?>>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
     clazz = classLoader.toSandboxAnyClass(ZonedDateTime::class.java),
     proxyClass = classLoader.toSandboxAnyClass(ZonedDateTimeProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.toSandboxClass(ZonedDateTimeDeserializer::class.java).newInstance()
-    private val creator: BiFunction<in Any?, in Any?, out Any?>
+    private val task = classLoader.createTaskFor(executor, ZonedDateTimeDeserializer::class.java)
+    private val creator: Function<in Any?, out Any?>
 
     init {
         val createTask = clazz.getMethod(
@@ -32,7 +32,7 @@ class SandboxZonedDateTimeSerializer(
             classLoader.toSandboxClass(ZoneOffset::class.java),
             classLoader.toSandboxClass(ZoneId::class.java)
         )
-        creator = executor.andThen { input ->
+        creator = task.andThen { input ->
             @Suppress("unchecked_cast")
             createTask(null, *(input as Array<Any>))!!
         }
@@ -43,6 +43,6 @@ class SandboxZonedDateTimeSerializer(
     override fun toProxy(obj: Any): Any = abortReadOnly()
 
     override fun fromProxy(proxy: Any): Any {
-        return creator.apply(task, proxy)!!
+        return creator.apply(proxy)!!
     }
 }

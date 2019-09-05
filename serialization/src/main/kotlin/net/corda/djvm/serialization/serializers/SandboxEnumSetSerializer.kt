@@ -8,18 +8,18 @@ import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.custom.EnumSetSerializer.EnumSetProxy
 import java.util.*
 import java.util.Collections.singleton
-import java.util.function.BiFunction
+import java.util.function.Function
 
 class SandboxEnumSetSerializer(
     classLoader: SandboxClassLoader,
-    private val executor: BiFunction<in Any, in Any?, out Any?>,
+    executor: Function<in Any, out Function<in Any?, out Any?>>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
     clazz = classLoader.toSandboxAnyClass(EnumSet::class.java),
     proxyClass = classLoader.toSandboxAnyClass(EnumSetProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.toSandboxClass(EnumSetDeserializer::class.java).newInstance()
+    private val task = classLoader.createTaskFor(executor, EnumSetDeserializer::class.java)
 
     override val additionalSerializers: Set<CustomSerializer<out Any>> = singleton(
         SandboxClassSerializer(classLoader, executor, factory)
@@ -30,6 +30,6 @@ class SandboxEnumSetSerializer(
     override fun toProxy(obj: Any): Any = abortReadOnly()
 
     override fun fromProxy(proxy: Any): Any {
-        return executor.apply(task, proxy)!!
+        return task.apply(proxy)!!
     }
 }

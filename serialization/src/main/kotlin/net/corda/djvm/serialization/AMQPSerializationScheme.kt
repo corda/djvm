@@ -12,13 +12,12 @@ import net.corda.serialization.internal.amqp.*
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.*
-import java.util.function.BiFunction
 import java.util.function.Function
 
 class AMQPSerializationScheme(
     private val classLoader: SandboxClassLoader,
     private val sandboxBasicInput: Function<in Any?, out Any?>,
-    private val executor: BiFunction<in Any, in Any?, out Any?>,
+    private val executor: Function<in Any, out Function<in Any?, out Any?>>,
     private val serializerFactoryFactory: SerializerFactoryFactory
 ) : SerializationScheme {
 

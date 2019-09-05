@@ -132,7 +132,7 @@ class SandboxClassLoader private constructor(
     }
 
     /**
-     * Returns an instance of [BiFunction] that can execute
+     * Returns an instance of [Function] that can execute
      * instances of [sandbox.java.util.function.Function].
      * The function's input and output are marshalled using
      * the [sandbox.BasicInput] and [sandbox.BasicOutput]
@@ -142,8 +142,7 @@ class SandboxClassLoader private constructor(
         ClassNotFoundException::class,
         NoSuchMethodException::class
     )
-    fun createExecutor(): BiFunction<in Any, in Any?, out Any?> {
-        @Suppress("unchecked_cast")
+    fun createExecutor(): Function<in Any, out Function<in Any?, out Any?>> {
         return createExecutorTask("sandbox.Task")
     }
 
@@ -156,7 +155,7 @@ class SandboxClassLoader private constructor(
         ClassNotFoundException::class,
         NoSuchMethodException::class
     )
-    fun createRawExecutor(): BiFunction<in Any, in Any?, out Any?> {
+    fun createRawExecutor(): Function<in Any, out Function<in Any?, out Any?>> {
         return createExecutorTask("sandbox.RawTask")
     }
 
@@ -164,14 +163,14 @@ class SandboxClassLoader private constructor(
         ClassNotFoundException::class,
         NoSuchMethodException::class
     )
-    private fun createExecutorTask(taskName: String): BiFunction<in Any, in Any?, out Any?> {
+    private fun createExecutorTask(taskName: String): Function<in Any, out Function<in Any?, out Any?>> {
         val taskClass = loadClass(taskName)
         @Suppress("unchecked_cast")
         val constructor = taskClass.getDeclaredConstructor(loadClass("sandbox.java.util.function.Function"))
                 as Constructor<out Function<in Any?, out Any?>>
-        return BiFunction { userTask, input ->
+        return Function { userTask ->
             try {
-                constructor.newInstance(userTask).apply(input)
+                constructor.newInstance(userTask)
             } catch (ex: Throwable) {
                 val target = (ex as? InvocationTargetException)?.targetException ?: ex
                 throw when (target) {
@@ -180,6 +179,25 @@ class SandboxClassLoader private constructor(
                 }
             }
         }
+    }
+
+    /**
+     * Factory to create a [Function] that will execute a sandboxed
+     * instance of [taskClass]. This is just a convenience function
+     * which assumes that the task has a no-argument constructor,
+     * but is still likely to be what you want.
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        InstantiationException::class,
+        IllegalAccessError::class
+    )
+    fun createTaskFor(
+        executor: Function<in Any, out Function<in Any?, out Any?>>,
+        taskClass: Class<out Function<*, *>>
+    ): Function<in Any?, out Any?> {
+        val task = toSandboxClass(taskClass).newInstance()
+        return executor.apply(task)
     }
 
     /**

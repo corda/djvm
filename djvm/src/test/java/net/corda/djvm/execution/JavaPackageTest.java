@@ -4,7 +4,6 @@ import net.corda.djvm.TestBase;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
@@ -21,8 +20,8 @@ class JavaPackageTest extends TestBase {
     void testFetchingPackage() {
         parentedSandbox(ctx -> {
             try {
-                BiFunction<? super Object, ? super Object, ?> executor = ctx.getClassLoader().createExecutor();
-                Function<String, String> fetchPackage = createTaskFor(ctx.getClassLoader(), executor, FetchPackage.class);
+                Function<? super Object, ? extends Function<? super Object, ?>> executor = ctx.getClassLoader().createExecutor();
+                Function<String, String> fetchPackage = typedTaskFor(ctx.getClassLoader(), executor, FetchPackage.class);
                 assertNull(fetchPackage.apply("java.lang"));
             } catch (Exception e) {
                 fail(e);
@@ -43,8 +42,8 @@ class JavaPackageTest extends TestBase {
     void testFetchingAllPackage() {
         parentedSandbox(ctx -> {
             try {
-                BiFunction<? super Object, ? super Object, ?> executor = ctx.getClassLoader().createExecutor();
-                Function<Object, String[]> fetchAllPackages = createTaskFor(ctx.getClassLoader(), executor, FetchAllPackages.class);
+                Function<? super Object, ? extends Function<? super Object, ?>> executor = ctx.getClassLoader().createExecutor();
+                Function<Object, String[]> fetchAllPackages = typedTaskFor(ctx.getClassLoader(), executor, FetchAllPackages.class);
                 assertThat(fetchAllPackages.apply(null)).isEmpty();
             } catch (Exception e) {
                 fail(e);
