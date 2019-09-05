@@ -2,7 +2,7 @@ package net.corda.djvm.serialization.serializers
 
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.YearDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.custom.YearSerializer.YearProxy
@@ -15,11 +15,11 @@ class SandboxYearSerializer(
     private val executor: BiFunction<in Any, in Any?, out Any?>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
-    clazz = classLoader.loadClassForSandbox(Year::class.java),
-    proxyClass = classLoader.loadClassForSandbox(YearProxy::class.java),
+    clazz = classLoader.toSandboxAnyClass(Year::class.java),
+    proxyClass = classLoader.toSandboxAnyClass(YearProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.loadClassForSandbox(YearDeserializer::class.java).newInstance()
+    private val task = classLoader.toSandboxClass(YearDeserializer::class.java).newInstance()
 
     override val deserializationAliases: Set<Class<*>> = singleton(Year::class.java)
 

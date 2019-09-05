@@ -2,7 +2,7 @@ package net.corda.djvm.serialization.serializers
 
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.OffsetTimeDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.custom.OffsetTimeSerializer.OffsetTimeProxy
@@ -15,11 +15,11 @@ class SandboxOffsetTimeSerializer(
     private val executor: BiFunction<in Any, in Any?, out Any?>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
-    clazz = classLoader.loadClassForSandbox(OffsetTime::class.java),
-    proxyClass = classLoader.loadClassForSandbox(OffsetTimeProxy::class.java),
+    clazz = classLoader.toSandboxAnyClass(OffsetTime::class.java),
+    proxyClass = classLoader.toSandboxAnyClass(OffsetTimeProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.loadClassForSandbox(OffsetTimeDeserializer::class.java).newInstance()
+    private val task = classLoader.toSandboxClass(OffsetTimeDeserializer::class.java).newInstance()
 
     override val deserializationAliases: Set<Class<*>> = singleton(OffsetTime::class.java)
 

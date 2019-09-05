@@ -2,7 +2,7 @@ package net.corda.djvm.serialization.serializers
 
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.OptionalDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.custom.OptionalSerializer.OptionalProxy
@@ -15,11 +15,11 @@ class SandboxOptionalSerializer(
     private val executor: BiFunction<in Any, in Any?, out Any?>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
-    clazz = classLoader.loadClassForSandbox(Optional::class.java),
-    proxyClass = classLoader.loadClassForSandbox(OptionalProxy::class.java),
+    clazz = classLoader.toSandboxAnyClass(Optional::class.java),
+    proxyClass = classLoader.toSandboxAnyClass(OptionalProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.loadClassForSandbox(OptionalDeserializer::class.java).newInstance()
+    private val task = classLoader.toSandboxClass(OptionalDeserializer::class.java).newInstance()
 
     override val deserializationAliases: Set<Class<*>> = singleton(Optional::class.java)
 

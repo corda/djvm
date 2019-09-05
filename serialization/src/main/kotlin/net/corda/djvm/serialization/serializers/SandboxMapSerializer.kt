@@ -3,7 +3,7 @@ package net.corda.djvm.serialization.serializers
 import net.corda.core.serialization.SerializationContext
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.CreateMap
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.*
 import net.corda.serialization.internal.model.LocalTypeInformation
 import net.corda.serialization.internal.model.TypeIdentifier
@@ -19,11 +19,11 @@ class SandboxMapSerializer(
     classLoader: SandboxClassLoader,
     executor: BiFunction<in Any, in Any?, out Any?>,
     private val localFactory: LocalSerializerFactory
-) : CustomSerializer.Implements<Any>(clazz = classLoader.loadClassForSandbox(Map::class.java)) {
+) : CustomSerializer.Implements<Any>(clazz = classLoader.toSandboxAnyClass(Map::class.java)) {
     private val creator: Function<Array<Any>, out Any?>
 
     init {
-        val createTask = classLoader.loadClassForSandbox(CreateMap::class.java).newInstance()
+        val createTask = classLoader.toSandboxClass(CreateMap::class.java).newInstance()
         creator = Function { inputs ->
             executor.apply(createTask, inputs)
         }
@@ -39,7 +39,7 @@ class SandboxMapSerializer(
         EnumMap::class.java,
         Map::class.java
     ).associateBy {
-        classLoader.loadClassForSandbox(it)
+        classLoader.toSandboxAnyClass(it)
     }
 
     private fun getBestMatchFor(type: Class<Any>): Map.Entry<Class<Any>, Class<out Map<*, *>>>

@@ -2,7 +2,7 @@ package net.corda.djvm.serialization.serializers
 
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.PeriodDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.custom.PeriodSerializer.PeriodProxy
@@ -15,11 +15,11 @@ class SandboxPeriodSerializer(
     private val executor: BiFunction<in Any, in Any?, out Any?>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
-    clazz = classLoader.loadClassForSandbox(Period::class.java),
-    proxyClass = classLoader.loadClassForSandbox(PeriodProxy::class.java),
+    clazz = classLoader.toSandboxAnyClass(Period::class.java),
+    proxyClass = classLoader.toSandboxAnyClass(PeriodProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.loadClassForSandbox(PeriodDeserializer::class.java).newInstance()
+    private val task = classLoader.toSandboxClass(PeriodDeserializer::class.java).newInstance()
 
     override val deserializationAliases: Set<Class<*>> = singleton(Period::class.java)
 

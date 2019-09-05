@@ -2,7 +2,7 @@ package net.corda.djvm.serialization.serializers
 
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.ZonedDateTimeDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.custom.ZonedDateTimeSerializer.ZonedDateTimeProxy
@@ -18,19 +18,19 @@ class SandboxZonedDateTimeSerializer(
     executor: BiFunction<in Any, in Any?, out Any?>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
-    clazz = classLoader.loadClassForSandbox(ZonedDateTime::class.java),
-    proxyClass = classLoader.loadClassForSandbox(ZonedDateTimeProxy::class.java),
+    clazz = classLoader.toSandboxAnyClass(ZonedDateTime::class.java),
+    proxyClass = classLoader.toSandboxAnyClass(ZonedDateTimeProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.loadClassForSandbox(ZonedDateTimeDeserializer::class.java).newInstance()
+    private val task = classLoader.toSandboxClass(ZonedDateTimeDeserializer::class.java).newInstance()
     private val creator: BiFunction<in Any?, in Any?, out Any?>
 
     init {
         val createTask = clazz.getMethod(
             "createDJVM",
-            classLoader.loadClassForSandbox(LocalDateTime::class.java),
-            classLoader.loadClassForSandbox(ZoneOffset::class.java),
-            classLoader.loadClassForSandbox(ZoneId::class.java)
+            classLoader.toSandboxClass(LocalDateTime::class.java),
+            classLoader.toSandboxClass(ZoneOffset::class.java),
+            classLoader.toSandboxClass(ZoneId::class.java)
         )
         creator = executor.andThen { input ->
             @Suppress("unchecked_cast")

@@ -2,7 +2,7 @@ package net.corda.djvm.serialization.serializers
 
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.LocalDateDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.custom.LocalDateSerializer.LocalDateProxy
@@ -15,11 +15,11 @@ class SandboxLocalDateSerializer(
     private val executor: BiFunction<in Any, in Any?, out Any?>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
-    clazz = classLoader.loadClassForSandbox(LocalDate::class.java),
-    proxyClass = classLoader.loadClassForSandbox(LocalDateProxy::class.java),
+    clazz = classLoader.toSandboxAnyClass(LocalDate::class.java),
+    proxyClass = classLoader.toSandboxAnyClass(LocalDateProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.loadClassForSandbox(LocalDateDeserializer::class.java).newInstance()
+    private val task = classLoader.toSandboxClass(LocalDateDeserializer::class.java).newInstance()
 
     override val deserializationAliases: Set<Class<*>> = singleton(LocalDate::class.java)
 

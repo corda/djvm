@@ -3,7 +3,7 @@ package net.corda.djvm.serialization.serializers
 import net.corda.core.serialization.SerializationContext
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.InputStreamDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.*
 import org.apache.qpid.proton.codec.Data
 import java.io.InputStream
@@ -15,11 +15,11 @@ import java.util.function.Function
 class SandboxInputStreamSerializer(
     classLoader: SandboxClassLoader,
     executor: BiFunction<in Any, in Any?, out Any?>
-) : CustomSerializer.Implements<Any>(classLoader.loadClassForSandbox(InputStream::class.java)) {
+) : CustomSerializer.Implements<Any>(classLoader.toSandboxAnyClass(InputStream::class.java)) {
     private val decoder: Function<ByteArray, out Any?>
 
     init {
-        val decodeTask = classLoader.loadClassForSandbox(InputStreamDeserializer::class.java).newInstance()
+        val decodeTask = classLoader.toSandboxClass(InputStreamDeserializer::class.java).newInstance()
         decoder = Function { inputs ->
             executor.apply(decodeTask, inputs)
         }

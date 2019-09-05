@@ -3,7 +3,7 @@ package net.corda.djvm.serialization.serializers
 import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.ClassDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.AMQPNotSerializableException
 import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
@@ -18,10 +18,10 @@ class SandboxClassSerializer(
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
     clazz = Class::class.java as Class<Any>,
-    proxyClass = classLoader.loadClassForSandbox(ClassProxy::class.java),
+    proxyClass = classLoader.toSandboxAnyClass(ClassProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.loadClassForSandbox(ClassDeserializer::class.java).newInstance()
+    private val task = classLoader.toSandboxClass(ClassDeserializer::class.java).newInstance()
     private val nameOf: Function<Any, String>
 
     init {

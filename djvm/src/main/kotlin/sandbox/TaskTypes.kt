@@ -10,7 +10,7 @@ import java.util.function.Function
 
 typealias SandboxFunction<INPUT, OUTPUT> = sandbox.java.util.function.Function<INPUT, OUTPUT>
 
-internal fun isEntryPoint(elt: StackTraceElement): Boolean {
+fun isEntryPoint(elt: StackTraceElement): Boolean {
     return elt.methodName == "apply" && isTaskClass(elt.className)
 }
 

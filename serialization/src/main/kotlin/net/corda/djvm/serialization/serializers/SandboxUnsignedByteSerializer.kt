@@ -3,7 +3,7 @@ package net.corda.djvm.serialization.serializers
 import net.corda.core.serialization.SerializationContext
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.UnsignedByteDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.*
 import org.apache.qpid.proton.amqp.UnsignedByte
 import org.apache.qpid.proton.codec.Data
@@ -14,11 +14,11 @@ import java.util.function.Function
 class SandboxUnsignedByteSerializer(
     classLoader: SandboxClassLoader,
     executor: BiFunction<in Any, in Any?, out Any?>
-) : CustomSerializer.Is<Any>(classLoader.loadClassForSandbox(UnsignedByte::class.java)) {
+) : CustomSerializer.Is<Any>(classLoader.toSandboxAnyClass(UnsignedByte::class.java)) {
     private val transformer: Function<ByteArray, out Any?>
 
     init {
-        val transformTask = classLoader.loadClassForSandbox(UnsignedByteDeserializer::class.java).newInstance()
+        val transformTask = classLoader.toSandboxClass(UnsignedByteDeserializer::class.java).newInstance()
         transformer = Function { inputs ->
             executor.apply(transformTask, inputs)
         }

@@ -3,7 +3,7 @@ package net.corda.djvm.serialization.serializers
 import net.corda.core.serialization.SerializationContext
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.DescribeEnum
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.*
 import net.corda.serialization.internal.model.EnumTransforms
 import net.corda.serialization.internal.model.LocalTypeInformation
@@ -18,11 +18,11 @@ class SandboxEnumSerializer(
     classLoader: SandboxClassLoader,
     executor: BiFunction<in Any, in Any?, out Any?>,
     private val localFactory: LocalSerializerFactory
-) : CustomSerializer.Implements<Any>(clazz = classLoader.loadClassForSandbox(Enum::class.java)) {
+) : CustomSerializer.Implements<Any>(clazz = classLoader.toSandboxAnyClass(Enum::class.java)) {
     private val describer: Function<Class<*>, Array<Any>>
 
     init {
-        val describeTask = classLoader.loadClassForSandbox(DescribeEnum::class.java).newInstance()
+        val describeTask = classLoader.toSandboxClass(DescribeEnum::class.java).newInstance()
         describer = Function { inputs ->
             @Suppress("unchecked_cast")
             executor.apply(describeTask, inputs) as Array<Any>

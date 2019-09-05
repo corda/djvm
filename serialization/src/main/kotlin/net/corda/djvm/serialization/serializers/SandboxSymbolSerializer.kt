@@ -3,7 +3,7 @@ package net.corda.djvm.serialization.serializers
 import net.corda.core.serialization.SerializationContext
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.SymbolDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.*
 import org.apache.qpid.proton.amqp.Symbol
 import org.apache.qpid.proton.codec.Data
@@ -15,11 +15,11 @@ class SandboxSymbolSerializer(
     classLoader: SandboxClassLoader,
     executor: BiFunction<in Any, in Any?, out Any?>,
     basicInput: Function<in Any?, out Any?>
-) : CustomSerializer.Is<Any>(classLoader.loadClassForSandbox(Symbol::class.java)) {
+) : CustomSerializer.Is<Any>(classLoader.toSandboxAnyClass(Symbol::class.java)) {
     private val transformer: Function<String, out Any?>
 
     init {
-        val transformTask = classLoader.loadClassForSandbox(SymbolDeserializer::class.java).newInstance()
+        val transformTask = classLoader.toSandboxClass(SymbolDeserializer::class.java).newInstance()
         @Suppress("unchecked_cast")
         transformer = basicInput.andThen { input ->
             executor.apply(transformTask, input)

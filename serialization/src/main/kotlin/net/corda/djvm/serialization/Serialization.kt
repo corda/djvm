@@ -9,7 +9,6 @@ import net.corda.core.serialization.internal.SerializationEnvironment
 import net.corda.core.utilities.ByteSequence
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.serializers.PrimitiveSerializer
-import net.corda.djvm.source.ClassSource
 import net.corda.serialization.internal.GlobalTransientClassWhiteList
 import net.corda.serialization.internal.SerializationContextImpl
 import net.corda.serialization.internal.SerializationFactoryImpl
@@ -17,9 +16,10 @@ import net.corda.serialization.internal.amqp.AMQPSerializer
 import net.corda.serialization.internal.amqp.amqpMagic
 import java.util.function.Function
 
-fun SandboxClassLoader.loadClassForSandbox(clazz: Class<*>): Class<Any> {
+@Suppress("NOTHING_TO_INLINE")
+inline fun SandboxClassLoader.toSandboxAnyClass(clazz: Class<*>): Class<Any> {
     @Suppress("unchecked_cast")
-    return loadClassForSandbox(ClassSource.fromClassName(clazz.name)) as Class<Any>
+    return toSandboxClass(clazz) as Class<Any>
 }
 
 fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): SerializationEnvironment {
@@ -53,7 +53,7 @@ fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): Serializatio
 }
 
 inline fun <reified T : Any> SerializedBytes<T>.deserializeFor(classLoader: SandboxClassLoader): Any {
-    val clazz = classLoader.loadClassForSandbox(T::class.java)
+    val clazz = classLoader.toSandboxClass(T::class.java)
     return deserializeTo(clazz, classLoader)
 }
 

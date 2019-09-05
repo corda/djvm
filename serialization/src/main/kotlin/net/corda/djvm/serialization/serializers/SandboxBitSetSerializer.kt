@@ -2,7 +2,7 @@ package net.corda.djvm.serialization.serializers
 
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.deserializers.BitSetDeserializer
-import net.corda.djvm.serialization.loadClassForSandbox
+import net.corda.djvm.serialization.toSandboxAnyClass
 import net.corda.serialization.internal.amqp.CustomSerializer
 import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.custom.BitSetSerializer.BitSetProxy
@@ -15,11 +15,11 @@ class SandboxBitSetSerializer(
     private val executor: BiFunction<in Any, in Any?, out Any?>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
-    clazz = classLoader.loadClassForSandbox(BitSet::class.java),
-    proxyClass = classLoader.loadClassForSandbox(BitSetProxy::class.java),
+    clazz = classLoader.toSandboxAnyClass(BitSet::class.java),
+    proxyClass = classLoader.toSandboxAnyClass(BitSetProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.loadClassForSandbox(BitSetDeserializer::class.java).newInstance()
+    private val task = classLoader.toSandboxClass(BitSetDeserializer::class.java).newInstance()
 
     override val deserializationAliases: Set<Class<*>> = singleton(BitSet::class.java)
 
