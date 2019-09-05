@@ -22,11 +22,9 @@ class DeserializeBitSetTest : TestBase(KOTLIN) {
 
             val sandboxBitSet = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowBitSet::class.java).newInstance(),
-                sandboxBitSet
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showBitSet = classLoader.createTaskFor(executor, ShowBitSet::class.java)
+            val result = showBitSet.apply(sandboxBitSet) ?: fail("Result cannot be null")
 
             assertEquals(bitSet.toString(), result.toString())
             assertEquals(SANDBOX_STRING, result::class.java.name)

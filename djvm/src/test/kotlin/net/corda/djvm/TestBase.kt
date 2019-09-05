@@ -35,6 +35,8 @@ import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections.unmodifiableList
+import java.util.function.BiFunction
+import java.util.function.Function
 import kotlin.concurrent.thread
 import kotlin.reflect.jvm.jvmName
 
@@ -90,6 +92,23 @@ abstract class TestBase(type: SandboxType) {
         @JvmStatic
         fun destroyRootContext() {
             parentConfiguration.analysisConfiguration.closeAll()
+        }
+
+        @JvmStatic
+        @Throws(
+            ClassNotFoundException::class,
+            InstantiationException::class,
+            IllegalAccessException::class
+        )
+        fun <T, R> SandboxClassLoader.createTaskFor(
+            executor: BiFunction<in Any, in Any?, out Any?>,
+            taskClass: Class<out Function<T, R>>
+        ): Function<T, R> {
+            val userTask = toSandboxClass(taskClass).newInstance()
+            return Function { data ->
+                @Suppress("unchecked_cast")
+                executor.apply(userTask, data) as R
+            }
         }
     }
 

@@ -7,7 +7,6 @@ import net.corda.core.serialization.SerializationFactory
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.internal.SerializationEnvironment
 import net.corda.core.utilities.ByteSequence
-import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.serialization.serializers.PrimitiveSerializer
 import net.corda.djvm.source.ClassSource
@@ -16,9 +15,6 @@ import net.corda.serialization.internal.SerializationContextImpl
 import net.corda.serialization.internal.SerializationFactoryImpl
 import net.corda.serialization.internal.amqp.AMQPSerializer
 import net.corda.serialization.internal.amqp.amqpMagic
-import java.lang.reflect.Constructor
-import java.lang.reflect.InvocationTargetException
-import java.util.function.BiFunction
 import java.util.function.Function
 
 fun SandboxClassLoader.loadClassForSandbox(clazz: Class<*>): Class<Any> {
@@ -38,22 +34,7 @@ fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): Serializatio
         encoding = null
     )
 
-    val taskClass = classLoader.loadClass("sandbox.RawTask")
-    @Suppress("unchecked_cast")
-    val taskConstructor = taskClass.getDeclaredConstructor(classLoader.loadClassForSandbox(Function::class.java))
-            as Constructor<out Function<in Any?, out Any?>>
-    val executor: BiFunction<in Any, in Any?, out Any?> = BiFunction { userTask, arg ->
-        try {
-            taskConstructor.newInstance(userTask).apply(arg)
-        } catch (ex: Throwable) {
-            val target = (ex as? InvocationTargetException)?.targetException ?: ex
-            throw when (target) {
-                is RuntimeException, is Error -> target
-                else -> SandboxRuntimeException(target.message, target)
-            }
-        }
-    }
-
+    val executor = classLoader.createRawExecutor()
     val sandboxBasicInput = classLoader.createBasicInput()
 
     val primitiveSerializerFactory: Function<Class<*>, AMQPSerializer<Any>> = Function { clazz ->

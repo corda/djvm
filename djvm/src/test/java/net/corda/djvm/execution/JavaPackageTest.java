@@ -1,10 +1,10 @@
 package net.corda.djvm.execution;
 
-import net.corda.djvm.TaskExecutor;
 import net.corda.djvm.TestBase;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
@@ -17,17 +17,13 @@ class JavaPackageTest extends TestBase {
         super(JAVA);
     }
 
-    private Object run(TaskExecutor executor, Class<?> task, Object data) throws Exception {
-        Object toStringTask = executor.toSandboxClass(task).newInstance();
-        return executor.apply(toStringTask, data);
-    }
-
     @Test
     void testFetchingPackage() {
         parentedSandbox(ctx -> {
             try {
-                TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
-                assertNull(run(executor, FetchPackage.class, "java.lang"));
+                BiFunction<? super Object, ? super Object, ?> executor = ctx.getClassLoader().createExecutor();
+                Function<String, String> fetchPackage = createTaskFor(ctx.getClassLoader(), executor, FetchPackage.class);
+                assertNull(fetchPackage.apply("java.lang"));
             } catch (Exception e) {
                 fail(e);
             }
@@ -47,8 +43,9 @@ class JavaPackageTest extends TestBase {
     void testFetchingAllPackage() {
         parentedSandbox(ctx -> {
             try {
-                TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
-                assertThat((String[]) run(executor, FetchAllPackages.class, null)).isEmpty();
+                BiFunction<? super Object, ? super Object, ?> executor = ctx.getClassLoader().createExecutor();
+                Function<Object, String[]> fetchAllPackages = createTaskFor(ctx.getClassLoader(), executor, FetchAllPackages.class);
+                assertThat(fetchAllPackages.apply(null)).isEmpty();
             } catch (Exception e) {
                 fail(e);
             }

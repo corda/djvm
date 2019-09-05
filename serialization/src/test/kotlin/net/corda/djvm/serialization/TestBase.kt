@@ -11,7 +11,6 @@ import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
 import net.corda.djvm.execution.ExecutionProfile.*
-import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.messages.Severity.*
 import net.corda.djvm.rewiring.SandboxClassLoader
@@ -21,8 +20,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.fail
 import java.io.File
-import java.lang.reflect.Constructor
-import java.lang.reflect.InvocationTargetException
 import java.nio.file.Files.exists
 import java.nio.file.Files.isDirectory
 import java.nio.file.Path
@@ -76,6 +73,20 @@ abstract class TestBase(type: SandboxType) {
         fun destroyRootContext() {
             configuration.analysisConfiguration.closeAll()
         }
+
+        @JvmStatic
+        @Throws(
+            ClassNotFoundException::class,
+            InstantiationException::class,
+            IllegalAccessException::class
+        )
+        fun SandboxClassLoader.createTaskFor(
+            executor: BiFunction<in Any, in Any?, out Any?>,
+            taskClass: Class<out Function<*,*>>
+        ): Function<in Any?, out Any?> {
+            val userTask = toSandboxClass(taskClass).newInstance()
+            return Function { data -> executor.apply(userTask, data) }
+        }
     }
 
     val classPaths: List<Path> = when(type) {
@@ -122,23 +133,5 @@ abstract class TestBase(type: SandboxType) {
             }
         }.join()
         throw thrownException ?: return
-    }
-
-    fun createExecutorFor(classLoader: SandboxClassLoader): BiFunction<in Any, in Any?, out Any?> {
-        val taskClass = classLoader.loadClass("sandbox.RawTask")
-        @Suppress("unchecked_cast")
-        val taskConstructor = taskClass.getDeclaredConstructor(classLoader.loadClass("sandbox.java.util.function.Function"))
-                as Constructor<out Function<in Any?, out Any?>>
-        return BiFunction { userTask, arg ->
-            try {
-                taskConstructor.newInstance(userTask).apply(arg)
-            } catch (ex: Throwable) {
-                val target = (ex as? InvocationTargetException)?.targetException ?: ex
-                throw when (target) {
-                    is RuntimeException, is Error -> target
-                    else -> SandboxRuntimeException(target.message, target)
-                }
-            }
-        }
     }
 }

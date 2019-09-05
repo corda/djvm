@@ -24,6 +24,8 @@ import java.nio.file.Files.exists
 import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.function.BiFunction
+import java.util.function.Function
 import kotlin.concurrent.thread
 
 abstract class TestBase(type: SandboxType) {
@@ -67,6 +69,20 @@ abstract class TestBase(type: SandboxType) {
         @JvmStatic
         fun destroyRootContext() {
             configuration.analysisConfiguration.closeAll()
+        }
+
+        @JvmStatic
+        @Throws(
+            ClassNotFoundException::class,
+            InstantiationException::class,
+            IllegalAccessException::class
+        )
+        fun SandboxClassLoader.createTaskFor(
+            executor: BiFunction<in Any, in Any?, out Any?>,
+            taskClass: Class<out Function<*,*>>
+        ): Function<in Any?, out Any?> {
+            val userTask = toSandboxClass(taskClass).newInstance()
+            return Function { data -> executor.apply(userTask, data) }
         }
     }
 

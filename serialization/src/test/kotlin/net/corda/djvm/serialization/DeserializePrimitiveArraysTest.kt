@@ -23,11 +23,9 @@ class DeserializePrimitiveArraysTest : TestBase(KOTLIN) {
 
             val sandboxArray = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowCharArray::class.java).newInstance(),
-                sandboxArray
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showCharArray = classLoader.createTaskFor(executor, ShowCharArray::class.java)
+            val result = showCharArray.apply(sandboxArray) ?: fail("Result cannot be null")
 
             assertEquals(SANDBOX_STRING, result::class.java.name)
             assertEquals("Hello!", result.toString())
@@ -50,11 +48,9 @@ class DeserializePrimitiveArraysTest : TestBase(KOTLIN) {
 
             val sandboxArray = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowIntegerArray::class.java).newInstance(),
-                sandboxArray
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showIntegerArray = classLoader.createTaskFor(executor, ShowIntegerArray::class.java)
+            val result = showIntegerArray.apply(sandboxArray) ?: fail("Result cannot be null")
 
             assertEquals("sandbox.java.lang.Integer", result::class.java.name)
             assertEquals("1500", result.toString())
@@ -77,11 +73,9 @@ class DeserializePrimitiveArraysTest : TestBase(KOTLIN) {
 
             val sandboxArray = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowLongArray::class.java).newInstance(),
-                sandboxArray
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showLongArray = classLoader.createTaskFor(executor, ShowLongArray::class.java)
+            val result = showLongArray.apply(sandboxArray) ?: fail("Result cannot be null")
 
             assertEquals("sandbox.java.lang.Long", result::class.java.name)
             assertEquals("15000", result.toString())
@@ -104,11 +98,9 @@ class DeserializePrimitiveArraysTest : TestBase(KOTLIN) {
 
             val sandboxArray = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowShortArray::class.java).newInstance(),
-                sandboxArray
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showShortArray = classLoader.createTaskFor(executor, ShowShortArray::class.java)
+            val result = showShortArray.apply(sandboxArray) ?: fail("Result cannot be null")
 
             assertEquals("sandbox.java.lang.Integer", result::class.java.name)
             assertEquals("1500", result.toString())
@@ -131,11 +123,9 @@ class DeserializePrimitiveArraysTest : TestBase(KOTLIN) {
 
             val sandboxArray = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowByteArray::class.java).newInstance(),
-                sandboxArray
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showByteArray = classLoader.createTaskFor(executor, ShowByteArray::class.java)
+            val result = showByteArray.apply(sandboxArray) ?: fail("Result cannot be null")
 
             assertEquals("sandbox.java.lang.Integer", result::class.java.name)
             assertEquals("150", result.toString())
@@ -158,11 +148,9 @@ class DeserializePrimitiveArraysTest : TestBase(KOTLIN) {
 
             val sandboxArray = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowBooleanArray::class.java).newInstance(),
-                sandboxArray
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showBooleanArray = classLoader.createTaskFor(executor, ShowBooleanArray::class.java)
+            val result = showBooleanArray.apply(sandboxArray) ?: fail("Result cannot be null")
 
             assertEquals("sandbox.java.lang.Boolean", result::class.java.name)
             assertEquals("true", result.toString())
@@ -185,11 +173,9 @@ class DeserializePrimitiveArraysTest : TestBase(KOTLIN) {
 
             val sandboxArray = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowDoubleArray::class.java).newInstance(),
-                sandboxArray
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showDoubleArray = classLoader.createTaskFor(executor, ShowDoubleArray::class.java)
+            val result = showDoubleArray.apply(sandboxArray) ?: fail("Result cannot be null")
 
             assertEquals("sandbox.java.lang.Double", result::class.java.name)
             assertEquals("15000.0", result.toString())
@@ -212,11 +198,9 @@ class DeserializePrimitiveArraysTest : TestBase(KOTLIN) {
 
             val sandboxArray = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowFloatArray::class.java).newInstance(),
-                sandboxArray
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showFloatArray = classLoader.createTaskFor(executor, ShowFloatArray::class.java)
+            val result = showFloatArray.apply(sandboxArray) ?: fail("Result cannot be null")
 
             assertEquals("sandbox.java.lang.Float", result::class.java.name)
             assertEquals("1500.0", result.toString())

@@ -24,11 +24,9 @@ class DeserializeGenericsTest : TestBase(KOTLIN) {
 
             val sandboxWrapper = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowGenericWrapper::class.java).newInstance(),
-                sandboxWrapper
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showGenericWrapper = classLoader.createTaskFor(executor, ShowGenericWrapper::class.java)
+            val result = showGenericWrapper.apply(sandboxWrapper) ?: fail("Result cannot be null")
 
             assertEquals("Hello World!", result.toString())
             assertEquals(SANDBOX_STRING, result::class.java.name)
@@ -54,11 +52,9 @@ class DeserializeGenericsTest : TestBase(KOTLIN) {
 
             val sandboxWrapped = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowConcreteWrapper::class.java).newInstance(),
-                sandboxWrapped
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showConcreteWrapper = classLoader.createTaskFor(executor, ShowConcreteWrapper::class.java)
+            val result = showConcreteWrapper.apply(sandboxWrapped) ?: fail("Result cannot be null")
 
             assertEquals("Concrete: first='Hello World', second='!'", result.toString())
         }

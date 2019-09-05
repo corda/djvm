@@ -25,11 +25,9 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxList = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowStringList::class.java).newInstance(),
-                sandboxList
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showStringList = classLoader.createTaskFor(executor, ShowStringList::class.java)
+            val result = showStringList.apply(sandboxList) ?: fail("Result cannot be null")
 
             assertEquals(stringList.lines.joinToString(), result.toString())
             assertEquals("Hello, World, !", result.toString())
@@ -52,11 +50,9 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxSet = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowIntegerSet::class.java).newInstance(),
-                sandboxSet
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showIntegerSet = classLoader.createTaskFor(executor, ShowIntegerSet::class.java)
+            val result = showIntegerSet.apply(sandboxSet) ?: fail("Result cannot be null")
 
             assertEquals(integerSet.numbers.joinToString(), result.toString())
             assertEquals("10, 3, 15, 2", result.toString())
@@ -79,11 +75,9 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxSet = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowIntegerSortedSet::class.java).newInstance(),
-                sandboxSet
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showIntegerSortedSet = classLoader.createTaskFor(executor, ShowIntegerSortedSet::class.java)
+            val result = showIntegerSortedSet.apply(sandboxSet) ?: fail("Result cannot be null")
 
             assertEquals(integerSortedSet.numbers.joinToString(), result.toString())
             assertEquals("2, 3, 10, 15, 1000", result.toString())
@@ -106,11 +100,9 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxSet = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowLongNavigableSet::class.java).newInstance(),
-                sandboxSet
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showLongNavigableSet = classLoader.createTaskFor(executor, ShowLongNavigableSet::class.java)
+            val result = showLongNavigableSet.apply(sandboxSet) ?: fail("Result cannot be null")
 
             assertEquals(longNavigableSet.numbers.joinToString(), result.toString())
             assertEquals("2, 3, 10, 15, 1000, 99955", result.toString())
@@ -133,11 +125,9 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxCollection = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowShortCollection::class.java).newInstance(),
-                sandboxCollection
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showShortCollection = classLoader.createTaskFor(executor, ShowShortCollection::class.java)
+            val result = showShortCollection.apply(sandboxCollection) ?: fail("Result cannot be null")
 
             assertEquals(shortCollection.numbers.joinToString(), result.toString())
             assertEquals("10, 200, 3000", result.toString())
@@ -160,11 +150,9 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxSet = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowNonEmptyStringSet::class.java).newInstance(),
-                sandboxSet
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showNonEmptyStringSet = classLoader.createTaskFor(executor, ShowNonEmptyStringSet::class.java)
+            val result = showNonEmptyStringSet.apply(sandboxSet) ?: fail("Result cannot be null")
 
             assertEquals(nonEmptyStrings.lines.joinToString(), result.toString())
             assertEquals("Hello, World, !", result.toString())
@@ -187,11 +175,9 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxSet = data.deserializeFor(classLoader)
 
-            val executor = createExecutorFor(classLoader)
-            val result = executor.apply(
-                classLoader.loadClassForSandbox(ShowHasEnumSet::class.java).newInstance(),
-                sandboxSet
-            ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawExecutor()
+            val showHasEnumSet = classLoader.createTaskFor(executor, ShowHasEnumSet::class.java)
+            val result = showHasEnumSet.apply(sandboxSet) ?: fail("Result cannot be null")
 
             assertEquals(enumSet.values.toString(), result.toString())
             assertEquals("[DOH]", result.toString())

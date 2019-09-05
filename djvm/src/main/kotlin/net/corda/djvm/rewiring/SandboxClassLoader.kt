@@ -16,8 +16,10 @@ import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.Type
+import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
+import java.util.function.BiFunction
 import java.util.function.Function
 
 /**
@@ -130,6 +132,57 @@ class SandboxClassLoader private constructor(
     }
 
     /**
+     * Returns an instance of [BiFunction] that can execute
+     * instances of [sandbox.java.util.function.Function].
+     * The function's input and output are marshalled using
+     * the [sandbox.BasicInput] and [sandbox.BasicOutput]
+     * transformations.
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        NoSuchMethodException::class
+    )
+    fun createExecutor(): BiFunction<in Any, in Any?, out Any?> {
+        @Suppress("unchecked_cast")
+        return createExecutorTask("sandbox.Task")
+    }
+
+    /**
+     * Returns an instance of [BiFunction] that can execute
+     * instances of [sandbox.java.util.function.Function].
+     * The function's input and output are not marshalled.
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        NoSuchMethodException::class
+    )
+    fun createRawExecutor(): BiFunction<in Any, in Any?, out Any?> {
+        return createExecutorTask("sandbox.RawTask")
+    }
+
+    @Throws(
+        ClassNotFoundException::class,
+        NoSuchMethodException::class
+    )
+    private fun createExecutorTask(taskName: String): BiFunction<in Any, in Any?, out Any?> {
+        val taskClass = loadClass(taskName)
+        @Suppress("unchecked_cast")
+        val constructor = taskClass.getDeclaredConstructor(loadClass("sandbox.java.util.function.Function"))
+                as Constructor<out Function<in Any?, out Any?>>
+        return BiFunction { userTask, input ->
+            try {
+                constructor.newInstance(userTask).apply(input)
+            } catch (ex: Throwable) {
+                val target = (ex as? InvocationTargetException)?.targetException ?: ex
+                throw when (target) {
+                    is RuntimeException, is Error -> target
+                    else -> SandboxRuntimeException(target.message, target)
+                }
+            }
+        }
+    }
+
+    /**
      * Wraps an instance of [Function] inside a task that implements
      * both [Function] and [sandbox.java.util.function.Function].
      */
@@ -181,6 +234,11 @@ class SandboxClassLoader private constructor(
     @Throws(ClassNotFoundException::class)
     fun loadClassForSandbox(source: ClassSource): Class<*> {
         return loadClassForSandbox(source.qualifiedClassName)
+    }
+
+    @Throws(ClassNotFoundException::class)
+    fun toSandboxClass(clazz: Class<*>): Class<*> {
+        return loadClassForSandbox(ClassSource.fromClassName(clazz.name))
     }
 
     /**
