@@ -10,42 +10,42 @@ import java.util.function.Function
 class SandboxEnumTest : TestBase(KOTLIN) {
     @Test
     fun `test enum inside sandbox`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<Int, Array<String>>(configuration)
-        contractExecutor.run<TransformEnum>(0).apply {
-            assertThat(result).isEqualTo(arrayOf("ONE", "TWO", "THREE"))
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<Int, Array<String>, TransformEnum>(executor)
+            .apply(0)
+        assertThat(result).isEqualTo(arrayOf("ONE", "TWO", "THREE"))
     }
 
     @Test
     fun `return enum from sandbox`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, ExampleEnum>(configuration)
-        contractExecutor.run<FetchEnum>("THREE").apply {
-            assertThat(result).isEqualTo(ExampleEnum.THREE)
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<String, ExampleEnum, FetchEnum>(executor)
+            .apply("THREE")
+        assertThat(result).isEqualTo(ExampleEnum.THREE)
     }
 
     @Test
     fun `test we can identify class as Enum`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<ExampleEnum, Boolean>(configuration)
-        contractExecutor.run<AssertEnum>(ExampleEnum.THREE).apply {
-            assertThat(result).isTrue()
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<ExampleEnum, Boolean, AssertEnum>(executor)
+            .apply(ExampleEnum.THREE)
+        assertThat(result).isTrue()
     }
 
     @Test
     fun `test we can create EnumMap`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<ExampleEnum, Int>(configuration)
-        contractExecutor.run<UseEnumMap>(ExampleEnum.TWO).apply {
-            assertThat(result).isEqualTo(1)
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<ExampleEnum, Int, UseEnumMap>(executor)
+            .apply(ExampleEnum.TWO)
+        assertThat(result).isEqualTo(1)
     }
 
     @Test
     fun `test we can create EnumSet`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<ExampleEnum, Boolean>(configuration)
-        contractExecutor.run<UseEnumSet>(ExampleEnum.ONE).apply {
-            assertThat(result).isTrue()
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<ExampleEnum, Boolean, UseEnumSet>(executor)
+            .apply(ExampleEnum.ONE)
+        assertThat(result).isTrue()
     }
 }
 

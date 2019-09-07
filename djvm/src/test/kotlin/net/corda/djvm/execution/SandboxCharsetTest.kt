@@ -19,21 +19,22 @@ class SandboxCharsetTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @ValueSource(strings = ["UTF-8", "UTF-16", "ISO-8859-1", "US-ASCII", "windows-1252"])
     fun `test loading charsets`(charsetName: String) = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, String>(configuration)
-        contractExecutor.run<LookupCharset>(charsetName).apply {
-            assertThat(result).isEqualTo(charsetName)
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<String, String, LookupCharset>(executor)
+            .apply(charsetName)
+        assertThat(result).isEqualTo(charsetName)
     }
 
     @Test
     fun `test unknown encoding`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, String>(configuration)
-        val exception = assertThrows<SandboxException> {
-            contractExecutor.run<LookupCharset>("Nonsense-101")
+        val executor = classLoader.createExecutor()
+        val exception = assertThrows<RuntimeException> {
+            classLoader.typedTaskFor<String, String, LookupCharset>(executor)
+                .apply("Nonsense-101")
         }
         assertThat(exception)
-            .hasCauseExactlyInstanceOf(RuntimeException::class.java)
-            .hasMessage("Runtime: sandbox.java.nio.charset.UnsupportedCharsetException -> Nonsense-101")
+            .isExactlyInstanceOf(RuntimeException::class.java)
+            .hasMessage("sandbox.java.nio.charset.UnsupportedCharsetException -> Nonsense-101")
     }
 
     class LookupCharset : Function<String, String> {
@@ -45,11 +46,10 @@ class SandboxCharsetTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @ValueSource(strings = ["UTF-8", "UTF-16", "ISO-8859-1", "US-ASCII", "windows-1252"])
     fun `test string encoding`(charsetName: String) = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, ByteArray>(configuration)
-        contractExecutor.run<EncodeString>(charsetName).apply {
-            assertNotNull(result)
-            assertThat(String(result!!, Charset.forName(charsetName))).isEqualTo(MESSAGE)
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<String, ByteArray, EncodeString>(executor).apply(charsetName)
+        assertNotNull(result)
+        assertThat(String(result, Charset.forName(charsetName))).isEqualTo(MESSAGE)
     }
 
     class EncodeString : Function<String, ByteArray> {
@@ -61,11 +61,10 @@ class SandboxCharsetTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @ValueSource(strings = ["UTF-8", "UTF-16", "ISO-8859-1", "US-ASCII", "windows-1252"])
     fun `test string decoding`(charsetName: String) = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, String>(configuration)
-        contractExecutor.run<DecodeString>(charsetName).apply {
-            assertThat(result).isEqualTo(MESSAGE)
-        }
-    }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<String, String, DecodeString>(executor).apply(charsetName)
+        assertThat(result).isEqualTo(MESSAGE)
+     }
 
     class DecodeString : Function<String, String> {
         override fun apply(charsetName: String): String {
@@ -77,10 +76,9 @@ class SandboxCharsetTest : TestBase(KOTLIN) {
 
     @Test
     fun `test default charset`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<Void?, String>(configuration)
-        contractExecutor.run<DefaultCharset>(null).apply {
-            assertThat(result).isEqualTo("UTF-8")
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<Void?, String, DefaultCharset>(executor).apply(null)
+        assertThat(result).isEqualTo("UTF-8")
     }
 
     class DefaultCharset : Function<Void?, String> {

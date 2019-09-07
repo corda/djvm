@@ -12,7 +12,6 @@ import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.ReferenceValidationSummary
-import java.util.function.Function
 
 /**
  * The executor is responsible for spinning up a sandboxed environment and launching the referenced code block inside
@@ -72,19 +71,11 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
                 validate(context, classLoader, listOf(runnableClass))
             }
 
-            // Load the "entry-point" task class into the sandbox. This task will marshall
-            // the input and outputs between Java types and sandbox wrapper types.
-            val taskClass = classLoader.loadClass("sandbox.Task")
-
             // Create the user's task object inside the sandbox.
             val runnable = classLoader.loadClassForSandbox(runnableClass).newInstance()
 
-            // Fetch this sandbox's instance of Class<Function> so we can retrieve Task(Function)
-            // and then instantiate the Task.
-            val functionClass = classLoader.loadClass("sandbox.java.util.function.Function")
-
-            @Suppress("unchecked_cast")
-            val task = taskClass.getDeclaredConstructor(functionClass).newInstance(runnable) as Function<Any?, Any?>
+            val executor = classLoader.createExecutor()
+            val task = executor.apply(runnable)
 
             // Execute the task...
             @Suppress("UNCHECKED_CAST")

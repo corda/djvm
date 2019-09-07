@@ -10,29 +10,29 @@ class SandboxThrowableTest : TestBase(KOTLIN) {
 
     @Test
     fun `test user exception handling`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
-        contractExecutor.run<ThrowAndCatchExample>("Hello World").apply {
-            assertThat(result)
-                .isEqualTo(arrayOf("FIRST FINALLY", "BASE EXCEPTION", "Hello World", "SECOND FINALLY"))
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<String, Array<String>, ThrowAndCatchExample>(executor)
+            .apply("Hello World")
+        assertThat(result)
+            .isEqualTo(arrayOf("FIRST FINALLY", "BASE EXCEPTION", "Hello World", "SECOND FINALLY"))
     }
 
     @Test
     fun `test rethrowing an exception`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
-        contractExecutor.run<ThrowAndRethrowExample>("Hello World").apply {
-            assertThat(result)
-                .isEqualTo(arrayOf("FIRST CATCH", "FIRST FINALLY", "SECOND CATCH", "Hello World", "SECOND FINALLY"))
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<String, Array<String>, ThrowAndRethrowExample>(executor)
+            .apply("Hello World")
+        assertThat(result)
+            .isEqualTo(arrayOf("FIRST CATCH", "FIRST FINALLY", "SECOND CATCH", "Hello World", "SECOND FINALLY"))
     }
 
     @Test
     fun `test JVM exceptions still propagate`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<Int, String>(configuration)
-        contractExecutor.run<TriggerJVMException>(-1).apply {
-            assertThat(result)
-                .isEqualTo("sandbox.java.lang.ArrayIndexOutOfBoundsException:-1")
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<Int, String, TriggerJVMException>(executor)
+            .apply(-1)
+        assertThat(result)
+            .isEqualTo("sandbox.java.lang.ArrayIndexOutOfBoundsException:-1")
     }
 }
 

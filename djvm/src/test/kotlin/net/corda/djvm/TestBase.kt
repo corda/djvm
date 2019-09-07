@@ -106,6 +106,10 @@ abstract class TestBase(type: SandboxType) {
             @Suppress("unchecked_cast")
             return createTaskFor(executor, taskClass) as Function<T, R>
         }
+
+        inline fun <T, R, reified K : Function<T, R>> SandboxClassLoader.typedTaskFor(
+            executor: Function<in Any, out Function<in Any?, out Any?>>
+        ) = typedTaskFor(executor, K::class.java)
     }
 
     val classPaths: List<Path> = when(type) {

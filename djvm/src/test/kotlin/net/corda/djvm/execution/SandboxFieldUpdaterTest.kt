@@ -12,10 +12,10 @@ import java.util.function.Function
 class SandboxFieldUpdaterTest : TestBase(KOTLIN) {
     @Test
     fun `test long field updater`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<Long, Long>(configuration)
-        contractExecutor.run<HasLongField>(1234).apply {
-            assertThat(result).isEqualTo(1234)
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<Long, Long, HasLongField>(executor)
+            .apply(1234)
+        assertThat(result).isEqualTo(1234)
     }
 
     class HasLongField : Function<Long, Long> {
@@ -31,10 +31,10 @@ class SandboxFieldUpdaterTest : TestBase(KOTLIN) {
 
     @Test
     fun `test integer field updater`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<Int, Int>(configuration)
-        contractExecutor.run<HasIntegerField>(4567).apply {
-            assertThat(result).isEqualTo(4567)
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<Int, Int, HasIntegerField>(executor)
+            .apply(4567)
+        assertThat(result).isEqualTo(4567)
     }
 
     class HasIntegerField : Function<Int, Int> {
@@ -50,10 +50,10 @@ class SandboxFieldUpdaterTest : TestBase(KOTLIN) {
 
     @Test
     fun `test reference field updater`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, String>(configuration)
-        contractExecutor.run<HasReferenceField>("Hello World!").apply {
-            assertThat(result).isEqualTo("[tag:Hello World!]")
-        }
+        val executor = classLoader.createExecutor()
+        val result = classLoader.typedTaskFor<String, String, HasReferenceField>(executor)
+            .apply("Hello World!")
+        assertThat(result).isEqualTo("[tag:Hello World!]")
     }
 
     class HasReferenceField : Function<String, String> {
