@@ -27,8 +27,8 @@ class DeserializeBigIntegerTest : TestBase(KOTLIN) {
 
             val sandboxBigInteger = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showBigInteger = classLoader.createTaskFor(executor, ShowBigInteger::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showBigInteger = classLoader.createTaskFor(taskFactory, ShowBigInteger::class.java)
             val result = showBigInteger.apply(sandboxBigInteger) ?: fail("Result cannot be null")
 
             assertEquals(ShowBigInteger().apply(bigInteger), result.toString())

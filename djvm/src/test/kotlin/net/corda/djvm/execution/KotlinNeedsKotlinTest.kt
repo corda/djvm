@@ -13,8 +13,8 @@ class KotlinNeedsKotlinTest : TestBase(JAVA) {
     fun `kotlin code needs kotlin libraries`() {
         val exception = assertThrows<SandboxClassLoadingException> {
             parentedSandbox {
-                val executor = classLoader.createExecutor()
-                classLoader.typedTaskFor<String, String, UseKotlinForSomething>(executor)
+                val taskFactory = classLoader.createTaskFactory()
+                classLoader.typedTaskFor<String, String, UseKotlinForSomething>(taskFactory)
                     .apply("Hello Kotlin!")
             }
         }

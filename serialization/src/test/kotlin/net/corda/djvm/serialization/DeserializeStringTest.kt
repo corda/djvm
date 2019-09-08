@@ -22,8 +22,8 @@ class DeserializeStringTest : TestBase(KOTLIN) {
 
             val sandboxString = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showStringMessage = classLoader.createTaskFor(executor, ShowStringMessage::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showStringMessage = classLoader.createTaskFor(taskFactory, ShowStringMessage::class.java)
             val result = showStringMessage.apply(sandboxString) ?: fail("Result cannot be null")
 
             assertEquals(stringMessage.message, result.toString())
@@ -49,8 +49,8 @@ class DeserializeStringTest : TestBase(KOTLIN) {
 
             val sandboxListArray = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showStringListOfArray = classLoader.createTaskFor(executor, ShowStringListOfArray::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showStringListOfArray = classLoader.createTaskFor(taskFactory, ShowStringListOfArray::class.java)
             val result = showStringListOfArray.apply(sandboxListArray) ?: fail("Result cannot be null")
 
             assertEquals(stringListArray.data.flatMap(Array<String>::toList).joinToString(), result.toString())

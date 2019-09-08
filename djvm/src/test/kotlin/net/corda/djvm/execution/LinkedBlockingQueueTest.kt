@@ -11,8 +11,8 @@ import java.util.function.Function
 class LinkedBlockingQueueTest : TestBase(KOTLIN) {
     @Test
     fun `elementary linked blocking queue test`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<String, Int, CreateLinkedBlockingQueue>(executor).apply("Message")
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, Int, CreateLinkedBlockingQueue>(taskFactory).apply("Message")
         assertThat(result).isEqualTo(1)
     }
 

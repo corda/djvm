@@ -15,14 +15,14 @@ import java.util.function.Function
 
 class SandboxZonedDateTimeSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
     clazz = classLoader.toSandboxAnyClass(ZonedDateTime::class.java),
     proxyClass = classLoader.toSandboxAnyClass(ZonedDateTimeProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.createTaskFor(executor, ZonedDateTimeDeserializer::class.java)
+    private val task = classLoader.createTaskFor(taskFactory, ZonedDateTimeDeserializer::class.java)
     private val creator: Function<in Any?, out Any?>
 
     init {

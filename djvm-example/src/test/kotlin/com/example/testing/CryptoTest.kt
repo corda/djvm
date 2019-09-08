@@ -43,8 +43,8 @@ class CryptoTest : TestBase(KOTLIN) {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
             val sandboxKey = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val publicKeyFunction = classLoader.createTaskFor(executor, PublicKeyFunction::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val publicKeyFunction = classLoader.createTaskFor(taskFactory, PublicKeyFunction::class.java)
             val result = publicKeyFunction.apply(sandboxKey)
             assertThat(result.toString())
                 .isEqualTo("Format='${key.format}', Algorithm='${key.algorithm}', Hash='${key.hash}'")
@@ -68,8 +68,8 @@ class CryptoTest : TestBase(KOTLIN) {
             _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
             val sandboxKey = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val publicKeyFunction = classLoader.createTaskFor(executor, PublicKeyFunction::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val publicKeyFunction = classLoader.createTaskFor(taskFactory, PublicKeyFunction::class.java)
             val result = publicKeyFunction.apply(sandboxKey)
             assertThat(result.toString())
                 .isEqualTo("Format='${compositeKey.format}', Algorithm='${compositeKey.algorithm}', Hash='${compositeKey.hash}'")

@@ -22,8 +22,8 @@ class DeserializeBitSetTest : TestBase(KOTLIN) {
 
             val sandboxBitSet = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showBitSet = classLoader.createTaskFor(executor, ShowBitSet::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showBitSet = classLoader.createTaskFor(taskFactory, ShowBitSet::class.java)
             val result = showBitSet.apply(sandboxBitSet) ?: fail("Result cannot be null")
 
             assertEquals(bitSet.toString(), result.toString())

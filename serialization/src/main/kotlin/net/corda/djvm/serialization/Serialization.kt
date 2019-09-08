@@ -34,7 +34,7 @@ fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): Serializatio
         encoding = null
     )
 
-    val executor = classLoader.createRawExecutor()
+    val taskFactory = classLoader.createRawTaskFactory()
     val sandboxBasicInput = classLoader.createBasicInput()
 
     val primitiveSerializerFactory: Function<Class<*>, AMQPSerializer<Any>> = Function { clazz ->
@@ -45,7 +45,7 @@ fun createSandboxSerializationEnv(classLoader: SandboxClassLoader): Serializatio
         registerScheme(AMQPSerializationScheme(
             classLoader = classLoader,
             sandboxBasicInput = sandboxBasicInput,
-            executor = executor,
+            taskFactory = taskFactory,
             serializerFactoryFactory = SandboxSerializerFactoryFactory(primitiveSerializerFactory)
         ))
     }

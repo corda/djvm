@@ -10,40 +10,40 @@ import java.util.function.Function
 class SandboxEnumTest : TestBase(KOTLIN) {
     @Test
     fun `test enum inside sandbox`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<Int, Array<String>, TransformEnum>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<Int, Array<String>, TransformEnum>(taskFactory)
             .apply(0)
         assertThat(result).isEqualTo(arrayOf("ONE", "TWO", "THREE"))
     }
 
     @Test
     fun `return enum from sandbox`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<String, ExampleEnum, FetchEnum>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, ExampleEnum, FetchEnum>(taskFactory)
             .apply("THREE")
         assertThat(result).isEqualTo(ExampleEnum.THREE)
     }
 
     @Test
     fun `test we can identify class as Enum`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<ExampleEnum, Boolean, AssertEnum>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<ExampleEnum, Boolean, AssertEnum>(taskFactory)
             .apply(ExampleEnum.THREE)
         assertThat(result).isTrue()
     }
 
     @Test
     fun `test we can create EnumMap`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<ExampleEnum, Int, UseEnumMap>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<ExampleEnum, Int, UseEnumMap>(taskFactory)
             .apply(ExampleEnum.TWO)
         assertThat(result).isEqualTo(1)
     }
 
     @Test
     fun `test we can create EnumSet`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<ExampleEnum, Boolean, UseEnumSet>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<ExampleEnum, Boolean, UseEnumSet>(taskFactory)
             .apply(ExampleEnum.ONE)
         assertThat(result).isTrue()
     }

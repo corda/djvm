@@ -12,14 +12,14 @@ import java.util.function.Function
 
 class SandboxDurationSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
     clazz = classLoader.toSandboxAnyClass(Duration::class.java),
     proxyClass = classLoader.toSandboxAnyClass(DurationProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.createTaskFor(executor, DurationDeserializer::class.java)
+    private val task = classLoader.createTaskFor(taskFactory, DurationDeserializer::class.java)
 
     override val deserializationAliases: Set<Class<*>> = singleton(Duration::class.java)
 

@@ -13,8 +13,8 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @CsvSource("en,en,''", "en-GB,en,GB", "en-US,en,US", "en-CA,en,CA", "en-AU,en,AU")
     fun `test loading locales`(tagName: String, language: String, country: String) = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<String, Array<String>, LookupLocale>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, Array<String>, LookupLocale>(taskFactory)
             .apply(tagName)
         assertThat(result).isEqualTo(arrayOf(language, country))
     }
@@ -29,8 +29,8 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
 
     @Test
     fun `test locale languages`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<String, Array<String>, GetAllLocaleLanguages>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, Array<String>, GetAllLocaleLanguages>(taskFactory)
             .apply("")
         assertThat(result)
             .hasSize(188)
@@ -45,8 +45,8 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
 
     @Test
     fun `test locale countries`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<String, Array<String>, GetAllLocaleCountries>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, Array<String>, GetAllLocaleCountries>(taskFactory)
             .apply("")
         assertThat(result)
             .hasSize(250)
@@ -61,8 +61,8 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
 
     @Test
     fun `test default locale`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<String, String, GetDefaultLocale>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, String, GetDefaultLocale>(taskFactory)
             .apply("")
         assertThat(result).isEqualTo("en")
     }

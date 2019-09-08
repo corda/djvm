@@ -12,13 +12,13 @@ import java.util.function.Function
 
 class SandboxSymbolSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     basicInput: Function<in Any?, out Any?>
 ) : CustomSerializer.Is<Any>(classLoader.toSandboxAnyClass(Symbol::class.java)) {
     private val transformer: Function<String, out Any?>
 
     init {
-        val transformTask = classLoader.createTaskFor(executor, SymbolDeserializer::class.java)
+        val transformTask = classLoader.createTaskFor(taskFactory, SymbolDeserializer::class.java)
         @Suppress("unchecked_cast")
         transformer = basicInput.andThen(transformTask) as Function<String, Any?>
     }

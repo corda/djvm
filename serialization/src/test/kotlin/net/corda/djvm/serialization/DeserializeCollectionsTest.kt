@@ -25,8 +25,8 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxList = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showStringList = classLoader.createTaskFor(executor, ShowStringList::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showStringList = classLoader.createTaskFor(taskFactory, ShowStringList::class.java)
             val result = showStringList.apply(sandboxList) ?: fail("Result cannot be null")
 
             assertEquals(stringList.lines.joinToString(), result.toString())
@@ -50,8 +50,8 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxSet = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showIntegerSet = classLoader.createTaskFor(executor, ShowIntegerSet::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showIntegerSet = classLoader.createTaskFor(taskFactory, ShowIntegerSet::class.java)
             val result = showIntegerSet.apply(sandboxSet) ?: fail("Result cannot be null")
 
             assertEquals(integerSet.numbers.joinToString(), result.toString())
@@ -75,8 +75,8 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxSet = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showIntegerSortedSet = classLoader.createTaskFor(executor, ShowIntegerSortedSet::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showIntegerSortedSet = classLoader.createTaskFor(taskFactory, ShowIntegerSortedSet::class.java)
             val result = showIntegerSortedSet.apply(sandboxSet) ?: fail("Result cannot be null")
 
             assertEquals(integerSortedSet.numbers.joinToString(), result.toString())
@@ -100,8 +100,8 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxSet = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showLongNavigableSet = classLoader.createTaskFor(executor, ShowLongNavigableSet::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showLongNavigableSet = classLoader.createTaskFor(taskFactory, ShowLongNavigableSet::class.java)
             val result = showLongNavigableSet.apply(sandboxSet) ?: fail("Result cannot be null")
 
             assertEquals(longNavigableSet.numbers.joinToString(), result.toString())
@@ -125,8 +125,8 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxCollection = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showShortCollection = classLoader.createTaskFor(executor, ShowShortCollection::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showShortCollection = classLoader.createTaskFor(taskFactory, ShowShortCollection::class.java)
             val result = showShortCollection.apply(sandboxCollection) ?: fail("Result cannot be null")
 
             assertEquals(shortCollection.numbers.joinToString(), result.toString())
@@ -150,8 +150,8 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxSet = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showNonEmptyStringSet = classLoader.createTaskFor(executor, ShowNonEmptyStringSet::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showNonEmptyStringSet = classLoader.createTaskFor(taskFactory, ShowNonEmptyStringSet::class.java)
             val result = showNonEmptyStringSet.apply(sandboxSet) ?: fail("Result cannot be null")
 
             assertEquals(nonEmptyStrings.lines.joinToString(), result.toString())
@@ -175,8 +175,8 @@ class DeserializeCollectionsTest : TestBase(KOTLIN) {
 
             val sandboxSet = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showHasEnumSet = classLoader.createTaskFor(executor, ShowHasEnumSet::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showHasEnumSet = classLoader.createTaskFor(taskFactory, ShowHasEnumSet::class.java)
             val result = showHasEnumSet.apply(sandboxSet) ?: fail("Result cannot be null")
 
             assertEquals(enumSet.values.toString(), result.toString())

@@ -19,7 +19,6 @@ import org.objectweb.asm.Type
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
-import java.util.function.BiFunction
 import java.util.function.Function
 
 /**
@@ -132,8 +131,8 @@ class SandboxClassLoader private constructor(
     }
 
     /**
-     * Returns an instance of [Function] that can execute
-     * instances of [sandbox.java.util.function.Function].
+     * Returns an instance of [Function] that can wrap an
+     * instance of [sandbox.java.util.function.Function].
      * The function's input and output are marshalled using
      * the [sandbox.BasicInput] and [sandbox.BasicOutput]
      * transformations.
@@ -142,28 +141,28 @@ class SandboxClassLoader private constructor(
         ClassNotFoundException::class,
         NoSuchMethodException::class
     )
-    fun createExecutor(): Function<in Any, out Function<in Any?, out Any?>> {
-        return createExecutorTask("sandbox.Task")
+    fun createTaskFactory(): Function<in Any, out Function<in Any?, out Any?>> {
+        return createTaskFactory("sandbox.Task")
     }
 
     /**
-     * Returns an instance of [BiFunction] that can execute
-     * instances of [sandbox.java.util.function.Function].
+     * Returns an instance of [Function] that can wrap an
+     * instance of [sandbox.java.util.function.Function].
      * The function's input and output are not marshalled.
      */
     @Throws(
         ClassNotFoundException::class,
         NoSuchMethodException::class
     )
-    fun createRawExecutor(): Function<in Any, out Function<in Any?, out Any?>> {
-        return createExecutorTask("sandbox.RawTask")
+    fun createRawTaskFactory(): Function<in Any, out Function<in Any?, out Any?>> {
+        return createTaskFactory("sandbox.RawTask")
     }
 
     @Throws(
         ClassNotFoundException::class,
         NoSuchMethodException::class
     )
-    private fun createExecutorTask(taskName: String): Function<in Any, out Function<in Any?, out Any?>> {
+    private fun createTaskFactory(taskName: String): Function<in Any, out Function<in Any?, out Any?>> {
         val taskClass = loadClass(taskName)
         @Suppress("unchecked_cast")
         val constructor = taskClass.getDeclaredConstructor(loadClass("sandbox.java.util.function.Function"))

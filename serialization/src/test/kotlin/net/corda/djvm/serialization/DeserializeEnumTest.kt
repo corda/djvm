@@ -24,8 +24,8 @@ class DeserializeEnumTest : TestBase(KOTLIN) {
 
             val sandboxExample = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showExampleData = classLoader.createTaskFor(executor, ShowExampleData::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showExampleData = classLoader.createTaskFor(taskFactory, ShowExampleData::class.java)
             val result = showExampleData.apply(sandboxExample) ?: fail("Result cannot be null")
 
             assertEquals(ShowExampleData().apply(example), result.toString())

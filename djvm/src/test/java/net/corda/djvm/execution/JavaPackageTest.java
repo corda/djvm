@@ -20,8 +20,8 @@ class JavaPackageTest extends TestBase {
     void testFetchingPackage() {
         parentedSandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> executor = ctx.getClassLoader().createExecutor();
-                Function<String, String> fetchPackage = typedTaskFor(ctx.getClassLoader(), executor, FetchPackage.class);
+                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                Function<String, String> fetchPackage = typedTaskFor(ctx.getClassLoader(), taskFactory, FetchPackage.class);
                 assertNull(fetchPackage.apply("java.lang"));
             } catch (Exception e) {
                 fail(e);
@@ -42,8 +42,8 @@ class JavaPackageTest extends TestBase {
     void testFetchingAllPackage() {
         parentedSandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> executor = ctx.getClassLoader().createExecutor();
-                Function<Object, String[]> fetchAllPackages = typedTaskFor(ctx.getClassLoader(), executor, FetchAllPackages.class);
+                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                Function<Object, String[]> fetchAllPackages = typedTaskFor(ctx.getClassLoader(), taskFactory, FetchAllPackages.class);
                 assertThat(fetchAllPackages.apply(null)).isEmpty();
             } catch (Exception e) {
                 fail(e);

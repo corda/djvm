@@ -13,11 +13,11 @@ import java.util.function.Function
 
 class SandboxX509CRLSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>
 ) : CustomSerializer.Implements<Any>(classLoader.toSandboxAnyClass(X509CRL::class.java)) {
     @Suppress("unchecked_cast")
     private val generator: Function<ByteArray, out Any?>
-        = classLoader.createTaskFor(executor, X509CRLDeserializer::class.java) as Function<ByteArray, out Any?>
+        = classLoader.createTaskFor(taskFactory, X509CRLDeserializer::class.java) as Function<ByteArray, out Any?>
 
     override val schemaForDocumentation: Schema = Schema(emptyList())
 

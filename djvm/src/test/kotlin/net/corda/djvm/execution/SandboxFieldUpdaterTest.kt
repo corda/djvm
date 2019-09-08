@@ -12,8 +12,8 @@ import java.util.function.Function
 class SandboxFieldUpdaterTest : TestBase(KOTLIN) {
     @Test
     fun `test long field updater`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<Long, Long, HasLongField>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<Long, Long, HasLongField>(taskFactory)
             .apply(1234)
         assertThat(result).isEqualTo(1234)
     }
@@ -31,8 +31,8 @@ class SandboxFieldUpdaterTest : TestBase(KOTLIN) {
 
     @Test
     fun `test integer field updater`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<Int, Int, HasIntegerField>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<Int, Int, HasIntegerField>(taskFactory)
             .apply(4567)
         assertThat(result).isEqualTo(4567)
     }
@@ -50,8 +50,8 @@ class SandboxFieldUpdaterTest : TestBase(KOTLIN) {
 
     @Test
     fun `test reference field updater`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<String, String, HasReferenceField>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, String, HasReferenceField>(taskFactory)
             .apply("Hello World!")
         assertThat(result).isEqualTo("[tag:Hello World!]")
     }

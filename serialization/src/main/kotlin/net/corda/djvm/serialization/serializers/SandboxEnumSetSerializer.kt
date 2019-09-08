@@ -12,17 +12,17 @@ import java.util.function.Function
 
 class SandboxEnumSetSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
     clazz = classLoader.toSandboxAnyClass(EnumSet::class.java),
     proxyClass = classLoader.toSandboxAnyClass(EnumSetProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.createTaskFor(executor, EnumSetDeserializer::class.java)
+    private val task = classLoader.createTaskFor(taskFactory, EnumSetDeserializer::class.java)
 
     override val additionalSerializers: Set<CustomSerializer<out Any>> = singleton(
-        SandboxClassSerializer(classLoader, executor, factory)
+        SandboxClassSerializer(classLoader, taskFactory, factory)
     )
 
     override val deserializationAliases: Set<Class<*>> = singleton(EnumSet::class.java)

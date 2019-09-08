@@ -34,8 +34,8 @@ class DeserializeZoneIdTest : TestBase(KOTLIN) {
 
             val sandboxZoneId = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showZoneId = classLoader.createTaskFor(executor, ShowZoneId::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showZoneId = classLoader.createTaskFor(taskFactory, ShowZoneId::class.java)
             val result = showZoneId.apply(sandboxZoneId) ?: fail("Result cannot be null")
 
             assertEquals(zoneId.toString(), result.toString())

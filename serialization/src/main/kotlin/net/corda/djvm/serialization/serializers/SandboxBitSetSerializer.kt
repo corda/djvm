@@ -12,14 +12,14 @@ import java.util.function.Function
 
 class SandboxBitSetSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
     clazz = classLoader.toSandboxAnyClass(BitSet::class.java),
     proxyClass = classLoader.toSandboxAnyClass(BitSetProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.createTaskFor(executor, BitSetDeserializer::class.java)
+    private val task = classLoader.createTaskFor(taskFactory, BitSetDeserializer::class.java)
 
     override val deserializationAliases: Set<Class<*>> = singleton(BitSet::class.java)
 

@@ -14,7 +14,7 @@ import java.util.function.Function
 class SandboxToStringSerializer(
     unsafeClass: Class<*>,
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     basicInput: Function<in Any?, out Any?>
 ) : CustomSerializer.Is<Any>(classLoader.toSandboxAnyClass(unsafeClass)) {
     private val creator: Function<Any?, Any?>
@@ -24,7 +24,7 @@ class SandboxToStringSerializer(
         val createTask = classLoader.toSandboxClass(CreateFromString::class.java)
             .getConstructor(Constructor::class.java)
             .newInstance(clazz.getConstructor(stringClass))
-        creator = basicInput.andThen(executor.apply(createTask))
+        creator = basicInput.andThen(taskFactory.apply(createTask))
     }
 
     override val deserializationAliases: Set<Class<*>> = singleton(unsafeClass)

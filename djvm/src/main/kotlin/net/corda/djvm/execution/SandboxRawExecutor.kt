@@ -11,8 +11,8 @@ class SandboxRawExecutor(configuration: SandboxConfiguration) : Executor<Any?, A
             // Create the user's task object inside the sandbox.
             val runnable = classLoader.loadClassForSandbox(runnableClass).newInstance()
 
-            val rawExecutor = classLoader.createRawExecutor()
-            val task = rawExecutor.apply(runnable)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val task = taskFactory.apply(runnable)
 
             // Execute the task...
             task.apply(input)

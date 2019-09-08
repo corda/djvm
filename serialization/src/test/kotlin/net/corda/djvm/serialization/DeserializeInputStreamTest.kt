@@ -26,8 +26,8 @@ class DeserializeInputStreamTest : TestBase(KOTLIN) {
 
             val sandboxStream = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showInputStream = classLoader.createTaskFor(executor, ShowInputStream::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showInputStream = classLoader.createTaskFor(taskFactory, ShowInputStream::class.java)
             val result = showInputStream.apply(sandboxStream) ?: fail("Result cannot be null")
 
             assertEquals(String(MESSAGE.byteInputStream().readFully()), result.toString())

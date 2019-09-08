@@ -43,8 +43,8 @@ class DeserializePublicKeyTest : TestBase(KOTLIN) {
 
             val sandboxKey = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showPublicKey = classLoader.createTaskFor(executor, ShowPublicKey::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showPublicKey = classLoader.createTaskFor(taskFactory, ShowPublicKey::class.java)
             val result = showPublicKey.apply(sandboxKey) ?: fail("Result cannot be null")
 
             assertEquals(ShowPublicKey().apply(publicKey), result.toString())
@@ -71,8 +71,8 @@ class DeserializePublicKeyTest : TestBase(KOTLIN) {
 
             val sandboxKey = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showPublicKey = classLoader.createTaskFor(executor, ShowPublicKey::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showPublicKey = classLoader.createTaskFor(taskFactory, ShowPublicKey::class.java)
             val result = showPublicKey.apply(sandboxKey) ?: fail("Result cannot be null")
 
             assertEquals(ShowPublicKey().apply(compositeData), result.toString())

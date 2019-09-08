@@ -13,11 +13,11 @@ import java.util.function.Function
 
 class SandboxPublicKeySerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>
 ) : CustomSerializer.Implements<Any>(classLoader.toSandboxAnyClass(PublicKey::class.java)) {
     @Suppress("unchecked_cast")
     private val decoder: Function<ByteArray, out Any?>
-        = classLoader.createTaskFor(executor, PublicKeyDecoder::class.java) as Function<ByteArray, out Any?>
+        = classLoader.createTaskFor(taskFactory, PublicKeyDecoder::class.java) as Function<ByteArray, out Any?>
 
     override val schemaForDocumentation: Schema = Schema(emptyList())
 

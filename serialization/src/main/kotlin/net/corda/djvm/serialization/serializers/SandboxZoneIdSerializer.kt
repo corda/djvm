@@ -12,14 +12,14 @@ import java.util.function.Function
 
 class SandboxZoneIdSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
     clazz = classLoader.toSandboxAnyClass(ZoneId::class.java),
     proxyClass = classLoader.toSandboxAnyClass(ZoneIdProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.createTaskFor(executor, ZoneIdDeserializer::class.java)
+    private val task = classLoader.createTaskFor(taskFactory, ZoneIdDeserializer::class.java)
 
     override val revealSubclassesInSchema: Boolean = true
 

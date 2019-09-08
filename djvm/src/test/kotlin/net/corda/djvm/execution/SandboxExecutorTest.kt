@@ -927,8 +927,8 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
     @Test
     fun `test kotlin class access`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val accessTask = classLoader.typedTaskFor(executor, AccessKotlinClass::class.java)
+        val taskFactory = classLoader.createTaskFactory()
+        val accessTask = classLoader.typedTaskFor(taskFactory, AccessKotlinClass::class.java)
         assertThat(accessTask.apply("Message")).isEqualTo(classLoader.toSandboxClass(String::class.java))
         assertThat(accessTask.apply(0L)).isEqualTo(classLoader.toSandboxClass(Long::class.javaObjectType))
         assertThat(accessTask.apply(null)).isEqualTo(classLoader.toSandboxClass(Henry::class.java))

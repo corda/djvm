@@ -12,11 +12,11 @@ import java.util.function.Function
 
 class SandboxUnsignedLongSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>
 ) : CustomSerializer.Is<Any>(classLoader.toSandboxAnyClass(UnsignedLong::class.java)) {
     @Suppress("unchecked_cast")
     private val transformer: Function<LongArray, out Any?>
-        = classLoader.createTaskFor(executor, UnsignedLongDeserializer::class.java) as Function<LongArray, out Any?>
+        = classLoader.createTaskFor(taskFactory, UnsignedLongDeserializer::class.java) as Function<LongArray, out Any?>
 
     override val schemaForDocumentation: Schema = Schema(emptyList())
 

@@ -13,13 +13,13 @@ import java.util.function.Function
 
 class SandboxCurrencySerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     basicInput: Function<in Any?, out Any?>
 ) : CustomSerializer.Is<Any>(classLoader.toSandboxAnyClass(Currency::class.java)) {
     private val creator: Function<Any?, Any?>
 
     init {
-        val createTask = classLoader.createTaskFor(executor, CreateCurrency::class.java)
+        val createTask = classLoader.createTaskFor(taskFactory, CreateCurrency::class.java)
         creator = basicInput.andThen(createTask)
     }
 

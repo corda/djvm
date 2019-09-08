@@ -12,14 +12,14 @@ import java.util.function.Function
 
 class SandboxMonthDaySerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
     clazz = classLoader.toSandboxAnyClass(MonthDay::class.java),
     proxyClass = classLoader.toSandboxAnyClass(MonthDayProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.createTaskFor(executor, MonthDayDeserializer::class.java)
+    private val task = classLoader.createTaskFor(taskFactory, MonthDayDeserializer::class.java)
 
     override val deserializationAliases: Set<Class<*>> = singleton(MonthDay::class.java)
 

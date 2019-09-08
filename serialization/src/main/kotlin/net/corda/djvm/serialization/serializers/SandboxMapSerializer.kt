@@ -16,12 +16,12 @@ import java.util.function.Function
 
 class SandboxMapSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     private val localFactory: LocalSerializerFactory
 ) : CustomSerializer.Implements<Any>(clazz = classLoader.toSandboxAnyClass(Map::class.java)) {
     @Suppress("unchecked_cast")
     private val creator: Function<Array<Any>, out Any?>
-        = classLoader.createTaskFor(executor, CreateMap::class.java) as Function<Array<Any>, out Any?>
+        = classLoader.createTaskFor(taskFactory, CreateMap::class.java) as Function<Array<Any>, out Any?>
 
     // The order matters here - the first match should be the most specific one.
     // Kotlin preserves the ordering for us by associating into a LinkedHashMap.

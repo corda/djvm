@@ -74,8 +74,8 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
             // Create the user's task object inside the sandbox.
             val runnable = classLoader.loadClassForSandbox(runnableClass).newInstance()
 
-            val executor = classLoader.createExecutor()
-            val task = executor.apply(runnable)
+            val taskFactory = classLoader.createTaskFactory()
+            val task = taskFactory.apply(runnable)
 
             // Execute the task...
             @Suppress("UNCHECKED_CAST")

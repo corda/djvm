@@ -54,8 +54,8 @@ class DeserializeCertificatesTest : TestBase(KOTLIN) {
 
             val sandboxCertPath = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showCertPath = classLoader.createTaskFor(executor, ShowCertPath::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showCertPath = classLoader.createTaskFor(taskFactory, ShowCertPath::class.java)
             val result = showCertPath.apply(sandboxCertPath) ?: fail("Result cannot be null")
 
             assertEquals(ShowCertPath().apply(certPath), localise(result.toString()))
@@ -78,8 +78,8 @@ class DeserializeCertificatesTest : TestBase(KOTLIN) {
 
             val sandboxCertificate = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showCertificate = classLoader.createTaskFor(executor, ShowCertificate::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showCertificate = classLoader.createTaskFor(taskFactory, ShowCertificate::class.java)
             val result = showCertificate.apply(sandboxCertificate) ?: fail("Result cannot be null")
 
             assertEquals(ShowCertificate().apply(certificate), localise(result.toString()))
@@ -112,8 +112,8 @@ class DeserializeCertificatesTest : TestBase(KOTLIN) {
 
             val sandboxCRL = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showCRL = classLoader.createTaskFor(executor, ShowCRL::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showCRL = classLoader.createTaskFor(taskFactory, ShowCRL::class.java)
             val result = showCRL.apply(sandboxCRL) ?: fail("Result cannot be null")
 
             assertEquals(ShowCRL().apply(crl), localise(result.toString()))

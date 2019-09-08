@@ -17,12 +17,12 @@ import java.util.function.Function
 
 class SandboxCollectionSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     private val localFactory: LocalSerializerFactory
 ) : CustomSerializer.Implements<Any>(clazz = classLoader.toSandboxAnyClass(Collection::class.java)) {
     @Suppress("unchecked_cast")
     private val creator: Function<Array<Any>, out Any?>
-        = classLoader.createTaskFor(executor, CreateCollection::class.java) as Function<Array<Any>, out Any?>
+        = classLoader.createTaskFor(taskFactory, CreateCollection::class.java) as Function<Array<Any>, out Any?>
 
     private val unsupportedTypes: Set<Class<Any>> = listOf(
         EnumSet::class.java

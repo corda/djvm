@@ -12,11 +12,11 @@ import java.util.function.Function
 
 class SandboxDecimal32Serializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>
 ) : CustomSerializer.Is<Any>(classLoader.toSandboxAnyClass(Decimal32::class.java)) {
     @Suppress("unchecked_cast")
     private val transformer: Function<IntArray, out Any?>
-            = classLoader.createTaskFor(executor, Decimal32Deserializer::class.java) as Function<IntArray, out Any?>
+            = classLoader.createTaskFor(taskFactory, Decimal32Deserializer::class.java) as Function<IntArray, out Any?>
 
     override val schemaForDocumentation: Schema = Schema(emptyList())
 

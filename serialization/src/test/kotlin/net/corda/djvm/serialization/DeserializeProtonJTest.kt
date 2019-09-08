@@ -24,8 +24,8 @@ class DeserializeProtonJTest : TestBase(KOTLIN) {
 
             val sandboxProtonJ = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showUnsignedLong = classLoader.createTaskFor(executor, ShowUnsignedLong::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showUnsignedLong = classLoader.createTaskFor(taskFactory, ShowUnsignedLong::class.java)
             val result = showUnsignedLong.apply(sandboxProtonJ) ?: fail("Result cannot be null")
 
             assertEquals(protonJ.number.toString(), result.toString())
@@ -49,8 +49,8 @@ class DeserializeProtonJTest : TestBase(KOTLIN) {
 
             val sandboxProtonJ = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showUnsignedInteger = classLoader.createTaskFor(executor, ShowUnsignedInteger::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showUnsignedInteger = classLoader.createTaskFor(taskFactory, ShowUnsignedInteger::class.java)
             val result = showUnsignedInteger.apply(sandboxProtonJ) ?: fail("Result cannot be null")
 
             assertEquals(protonJ.number.toString(), result.toString())
@@ -74,8 +74,8 @@ class DeserializeProtonJTest : TestBase(KOTLIN) {
 
             val sandboxProtonJ = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showUnsignedShort = classLoader.createTaskFor(executor, ShowUnsignedShort::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showUnsignedShort = classLoader.createTaskFor(taskFactory, ShowUnsignedShort::class.java)
             val result = showUnsignedShort.apply(sandboxProtonJ) ?: fail("Result cannot be null")
 
             assertEquals(protonJ.number.toString(), result.toString())
@@ -99,8 +99,8 @@ class DeserializeProtonJTest : TestBase(KOTLIN) {
 
             val sandboxProtonJ = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showUnsignedByte = classLoader.createTaskFor(executor, ShowUnsignedByte::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showUnsignedByte = classLoader.createTaskFor(taskFactory, ShowUnsignedByte::class.java)
             val result = showUnsignedByte.apply(sandboxProtonJ) ?: fail("Result cannot be null")
 
             assertEquals(protonJ.number.toString(), result.toString())
@@ -124,8 +124,8 @@ class DeserializeProtonJTest : TestBase(KOTLIN) {
 
             val sandboxProtonJ = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showDecimal128 = classLoader.createTaskFor(executor, ShowDecimal128::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showDecimal128 = classLoader.createTaskFor(taskFactory, ShowDecimal128::class.java)
             val result = showDecimal128.apply(sandboxProtonJ) ?: fail("Result cannot be null")
 
             assertThat(result)
@@ -149,8 +149,8 @@ class DeserializeProtonJTest : TestBase(KOTLIN) {
 
             val sandboxProtonJ = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showDecimal64 = classLoader.createTaskFor(executor, ShowDecimal64::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showDecimal64 = classLoader.createTaskFor(taskFactory, ShowDecimal64::class.java)
             val result = showDecimal64.apply(sandboxProtonJ) ?: fail("Result cannot be null")
 
             assertEquals(protonJ.number.bits.toString(), result.toString())
@@ -173,8 +173,8 @@ class DeserializeProtonJTest : TestBase(KOTLIN) {
 
             val sandboxProtonJ = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showDecimal32 = classLoader.createTaskFor(executor, ShowDecimal32::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showDecimal32 = classLoader.createTaskFor(taskFactory, ShowDecimal32::class.java)
             val result = showDecimal32.apply(sandboxProtonJ) ?: fail("Result cannot be null")
 
             assertEquals(protonJ.number.bits.toString(), result.toString())
@@ -197,9 +197,9 @@ class DeserializeProtonJTest : TestBase(KOTLIN) {
 
             val sandboxProtonJ = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showSymbol = classLoader.createTaskFor(executor, ShowSymbol::class.java)
-            val result = showSymbol.apply(sandboxProtonJ) ?: fail("Result cannot be null")
+            val executor = classLoader.createRawTaskFactory()
+            val taskFactory = classLoader.createTaskFor(executor, ShowSymbol::class.java)
+            val result = taskFactory.apply(sandboxProtonJ) ?: fail("Result cannot be null")
 
             assertEquals(protonJ.symbol.toString(), result.toString())
             assertEquals(SANDBOX_STRING, result::class.java.name)

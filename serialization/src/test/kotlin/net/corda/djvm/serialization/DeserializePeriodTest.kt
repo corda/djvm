@@ -22,8 +22,8 @@ class DeserializePeriodTest : TestBase(KOTLIN) {
 
             val sandboxPeriod = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showPeriod = classLoader.createTaskFor(executor, ShowPeriod::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showPeriod = classLoader.createTaskFor(taskFactory, ShowPeriod::class.java)
             val result = showPeriod.apply(sandboxPeriod) ?: fail("Result cannot be null")
 
             assertEquals(period.toString(), result.toString())

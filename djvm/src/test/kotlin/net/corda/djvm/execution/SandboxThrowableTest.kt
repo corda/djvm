@@ -10,8 +10,8 @@ class SandboxThrowableTest : TestBase(KOTLIN) {
 
     @Test
     fun `test user exception handling`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<String, Array<String>, ThrowAndCatchExample>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, Array<String>, ThrowAndCatchExample>(taskFactory)
             .apply("Hello World")
         assertThat(result)
             .isEqualTo(arrayOf("FIRST FINALLY", "BASE EXCEPTION", "Hello World", "SECOND FINALLY"))
@@ -19,8 +19,8 @@ class SandboxThrowableTest : TestBase(KOTLIN) {
 
     @Test
     fun `test rethrowing an exception`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<String, Array<String>, ThrowAndRethrowExample>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, Array<String>, ThrowAndRethrowExample>(taskFactory)
             .apply("Hello World")
         assertThat(result)
             .isEqualTo(arrayOf("FIRST CATCH", "FIRST FINALLY", "SECOND CATCH", "Hello World", "SECOND FINALLY"))
@@ -28,8 +28,8 @@ class SandboxThrowableTest : TestBase(KOTLIN) {
 
     @Test
     fun `test JVM exceptions still propagate`() = parentedSandbox {
-        val executor = classLoader.createExecutor()
-        val result = classLoader.typedTaskFor<Int, String, TriggerJVMException>(executor)
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<Int, String, TriggerJVMException>(taskFactory)
             .apply(-1)
         assertThat(result)
             .isEqualTo("sandbox.java.lang.ArrayIndexOutOfBoundsException:-1")

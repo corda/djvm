@@ -21,8 +21,8 @@ class DeserializeStringBufferTest : TestBase(KOTLIN) {
 
             val sandboxBuffer = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showStringBuffer = classLoader.createTaskFor(executor, ShowStringBuffer::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showStringBuffer = classLoader.createTaskFor(taskFactory, ShowStringBuffer::class.java)
             val result = showStringBuffer.apply(sandboxBuffer) ?: fail("Result cannot be null")
 
             assertEquals(ShowStringBuffer().apply(buffer), result.toString())

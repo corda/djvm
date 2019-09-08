@@ -22,8 +22,8 @@ class DeserializeOptionalTest : TestBase(KOTLIN) {
 
             val sandboxOptional = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showOptional = classLoader.createTaskFor(executor, ShowOptional::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showOptional = classLoader.createTaskFor(taskFactory, ShowOptional::class.java)
             val result = showOptional.apply(sandboxOptional) ?: fail("Result cannot be null")
 
             assertEquals("Optional -> Optional[Hello World!]", result.toString())
@@ -41,8 +41,8 @@ class DeserializeOptionalTest : TestBase(KOTLIN) {
 
             val sandboxOptional = data.deserializeFor(classLoader)
 
-            val executor = classLoader.createRawExecutor()
-            val showOptional = classLoader.createTaskFor(executor, ShowOptional::class.java)
+            val taskFactory = classLoader.createRawTaskFactory()
+            val showOptional = classLoader.createTaskFor(taskFactory, ShowOptional::class.java)
             val result = showOptional.apply(sandboxOptional) ?: fail("Result cannot be null")
 
             assertEquals("Optional -> Optional.empty", result.toString())

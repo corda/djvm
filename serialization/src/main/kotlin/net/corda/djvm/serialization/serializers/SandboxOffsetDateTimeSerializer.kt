@@ -12,14 +12,14 @@ import java.util.function.Function
 
 class SandboxOffsetDateTimeSerializer(
     classLoader: SandboxClassLoader,
-    executor: Function<in Any, out Function<in Any?, out Any?>>,
+    taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
     factory: SerializerFactory
 ) : CustomSerializer.Proxy<Any, Any>(
     clazz = classLoader.toSandboxAnyClass(OffsetDateTime::class.java),
     proxyClass = classLoader.toSandboxAnyClass(OffsetDateTimeProxy::class.java),
     factory = factory
 ) {
-    private val task = classLoader.createTaskFor(executor, OffsetDateTimeDeserializer::class.java)
+    private val task = classLoader.createTaskFor(taskFactory, OffsetDateTimeDeserializer::class.java)
 
     override val deserializationAliases: Set<Class<*>> = singleton(OffsetDateTime::class.java)
 
