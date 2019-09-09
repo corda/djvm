@@ -114,12 +114,13 @@ class SourceClassLoader(
         val originalName = classResolver.reverse(className.asResourcePath)
 
         fun throwClassLoadingError(): Nothing {
+            val message = "Class file not found: $originalName.class"
             context.messages.provisionalAdd(Message(
-                message ="Class file not found; $originalName.class",
+                message = message,
                 severity = Severity.ERROR,
                 location = SourceLocation(origin ?: "")
             ))
-            throw SandboxClassLoadingException(context)
+            throw SandboxClassLoadingException(message, context)
         }
 
         return try {

@@ -74,7 +74,7 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     fun `cannot load a Java API that was deleted from Java runtime`() = sandbox(DEFAULT) {
         assertThatExceptionOfType(SandboxClassLoadingException::class.java)
                 .isThrownBy { loadClass<Paths>() }
-                .withMessageContaining("Class file not found; java/nio/file/Paths.class")
+                .withMessageContaining("Class file not found: java/nio/file/Paths.class")
     }
 
     @Test
@@ -88,7 +88,7 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     fun `cannot load internal Sun class that was deleted from Java runtime`() = sandbox(DEFAULT) {
         assertThatExceptionOfType(SandboxClassLoadingException::class.java)
                 .isThrownBy { loadClass<sun.misc.Timer>() }
-                .withMessageContaining("Class file not found; sun/misc/Timer.class")
+                .withMessageContaining("Class file not found: sun/misc/Timer.class")
     }
 
     @Test
@@ -158,14 +158,14 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     fun `test rule violation error cannot be loaded`() = parentedSandbox {
         assertThatExceptionOfType(SandboxClassLoadingException::class.java)
             .isThrownBy { loadClass<RuleViolationError>() }
-            .withMessageContaining("Class file not found; net/corda/djvm/rules/RuleViolationError.class")
+            .withMessageContaining("Class file not found: net/corda/djvm/rules/RuleViolationError.class")
     }
 
     @Test
     fun `test threshold violation error cannot be loaded`() = parentedSandbox {
         assertThatExceptionOfType(SandboxClassLoadingException::class.java)
             .isThrownBy { loadClass<ThresholdViolationError>() }
-            .withMessageContaining("Class file not found; net/corda/djvm/costing/ThresholdViolationError.class")
+            .withMessageContaining("Class file not found: net/corda/djvm/costing/ThresholdViolationError.class")
     }
 }
 

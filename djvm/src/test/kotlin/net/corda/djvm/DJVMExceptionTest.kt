@@ -135,7 +135,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
         val djvm = DJVM(classLoader)
         assertThatExceptionOfType(SandboxClassLoadingException::class.java)
             .isThrownBy { djvm.classFor("sandbox.java.util.DoesNotExist\$1DJVM") }
-            .withMessageContaining("Failed to load class")
+            .withMessageContaining("Class file not found: java/util/DoesNotExist")
     }
 
     /**
@@ -147,7 +147,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
         val djvm = DJVM(classLoader)
         assertThatExceptionOfType(SandboxClassLoadingException::class.java)
             .isThrownBy { djvm.classFor("sandbox.com.example.DoesNotExist\$1DJVM") }
-            .withMessageContaining("Failed to load class")
+            .withMessageContaining("Class file not found: com/example/DoesNotExist")
     }
 }
 

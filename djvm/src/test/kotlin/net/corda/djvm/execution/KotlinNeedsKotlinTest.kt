@@ -17,7 +17,7 @@ class KotlinNeedsKotlinTest : TestBase(JAVA) {
         }
         assertThat(exception)
             .hasCauseExactlyInstanceOf(SandboxClassLoadingException::class.java)
-            .hasMessageContaining("Class file not found; kotlin/jvm/internal/Intrinsics.class")
+            .hasMessageContaining("Class file not found: kotlin/jvm/internal/Intrinsics.class")
     }
 
     class UseKotlinForSomething : Function<String, String> {

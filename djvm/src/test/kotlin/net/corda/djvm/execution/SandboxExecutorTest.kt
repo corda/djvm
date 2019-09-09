@@ -352,7 +352,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         assertThatExceptionOfType(SandboxException::class.java)
             .isThrownBy { executor.run<TestIO>("test.dat") }
             .withCauseInstanceOf(SandboxClassLoadingException::class.java)
-            .withMessageContaining("Class file not found; java/nio/file/Paths.class")
+            .withMessageContaining("Class file not found: java/nio/file/Paths.class")
     }
 
     class TestIO : Function<String, Int> {

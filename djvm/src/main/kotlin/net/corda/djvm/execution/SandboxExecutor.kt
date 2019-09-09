@@ -215,7 +215,7 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
                     context.recordClassOrigin(reference.className, originReference)
                 }
             }
-            throw SandboxClassLoadingException(context)
+            throw SandboxClassLoadingException("Analysis has failed", context)
         }
     }
 

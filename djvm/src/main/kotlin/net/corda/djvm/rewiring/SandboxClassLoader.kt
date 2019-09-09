@@ -276,7 +276,7 @@ class SandboxClassLoader private constructor(
             return loadedClass
         } else if (analysisConfiguration.isPinnedClass(requestedPath)) {
             logger.error("Class {} should not be loaded here", request.qualifiedClassName)
-            throw SandboxClassLoadingException(context)
+            throw SandboxClassLoadingException("Refusing to load pinned ${request.qualifiedClassName}", context)
         }
 
         val byteCode = if (analysisConfiguration.isTemplateClass(requestedPath)) {
@@ -297,7 +297,7 @@ class SandboxClassLoader private constructor(
             context.messages.acceptProvisional()
             if (context.messages.errorCount > 0) {
                 logger.debug("Errors detected after analyzing class {}", request.qualifiedClassName)
-                throw SandboxClassLoadingException(context)
+                throw SandboxClassLoadingException("Analysis failed for ${request.qualifiedClassName}", context)
             }
 
             // Transform the class definition and byte code in accordance with provided rules.
