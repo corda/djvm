@@ -278,8 +278,6 @@ class SandboxClassLoader private constructor(
                     try {
                         clazz = super.loadClass(name, false)
                     } catch (e: ClassNotFoundException) {
-                    } catch (e: SandboxClassLoadingException) {
-                        e.messages.clearProvisional()
                     }
                 }
 
@@ -368,7 +366,12 @@ class SandboxClassLoader private constructor(
             loadUnmodifiedByteCode(requestedPath)
         } else {
             // Load the byte code for the specified class.
-            val reader = supportingClassLoader.classReader(sourceName, context, request.origin)
+            val reader = try {
+                supportingClassLoader.classReader(sourceName, context, request.origin)
+            } catch (e: SandboxClassLoadingException) {
+                e.messages.clearProvisional()
+                throw ClassNotFoundException(e.message)
+            }
 
             // Analyse the class if not matching the whitelist.
             val readClassName = reader.className

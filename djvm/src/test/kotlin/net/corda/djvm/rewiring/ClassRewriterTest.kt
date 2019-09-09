@@ -38,8 +38,8 @@ class ClassRewriterTest : TestBase(KOTLIN) {
         assertThat(callable).isSandboxed()
         callable.createAndInvoke()
         assertThat(runtimeCosts)
-                .hasInvocationCostGreaterThanOrEqualTo(1) // Includes static constructor calls for java.lang.Math, etc.
-                .hasJumpCostGreaterThanOrEqualTo(30 * 2 + 1)
+            .hasInvocationCostGreaterThanOrEqualTo(1) // Includes static constructor calls for java.lang.Math, etc.
+            .hasJumpCostGreaterThanOrEqualTo(30 * 2 + 1)
     }
 
     @Test
@@ -51,9 +51,9 @@ class ClassRewriterTest : TestBase(KOTLIN) {
             callable.createAndInvoke()
         }.withMessageContaining("terminated due to excessive use of looping")
         assertThat(runtimeCosts)
-                .hasAllocationCost(0)
-                .hasInvocationCost(1)
-                .hasJumpCost(1)
+            .hasAllocationCost(0)
+            .hasInvocationCost(1)
+            .hasJumpCost(1)
     }
 
     @Test
@@ -66,36 +66,36 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     @Test
     fun `can load a Java API that still exists in Java runtime`() = sandbox(DEFAULT) {
         assertThat(loadClass<MutableList<*>>())
-                .hasClassName("sandbox.java.util.List")
-                .hasBeenModified()
+            .hasClassName("sandbox.java.util.List")
+            .hasBeenModified()
     }
 
     @Test
     fun `cannot load a Java API that was deleted from Java runtime`() = sandbox(DEFAULT) {
-        assertThatExceptionOfType(SandboxClassLoadingException::class.java)
-                .isThrownBy { loadClass<Paths>() }
-                .withMessageContaining("Class file not found: java/nio/file/Paths.class")
+        assertThatExceptionOfType(ClassNotFoundException::class.java)
+            .isThrownBy { loadClass<Paths>() }
+            .withMessageContaining("Class file not found: java/nio/file/Paths.class")
     }
 
     @Test
     fun `load internal Sun class that still exists in Java runtime`() = sandbox(DEFAULT) {
         assertThat(loadClass<sun.misc.Unsafe>())
-                .hasClassName("sandbox.sun.misc.Unsafe")
-                .hasBeenModified()
+            .hasClassName("sandbox.sun.misc.Unsafe")
+            .hasBeenModified()
     }
 
     @Test
     fun `cannot load internal Sun class that was deleted from Java runtime`() = sandbox(DEFAULT) {
-        assertThatExceptionOfType(SandboxClassLoadingException::class.java)
-                .isThrownBy { loadClass<sun.misc.Timer>() }
-                .withMessageContaining("Class file not found: sun/misc/Timer.class")
+        assertThatExceptionOfType(ClassNotFoundException::class.java)
+            .isThrownBy { loadClass<sun.misc.Timer>() }
+            .withMessageContaining("Class file not found: sun/misc/Timer.class")
     }
 
     @Test
     fun `can load local class`() = sandbox(DEFAULT) {
         assertThat(loadClass<Example>())
-                .hasClassName("sandbox.net.corda.djvm.rewiring.ClassRewriterTest\$Example")
-                .hasBeenModified()
+            .hasClassName("sandbox.net.corda.djvm.rewiring.ClassRewriterTest\$Example")
+            .hasBeenModified()
     }
 
     class Example : java.util.function.Function<Int, Int> {
@@ -107,31 +107,31 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     @Test
     fun `can load class with constant fields`() = sandbox(DEFAULT) {
         assertThat(loadClass<ObjectWithConstants>())
-                .hasClassName("sandbox.net.corda.djvm.rewiring.ObjectWithConstants")
-                .hasBeenModified()
+            .hasClassName("sandbox.net.corda.djvm.rewiring.ObjectWithConstants")
+            .hasBeenModified()
     }
 
     @Test
     fun `test rewrite static method`() = sandbox(DEFAULT) {
         assertThat(loadClass<Arrays>())
-                .hasClassName("sandbox.java.util.Arrays")
-                .hasBeenModified()
+            .hasClassName("sandbox.java.util.Arrays")
+            .hasBeenModified()
     }
 
     @Test
     fun `test stitch new super-interface`() = sandbox(DEFAULT) {
         assertThat(loadClass<CharSequence>())
-                .hasClassName("sandbox.java.lang.CharSequence")
-                .hasInterface("java.lang.CharSequence")
-                .hasBeenModified()
+            .hasClassName("sandbox.java.lang.CharSequence")
+            .hasInterface("java.lang.CharSequence")
+            .hasBeenModified()
     }
 
     @Test
     fun `test class with stitched interface`() = sandbox(DEFAULT) {
         assertThat(loadClass<StringBuilder>())
-                .hasClassName("sandbox.java.lang.StringBuilder")
-                .hasInterface("sandbox.java.lang.CharSequence")
-                .hasBeenModified()
+            .hasClassName("sandbox.java.lang.StringBuilder")
+            .hasInterface("sandbox.java.lang.CharSequence")
+            .hasBeenModified()
     }
 
     @Test
@@ -143,27 +143,27 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     @Test
     fun `test user class is owned by new classloader`() = parentedSandbox {
         assertThat(loadClass<Empty>())
-                .hasClassLoader(classLoader)
-                .hasBeenModified()
+            .hasClassLoader(classLoader)
+            .hasBeenModified()
     }
 
     @Test
     fun `test template class is owned by parent classloader`() = parentedSandbox {
         assertThat(classLoader.loadForSandbox("sandbox.java.lang.DJVM"))
-                .hasClassLoader(parentClassLoader)
-                .hasNotBeenModified()
+            .hasClassLoader(parentClassLoader)
+            .hasNotBeenModified()
     }
 
     @Test
     fun `test rule violation error cannot be loaded`() = parentedSandbox {
-        assertThatExceptionOfType(SandboxClassLoadingException::class.java)
+        assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { loadClass<RuleViolationError>() }
             .withMessageContaining("Class file not found: net/corda/djvm/rules/RuleViolationError.class")
     }
 
     @Test
     fun `test threshold violation error cannot be loaded`() = parentedSandbox {
-        assertThatExceptionOfType(SandboxClassLoadingException::class.java)
+        assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { loadClass<ThresholdViolationError>() }
             .withMessageContaining("Class file not found: net/corda/djvm/costing/ThresholdViolationError.class")
     }

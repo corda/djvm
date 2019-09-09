@@ -2,7 +2,6 @@ package net.corda.djvm
 
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.assertions.AssertionExtensions.assertThatDJVM
-import net.corda.djvm.rewiring.SandboxClassLoadingException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
@@ -133,7 +132,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     @Test
     fun testWeCannotCreateSyntheticExceptionForImaginaryJavaClass() = parentedSandbox {
         val djvm = DJVM(classLoader)
-        assertThatExceptionOfType(SandboxClassLoadingException::class.java)
+        assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { djvm.classFor("sandbox.java.util.DoesNotExist\$1DJVM") }
             .withMessageContaining("Class file not found: java/util/DoesNotExist")
     }
@@ -145,7 +144,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     @Test
     fun testWeCannotCreateSyntheticExceptionForImaginaryUserClass() = parentedSandbox {
         val djvm = DJVM(classLoader)
-        assertThatExceptionOfType(SandboxClassLoadingException::class.java)
+        assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { djvm.classFor("sandbox.com.example.DoesNotExist\$1DJVM") }
             .withMessageContaining("Class file not found: com/example/DoesNotExist")
     }

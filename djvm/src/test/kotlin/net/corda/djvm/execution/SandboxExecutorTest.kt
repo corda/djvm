@@ -9,7 +9,6 @@ import net.corda.djvm.Utilities.*
 import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
 import net.corda.djvm.assertions.AssertionExtensions.withProblem
 import net.corda.djvm.costing.ThresholdViolationError
-import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
@@ -350,7 +349,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         val executor = DeterministicSandboxExecutor<String, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
             .isThrownBy { executor.run<TestIO>("test.dat") }
-            .withCauseInstanceOf(SandboxClassLoadingException::class.java)
+            .withCauseInstanceOf(ClassNotFoundException::class.java)
             .withMessageContaining("Class file not found: java/nio/file/Paths.class")
     }
 
