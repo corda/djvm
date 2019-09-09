@@ -16,11 +16,12 @@ import net.corda.djvm.references.EntityReference
  * @property classOrigins Map of class origins. The resulting set represents the types referencing the class in question.
  */
 class SandboxClassLoadingException(
+        message: String,
         private val context: AnalysisContext,
         val messages: MessageCollection = context.messages,
         val classes: ClassHierarchy = context.classes,
         val classOrigins: Map<String, Set<EntityReference>> = context.classOrigins
-) : SandboxRuntimeException("Failed to load class") {
+) : SandboxRuntimeException(message) {
 
     /**
      * The detailed description of the exception.
