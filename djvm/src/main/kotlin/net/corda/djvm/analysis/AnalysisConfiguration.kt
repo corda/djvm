@@ -123,13 +123,31 @@ class AnalysisConfiguration private constructor(
 
         /**
          * These meta-annotations configure how the JVM handles annotations,
-         * and these need to be preserved. Currently handling meta-annotations
-         * that have an [Enum] value, and Kotlin's "magic" [Metadata] annotation.
+         * and these need to be preserved. Currently handling Kotlin's "magic"
+         * [Metadata] annotation by default.
          */
-        private val STITCHED_ANNOTATIONS: Set<String> = setOf("Lsandbox/kotlin/Metadata;").merge(setOf(
-            java.lang.annotation.Retention::class.java,
-            java.lang.annotation.Target::class.java
+        private val STITCHED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
+            "Lsandbox/kotlin/Metadata;"
         ))
+
+        /**
+         * These annotations cannot be mapped into the sandbox, e.g.
+         * because they have a method with an [Enum] value that the
+         * JVM cannot assign.
+         *
+         * Not mapping an annotation leaves the original annotation
+         * in place without also applying its sandboxed equivalent.
+         */
+        private val UNMAPPED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
+            "Lkotlin/annotation/Retention;",
+            "Lkotlin/annotation/Target;",
+            "Ljava/lang/annotation/Retention;",
+            "Ljava/lang/annotation/Target;"
+        ))
+
+        fun isUnmappedAnnotation(descriptor: String): Boolean {
+            return descriptor in UNMAPPED_ANNOTATIONS
+        }
 
         /**
          * These classes will be duplicated into every sandbox's

@@ -35,16 +35,20 @@ class SandboxClassRemapper(
         super.visit(version, access, name, signature, superName, interfaces)
     }
 
-    /**
-     * Remap all of the descriptors within Kotlin's [Metadata] annotation.
-     * THIS ASSUMES THAT WE WILL NEVER WHITELIST KOTLIN CLASSES!!
-     */
     override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
-        return super.visitAnnotation(descriptor, visible)?.let {
-            if (descriptor == KOTLIN_METADATA) {
-                KotlinMetadataVisitor(api, it, remapper)
-            } else {
-                it
+        return if (AnalysisConfiguration.isUnmappedAnnotation(descriptor)) {
+            nonClassMapper.visitAnnotation(descriptor, visible)
+        } else {
+            super.visitAnnotation(descriptor, visible)?.let {
+                /**
+                 * Remap all of the descriptors within Kotlin's [Metadata] annotation.
+                 * THIS ASSUMES THAT WE WILL NEVER WHITELIST KOTLIN CLASSES!!
+                 */
+                if (descriptor == KOTLIN_METADATA) {
+                    KotlinMetadataVisitor(api, it, remapper)
+                } else {
+                    it
+                }
             }
         }
     }
