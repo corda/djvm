@@ -192,11 +192,11 @@ class SandboxClassLoader private constructor(
         IllegalAccessError::class
     )
     fun createTaskFor(
-        executor: Function<in Any, out Function<in Any?, out Any?>>,
+        taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
         taskClass: Class<out Function<*, *>>
     ): Function<in Any?, out Any?> {
         val task = toSandboxClass(taskClass).newInstance()
-        return executor.apply(task)
+        return taskFactory.apply(task)
     }
 
     /**

@@ -100,16 +100,16 @@ abstract class TestBase(type: SandboxType) {
             IllegalAccessException::class
         )
         fun <T, R> SandboxClassLoader.typedTaskFor(
-            executor: Function<in Any, out Function<in Any?, out Any?>>,
+            taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
             taskClass: Class<out Function<T, R>>
         ): Function<T, R> {
             @Suppress("unchecked_cast")
-            return createTaskFor(executor, taskClass) as Function<T, R>
+            return createTaskFor(taskFactory, taskClass) as Function<T, R>
         }
 
         inline fun <T, R, reified K : Function<T, R>> SandboxClassLoader.typedTaskFor(
-            executor: Function<in Any, out Function<in Any?, out Any?>>
-        ) = typedTaskFor(executor, K::class.java)
+            taskFactory: Function<in Any, out Function<in Any?, out Any?>>
+        ) = typedTaskFor(taskFactory, K::class.java)
     }
 
     val classPaths: List<Path> = when(type) {
