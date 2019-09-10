@@ -10,13 +10,16 @@ import java.util.function.Function
 
 class KotlinNeedsKotlinTest : TestBase(JAVA) {
     @Test
-    fun `kotlin code needs kotlin libraries`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, String>(configuration)
-        val exception = assertThrows<SandboxException> {
-            contractExecutor.run<UseKotlinForSomething>("Hello Kotlin!")
+    fun `kotlin code needs kotlin libraries`() {
+        val exception = assertThrows<SandboxClassLoadingException> {
+            parentedSandbox {
+                val taskFactory = classLoader.createTaskFactory()
+                classLoader.typedTaskFor<String, String, UseKotlinForSomething>(taskFactory)
+                    .apply("Hello Kotlin!")
+            }
         }
         assertThat(exception)
-            .hasCauseExactlyInstanceOf(SandboxClassLoadingException::class.java)
+            .isExactlyInstanceOf(SandboxClassLoadingException::class.java)
             .hasMessageContaining("Class file not found: kotlin/jvm/internal/Intrinsics.class")
     }
 

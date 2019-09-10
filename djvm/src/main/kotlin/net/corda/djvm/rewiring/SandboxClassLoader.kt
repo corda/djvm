@@ -16,6 +16,7 @@ import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.Type
+import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
 import java.util.function.Function
@@ -89,9 +90,7 @@ class SandboxClassLoader private constructor(
     @Throws(
         ClassNotFoundException::class,
         IllegalAccessException::class,
-        InstantiationException::class,
-        NoSuchMethodException::class,
-        SecurityException::class
+        InstantiationException::class
     )
     fun createBasicInput(): Function<in Any?, out Any?> {
         return createBasicTask("sandbox.BasicInput")
@@ -104,9 +103,7 @@ class SandboxClassLoader private constructor(
     @Throws(
         ClassNotFoundException::class,
         IllegalAccessException::class,
-        InstantiationException::class,
-        NoSuchMethodException::class,
-        SecurityException::class
+        InstantiationException::class
     )
     fun createBasicOutput(): Function<in Any?, out Any?> {
         return createBasicTask("sandbox.BasicOutput")
@@ -115,25 +112,108 @@ class SandboxClassLoader private constructor(
     @Throws(
         ClassNotFoundException::class,
         IllegalAccessException::class,
-        InstantiationException::class,
-        NoSuchMethodException::class,
-        SecurityException::class
+        InstantiationException::class
     )
     private fun createBasicTask(taskName: String): Function<in Any?, out Any?> {
         val taskClass = loadClass(taskName)
-        val applyMethod = taskClass.getDeclaredMethod("apply", Any::class.java)
-        val task = taskClass.newInstance()
+        @Suppress("unchecked_cast")
+        val task = taskClass.newInstance() as Function<in Any?, out Any?>
         return Function { value ->
             try {
-                applyMethod(task, value)
-            } catch (e: InvocationTargetException) {
-                val target = e.targetException
+                task.apply(value)
+            } catch (target: Throwable) {
                 throw when (target) {
                     is RuntimeException, is Error -> target
                     else -> SandboxRuntimeException(target.message, target)
                 }
             }
         }
+    }
+
+    /**
+     * Returns an instance of [Function] that can wrap an
+     * instance of [sandbox.java.util.function.Function].
+     * The function's input and output are marshalled using
+     * the [sandbox.BasicInput] and [sandbox.BasicOutput]
+     * transformations.
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        NoSuchMethodException::class
+    )
+    fun createTaskFactory(): Function<in Any, out Function<in Any?, out Any?>> {
+        return createTaskFactory("sandbox.Task")
+    }
+
+    /**
+     * Returns an instance of [Function] that can wrap an
+     * instance of [sandbox.java.util.function.Function].
+     * The function's input and output are not marshalled.
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        NoSuchMethodException::class
+    )
+    fun createRawTaskFactory(): Function<in Any, out Function<in Any?, out Any?>> {
+        return createTaskFactory("sandbox.RawTask")
+    }
+
+    @Throws(
+        ClassNotFoundException::class,
+        NoSuchMethodException::class
+    )
+    private fun createTaskFactory(taskName: String): Function<in Any, out Function<in Any?, out Any?>> {
+        val taskClass = loadClass(taskName)
+        @Suppress("unchecked_cast")
+        val constructor = taskClass.getDeclaredConstructor(loadClass("sandbox.java.util.function.Function"))
+                as Constructor<out Function<in Any?, out Any?>>
+        return Function { userTask ->
+            try {
+                constructor.newInstance(userTask)
+            } catch (ex: Throwable) {
+                val target = (ex as? InvocationTargetException)?.targetException ?: ex
+                throw when (target) {
+                    is RuntimeException, is Error -> target
+                    else -> SandboxRuntimeException(target.message, target)
+                }
+            }
+        }
+    }
+
+    /**
+     * Factory to create a [Function] that will execute a sandboxed
+     * instance of [taskClass]. This is just a convenience function
+     * which assumes that the task has a no-argument constructor,
+     * but is still likely to be what you want.
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        InstantiationException::class,
+        IllegalAccessError::class
+    )
+    fun createTaskFor(
+        taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
+        taskClass: Class<out Function<*, *>>
+    ): Function<in Any?, out Any?> {
+        val task = toSandboxClass(taskClass).newInstance()
+        return taskFactory.apply(task)
+    }
+
+    /**
+     * Wraps an instance of [Function] inside a task that implements
+     * both [Function] and [sandbox.java.util.function.Function].
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        IllegalAccessException::class,
+        InstantiationException::class,
+        InvocationTargetException::class,
+        NoSuchMethodException::class
+    )
+    fun <T> createForImport(task: Function<in T?, out Any?>): Function<in T?, out Any?> {
+        val taskClass = loadClass("sandbox.ImportTask")
+        @Suppress("unchecked_cast")
+        return taskClass.getDeclaredConstructor(Function::class.java).newInstance(task) as Function<in T?, out Any?>
     }
 
     /**
@@ -171,6 +251,11 @@ class SandboxClassLoader private constructor(
     @Throws(ClassNotFoundException::class)
     fun loadClassForSandbox(source: ClassSource): Class<*> {
         return loadClassForSandbox(source.qualifiedClassName)
+    }
+
+    @Throws(ClassNotFoundException::class)
+    fun toSandboxClass(clazz: Class<*>): Class<*> {
+        return loadClassForSandbox(ClassSource.fromClassName(clazz.name))
     }
 
     /**

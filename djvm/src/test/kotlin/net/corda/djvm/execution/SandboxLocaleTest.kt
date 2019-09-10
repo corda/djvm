@@ -13,10 +13,10 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @CsvSource("en,en,''", "en-GB,en,GB", "en-US,en,US", "en-CA,en,CA", "en-AU,en,AU")
     fun `test loading locales`(tagName: String, language: String, country: String) = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
-        contractExecutor.run<LookupLocale>(tagName).apply {
-            assertThat(result).isEqualTo(arrayOf(language, country))
-        }
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, Array<String>, LookupLocale>(taskFactory)
+            .apply(tagName)
+        assertThat(result).isEqualTo(arrayOf(language, country))
     }
 
     class LookupLocale : Function<String, Array<String>> {
@@ -29,12 +29,12 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
 
     @Test
     fun `test locale languages`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
-        contractExecutor.run<GetAllLocaleLanguages>("").apply {
-            assertThat(result)
-                .hasSize(188)
-                .contains("en", "fr", "hu", "it", "ru", "zh")
-        }
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, Array<String>, GetAllLocaleLanguages>(taskFactory)
+            .apply("")
+        assertThat(result)
+            .hasSize(188)
+            .contains("en", "fr", "hu", "it", "ru", "zh")
     }
 
     class GetAllLocaleLanguages : Function<String, Array<String>> {
@@ -45,12 +45,12 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
 
     @Test
     fun `test locale countries`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
-        contractExecutor.run<GetAllLocaleCountries>("").apply {
-            assertThat(result)
-                .hasSize(250)
-                .contains("AU", "DE", "FR", "GB", "MX", "US")
-        }
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, Array<String>, GetAllLocaleCountries>(taskFactory)
+            .apply("")
+        assertThat(result)
+            .hasSize(250)
+            .contains("AU", "DE", "FR", "GB", "MX", "US")
     }
 
     class GetAllLocaleCountries : Function<String, Array<String>> {
@@ -61,10 +61,10 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
 
     @Test
     fun `test default locale`() = parentedSandbox {
-        val contractExecutor = DeterministicSandboxExecutor<String, String>(configuration)
-        contractExecutor.run<GetDefaultLocale>("").apply {
-            assertThat(result).isEqualTo("en")
-        }
+        val taskFactory = classLoader.createTaskFactory()
+        val result = classLoader.typedTaskFor<String, String, GetDefaultLocale>(taskFactory)
+            .apply("")
+        assertThat(result).isEqualTo("en")
     }
 
     class GetDefaultLocale : Function<String, String> {

@@ -35,6 +35,7 @@ import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections.unmodifiableList
+import java.util.function.Function
 import kotlin.concurrent.thread
 import kotlin.reflect.jvm.jvmName
 
@@ -91,6 +92,24 @@ abstract class TestBase(type: SandboxType) {
         fun destroyRootContext() {
             parentConfiguration.analysisConfiguration.closeAll()
         }
+
+        @JvmStatic
+        @Throws(
+            ClassNotFoundException::class,
+            InstantiationException::class,
+            IllegalAccessException::class
+        )
+        fun <T, R> SandboxClassLoader.typedTaskFor(
+            taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
+            taskClass: Class<out Function<T, R>>
+        ): Function<T, R> {
+            @Suppress("unchecked_cast")
+            return createTaskFor(taskFactory, taskClass) as Function<T, R>
+        }
+
+        inline fun <T, R, reified K : Function<T, R>> SandboxClassLoader.typedTaskFor(
+            taskFactory: Function<in Any, out Function<in Any?, out Any?>>
+        ) = typedTaskFor(taskFactory, K::class.java)
     }
 
     val classPaths: List<Path> = when(type) {

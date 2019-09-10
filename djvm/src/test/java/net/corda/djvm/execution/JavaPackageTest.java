@@ -1,6 +1,5 @@
 package net.corda.djvm.execution;
 
-import net.corda.djvm.TaskExecutor;
 import net.corda.djvm.TestBase;
 import org.junit.jupiter.api.Test;
 
@@ -17,17 +16,13 @@ class JavaPackageTest extends TestBase {
         super(JAVA);
     }
 
-    private Object run(TaskExecutor executor, Class<?> task, Object data) throws Exception {
-        Object toStringTask = executor.toSandboxClass(task).newInstance();
-        return executor.execute(toStringTask, data);
-    }
-
     @Test
     void testFetchingPackage() {
         parentedSandbox(ctx -> {
             try {
-                TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
-                assertNull(run(executor, FetchPackage.class, "java.lang"));
+                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                Function<String, String> fetchPackage = typedTaskFor(ctx.getClassLoader(), taskFactory, FetchPackage.class);
+                assertNull(fetchPackage.apply("java.lang"));
             } catch (Exception e) {
                 fail(e);
             }
@@ -47,8 +42,9 @@ class JavaPackageTest extends TestBase {
     void testFetchingAllPackage() {
         parentedSandbox(ctx -> {
             try {
-                TaskExecutor executor = new TaskExecutor(ctx.getClassLoader());
-                assertThat((String[]) run(executor, FetchAllPackages.class, null)).isEmpty();
+                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                Function<Object, String[]> fetchAllPackages = typedTaskFor(ctx.getClassLoader(), taskFactory, FetchAllPackages.class);
+                assertThat(fetchAllPackages.apply(null)).isEmpty();
             } catch (Exception e) {
                 fail(e);
             }

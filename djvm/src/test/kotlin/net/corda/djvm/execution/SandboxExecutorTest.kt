@@ -4,7 +4,6 @@ import foo.bar.sandbox.MyObject
 import foo.bar.sandbox.testClock
 import foo.bar.sandbox.toNumber
 import net.corda.djvm.SandboxType.KOTLIN
-import net.corda.djvm.TaskExecutor
 import net.corda.djvm.TestBase
 import net.corda.djvm.Utilities.*
 import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
@@ -632,6 +631,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     @ValueSource(strings = [
         "BasicInput",
         "BasicOutput",
+        "ImportTask",
         "java.io.DJVMInputStream",
         "java.lang.DJVM",
         "java.lang.DJVMException",
@@ -927,11 +927,11 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
     @Test
     fun `test kotlin class access`() = parentedSandbox {
-        val executor = TaskExecutor(classLoader)
-        val accessTask = executor.toSandboxClass(AccessKotlinClass::class.java).newInstance()
-        assertThat(executor.execute(accessTask, "Message")).isEqualTo(executor.toSandboxClass(String::class.java))
-        assertThat(executor.execute(accessTask, 0L)).isEqualTo(executor.toSandboxClass(Long::class.javaObjectType))
-        assertThat(executor.execute(accessTask, null)).isEqualTo(executor.toSandboxClass(Henry::class.java))
+        val taskFactory = classLoader.createTaskFactory()
+        val accessTask = classLoader.typedTaskFor(taskFactory, AccessKotlinClass::class.java)
+        assertThat(accessTask.apply("Message")).isEqualTo(classLoader.toSandboxClass(String::class.java))
+        assertThat(accessTask.apply(0L)).isEqualTo(classLoader.toSandboxClass(Long::class.javaObjectType))
+        assertThat(accessTask.apply(null)).isEqualTo(classLoader.toSandboxClass(Henry::class.java))
     }
 
     class AccessKotlinClass : Function<Any?, Class<*>> {
