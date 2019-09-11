@@ -107,7 +107,7 @@ class AnalysisConfiguration private constructor(
             prefixFilters = prefixFilters,
             classModule = classModule,
             memberModule = memberModule,
-            supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi),
+            supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi, supportingClassLoader),
             memberFormatter = memberFormatter
         )
     }

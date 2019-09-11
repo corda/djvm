@@ -1,9 +1,11 @@
 package net.corda.djvm.source
 
+import net.corda.djvm.Action
 import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.Whitelist
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.nio.file.Files
@@ -81,6 +83,26 @@ class SourceClassLoaderTest {
                 assertThat(it).isEqualTo(second.toUri().toURL())
             }
         }
+    }
+
+    @Test
+    fun `can load source class that is split across parent and child loaders`() {
+        val parentSource = UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location))
+        val parentLoader = SourceClassLoader(classResolver, parentSource)
+
+        val childSource = UserPathSource(arrayOf(ExampleAction::class.java.protectionDomain.codeSource.location))
+        val childLoader = SourceClassLoader(classResolver, childSource, null, parentLoader)
+
+        // Check that parent and child have different source locations.
+        assertThat(parentLoader.getURLs())
+            .doesNotContainAnyElementsOf(childLoader.getURLs().toList())
+
+        // Check that loading child with parent succeeds.
+        assertNotNull(childLoader.loadSourceClass(ExampleAction::class.java.name))
+
+        // Check that loading child without parent does fail.
+        val orphanLoader = SourceClassLoader(classResolver, childSource)
+        assertThrows<NoClassDefFoundError> { orphanLoader.loadSourceClass(ExampleAction::class.java.name) }
     }
 
     @AfterEach
