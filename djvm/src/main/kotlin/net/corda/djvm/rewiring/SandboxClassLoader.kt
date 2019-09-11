@@ -393,7 +393,7 @@ class SandboxClassLoader private constructor(
                 rewriter.rewrite(reader, context)
             } catch (e: TypeNotPresentException) {
                 // Ensure that a missing class results in a ClassNotFoundException.
-                throw ClassNotFoundException(e.typeName())
+                throw ClassNotFoundException(e.typeName(), e)
             }
         }
 
