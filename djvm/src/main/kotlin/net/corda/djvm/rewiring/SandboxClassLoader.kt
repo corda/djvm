@@ -389,7 +389,12 @@ class SandboxClassLoader private constructor(
             }
 
             // Transform the class definition and byte code in accordance with provided rules.
-            rewriter.rewrite(reader, context)
+            try {
+                rewriter.rewrite(reader, context)
+            } catch (e: TypeNotPresentException) {
+                // Ensure that a missing class results in a ClassNotFoundException.
+                throw ClassNotFoundException(e.typeName(), e)
+            }
         }
 
         // Try to define the transformed class.

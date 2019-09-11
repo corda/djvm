@@ -4,6 +4,7 @@ import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.assertions.AssertionExtensions.assertThatDJVM
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.function.Function
 import java.util.*
@@ -148,6 +149,14 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
             .isThrownBy { djvm.classFor("sandbox.com.example.DoesNotExist\$1DJVM") }
             .withMessageContaining("Class file not found: com/example/DoesNotExist")
     }
+
+    @Test
+    fun testExceptionWithSingleConstructor() = parentedSandbox {
+        val taskFactory = classLoader.createTaskFactory()
+        val task = classLoader.typedTaskFor(taskFactory, HandleTypeNotPresentException::class.java)
+        val result = task.apply("NoSuchType")
+        assertEquals("Type NoSuchType not present", result)
+    }
 }
 
 class SingleExceptionTask : Function<Any?, Throwable?> {
@@ -161,6 +170,16 @@ class MultipleExceptionsTask : Function<Any?, Throwable?> {
         val root = Throwable(input as? String)
         val nested = Throwable(root.message + "(1)", root)
         return Throwable(nested.message + "(2)", nested)
+    }
+}
+
+class HandleTypeNotPresentException : Function<String, String?> {
+    override fun apply(type: String): String? {
+        try {
+            throw TypeNotPresentException(type, null)
+        } catch (e: RuntimeException) {
+            return e.message
+        }
     }
 }
 
