@@ -114,7 +114,7 @@ fun Throwable.escapeSandbox(): kotlin.Throwable {
             }
         }
     } catch (e: Exception) {
-        RuleViolationError(e.message).sanitise(1)
+        RuleViolationError("${e::class.java.name} -> ${e.message}").sanitise(1)
     }
 }
 
@@ -412,7 +412,7 @@ fun fromDJVM(t: Throwable?): kotlin.Throwable {
                     .newInstance(t) as kotlin.Throwable
             }
         } catch (e: Exception) {
-            RuleViolationError(e.message).sanitise(1)
+            RuleViolationError("${e::class.java.name} -> ${e.message}").sanitise(1)
         }
     }
 }
@@ -443,7 +443,7 @@ fun doCatch(t: kotlin.Throwable): Throwable {
     try {
         return t.toDJVMThrowable()
     } catch (e: Exception) {
-        throw RuleViolationError(e.message).sanitise(1)
+        throw RuleViolationError("${e::class.java.name} -> ${e.message}").sanitise(1)
     }
 }
 
@@ -471,14 +471,20 @@ private fun kotlin.Throwable.toDJVMThrowable(): Throwable {
  * which was probably thrown by the JVM itself.
  */
 private fun Class<*>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
-    return (try {
-        getDeclaredConstructor(String::class.java).newInstance(String.toDJVM(t.message))
-    } catch (e: NoSuchMethodException) {
-        newInstance()
-    } as Throwable).apply {
-        t.cause?.also {
-            initCause(it.toDJVMThrowable())
+    return try {
+        getDeclaredConstructor(String::class.java, Throwable::class.java)
+            .newInstance(String.toDJVM(t.message), t.cause?.toDJVMThrowable()) as Throwable
+    } catch (_ : NoSuchMethodException) {
+        (try {
+            getDeclaredConstructor(String::class.java).newInstance(String.toDJVM(t.message))
+        } catch (_ : NoSuchMethodException) {
+            newInstance()
+        } as Throwable).apply {
+            t.cause?.also {
+                initCause(it.toDJVMThrowable())
+            }
         }
+    }.apply {
         stackTrace = sanitiseToDJVM(t.stackTrace)
         t.suppressed.forEach {
             addSuppressed(it.toDJVMThrowable())
@@ -487,14 +493,20 @@ private fun Class<*>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
 }
 
 private fun Class<*>.createJavaThrowable(t: Throwable): kotlin.Throwable {
-    return (try {
-        getDeclaredConstructor(kotlin.String::class.java).newInstance(String.fromDJVM(t.message))
-    } catch (e: NoSuchMethodException) {
-        newInstance()
-    } as kotlin.Throwable).apply {
-        t.cause?.also {
-            initCause(fromDJVM(it))
+    return try {
+        getDeclaredConstructor(kotlin.String::class.java, kotlin.Throwable::class.java)
+            .newInstance(String.fromDJVM(t.message), t.cause?.fromDJVM()) as kotlin.Throwable
+    } catch (_ : NoSuchMethodException) {
+        (try {
+            getDeclaredConstructor(kotlin.String::class.java).newInstance(String.fromDJVM(t.message))
+        } catch (_ : NoSuchMethodException) {
+            newInstance()
+        }  as kotlin.Throwable).apply {
+            t.cause?.also {
+                initCause(fromDJVM(it))
+            }
         }
+    }.apply {
         stackTrace = copyFromDJVM(t.stackTrace)
         t.suppressed.forEach {
             addSuppressed(fromDJVM(it))
