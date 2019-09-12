@@ -58,6 +58,7 @@ abstract class TestBase(type: SandboxType) {
             .split(File.pathSeparator).map { Paths.get(it) }.filter { exists(it) }
 
         private lateinit var parentConfiguration: SandboxConfiguration
+        lateinit var bootstrapClassLoader: BootstrapClassLoader
         lateinit var parentClassLoader: SandboxClassLoader
 
         /**
@@ -68,10 +69,11 @@ abstract class TestBase(type: SandboxType) {
         @BeforeAll
         @JvmStatic
         fun setupParentClassLoader() {
+            bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
             val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
                 whitelist = Whitelist.MINIMAL,
-                bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT),
+                bootstrapSource = bootstrapClassLoader,
                 pinnedClasses = setOf(
                     Utilities::class.java
                 ).map(Type::getInternalName).toSet()
@@ -90,7 +92,7 @@ abstract class TestBase(type: SandboxType) {
         @AfterAll
         @JvmStatic
         fun destroyRootContext() {
-            parentConfiguration.analysisConfiguration.closeAll()
+            bootstrapClassLoader.close()
         }
 
         @JvmStatic
@@ -117,13 +119,15 @@ abstract class TestBase(type: SandboxType) {
         SandboxType.JAVA -> TESTING_LIBRARIES.filter { isDirectory(it) }
     }
 
+    private val userSource = UserPathSource(classPaths)
+
     /**
      * Default analysis configuration.
      */
     val configuration = AnalysisConfiguration.createRoot(
-        userSource = UserPathSource(classPaths),
+        userSource = userSource,
         whitelist = Whitelist.MINIMAL,
-        bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
+        bootstrapSource = bootstrapClassLoader
     )
 
     /**
@@ -134,7 +138,7 @@ abstract class TestBase(type: SandboxType) {
 
     @AfterEach
     fun destroy() {
-        configuration.close()
+        userSource.close()
     }
 
     /**
@@ -145,12 +149,13 @@ abstract class TestBase(type: SandboxType) {
         noinline block: (RuleValidator.(AnalysisContext) -> Unit)
     ) {
         val reader = ClassReader(T::class.java.name)
-        AnalysisConfiguration.createRoot(
-            userSource = UserPathSource(classPaths),
-            whitelist = Whitelist.MINIMAL,
-            minimumSeverityLevel = minimumSeverityLevel,
-            bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
-        ).use { analysisConfiguration ->
+        UserPathSource(classPaths).use { userSource ->
+            val analysisConfiguration = AnalysisConfiguration.createRoot(
+                userSource = userSource,
+                whitelist = Whitelist.MINIMAL,
+                minimumSeverityLevel = minimumSeverityLevel,
+                bootstrapSource = bootstrapClassLoader
+            )
             val validator = RuleValidator(ALL_RULES, analysisConfiguration)
             val context = AnalysisContext.fromConfiguration(analysisConfiguration)
             validator.analyze(reader, context, 0)
@@ -210,14 +215,15 @@ abstract class TestBase(type: SandboxType) {
         thread {
             try {
                 val pinnedTestClasses = pinnedClasses.map(Type::getInternalName).toSet()
-                AnalysisConfiguration.createRoot(
-                    userSource = UserPathSource(classPaths),
-                    whitelist = whitelist,
-                    pinnedClasses = pinnedTestClasses,
-                    visibleAnnotations = visibleAnnotations,
-                    minimumSeverityLevel = minimumSeverityLevel,
-                    bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
-                ).use { analysisConfiguration ->
+                UserPathSource(classPaths).use { userSource ->
+                    val analysisConfiguration = AnalysisConfiguration.createRoot(
+                        userSource = userSource,
+                        whitelist = whitelist,
+                        pinnedClasses = pinnedTestClasses,
+                        visibleAnnotations = visibleAnnotations,
+                        minimumSeverityLevel = minimumSeverityLevel,
+                        bootstrapSource = bootstrapClassLoader
+                    )
                     SandboxRuntimeContext(SandboxConfiguration.of(
                         executionProfile,
                         rules.distinctBy(Any::javaClass),
@@ -252,11 +258,12 @@ abstract class TestBase(type: SandboxType) {
         var thrownException: Throwable? = null
         thread {
             try {
-                parentConfiguration.analysisConfiguration.createChild(
-                    userSource = UserPathSource(classPaths),
-                    newMinimumSeverityLevel = minimumSeverityLevel,
-                    visibleAnnotations = visibleAnnotations
-                ).use { analysisConfiguration ->
+                UserPathSource(classPaths).use { userSource ->
+                    val analysisConfiguration = parentConfiguration.analysisConfiguration.createChild(
+                        userSource = userSource,
+                        newMinimumSeverityLevel = minimumSeverityLevel,
+                        visibleAnnotations = visibleAnnotations
+                    )
                     SandboxRuntimeContext(SandboxConfiguration.of(
                         parentConfiguration.executionProfile,
                         parentConfiguration.rules,

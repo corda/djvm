@@ -1,9 +1,11 @@
 package net.corda.djvm.source
 
+import net.corda.djvm.Action
 import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.Whitelist
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.nio.file.Files
@@ -73,12 +75,35 @@ class SourceClassLoaderTest {
         useTemporaryFile("jar-with-single-class.jar", "jar-with-two-classes.jar") {
             val (first, second) = this
             val directory = first.parent
-            val userPathSource = UserPathSource(listOf(directory))
-            val classLoader = SourceClassLoader(classResolver, userPathSource)
-            assertThat(classLoader.getURLs()).anySatisfy {
-                assertThat(it).isEqualTo(first.toUri().toURL())
-            }.anySatisfy {
-                assertThat(it).isEqualTo(second.toUri().toURL())
+            UserPathSource(listOf(directory)).use { userPathSource ->
+                val classLoader = SourceClassLoader(classResolver, userPathSource)
+                assertThat(classLoader.getURLs()).anySatisfy {
+                    assertThat(it).isEqualTo(first.toUri().toURL())
+                }.anySatisfy {
+                    assertThat(it).isEqualTo(second.toUri().toURL())
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `can load source class that is split across parent and child loaders`() {
+        UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
+            val parentLoader = SourceClassLoader(classResolver, parentSource)
+
+            UserPathSource(arrayOf(ExampleAction::class.java.protectionDomain.codeSource.location)).use { childSource ->
+                val childLoader = SourceClassLoader(classResolver, childSource, null, parentLoader)
+
+                // Check that parent and child have different source locations.
+                assertThat(parentLoader.getURLs())
+                        .doesNotContainAnyElementsOf(childLoader.getURLs().toList())
+
+                // Check that loading child with parent succeeds.
+                assertNotNull(childLoader.loadSourceClass(ExampleAction::class.java.name))
+
+                // Check that loading child without parent does fail.
+                val orphanLoader = SourceClassLoader(classResolver, childSource)
+                assertThrows<NoClassDefFoundError> { orphanLoader.loadSourceClass(ExampleAction::class.java.name) }
             }
         }
     }

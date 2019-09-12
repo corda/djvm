@@ -19,6 +19,9 @@ import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.security.CodeSigner
+import java.security.CodeSource
+import java.security.SecureClassLoader
 import kotlin.streams.toList
 
 /**
@@ -38,9 +41,6 @@ interface ApiSource : Source
  * It will almost certainly be a [ClassLoader] of some description.
  */
 interface UserSource : Source {
-    @Throws(ClassNotFoundException::class)
-    fun loadClass(className: String): Class<*>
-
     fun getURLs(): Array<URL>
 }
 
@@ -90,17 +90,11 @@ class UserPathSource(urls: Array<URL>) : URLClassLoader(urls, null), UserSource 
 class SourceClassLoader(
     private val classResolver: ClassResolver,
     private val userSource: UserSource,
-    private val bootstrap: ApiSource? = null
-) : ClassLoader(null), AutoCloseable {
+    private val bootstrap: ApiSource? = null,
+    parent: SourceClassLoader? = null
+) : SecureClassLoader(parent) {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
-    }
-
-    @Throws(Exception::class)
-    override fun close() {
-        bootstrap.use {
-           userSource.close()
-        }
     }
 
     fun getURLs(): Array<URL> = userSource.getURLs()
@@ -152,16 +146,43 @@ class SourceClassLoader(
     }
 
     @Throws(ClassNotFoundException::class)
-    override fun loadClass(name: String): Class<*> {
-        return userSource.loadClass(name)
+    override fun findClass(name: String): Class<*> {
+        val resourceName = name.asResourcePath + ".class"
+        val url = userSource.findResource(resourceName) ?: throw ClassNotFoundException(name)
+        val byteCode = try {
+            url.openStream().use {
+                it.readBytes()
+            }
+        } catch (e: IOException) {
+            throw ClassNotFoundException(name, e)
+        }
+        return defineClass(name, byteCode, url)
+    }
+
+    @Throws(ClassNotFoundException::class)
+    private fun defineClass(name: String, byteCode: ByteArray, url: URL): Class<*> {
+        val idx = name.lastIndexOf('.')
+        if (idx > 0) {
+            val packageName = name.substring(0, idx)
+            if (getPackage(packageName) == null) {
+                definePackage(packageName, null, null, null, null, null, null, null)
+            }
+        }
+        return defineClass(name, byteCode, 0, byteCode.size, CodeSource(url, arrayOf<CodeSigner>()))
     }
 
     /**
-     * First check the bootstrap classloader, if we have one.
-     * Otherwise check our parent classloader, followed by
+     * First check the parent classloader, if we have one.
+     * Otherwise check any bootstrap classloader, followed by
      * the user-supplied jars.
      */
     override fun getResource(name: String): URL? {
+        if (parent != null) {
+            val resource = parent.getResource(name)
+            if (resource != null) {
+                return resource
+            }
+        }
         if (bootstrap != null) {
             val resource = bootstrap.findResource(name)
             if (resource != null) {

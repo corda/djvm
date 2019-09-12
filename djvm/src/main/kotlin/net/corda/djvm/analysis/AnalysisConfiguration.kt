@@ -58,7 +58,7 @@ class AnalysisConfiguration private constructor(
         val memberModule: MemberModule,
         val supportingClassLoader: SourceClassLoader,
         private val memberFormatter: MemberFormatter
-) : AutoCloseable {
+) {
 
     fun formatFor(member: MemberInformation): String = memberFormatter.format(member)
 
@@ -73,18 +73,6 @@ class AnalysisConfiguration private constructor(
      * These classes have extra methods added as they are mapped into the sandbox.
      */
     val stitchedClasses: Map<String, List<Member>> get() = STITCHED_CLASSES
-
-    @Throws(Exception::class)
-    override fun close() {
-        supportingClassLoader.close()
-    }
-
-    @Throws(Exception::class)
-    fun closeAll() {
-        use {
-            parent?.closeAll()
-        }
-    }
 
     /**
      * Creates a child [AnalysisConfiguration] with this instance as its parent.
@@ -107,7 +95,7 @@ class AnalysisConfiguration private constructor(
             prefixFilters = prefixFilters,
             classModule = classModule,
             memberModule = memberModule,
-            supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi),
+            supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi, supportingClassLoader),
             memberFormatter = memberFormatter
         )
     }
