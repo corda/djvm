@@ -172,11 +172,17 @@ class SourceClassLoader(
     }
 
     /**
-     * First check the bootstrap classloader, if we have one.
-     * Otherwise check our parent classloader, followed by
+     * First check the parent classloader, if we have one.
+     * Otherwise check any bootstrap classloader, followed by
      * the user-supplied jars.
      */
     override fun getResource(name: String): URL? {
+        if (parent != null) {
+            val resource = parent.getResource(name)
+            if (resource != null) {
+                return resource
+            }
+        }
         if (bootstrap != null) {
             val resource = bootstrap.findResource(name)
             if (resource != null) {
