@@ -92,16 +92,9 @@ class SourceClassLoader(
     private val userSource: UserSource,
     private val bootstrap: ApiSource? = null,
     parent: SourceClassLoader? = null
-) : SecureClassLoader(parent), AutoCloseable {
+) : SecureClassLoader(parent) {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
-    }
-
-    @Throws(Exception::class)
-    override fun close() {
-        bootstrap.use {
-           userSource.close()
-        }
     }
 
     fun getURLs(): Array<URL> = userSource.getURLs()
