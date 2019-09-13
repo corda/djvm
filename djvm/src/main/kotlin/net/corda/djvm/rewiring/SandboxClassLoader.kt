@@ -15,7 +15,6 @@ import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
-import org.objectweb.asm.Type
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
@@ -54,9 +53,9 @@ class SandboxClassLoader private constructor(
     private val whitelistedClasses = analysisConfiguration.whitelist
 
     /**
-     * Cache of loaded classes.
+     * Cache of loaded byte-code.
      */
-    private val loadedClasses = mutableMapOf<String, LoadedClass>()
+    private val loadedByteCode = mutableMapOf<String, ByteCode>()
 
     /**
      * We need to load [sandbox.java.lang.Throwable] up front, so that we can
@@ -65,7 +64,7 @@ class SandboxClassLoader private constructor(
     private val throwableClass: Class<*> = throwableClass ?: run {
         loadClassAndBytes(ClassSource.fromClassName("sandbox.java.lang.Object"), context)
         loadClassAndBytes(ClassSource.fromClassName("sandbox.java.lang.StackTraceElement"), context)
-        loadClassAndBytes(ClassSource.fromClassName("sandbox.java.lang.Throwable"), context).type
+        loadClassAndBytes(ClassSource.fromClassName("sandbox.java.lang.Throwable"), context)
     }
 
     /**
@@ -223,12 +222,12 @@ class SandboxClassLoader private constructor(
     @Throws(ClassNotFoundException::class)
     fun loadForSandbox(className: String): LoadedClass {
         val sandboxClass = loadClassForSandbox(className)
-        val sandboxName = Type.getInternalName(sandboxClass)
+        val sandboxName = sandboxClass.name
         var loader = this
         while(true) {
-            val loaded = loader.loadedClasses[sandboxName]
-            if (loaded != null) {
-                return loaded
+            val byteCode = loader.loadedByteCode[sandboxName]
+            if (byteCode != null) {
+                return LoadedClass(sandboxClass, byteCode)
             }
             loader = loader.parent as? SandboxClassLoader ?: return LoadedClass(sandboxClass, UNMODIFIED)
         }
@@ -283,7 +282,7 @@ class SandboxClassLoader private constructor(
 
                 if (clazz == null) {
                     if (isSandboxClass) {
-                        clazz = loadSandboxClass(source, context).type
+                        clazz = loadSandboxClass(source, context)
                     } else {
                         // We shouldn't reach here, but this function should never return null.
                         throw ClassNotFoundException(name)
@@ -304,14 +303,14 @@ class SandboxClassLoader private constructor(
      * Either way, we need to load the sandboxed exception first so that we know what
      * the synthetic wrapper's super-class needs to be.
      */
-    private fun loadSandboxClass(source: ClassSource, context: AnalysisContext): LoadedClass {
+    private fun loadSandboxClass(source: ClassSource, context: AnalysisContext): Class<*> {
         return if (isDJVMException(source.internalClassName)) {
             /**
              * We need to load a DJVMException's owner class before we can create
              * its wrapper exception. And loading the owner should then also create
              * the wrapper class automatically.
              */
-            loadedClasses.getOrElse(source.internalClassName) {
+            findLoadedClass(source.qualifiedClassName) ?: run {
                 val exceptionOwner = ClassSource.fromClassName(getDJVMExceptionOwner(source.qualifiedClassName))
                 if (!analysisConfiguration.isJvmException(exceptionOwner.internalClassName)) {
                     /**
@@ -322,7 +321,7 @@ class SandboxClassLoader private constructor(
                      */
                     loadClass(exceptionOwner.qualifiedClassName, false)
                 }
-                loadedClasses[source.internalClassName]
+                findLoadedClass(source.qualifiedClassName)
             } ?: throw ClassNotFoundException(source.qualifiedClassName)
         } else {
             loadClassAndBytes(source, context).also { clazz ->
@@ -330,9 +329,9 @@ class SandboxClassLoader private constructor(
                  * Check whether we've just loaded an unpinned sandboxed throwable class.
                  * If we have, we may also need to synthesise a throwable wrapper for it.
                  */
-                if (throwableClass.isAssignableFrom(clazz.type) && !analysisConfiguration.isJvmException(source.internalClassName)) {
+                if (throwableClass.isAssignableFrom(clazz) && !analysisConfiguration.isJvmException(source.internalClassName)) {
                     logger.debug("Generating synthetic throwable for ${source.qualifiedClassName}")
-                    loadWrapperFor(clazz.type)
+                    loadWrapperFor(clazz)
                 }
             }
         }
@@ -346,18 +345,13 @@ class SandboxClassLoader private constructor(
      *
      * @return The resulting <tt>Class</tt> object and its byte code representation.
      */
-    private fun loadClassAndBytes(request: ClassSource, context: AnalysisContext): LoadedClass {
+    private fun loadClassAndBytes(request: ClassSource, context: AnalysisContext): Class<*> {
         logger.debug("Loading class {}, origin={}...", request.qualifiedClassName, request.origin)
         val requestedPath = request.internalClassName
         val sourceName = analysisConfiguration.classResolver.reverseNormalized(request.qualifiedClassName)
         val resolvedName = analysisConfiguration.classResolver.resolveNormalized(sourceName)
 
-        // Check if the class has already been loaded.
-        val loadedClass = loadedClasses[requestedPath]
-        if (loadedClass != null) {
-            logger.trace("Class {} already loaded", request.qualifiedClassName)
-            return loadedClass
-        } else if (analysisConfiguration.isPinnedClass(requestedPath)) {
+        if (analysisConfiguration.isPinnedClass(requestedPath)) {
             logger.error("Class {} should not be loaded here", request.qualifiedClassName)
             throw SandboxClassLoadingException("Refusing to load pinned ${request.qualifiedClassName}", context)
         }
@@ -402,9 +396,8 @@ class SandboxClassLoader private constructor(
             throw SecurityException("Cannot redefine class '$resolvedName'", exception)
         }
 
-        // Cache transformed class.
-        val classWithByteCode = LoadedClass(clazz, byteCode)
-        loadedClasses[requestedPath] = classWithByteCode
+        // Cache transformed byte-code.
+        loadedByteCode[request.qualifiedClassName] = byteCode
         if (request.origin != null) {
             context.recordClassOrigin(sourceName, ClassReference(request.origin))
         }
@@ -412,7 +405,7 @@ class SandboxClassLoader private constructor(
         logger.debug("Loaded class {}, bytes={}, isModified={}",
                 request.qualifiedClassName, byteCode.bytes.size, byteCode.isModified)
 
-        return classWithByteCode
+        return clazz
     }
 
     private fun defineClass(name: String, byteCode: ByteCode): Class<*> {
@@ -435,12 +428,14 @@ class SandboxClassLoader private constructor(
      * Check whether the synthetic throwable wrapper already
      * exists for this exception, and create it if it doesn't.
      */
-    private fun loadWrapperFor(throwable: Class<*>): LoadedClass {
+    private fun loadWrapperFor(throwable: Class<*>): Class<*> {
         val className = analysisConfiguration.exceptionResolver.getThrowableName(throwable)
-        return loadedClasses.getOrPut(className) {
+        val loadableClassName = className.asPackagePath
+        return findLoadedClass(loadableClassName) ?: run {
             val superName = analysisConfiguration.exceptionResolver.getThrowableSuperName(throwable)
             val byteCode = ThrowableWrapperFactory.toByteCode(className, superName)
-            LoadedClass(defineClass(className.asPackagePath, byteCode), byteCode)
+            loadedByteCode[loadableClassName] = byteCode
+            defineClass(loadableClassName, byteCode)
         }
     }
 
