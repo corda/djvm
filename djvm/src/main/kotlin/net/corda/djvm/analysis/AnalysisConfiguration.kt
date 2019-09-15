@@ -178,7 +178,7 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/io/DJVMInputStream",
             "sandbox/java/lang/Character\$Cache",
             DJVM_NAME,
-            djvmException,
+            DJVM_EXCEPTION_NAME,
             "sandbox/java/lang/DJVMNoResource",
             "sandbox/java/lang/DJVMResourceKey",
             "sandbox/java/lang/DJVMThrowableWrapper",

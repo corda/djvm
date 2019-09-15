@@ -4,7 +4,6 @@ package net.corda.djvm.code
 import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.rules.RuleViolationError
 import org.objectweb.asm.Type
-import sandbox.java.lang.DJVMException
 
 /**
  * These are the priorities for executing [Emitter] instances.
@@ -20,7 +19,7 @@ const val EMIT_AFTER_INVOKE: Int = EMIT_DEFAULT + 2
 
 const val OBJECT_NAME = "java/lang/Object"
 const val THROWABLE_NAME = "java/lang/Throwable"
-const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object";
+const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"
 const val CLASS_CONSTRUCTOR_NAME = "<clinit>"
 const val CONSTRUCTOR_NAME = "<init>"
 
@@ -35,9 +34,15 @@ const val DJVM_NAME = "sandbox/java/lang/DJVM"
  */
 const val RUNTIME_ACCOUNTER_NAME: String = "sandbox/RuntimeCostAccounter"
 
+/**
+ * The internal type name of the [sandbox.java.lang.DJVMException] class.
+ * Note that we cannot use [Type.getInternalName] here because that would
+ * load our template class into the Application classloader.
+ */
+const val DJVM_EXCEPTION_NAME: String = "sandbox/java/lang/DJVMException"
+
 val ruleViolationError: String = Type.getInternalName(RuleViolationError::class.java)
 val thresholdViolationError: String = Type.getInternalName(ThresholdViolationError::class.java)
-val djvmException: String = Type.getInternalName(DJVMException::class.java)
 
 /**
  * Local extension method for normalizing a class name.

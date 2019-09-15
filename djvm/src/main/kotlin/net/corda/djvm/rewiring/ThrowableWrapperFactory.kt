@@ -2,7 +2,7 @@ package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.ExceptionResolver.Companion.isDJVMException
 import net.corda.djvm.code.CONSTRUCTOR_NAME
-import net.corda.djvm.code.djvmException
+import net.corda.djvm.code.DJVM_EXCEPTION_NAME
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes.*
 
@@ -72,7 +72,7 @@ class ThrowableWrapperFactory(
             className,
             null,
             superName,
-            arrayOf(djvmException)
+            arrayOf(DJVM_EXCEPTION_NAME)
         )
 
         // Private final field to hold the sandbox throwable object.
