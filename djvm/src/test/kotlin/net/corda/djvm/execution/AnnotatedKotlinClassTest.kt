@@ -18,7 +18,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     private val kotlinMetadata: Class<out Annotation> = Class.forName("kotlin.Metadata") as Class<out Annotation>
 
     @Test
-    fun testSandboxAnnotation() = parentedSandbox {
+    fun testSandboxAnnotation() = parentedSandbox(visibleAnnotations = setOf(KotlinAnnotation::class.java)) {
         assertThat(UserKotlinData::class.findAnnotation<KotlinAnnotation>()).isNotNull
 
         @Suppress("unchecked_cast")
@@ -96,13 +96,14 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test reflection can fetch all annotations`() = parentedSandbox {
+    fun `test reflection can fetch all annotations`() = parentedSandbox(visibleAnnotations = setOf(KotlinAnnotation::class.java)) {
         val sandboxClass = loadClass<UserKotlinData>().type
         val kotlinAnnotations = sandboxClass.kotlin.annotations.map { ann ->
             ann.annotationClass.qualifiedName
         }
         assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
             "sandbox.net.corda.djvm.KotlinAnnotation",
+            "net.corda.djvm.KotlinAnnotation",
             "sandbox.kotlin.Metadata"
         )
 
@@ -111,6 +112,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
         }
         assertThat(javaAnnotations).containsExactlyInAnyOrder(
             "sandbox.net.corda.djvm.KotlinAnnotation",
+            "net.corda.djvm.KotlinAnnotation",
             "sandbox.kotlin.Metadata",
             "kotlin.Metadata"
         )

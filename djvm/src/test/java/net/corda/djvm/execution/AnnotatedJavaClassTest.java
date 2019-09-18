@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +25,7 @@ class AnnotatedJavaClassTest extends TestBase {
     void testSandboxAnnotation() {
         assertThat(UserJavaData.class.getAnnotation(JavaAnnotation.class)).isNotNull();
 
-        parentedSandbox(ctx -> {
+        parentedSandbox(singleton(JavaAnnotation.class), ctx -> {
             try {
                 Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
                 @SuppressWarnings("unchecked")
@@ -43,7 +44,7 @@ class AnnotatedJavaClassTest extends TestBase {
 
     @Test
     void testAnnotationInsideSandbox() {
-        parentedSandbox(ctx -> {
+        parentedSandbox(singleton(JavaAnnotation.class), ctx -> {
             try {
                 SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
                 ExecutionSummaryWithResult<String> success = WithJava.run(executor, ReadAnnotation.class, null);
@@ -58,7 +59,7 @@ class AnnotatedJavaClassTest extends TestBase {
 
     @Test
     void testReflectionCanFetchAllAnnotations() {
-        parentedSandbox(ctx -> {
+        parentedSandbox(singleton(JavaAnnotation.class), ctx -> {
             try {
                 Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
                 Annotation[] annotations = sandboxClass.getAnnotations();
@@ -66,7 +67,8 @@ class AnnotatedJavaClassTest extends TestBase {
                     .map(ann -> ann.annotationType().getName())
                     .collect(toList());
                 assertThat(names).containsExactlyInAnyOrder(
-                    "sandbox.net.corda.djvm.JavaAnnotation"
+                    "sandbox.net.corda.djvm.JavaAnnotation",
+                    "net.corda.djvm.JavaAnnotation"
                 );
             } catch (Exception e) {
                 fail(e);

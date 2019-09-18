@@ -41,6 +41,11 @@ configurations {
             }
         }
     }
+
+    testRuntimeClasspath.resolutionStrategy {
+        // Always check the repository for a newer SNAPSHOT.
+        cacheChangingModulesFor 0, 'seconds'
+    }
 }
 
 dependencies {

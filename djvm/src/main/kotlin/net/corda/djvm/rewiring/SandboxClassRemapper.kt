@@ -1,6 +1,7 @@
 package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.analysis.AnalysisConfiguration.Companion.KOTLIN_METADATA
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.references.MemberInformation
 import org.objectweb.asm.AnnotationVisitor
@@ -15,7 +16,6 @@ class SandboxClassRemapper(
     private val configuration: AnalysisConfiguration
 ) : ClassRemapper(nonClassMapper, remapper) {
     companion object {
-        const val KOTLIN_METADATA = "Lkotlin/Metadata;"
         val RETURNS_STRING = "\\)\\[*Ljava/lang/String;\$".toRegex()
     }
 
@@ -36,9 +36,9 @@ class SandboxClassRemapper(
     }
 
     override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
-        return if (AnalysisConfiguration.isUnmappedAnnotation(descriptor)) {
+        return if (configuration.isUnmappedAnnotation(descriptor)) {
             nonClassMapper.visitAnnotation(descriptor, visible)
-        } else {
+        } else if (configuration.isMappedAnnotation(descriptor)) {
             super.visitAnnotation(descriptor, visible)?.let {
                 /**
                  * Remap all of the descriptors within Kotlin's [Metadata] annotation.
@@ -50,6 +50,13 @@ class SandboxClassRemapper(
                     it
                 }
             }
+        } else {
+            /**
+             * This annotation is neither mapped nor unmapped, i.e. we drop it.
+             * We cannot accept arbitrary annotations inside the sandbox until
+             * we can handle annotations with [Enum] methods safely.
+             */
+            null
         }
     }
 

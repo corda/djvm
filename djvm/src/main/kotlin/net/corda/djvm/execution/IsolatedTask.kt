@@ -6,7 +6,6 @@ import net.corda.djvm.messages.MessageCollection
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.utilities.loggerFor
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 
@@ -24,7 +23,6 @@ class IsolatedTask(
     fun <T> run(action: IsolatedTask.() -> T?): Result<T> {
         val runnable = this
         val threadName = "DJVM-$identifier-${uniqueIdentifier.getAndIncrement()}"
-        val completionLatch = CountDownLatch(1)
         var output: T? = null
         var costs = CostSummary.empty
         var exception: Throwable? = null
@@ -41,9 +39,7 @@ class IsolatedTask(
                 costs = CostSummary(runtimeCosts)
             }
             logger.trace("Exiting isolated runtime environment...")
-            completionLatch.countDown()
-        }
-        completionLatch.await()
+        }.join( )
         val messages = exception.let {
             when (it) {
                 is SandboxClassLoadingException -> it.messages

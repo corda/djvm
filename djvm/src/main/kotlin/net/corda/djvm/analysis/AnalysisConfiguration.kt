@@ -48,6 +48,7 @@ class AnalysisConfiguration private constructor(
         val parent: AnalysisConfiguration?,
         val whitelist: Whitelist,
         val pinnedClasses: Set<String>,
+        val mappedAnnotations: Set<String>,
         val stitchedAnnotations: Set<String>,
         val classResolver: ClassResolver,
         val exceptionResolver: ExceptionResolver,
@@ -87,7 +88,8 @@ class AnalysisConfiguration private constructor(
             parent = this,
             whitelist = whitelist,
             pinnedClasses = pinnedClasses,
-            stitchedAnnotations = stitchedAnnotations.merge(visibleAnnotations),
+            mappedAnnotations = mappedAnnotations.merge(visibleAnnotations),
+            stitchedAnnotations = stitchedAnnotations.mergeSandboxed(visibleAnnotations),
             classResolver = classResolver,
             exceptionResolver = exceptionResolver,
             minimumSeverityLevel = newMinimumSeverityLevel ?: minimumSeverityLevel,
@@ -106,6 +108,9 @@ class AnalysisConfiguration private constructor(
     fun isJvmException(className: String): Boolean = className in JVM_EXCEPTIONS
     fun isSandboxClass(className: String): Boolean = className.startsWith(SANDBOX_PREFIX) && !isPinnedClass(className)
 
+    fun isUnmappedAnnotation(descriptor: String): Boolean = descriptor in UNMAPPED_ANNOTATIONS
+    fun isMappedAnnotation(descriptor: String): Boolean = descriptor in mappedAnnotations
+
     fun toSandboxClassName(type: Class<*>): String {
         val sandboxName = classResolver.resolve(Type.getInternalName(type))
         return if (Throwable::class.java.isAssignableFrom(type)) {
@@ -122,12 +127,21 @@ class AnalysisConfiguration private constructor(
         const val SANDBOX_PREFIX: String = "sandbox/"
 
         /**
+         * The unsandboxed descriptor for Kotlin's [Metadata] annotation.
+         */
+        const val KOTLIN_METADATA = "Lkotlin/Metadata;"
+
+        /**
          * These meta-annotations configure how the JVM handles annotations,
          * and these need to be preserved. Currently handling Kotlin's "magic"
          * [Metadata] annotation by default.
          */
         private val STITCHED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
             "Lsandbox/kotlin/Metadata;"
+        ))
+
+        private val MAPPED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
+            KOTLIN_METADATA
         ))
 
         /**
@@ -144,10 +158,6 @@ class AnalysisConfiguration private constructor(
             "Ljava/lang/annotation/Retention;",
             "Ljava/lang/annotation/Target;"
         ))
-
-        fun isUnmappedAnnotation(descriptor: String): Boolean {
-            return descriptor in UNMAPPED_ANNOTATIONS
-        }
 
         /**
          * These classes will be duplicated into every sandbox's
@@ -547,13 +557,22 @@ class AnalysisConfiguration private constructor(
         fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
         fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
 
-        private fun sandboxDescriptor(clazz: Class<*>): String = "L$SANDBOX_PREFIX${Type.getInternalName(clazz)};"
+        private fun toSandboxDescriptor(clazz: Class<*>): String = "L$SANDBOX_PREFIX${Type.getInternalName(clazz)};"
+        private fun toDescriptor(clazz: Class<*>): String = "L${Type.getInternalName(clazz)};"
+
+        private fun Set<String>.mergeSandboxed(extra: Collection<Class<out Annotation>>): Set<String> {
+            return merge(extra, ::toSandboxDescriptor)
+        }
 
         private fun Set<String>.merge(extra: Collection<Class<out Annotation>>): Set<String> {
+            return merge(extra, ::toDescriptor)
+        }
+
+        private fun Set<String>.merge(extra: Collection<Class<out Annotation>>, mapping: (Class<*>) -> String): Set<String> {
             return if (extra.isEmpty()) {
                 this
             } else {
-                unmodifiable(this + extra.map(::sandboxDescriptor))
+                unmodifiable(this + extra.map(mapping))
             }
         }
 
@@ -612,7 +631,8 @@ class AnalysisConfiguration private constructor(
                 parent = null,
                 whitelist = actualWhitelist,
                 pinnedClasses = actualPinnedClasses,
-                stitchedAnnotations = STITCHED_ANNOTATIONS.merge(visibleAnnotations),
+                mappedAnnotations = MAPPED_ANNOTATIONS.merge(visibleAnnotations),
+                stitchedAnnotations = STITCHED_ANNOTATIONS.mergeSandboxed(visibleAnnotations),
                 classResolver = classResolver,
                 exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, actualPinnedClasses, SANDBOX_PREFIX),
                 minimumSeverityLevel = minimumSeverityLevel,
