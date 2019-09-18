@@ -6,8 +6,12 @@ import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toList;
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -21,7 +25,7 @@ class AnnotatedJavaClassTest extends TestBase {
     void testSandboxAnnotation() {
         assertThat(UserJavaData.class.getAnnotation(JavaAnnotation.class)).isNotNull();
 
-        parentedSandbox(ctx -> {
+        parentedSandbox(singleton(JavaAnnotation.class), ctx -> {
             try {
                 Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
                 @SuppressWarnings("unchecked")
@@ -40,12 +44,54 @@ class AnnotatedJavaClassTest extends TestBase {
 
     @Test
     void testAnnotationInsideSandbox() {
-        parentedSandbox(ctx -> {
+        parentedSandbox(singleton(JavaAnnotation.class), ctx -> {
             try {
                 SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
                 ExecutionSummaryWithResult<String> success = WithJava.run(executor, ReadAnnotation.class, null);
                 assertThat(success.getResult())
                     .isEqualTo("@sandbox.net.corda.djvm.JavaAnnotation(value=Hello Java!)");
+            } catch (Exception e) {
+                fail(e);
+            }
+            return null;
+        });
+    }
+
+    @Test
+    void testReflectionCanFetchAllAnnotations() {
+        parentedSandbox(singleton(JavaAnnotation.class), ctx -> {
+            try {
+                Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
+                Annotation[] annotations = sandboxClass.getAnnotations();
+                List<String> names = Arrays.stream(annotations)
+                    .map(ann -> ann.annotationType().getName())
+                    .collect(toList());
+                assertThat(names).containsExactlyInAnyOrder(
+                    "sandbox.net.corda.djvm.JavaAnnotation",
+                    "net.corda.djvm.JavaAnnotation"
+                );
+            } catch (Exception e) {
+                fail(e);
+            }
+            return null;
+        });
+    }
+
+    @Test
+    void testReflectionCanFetchAllMetaAnnotations() {
+        parentedSandbox(ctx -> {
+            try {
+                @SuppressWarnings("unchecked")
+                Class<? extends Annotation> sandboxAnnotation
+                    = (Class<? extends Annotation>) loadClass(ctx, JavaAnnotation.class.getName()).getType();
+                Annotation[] annotations = sandboxAnnotation.getAnnotations();
+                List<String> names = Arrays.stream(annotations)
+                    .map(ann -> ann.annotationType().getName())
+                    .collect(toList());
+                assertThat(names).containsExactlyInAnyOrder(
+                    "java.lang.annotation.Retention",
+                    "java.lang.annotation.Target"
+                );
             } catch (Exception e) {
                 fail(e);
             }

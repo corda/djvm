@@ -18,7 +18,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     private val kotlinMetadata: Class<out Annotation> = Class.forName("kotlin.Metadata") as Class<out Annotation>
 
     @Test
-    fun testSandboxAnnotation() = parentedSandbox {
+    fun testSandboxAnnotation() = parentedSandbox(visibleAnnotations = setOf(KotlinAnnotation::class.java)) {
         assertThat(UserKotlinData::class.findAnnotation<KotlinAnnotation>()).isNotNull
 
         @Suppress("unchecked_cast")
@@ -93,6 +93,56 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
         assertNotNull(sandboxData)
         assertEquals("sandbox.${UserKotlinData::class.java.name}", sandboxData::class.java.name)
         assertEquals("UserData: message='Sandbox Magic!', number=123, bigNumber=999", sandboxData.toString())
+    }
+
+    @Test
+    fun `test reflection can fetch all annotations`() = parentedSandbox(visibleAnnotations = setOf(KotlinAnnotation::class.java)) {
+        val sandboxClass = loadClass<UserKotlinData>().type
+        val kotlinAnnotations = sandboxClass.kotlin.annotations.map { ann ->
+            ann.annotationClass.qualifiedName
+        }
+        assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
+            "sandbox.net.corda.djvm.KotlinAnnotation",
+            "net.corda.djvm.KotlinAnnotation",
+            "sandbox.kotlin.Metadata"
+        )
+
+        val javaAnnotations = sandboxClass.annotations.map { ann ->
+            ann.annotationClass.qualifiedName
+        }
+        assertThat(javaAnnotations).containsExactlyInAnyOrder(
+            "sandbox.net.corda.djvm.KotlinAnnotation",
+            "net.corda.djvm.KotlinAnnotation",
+            "sandbox.kotlin.Metadata",
+            "kotlin.Metadata"
+        )
+    }
+
+    @Test
+    fun `test reflection can fetch all meta-annotations`() = parentedSandbox {
+        @Suppress("unchecked_cast")
+        val sandboxAnnotation = loadClass<KotlinAnnotation>().type as Class<out Annotation>
+
+        val kotlinAnnotations = sandboxAnnotation.kotlin.annotations.map { ann ->
+            ann.annotationClass.qualifiedName
+        }
+        assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
+            "kotlin.annotation.Retention",
+            "kotlin.annotation.Target",
+            "sandbox.kotlin.Metadata"
+        )
+
+        val javaAnnotations = sandboxAnnotation.annotations.map { ann ->
+            ann.annotationClass.qualifiedName
+        }
+        assertThat(javaAnnotations).containsExactlyInAnyOrder(
+            "kotlin.annotation.Retention",
+            "kotlin.annotation.Target",
+            "sandbox.kotlin.Metadata",
+            "kotlin.Metadata",
+            "java.lang.annotation.Retention",
+            "java.lang.annotation.Target"
+        )
     }
 }
 
