@@ -25,7 +25,7 @@ class SandboxExecutorJavaTest extends TestBase {
         //TODO: Transaction should not be a pinned class! It needs
         //      to be marshalled into and out of the sandbox.
         Set<Class<?>> pinnedClasses = singleton(Transaction.class);
-        sandbox(new Object[0], pinnedClasses, emptySet(), WARNING, true, ctx -> {
+        sandbox(new Object[0], pinnedClasses, emptySet(), emptySet(), WARNING, true, ctx -> {
             SandboxExecutor<Transaction, Void> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Transaction tx = new Transaction(TX_ID);
             assertThatExceptionOfType(IllegalArgumentException.class)

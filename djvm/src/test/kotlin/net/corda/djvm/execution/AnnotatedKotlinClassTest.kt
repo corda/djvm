@@ -18,7 +18,10 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     private val kotlinMetadata: Class<out Annotation> = Class.forName("kotlin.Metadata") as Class<out Annotation>
 
     @Test
-    fun testSandboxAnnotation() = parentedSandbox(visibleAnnotations = setOf(KotlinAnnotation::class.java)) {
+    fun testSandboxAnnotation() = parentedSandbox(
+        visibleAnnotations = emptySet(),
+        sandboxOnlyAnnotations = setOf("net.corda.djvm.*")
+    ) {
         assertThat(UserKotlinData::class.findAnnotation<KotlinAnnotation>()).isNotNull
 
         @Suppress("unchecked_cast")
@@ -96,7 +99,33 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test reflection can fetch all annotations`() = parentedSandbox(visibleAnnotations = setOf(KotlinAnnotation::class.java)) {
+    fun `test reflection can fetch all annotations`() = parentedSandbox(
+        visibleAnnotations = emptySet(),
+        sandboxOnlyAnnotations = setOf("net.corda.djvm.**")
+    ) {
+        val sandboxClass = loadClass<UserKotlinData>().type
+        val kotlinAnnotations = sandboxClass.kotlin.annotations.map { ann ->
+            ann.annotationClass.qualifiedName
+        }
+        assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
+            "sandbox.net.corda.djvm.KotlinAnnotation",
+            "sandbox.kotlin.Metadata"
+        )
+
+        val javaAnnotations = sandboxClass.annotations.map { ann ->
+            ann.annotationClass.qualifiedName
+        }
+        assertThat(javaAnnotations).containsExactlyInAnyOrder(
+            "sandbox.net.corda.djvm.KotlinAnnotation",
+            "sandbox.kotlin.Metadata",
+            "kotlin.Metadata"
+        )
+    }
+
+    @Test
+    fun `test reflection can fetch all stitched annotations`() = parentedSandbox(
+        visibleAnnotations = setOf(KotlinAnnotation::class.java)
+    ) {
         val sandboxClass = loadClass<UserKotlinData>().type
         val kotlinAnnotations = sandboxClass.kotlin.annotations.map { ann ->
             ann.annotationClass.qualifiedName

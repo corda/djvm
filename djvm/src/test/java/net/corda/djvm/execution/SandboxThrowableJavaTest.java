@@ -107,7 +107,7 @@ class SandboxThrowableJavaTest extends TestBase {
     @Test
     void testMultiCatchWithDisallowedExceptions() {
         Set<Class<?>> pinnedClasses = singleton(Utilities.class);
-        sandbox(new Object[0], pinnedClasses, emptySet(), WARNING, true, ctx -> {
+        sandbox(new Object[0], pinnedClasses, emptySet(), emptySet(), WARNING, true, ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> {

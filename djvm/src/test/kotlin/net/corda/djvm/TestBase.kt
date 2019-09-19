@@ -186,6 +186,7 @@ abstract class TestBase(type: SandboxType) {
         vararg options: Any,
         pinnedClasses: Set<Class<*>> = emptySet(),
         visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
+        sandboxOnlyAnnotations: Set<String> = emptySet(),
         minimumSeverityLevel: Severity = WARNING,
         enableTracing: Boolean = true,
         action: SandboxRuntimeContext.() -> Unit
@@ -221,6 +222,7 @@ abstract class TestBase(type: SandboxType) {
                         whitelist = whitelist,
                         pinnedClasses = pinnedTestClasses,
                         visibleAnnotations = visibleAnnotations,
+                        sandboxOnlyAnnotations = sandboxOnlyAnnotations,
                         minimumSeverityLevel = minimumSeverityLevel,
                         bootstrapSource = bootstrapClassLoader
                     )
@@ -244,14 +246,18 @@ abstract class TestBase(type: SandboxType) {
     }
 
     fun parentedSandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit)
-            = parentedSandbox(WARNING, visibleAnnotations, true, action)
+            = parentedSandbox(WARNING, visibleAnnotations, emptySet(), true, action)
+
+    fun parentedSandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, action: SandboxRuntimeContext.() -> Unit)
+            = parentedSandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, true, action)
 
     fun parentedSandbox(action: SandboxRuntimeContext.() -> Unit)
-            = parentedSandbox(WARNING, emptySet(), true, action)
+            = parentedSandbox(WARNING, emptySet(), emptySet(), true, action)
 
     fun parentedSandbox(
         minimumSeverityLevel: Severity,
         visibleAnnotations: Set<Class<out Annotation>>,
+        sandboxOnlyAnnotations: Set<String>,
         enableTracing: Boolean,
         action: SandboxRuntimeContext.() -> Unit
     ) {
@@ -262,7 +268,8 @@ abstract class TestBase(type: SandboxType) {
                     val analysisConfiguration = parentConfiguration.analysisConfiguration.createChild(
                         userSource = userSource,
                         newMinimumSeverityLevel = minimumSeverityLevel,
-                        visibleAnnotations = visibleAnnotations
+                        visibleAnnotations = visibleAnnotations,
+                        sandboxOnlyAnnotations = sandboxOnlyAnnotations
                     )
                     SandboxRuntimeContext(SandboxConfiguration.of(
                         parentConfiguration.executionProfile,
