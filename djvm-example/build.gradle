@@ -19,6 +19,9 @@ repositories {
     maven {
         url "$artifactory_contextUrl/corda-lib"
     }
+    maven {
+        url "$artifactory_contextUrl/corda-dependencies"
+    }
     mavenCentral()
 }
 

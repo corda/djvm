@@ -21,6 +21,7 @@ import java.security.Security
 import java.util.*
 import java.util.Collections.*
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.regex.Pattern
 import javax.security.auth.x500.X500Principal
 import javax.xml.datatype.DatatypeFactory
 import kotlin.Comparator
@@ -32,8 +33,11 @@ import kotlin.Comparator
  * @property whitelist The whitelist of class names.
  * @property pinnedClasses Classes that have already been declared in the sandbox namespace and that should be
  * made available inside the sandboxed environment. These classes belong to the application
- * classloader and so are shared across all sandboxes.
- * @property stitchedAnnotations Descriptors for annotation classes whose unsandboxed values must be preserved.
+ * classloader and so are shared across all sandboxes.retained
+ * @property sandboxAnnotations A user-supplied set of regexps to control which annotations should be preserved
+ * inside the sandbox.
+ * @property allowedAnnotations Literal descriptors for annotations which should be preserved inside the sandbox.
+ * @property stitchedAnnotations Descriptors for annotation classes whose unsandboxed values must also be preserved.
  * @property classResolver Functionality used to resolve the qualified name and relevant information about a class.
  * @property exceptionResolver Resolves the internal names of synthetic exception classes.
  * @property minimumSeverityLevel The minimum severity level to log and report.
@@ -48,7 +52,8 @@ class AnalysisConfiguration private constructor(
         val parent: AnalysisConfiguration?,
         val whitelist: Whitelist,
         val pinnedClasses: Set<String>,
-        val mappedAnnotations: Set<String>,
+        val sandboxAnnotations: Set<Pattern>,
+        val allowedAnnotations: Set<String>,
         val stitchedAnnotations: Set<String>,
         val classResolver: ClassResolver,
         val exceptionResolver: ExceptionResolver,
@@ -82,13 +87,15 @@ class AnalysisConfiguration private constructor(
     fun createChild(
         userSource: UserSource,
         newMinimumSeverityLevel: Severity?,
-        visibleAnnotations: Set<Class<out Annotation>>
+        visibleAnnotations: Set<Class<out Annotation>>,
+        sandboxOnlyAnnotations: Set<String>
     ): AnalysisConfiguration {
         return AnalysisConfiguration(
             parent = this,
             whitelist = whitelist,
             pinnedClasses = pinnedClasses,
-            mappedAnnotations = mappedAnnotations.merge(visibleAnnotations),
+            sandboxAnnotations = unmodifiable(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern) + sandboxAnnotations),
+            allowedAnnotations = allowedAnnotations.merge(visibleAnnotations),
             stitchedAnnotations = stitchedAnnotations.mergeSandboxed(visibleAnnotations),
             classResolver = classResolver,
             exceptionResolver = exceptionResolver,
@@ -109,7 +116,8 @@ class AnalysisConfiguration private constructor(
     fun isSandboxClass(className: String): Boolean = className.startsWith(SANDBOX_PREFIX) && !isPinnedClass(className)
 
     fun isUnmappedAnnotation(descriptor: String): Boolean = descriptor in UNMAPPED_ANNOTATIONS
-    fun isMappedAnnotation(descriptor: String): Boolean = descriptor in mappedAnnotations
+    fun isMappedAnnotation(descriptor: String): Boolean
+                = descriptor in allowedAnnotations || sandboxAnnotations.any { ann -> ann.matcher(descriptor).matches() }
 
     fun toSandboxClassName(type: Class<*>): String {
         val sandboxName = classResolver.resolve(Type.getInternalName(type))
@@ -132,15 +140,19 @@ class AnalysisConfiguration private constructor(
         const val KOTLIN_METADATA = "Lkotlin/Metadata;"
 
         /**
-         * These meta-annotations configure how the JVM handles annotations,
-         * and these need to be preserved. Currently handling Kotlin's "magic"
-         * [Metadata] annotation by default.
+         * These annotations are duplicated into the sandbox, such
+         * that the sandboxed class is annotated with both the original
+         * annotation and the transformed one.
          */
         private val STITCHED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
             "Lsandbox/kotlin/Metadata;"
         ))
 
-        private val MAPPED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
+        /**
+         * These are descriptors for the annotations that are considered
+         * "safe" to preserve inside the sandbox.
+         */
+        private val ALLOWED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
             KOTLIN_METADATA
         ))
 
@@ -151,8 +163,14 @@ class AnalysisConfiguration private constructor(
          *
          * Not mapping an annotation leaves the original annotation
          * in place without also applying its sandboxed equivalent.
+         *
+         * Annotations which are neither mapped nor unmapped are deleted.
          */
         private val UNMAPPED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
+            /**
+             * These meta-annotations configure how the JVM handles annotations,
+             * and so these need to be preserved.
+             */
             "Lkotlin/annotation/Retention;",
             "Lkotlin/annotation/Target;",
             "Ljava/lang/annotation/Retention;",
@@ -576,6 +594,31 @@ class AnalysisConfiguration private constructor(
             }
         }
 
+        private fun toPattern(str: String): Pattern {
+            val builder = StringBuilder("^L")
+            var i = 0
+            while (i < str.length) {
+                val c = str[i]
+                when (c) {
+                    '.' -> builder.append('/')
+                    '?' -> builder.append('.')
+                    '*' -> {
+                        val j = i + 1
+                        if (j < str.length && str[j] == '*') {
+                            builder.append(".*")
+                            i = j
+                        } else {
+                            builder.append("[^/]*")
+                        }
+                    }
+                    '$' -> builder.append("\\$")
+                    else -> builder.append(c)
+                }
+                ++i
+            }
+            return Pattern.compile(builder.append(";$").toString())
+        }
+
         private fun Iterable<Member>.mapByClassName(): Map<String, List<Member>>
                       = groupBy(Member::className).mapValues(Map.Entry<String, List<Member>>::value)
         private fun <T> unmodifiable(items: Set<T>): Set<T> {
@@ -604,6 +647,7 @@ class AnalysisConfiguration private constructor(
             whitelist: Whitelist,
             pinnedClasses: Set<String> = emptySet(),
             visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
+            sandboxOnlyAnnotations: Set<String> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
             analyzeAnnotations: Boolean = false,
             prefixFilters: List<String> = emptyList(),
@@ -631,7 +675,8 @@ class AnalysisConfiguration private constructor(
                 parent = null,
                 whitelist = actualWhitelist,
                 pinnedClasses = actualPinnedClasses,
-                mappedAnnotations = MAPPED_ANNOTATIONS.merge(visibleAnnotations),
+                sandboxAnnotations = unmodifiable<Pattern>(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern)),
+                allowedAnnotations = ALLOWED_ANNOTATIONS.merge(visibleAnnotations),
                 stitchedAnnotations = STITCHED_ANNOTATIONS.mergeSandboxed(visibleAnnotations),
                 classResolver = classResolver,
                 exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, actualPinnedClasses, SANDBOX_PREFIX),
