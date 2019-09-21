@@ -58,10 +58,10 @@ dependencies {
     implementation "com.r3.corda.lib.tokens:tokens-money:$corda_tokens_version"
     implementation "net.corda:corda-core:$corda_version"
     implementation "net.corda:corda-serialization:$corda_version"
-    implementation "net.corda:corda-djvm-deserializers:$djvm_version"
+    implementation "net.corda.djvm:corda-djvm-deserializers:$djvm_version"
 
-    testImplementation "net.corda:corda-djvm:$djvm_version"
-    testImplementation "net.corda:corda-djvm-serialization:$djvm_version"
+    testImplementation "net.corda.djvm:corda-djvm:$djvm_version"
+    testImplementation "net.corda.djvm:corda-djvm-serialization:$djvm_version"
     testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"
     jdkRt "net.corda:deterministic-rt:latest.integration"
 

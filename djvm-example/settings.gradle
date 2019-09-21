@@ -13,9 +13,9 @@ rootProject.name = "djvm-example"
 if (file('../djvm').isDirectory()) {
     includeBuild('..') {
         dependencySubstitution {
-            substitute module('net.corda:corda-djvm') with project(':djvm')
-            substitute module('net.corda:corda-djvm-serialization') with project(':serialization')
-            substitute module('net.corda:corda-djvm-deserializers') with project(':serialization:deserializers')
+            substitute module('net.corda.djvm:corda-djvm') with project(':djvm')
+            substitute module('net.corda.djvm:corda-djvm-serialization') with project(':serialization')
+            substitute module('net.corda.djvm:corda-djvm-deserializers') with project(':serialization:deserializers')
         }
     }
 }
