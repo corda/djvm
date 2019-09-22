@@ -5,7 +5,7 @@ import net.corda.djvm.code.instructions.MemberAccessInstruction
 import org.objectweb.asm.Opcodes.*
 
 /**
- * Some non-deterministic APIs belong to pinned classes and so cannot be stubbed out.
+ * Some non-deterministic APIs belong to whitelisted classes and so cannot be stubbed out.
  * Replace their invocations with safe alternatives, e.g. throwing an exception.
  */
 object DisallowNonDeterministicMethods : Emitter {

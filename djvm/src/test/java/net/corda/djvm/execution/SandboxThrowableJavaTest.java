@@ -1,7 +1,6 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
-import net.corda.djvm.Utilities;
 import net.corda.djvm.WithJava;
 import net.corda.djvm.rules.RuleViolationError;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +16,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -106,8 +104,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testMultiCatchWithDisallowedExceptions() {
-        Set<Class<?>> pinnedClasses = singleton(Utilities.class);
-        sandbox(new Object[0], pinnedClasses, emptySet(), emptySet(), WARNING, true, ctx -> {
+        sandbox(new Object[0], emptySet(), emptySet(), WARNING, true, ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> {

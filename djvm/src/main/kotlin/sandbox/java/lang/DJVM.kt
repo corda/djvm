@@ -297,7 +297,7 @@ fun getClassLoader(type: Class<*>): ClassLoader {
     /**
      * We expect [Class.getClassLoader] to return one of the following:
      * - [net.corda.djvm.rewiring.SandboxClassLoader] for sandbox classes
-     * - the application class loader for pinned classes
+     * - the application class loader for whitelisted classes
      * - null for basic Java classes.
      *
      * So "don't do that". Always return the sandbox classloader instead.

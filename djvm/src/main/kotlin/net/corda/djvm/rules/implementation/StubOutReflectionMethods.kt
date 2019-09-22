@@ -6,7 +6,7 @@ import net.corda.djvm.references.Member
 import org.objectweb.asm.Opcodes.*
 
 /**
- * Replace reflection APIs with stubs that throw exceptions. Only for unpinned classes.
+ * Replace reflection APIs with stubs that throw exceptions. Only for non-whitelisted classes.
  */
 object StubOutReflectionMethods : MemberDefinitionProvider {
     private val ALLOWS_REFLECTION: Set<String> = setOf(

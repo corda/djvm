@@ -79,19 +79,19 @@ class SandboxClassRemapper(
     }
 
     override fun createMethodRemapper(mv: MethodVisitor): MethodVisitor {
-        return MethodRemapperWithPinning(mv, super.createMethodRemapper(mv))
+        return MethodRemapperWithTemplating(mv, super.createMethodRemapper(mv))
     }
 
     /**
-     * Do not attempt to remap references to methods and fields on pinned classes.
+     * Do not attempt to remap references to methods and fields on templated classes.
      * For example, the methods on [sandbox.RuntimeCostAccounter] really DO use
      * [java.lang.String] rather than [sandbox.java.lang.String].
      */
-    private inner class MethodRemapperWithPinning(private val nonMethodMapper: MethodVisitor, remapper: MethodVisitor)
+    private inner class MethodRemapperWithTemplating(private val nonMethodMapper: MethodVisitor, remapper: MethodVisitor)
         : MethodVisitor(API_VERSION, remapper) {
 
         private fun mapperFor(element: Element): MethodVisitor {
-            return if (configuration.isPinnedClass(element.className) || configuration.isTemplateClass(element.className) || isUnmapped(element)) {
+            return if (configuration.isTemplateClass(element.className) || isUnmapped(element)) {
                 nonMethodMapper
             } else {
                 mv

@@ -131,8 +131,7 @@ open class ClassAndMemberVisitor(
      * Check if a class should be processed or not.
      */
     protected fun shouldClassBeProcessed(className: String): Boolean {
-        return !configuration.whitelist.inNamespace(className) &&
-                !configuration.isPinnedClass(className)
+        return !configuration.whitelist.inNamespace(className)
     }
 
     /**

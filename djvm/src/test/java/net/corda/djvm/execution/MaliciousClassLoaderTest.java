@@ -2,7 +2,6 @@ package net.corda.djvm.execution;
 
 import greymalkin.PureEvil;
 import net.corda.djvm.TestBase;
-import net.corda.djvm.Utilities;
 import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoader;
 import net.corda.djvm.rules.RuleViolationError;
@@ -129,21 +128,21 @@ class MaliciousClassLoaderTest extends TestBase {
     }
 
     @Test
-    void testClassLoaderForPinnedClass() {
+    void testClassLoaderForWhitelistedClass() {
         parentedSandbox(ctx -> {
             SandboxExecutor<String, ClassLoader> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ClassLoader result = WithJava.run(executor, GetPinnedClassLoader.class, "").getResult();
+            ClassLoader result = WithJava.run(executor, GetWhitelistedClassLoader.class, "").getResult();
             assertThat(result)
                 .isExactlyInstanceOf(SandboxClassLoader.class);
             return null;
         });
     }
 
-    public static class GetPinnedClassLoader implements Function<String, ClassLoader> {
+    public static class GetWhitelistedClassLoader implements Function<String, ClassLoader> {
         @Override
         public ClassLoader apply(String input) {
-            // A pinned class belongs to the application classloader.
-            return Utilities.class.getClassLoader();
+            // A whitelisted class belongs to the application classloader.
+            return ClassLoader.class.getClassLoader();
         }
     }
 }

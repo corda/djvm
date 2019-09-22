@@ -1,17 +1,16 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
-import net.corda.djvm.WithJava;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.Collections.*;
 import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class SandboxExecutorJavaTest extends TestBase {
     private static final int TX_ID = 101;
@@ -22,15 +21,20 @@ class SandboxExecutorJavaTest extends TestBase {
 
     @Test
     void testTransaction() {
-        //TODO: Transaction should not be a pinned class! It needs
-        //      to be marshalled into and out of the sandbox.
-        Set<Class<?>> pinnedClasses = singleton(Transaction.class);
-        sandbox(new Object[0], pinnedClasses, emptySet(), emptySet(), WARNING, true, ctx -> {
-            SandboxExecutor<Transaction, Void> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Transaction tx = new Transaction(TX_ID);
-            assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> WithJava.run(executor, ContractWrapper.class, tx))
-                .withMessageContaining("Contract constraint violated: txId=" + TX_ID);
+        sandbox(new Object[0], emptySet(), emptySet(), WARNING, true, ctx -> {
+            try {
+                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createRawTaskFactory();
+                Function<? super Object, ?> verifyTask = ctx.getClassLoader().createTaskFor(taskFactory, ContractWrapper.class);
+
+                Class<?> sandboxClass = ctx.getClassLoader().toSandboxClass(Transaction.class);
+                Object sandboxTx = sandboxClass.getDeclaredConstructor(Integer.TYPE).newInstance(TX_ID);
+
+                assertThatExceptionOfType(IllegalArgumentException.class)
+                    .isThrownBy(() -> verifyTask.apply(sandboxTx))
+                    .withMessageContaining("Contract constraint violated: txId=" + TX_ID);
+            } catch (Throwable t) {
+                fail(t);
+            }
             return null;
         });
     }
@@ -59,7 +63,7 @@ class SandboxExecutorJavaTest extends TestBase {
     public static class Transaction {
         private final int id;
 
-        Transaction(int id) {
+        public Transaction(int id) {
             this.id = id;
         }
 

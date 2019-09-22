@@ -121,7 +121,7 @@ open class Whitelist private constructor(
         val EMPTY: Whitelist = Whitelist(null, emptySet(), emptySet())
 
         /**
-         * The minimum set of classes that needs to be pinned from standard Java libraries.
+         * The minimum set of classes that needs to be whitelisted from standard Java libraries.
          */
         val MINIMAL: Whitelist = Whitelist(Whitelist(null, minimumSet, emptySet()), minimumSet, emptySet())
 
