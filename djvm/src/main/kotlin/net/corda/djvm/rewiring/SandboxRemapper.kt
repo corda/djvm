@@ -45,7 +45,7 @@ open class SandboxRemapper(
      * All [Object.toString] methods must be transformed to [sandbox.java.lang.Object.toDJVMString],
      * to allow the return type to change to [sandbox.java.lang.String].
      *
-     * The [sandbox.java.lang.Object] class is pinned and not mapped.
+     * The [sandbox.java.lang.Object] class is a template and not mapped.
      */
     override fun mapMethodName(owner: String, name: String, descriptor: String): String {
         val newName = if (name == "toString" && descriptor == "()Ljava/lang/String;") {

@@ -326,7 +326,7 @@ class SandboxClassLoader private constructor(
         } else {
             loadClassAndBytes(source, context).also { clazz ->
                 /**
-                 * Check whether we've just loaded an unpinned sandboxed throwable class.
+                 * Check whether we've just loaded a sandboxed throwable class.
                  * If we have, we may also need to synthesise a throwable wrapper for it.
                  */
                 if (throwableClass.isAssignableFrom(clazz) && !analysisConfiguration.isJvmException(source.internalClassName)) {
@@ -350,11 +350,6 @@ class SandboxClassLoader private constructor(
         val requestedPath = request.internalClassName
         val sourceName = analysisConfiguration.classResolver.reverseNormalized(request.qualifiedClassName)
         val resolvedName = analysisConfiguration.classResolver.resolveNormalized(sourceName)
-
-        if (analysisConfiguration.isPinnedClass(requestedPath)) {
-            logger.error("Class {} should not be loaded here", request.qualifiedClassName)
-            throw SandboxClassLoadingException("Refusing to load pinned ${request.qualifiedClassName}", context)
-        }
 
         val byteCode = if (analysisConfiguration.isTemplateClass(requestedPath)) {
             loadUnmodifiedByteCode(requestedPath)

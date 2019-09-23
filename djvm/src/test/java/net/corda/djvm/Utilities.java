@@ -4,7 +4,7 @@ import net.corda.djvm.costing.ThresholdViolationError;
 import net.corda.djvm.rules.RuleViolationError;
 
 /**
- * Pin this {@link Utilities} class inside the sandbox to allow
+ * Whitelist this {@link Utilities} class inside the sandbox to allow
  * tests to invoke these functions.
  */
 public final class Utilities {

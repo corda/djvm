@@ -22,6 +22,9 @@ import java.util.function.Function
 import java.util.stream.Collectors.*
 
 class SandboxExecutorTest : TestBase(KOTLIN) {
+    companion object {
+        const val TX_ID = 1
+    }
 
     @Test
     fun `can load and execute runnable`() = sandbox(MINIMAL) {
@@ -38,14 +41,15 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute contract`() = sandbox(DEFAULT, pinnedClasses = setOf(Transaction::class.java)) {
-        val executor = DeterministicSandboxExecutor<Transaction, Unit>(configuration)
-        //TODO: Transaction should not be a pinned class! It needs to be marshalled into and out of the sandbox.
-        val tx = Transaction(1)
-        assertThatExceptionOfType(SandboxException::class.java)
-                .isThrownBy { executor.run<ContractWrapper>(tx) }
-                .withCauseInstanceOf(IllegalArgumentException::class.java)
-                .withMessageContaining("Contract constraint violated: txId=${tx.id}")
+    fun `can load and execute contract`() = sandbox(DEFAULT) {
+        val taskFactory = classLoader.createRawTaskFactory()
+        val verifyTask = classLoader.createTaskFor(taskFactory, ContractWrapper::class.java)
+        val sandboxClass = classLoader.toSandboxClass(Transaction::class.java)
+        val sandboxTx = sandboxClass.getDeclaredConstructor(Integer.TYPE).newInstance(TX_ID)
+        assertThatExceptionOfType(IllegalArgumentException::class.java)
+            .isThrownBy { verifyTask.apply(sandboxTx) }
+            .withMessageContaining("Contract constraint violated: txId=$TX_ID")
+            .withNoCause()
     }
 
     interface Contract {

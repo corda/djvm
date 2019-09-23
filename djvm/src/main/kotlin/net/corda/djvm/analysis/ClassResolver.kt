@@ -8,8 +8,7 @@ import net.corda.djvm.code.asResourcePath
  *
  * The resolution of a class name entails determining whether the class can be instrumented or not. This means that the
  * following criteria need to be satisfied:
- *  - The class do not reside in the "java/lang" package.
- *  - The class has not been explicitly pinned.
+ *  - The class does not reside in the "java/lang" package.
  *  - The class does not already reside in the top-level package named [sandboxPrefix].
  *
  * If these criteria have been satisfied, the fully-qualified class name will be derived by prepending [sandboxPrefix]
@@ -18,14 +17,11 @@ import net.corda.djvm.code.asResourcePath
  * defined in "java/lang/", e.g., [Integer] and [String]. These cannot be trivially moved into a different package due
  * to the internal mechanisms of the JVM.
  *
- * @property pinnedClasses Classes that have already been declared in the sandbox namespace and that should be made
- * available inside the sandboxed environment.
  * @property whitelist The set of classes in the Java runtime libraries that have been whitelisted and that should be
  * left alone.
  * @property sandboxPrefix The package name prefix to use for classes loaded into a sandbox.
  */
 class ClassResolver(
-        private val pinnedClasses: Set<String>,
         private val templateClasses: Set<String>,
         private val whitelist: Whitelist,
         private val sandboxPrefix: String
@@ -84,7 +80,7 @@ class ClassResolver(
      * Reverse the resolution of a class name.
      */
     fun reverse(resolvedClassName: String): String {
-        return if (resolvedClassName in pinnedClasses || resolvedClassName in templateClasses) {
+        return if (resolvedClassName in templateClasses) {
             resolvedClassName
         } else {
             removeSandboxPrefix(resolvedClassName)
@@ -109,7 +105,7 @@ class ClassResolver(
      * Resolve sandboxed class name from a fully qualified name.
      */
     private fun resolveName(name: String): String {
-        return if (isPinnedOrWhitelistedClass(name) || name in templateClasses) {
+        return if (isWhitelistedClass(name) || name in templateClasses) {
             name
         } else {
             "$sandboxPrefix$name"
@@ -121,11 +117,7 @@ class ClassResolver(
      * Needed by [net.corda.djvm.source.SourceClassLoader].
      */
     private fun toSource(className: String): String {
-        return if (className in pinnedClasses) {
-            className
-        } else {
-            removeSandboxPrefix(className)
-        }
+        return removeSandboxPrefix(className)
     }
 
     private fun removeSandboxPrefix(className: String): String {
@@ -139,12 +131,10 @@ class ClassResolver(
     }
 
     /**
-     * Check if class is whitelisted or pinned.
+     * Check if class is whitelisted.
      */
-    private fun isPinnedOrWhitelistedClass(name: String): Boolean {
-        return whitelist.matches(name) ||
-                name in pinnedClasses ||
-                sandboxRegex.matches(name)
+    private fun isWhitelistedClass(name: String): Boolean {
+        return whitelist.matches(name) || sandboxRegex.matches(name)
     }
 
     private val sandboxRegex = "^$sandboxPrefix.*\$".toRegex()

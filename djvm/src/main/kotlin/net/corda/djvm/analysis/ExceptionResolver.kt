@@ -4,7 +4,6 @@ import org.objectweb.asm.Type
 
 class ExceptionResolver(
     private val jvmExceptionClasses: Set<String>,
-    private val pinnedClasses: Set<String>,
     private val sandboxPrefix: String
 ) {
     companion object {
@@ -26,8 +25,6 @@ class ExceptionResolver(
     fun getThrowableOwnerName(className: String): String {
         return if (className in jvmExceptionClasses) {
             className.unsandboxed
-        } else if (className in pinnedClasses) {
-            className
         } else {
             getDJVMException(className)
         }

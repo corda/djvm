@@ -31,9 +31,6 @@ import kotlin.Comparator
  *
  * @property parent This configuration's parent [AnalysisConfiguration].
  * @property whitelist The whitelist of class names.
- * @property pinnedClasses Classes that have already been declared in the sandbox namespace and that should be
- * made available inside the sandboxed environment. These classes belong to the application
- * classloader and so are shared across all sandboxes.retained
  * @property sandboxAnnotations A user-supplied set of regexps to control which annotations should be preserved
  * inside the sandbox.
  * @property allowedAnnotations Literal descriptors for annotations which should be preserved inside the sandbox.
@@ -51,7 +48,6 @@ import kotlin.Comparator
 class AnalysisConfiguration private constructor(
         val parent: AnalysisConfiguration?,
         val whitelist: Whitelist,
-        val pinnedClasses: Set<String>,
         val sandboxAnnotations: Set<Pattern>,
         val allowedAnnotations: Set<String>,
         val stitchedAnnotations: Set<String>,
@@ -82,7 +78,7 @@ class AnalysisConfiguration private constructor(
 
     /**
      * Creates a child [AnalysisConfiguration] with this instance as its parent.
-     * The child inherits the same [whitelist] and [pinnedClasses].
+     * The child inherits the same [whitelist].
      */
     fun createChild(
         userSource: UserSource,
@@ -93,7 +89,6 @@ class AnalysisConfiguration private constructor(
         return AnalysisConfiguration(
             parent = this,
             whitelist = whitelist,
-            pinnedClasses = pinnedClasses,
             sandboxAnnotations = unmodifiable(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern) + sandboxAnnotations),
             allowedAnnotations = allowedAnnotations.merge(visibleAnnotations),
             stitchedAnnotations = stitchedAnnotations.mergeSandboxed(visibleAnnotations),
@@ -110,10 +105,9 @@ class AnalysisConfiguration private constructor(
     }
 
     fun isTemplateClass(className: String): Boolean = className in TEMPLATE_CLASSES
-    fun isPinnedClass(className: String): Boolean = className in pinnedClasses
 
     fun isJvmException(className: String): Boolean = className in JVM_EXCEPTIONS
-    fun isSandboxClass(className: String): Boolean = className.startsWith(SANDBOX_PREFIX) && !isPinnedClass(className)
+    fun isSandboxClass(className: String): Boolean = className.startsWith(SANDBOX_PREFIX)
 
     fun isUnmappedAnnotation(descriptor: String): Boolean = descriptor in UNMAPPED_ANNOTATIONS
     fun isMappedAnnotation(descriptor: String): Boolean
@@ -645,7 +639,6 @@ class AnalysisConfiguration private constructor(
         fun createRoot(
             userSource: UserSource,
             whitelist: Whitelist,
-            pinnedClasses: Set<String> = emptySet(),
             visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
             sandboxOnlyAnnotations: Set<String> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
@@ -668,18 +661,16 @@ class AnalysisConfiguration private constructor(
                     .map(Member::reference)
                     .toSet()
             )
-            val actualPinnedClasses = unmodifiable(pinnedClasses)
-            val classResolver = ClassResolver(actualPinnedClasses, TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
+            val classResolver = ClassResolver(TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
 
             return AnalysisConfiguration(
                 parent = null,
                 whitelist = actualWhitelist,
-                pinnedClasses = actualPinnedClasses,
                 sandboxAnnotations = unmodifiable<Pattern>(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern)),
                 allowedAnnotations = ALLOWED_ANNOTATIONS.merge(visibleAnnotations),
                 stitchedAnnotations = STITCHED_ANNOTATIONS.mergeSandboxed(visibleAnnotations),
                 classResolver = classResolver,
-                exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, actualPinnedClasses, SANDBOX_PREFIX),
+                exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, SANDBOX_PREFIX),
                 minimumSeverityLevel = minimumSeverityLevel,
                 analyzeAnnotations = analyzeAnnotations,
                 prefixFilters = prefixFilters,

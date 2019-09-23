@@ -3,7 +3,7 @@ package sandbox.java.lang;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Pinned exceptions inherit from {@link java.lang.Throwable}, but we
+ * DJVM exceptions inherit from {@link java.lang.Throwable}, but we
  * still need to be able to pass them through the sandbox's
  * exception handlers. In which case we will wrap them inside
  * one of these.
