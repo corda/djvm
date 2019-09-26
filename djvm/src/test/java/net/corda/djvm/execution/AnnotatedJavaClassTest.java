@@ -26,7 +26,7 @@ class AnnotatedJavaClassTest extends TestBase {
     void testSandboxAnnotation() {
         assertThat(UserJavaData.class.getAnnotation(JavaAnnotation.class)).isNotNull();
 
-        parentedSandbox(emptySet(), singleton("net.corda.djvm.*"), ctx -> {
+        sandbox(emptySet(), singleton("net.corda.djvm.*"), ctx -> {
             try {
                 Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
                 @SuppressWarnings("unchecked")
@@ -45,7 +45,7 @@ class AnnotatedJavaClassTest extends TestBase {
 
     @Test
     void testAnnotationInsideSandbox() {
-        parentedSandbox(emptySet(), singleton("net.corda.djvm.*"), ctx -> {
+        sandbox(emptySet(), singleton("net.corda.djvm.*"), ctx -> {
             try {
                 SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
                 ExecutionSummaryWithResult<String> success = WithJava.run(executor, ReadAnnotation.class, null);
@@ -60,7 +60,7 @@ class AnnotatedJavaClassTest extends TestBase {
 
     @Test
     void testReflectionCanFetchAllSandboxedAnnotations() {
-        parentedSandbox(emptySet(), singleton("net.corda.djvm.**"), ctx -> {
+        sandbox(emptySet(), singleton("net.corda.djvm.**"), ctx -> {
             try {
                 Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
                 Annotation[] annotations = sandboxClass.getAnnotations();
@@ -79,7 +79,7 @@ class AnnotatedJavaClassTest extends TestBase {
 
     @Test
     void testReflectionCanFetchAllStitchedAnnotations() {
-        parentedSandbox(singleton(JavaAnnotation.class), ctx -> {
+        sandbox(singleton(JavaAnnotation.class), ctx -> {
             try {
                 Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
                 Annotation[] annotations = sandboxClass.getAnnotations();
@@ -99,7 +99,7 @@ class AnnotatedJavaClassTest extends TestBase {
 
     @Test
     void testReflectionCanFetchAllMetaAnnotations() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 @SuppressWarnings("unchecked")
                 Class<? extends Annotation> sandboxAnnotation

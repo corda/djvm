@@ -23,7 +23,7 @@ class BasicCryptoTest : TestBase(KOTLIN) {
 
     @ValueSource(strings = [ "SHA", "SHA-256", "SHA-384", "SHA-512" ])
     @ParameterizedTest
-    fun `test SHA hashing`(algorithmName: String) = parentedSandbox {
+    fun `test SHA hashing`(algorithmName: String) = sandbox {
         val executor = DeterministicSandboxExecutor<Array<String>, ByteArray>(configuration)
         val summary = executor.run<Hashing>(arrayOf(algorithmName, SECRET_MESSAGE))
         assertThat(summary.result)
@@ -39,7 +39,7 @@ class BasicCryptoTest : TestBase(KOTLIN) {
 
     @CsvSource("RSA,SHA256withRSA", "RSA,SHA512withRSA", "DSA,SHA256withDSA")
     @ParameterizedTest
-    fun `test signatures`(algorithm: String, algorithmName: String) = parentedSandbox {
+    fun `test signatures`(algorithm: String, algorithmName: String) = sandbox {
         val keyPair = KeyPairGenerator.getInstance(algorithm).genKeyPair()
         val data = SECRET_MESSAGE.toByteArray()
         val signature = Signature.getInstance(algorithmName).run {
@@ -70,7 +70,7 @@ class BasicCryptoTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test security providers`() = parentedSandbox {
+    fun `test security providers`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
         val summary = executor.run<SecurityProviders>("")
         assertThat(summary.result).isEqualTo(arrayOf("SUN", "SunRsaSign"))
@@ -104,7 +104,7 @@ class BasicCryptoTest : TestBase(KOTLIN) {
 
     @ArgumentsSource(AlgorithmProvider::class)
     @ParameterizedTest
-    fun `test service algorithms`(serviceName: String, algorithms: Array<String>) = parentedSandbox {
+    fun `test service algorithms`(serviceName: String, algorithms: Array<String>) = sandbox {
         val executor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
         val summary = executor.run<ServiceAlgorithms>(serviceName)
         assertThat(summary.result)
@@ -119,7 +119,7 @@ class BasicCryptoTest : TestBase(KOTLIN) {
 
     @ParameterizedTest
     @ValueSource(strings = [ "SUN", "SunRsaSign" ])
-    fun `test no secure random for`(serviceName: String) = parentedSandbox {
+    fun `test no secure random for`(serviceName: String) = sandbox {
         val executor = DeterministicSandboxExecutor<String, Double>(configuration)
         val exception = assertThrows<SandboxException> { executor.run<SecureRandomService>(serviceName) }
         assertThat(exception)
@@ -134,7 +134,7 @@ class BasicCryptoTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test secure random instance`() = parentedSandbox {
+    fun `test secure random instance`() = sandbox {
         val executor = DeterministicSandboxExecutor<ByteArray?, Double>(configuration)
         val exception = assertThrows<SandboxException> { executor.run<SecureRandomInstance>(null) }
         assertThat(exception)
@@ -150,7 +150,7 @@ class BasicCryptoTest : TestBase(KOTLIN) {
 
     @ValueSource(strings = [ "RSA", "DSA" ])
     @ParameterizedTest
-    fun `test decode public key`(algorithm: String) = parentedSandbox {
+    fun `test decode public key`(algorithm: String) = sandbox {
         val executor = DeterministicSandboxExecutor<Array<Any>, ByteArray>(configuration)
         val generator = KeyPairGenerator.getInstance(algorithm)
         val keyPair = generator.genKeyPair()
@@ -174,7 +174,7 @@ class BasicCryptoTest : TestBase(KOTLIN) {
             input.readBytes()
         } ?: fail("Certificate not found")
 
-        parentedSandbox {
+        sandbox {
             val executor = DeterministicSandboxExecutor<Array<Any>, String>(configuration)
             val summary = executor.run<DecodeCertificate>(arrayOf("X.509", certificate))
             assertThat(summary.result)

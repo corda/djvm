@@ -21,7 +21,7 @@ class MaliciousClassLoaderTest extends TestBase {
 
     @Test
     void testWithAnEvilClassLoader() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(NoSuchMethodError.class, () -> WithJava.run(executor, ActOfEvil.class, PureEvil.class.getName()));
             assertThat(ex)
@@ -60,7 +60,7 @@ class MaliciousClassLoaderTest extends TestBase {
 
     @Test
     void testWithEvilParentClassLoader() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(executor, ActOfEvilParent.class, PureEvil.class.getName()));
             assertThat(ex)
@@ -99,16 +99,19 @@ class MaliciousClassLoaderTest extends TestBase {
 
     @Test
     void testAccessingParentClassLoader() {
-        parentedSandbox(ctx -> {
-            SandboxExecutor<String, ClassLoader> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ClassLoader result = WithJava.run(executor, GetParentClassLoader.class, "").getResult();
-            assertThat(result)
-                .isExactlyInstanceOf(SandboxClassLoader.class)
-                // The IsolatedTask creates its very own SandboxClassLoader, but
-                // it will still share the same parent SandboxClassLoader as here.
-                .extracting(ClassLoader::getParent)
-                .isExactlyInstanceOf(SandboxClassLoader.class)
-                .isEqualTo(ctx.getClassLoader().getParent());
+        sandbox(ctx -> {
+            try {
+                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                Function<String, ClassLoader> getParentClassLoader = typedTaskFor(ctx.getClassLoader(), taskFactory, GetParentClassLoader.class);
+                ClassLoader result = getParentClassLoader.apply("");
+                assertThat(result)
+                    .isExactlyInstanceOf(SandboxClassLoader.class)
+                    .extracting(ClassLoader::getParent)
+                    .isExactlyInstanceOf(SandboxClassLoader.class)
+                    .isEqualTo(ctx.getClassLoader().getParent());
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -129,7 +132,7 @@ class MaliciousClassLoaderTest extends TestBase {
 
     @Test
     void testClassLoaderForWhitelistedClass() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, ClassLoader> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ClassLoader result = WithJava.run(executor, GetWhitelistedClassLoader.class, "").getResult();
             assertThat(result)

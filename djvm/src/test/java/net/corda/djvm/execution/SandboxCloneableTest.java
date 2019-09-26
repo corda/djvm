@@ -17,7 +17,7 @@ class SandboxCloneableTest extends TestBase {
 
     @Test
     void testCloningInsideSandbox() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, CloningMachine.class, "Jango Fett");
             assertThat(success.getResult()).isEqualTo("Jango Fett");
@@ -56,7 +56,7 @@ class SandboxCloneableTest extends TestBase {
 
     @Test
     void testFailedCloningInsideSandbox() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable throwable = assertThrows(RuntimeException.class, () -> WithJava.run(executor, ForceProjector.class, "Obi Wan"));
             assertThat(throwable)

@@ -8,7 +8,7 @@ pluginManagement {
         id 'net.corda.plugins.publish-utils' version '4.0.45'
         id 'com.github.johnrengelman.shadow' version '5.1.0'
         id 'com.jfrog.artifactory' version '4.9.6'
-        id 'com.jfrog.bintray' version '1.4'
+        id 'com.jfrog.bintray' version '1.7.3'
         id 'org.owasp.dependencycheck' version '5.1.0'
         id 'com.gradle.build-scan' version '2.2.1'
     }

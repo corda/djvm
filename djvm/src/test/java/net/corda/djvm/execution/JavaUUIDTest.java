@@ -16,13 +16,13 @@ class JavaUUIDTest extends TestBase {
     @Test
     void testUUID() {
         UUID uuid = UUID.randomUUID();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
-                Object sandboxUUID = parentClassLoader.createBasicInput().apply(uuid);
+                Object sandboxUUID = ctx.getClassLoader().createBasicInput().apply(uuid);
                 assertEquals("sandbox.java.util.UUID", sandboxUUID.getClass().getName());
                 assertEquals(uuid.toString(), sandboxUUID.toString());
 
-                Object revert = parentClassLoader.createBasicOutput().apply(sandboxUUID);
+                Object revert = ctx.getClassLoader().createBasicOutput().apply(sandboxUUID);
                 assertNotSame(uuid, revert);
                 assertEquals(uuid, revert);
             } catch (Exception e) {

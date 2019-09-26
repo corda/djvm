@@ -18,7 +18,7 @@ class JavaPackageTest extends TestBase {
 
     @Test
     void testFetchingPackage() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
                 Function<String, String> fetchPackage = typedTaskFor(ctx.getClassLoader(), taskFactory, FetchPackage.class);
@@ -40,7 +40,7 @@ class JavaPackageTest extends TestBase {
 
     @Test
     void testFetchingAllPackage() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
                 Function<Object, String[]> fetchAllPackages = typedTaskFor(ctx.getClassLoader(), taskFactory, FetchAllPackages.class);

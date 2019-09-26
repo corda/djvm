@@ -18,10 +18,8 @@ import net.corda.djvm.costing.RuntimeCostSummary
 
 /**
  * The field from the sandbox context which is used to keep track of the costs.
- * We cannot cache the value in a static field because we may wish to reuse
- * this class across multiple sandboxes.
  */
-private val runtimeCosts: RuntimeCostSummary get() = SandboxRuntimeContext.instance.runtimeCosts
+private val runtimeCosts: RuntimeCostSummary = SandboxRuntimeContext.instance.runtimeCosts
 
 /**
  * Known / estimated allocation costs.

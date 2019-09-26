@@ -27,7 +27,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute runnable`() = sandbox(MINIMAL) {
+    fun `can load and execute runnable`() = customSandbox(MINIMAL) {
         val executor = DeterministicSandboxExecutor<Int, String>(configuration)
         val summary = executor.run<TestSandboxedRunnable>(1)
         val result = summary.result
@@ -41,7 +41,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute contract`() = sandbox(DEFAULT) {
+    fun `can load and execute contract`() = sandbox {
         val taskFactory = classLoader.createRawTaskFactory()
         val verifyTask = classLoader.createTaskFor(taskFactory, ContractWrapper::class.java)
         val sandboxClass = classLoader.toSandboxClass(Transaction::class.java)
@@ -71,7 +71,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     data class Transaction(val id: Int)
 
     @Test
-    fun `can load and execute code that overrides object hash code`() = parentedSandbox {
+    fun `can load and execute code that overrides object hash code`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         val summary = executor.run<TestObjectHashCode>(0)
         val result = summary.result
@@ -89,7 +89,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute code that overrides object hash code when derived`() = parentedSandbox {
+    fun `can load and execute code that overrides object hash code when derived`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         val summary = executor.run<TestObjectHashCodeWithHierarchy>(0)
         val result = summary.result
@@ -104,7 +104,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can detect breached threshold`() = sandbox(DEFAULT, ExecutionProfile.DEFAULT) {
+    fun `can detect breached threshold`() = customSandbox(DEFAULT, ExecutionProfile.DEFAULT) {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<TestThresholdBreach>(0) }
@@ -122,7 +122,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can detect stack overflow`() = parentedSandbox {
+    fun `can detect stack overflow`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<TestStackOverflow>(0) }
@@ -140,7 +140,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
 
 
     @Test
-    fun `can detect illegal references in Kotlin meta-classes`() = sandbox(DEFAULT, ExecutionProfile.DEFAULT) {
+    fun `can detect illegal references in Kotlin meta-classes`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Long>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<TestKotlinMetaClasses>(0) }
@@ -156,7 +156,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `cannot execute runnable that references non-deterministic code`() = parentedSandbox {
+    fun `cannot execute runnable that references non-deterministic code`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Long>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<TestNonDeterministicCode>(0) }
@@ -171,7 +171,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `cannot execute runnable that catches ThreadDeath`() = parentedSandbox {
+    fun `cannot execute runnable that catches ThreadDeath`() = sandbox {
         assertThat(TestCatchThreadDeath().apply(0))
             .isEqualTo(1)
 
@@ -192,7 +192,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `cannot execute runnable that catches ThresholdViolationError`() = parentedSandbox {
+    fun `cannot execute runnable that catches ThresholdViolationError`() = sandbox {
         assertThat(TestCatchThresholdViolationError().apply(0))
             .isEqualTo(1)
 
@@ -215,7 +215,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `cannot execute runnable that catches RuleViolationError`() = parentedSandbox {
+    fun `cannot execute runnable that catches RuleViolationError`() = sandbox {
         assertThat(TestCatchRuleViolationError().apply(0))
             .isEqualTo(1)
 
@@ -238,7 +238,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can catch Throwable`() = parentedSandbox {
+    fun `can catch Throwable`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         executor.run<TestCatchThrowableAndError>(1).apply {
             assertThat(result).isEqualTo(1)
@@ -246,7 +246,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can catch Error`() = parentedSandbox {
+    fun `can catch Error`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         executor.run<TestCatchThrowableAndError>(2).apply {
             assertThat(result).isEqualTo(2)
@@ -254,7 +254,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `cannot catch ThreadDeath`() = parentedSandbox {
+    fun `cannot catch ThreadDeath`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<TestCatchThrowableErrorsAndThreadDeath>(3) }
@@ -309,7 +309,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `cannot catch stack-overflow error`() = parentedSandbox {
+    fun `cannot catch stack-overflow error`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<TestCatchThrowableErrorsAndThreadDeath>(4) }
@@ -318,7 +318,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `cannot catch out-of-memory error`() = parentedSandbox {
+    fun `cannot catch out-of-memory error`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<TestCatchThrowableErrorsAndThreadDeath>(5) }
@@ -327,7 +327,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `cannot persist state across sessions`() = parentedSandbox {
+    fun `cannot persist state across sessions`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         val result1 = executor.run<TestStatePersistence>(0)
         val result2 = executor.run<TestStatePersistence>(0)
@@ -349,7 +349,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute code that uses IO`() = parentedSandbox {
+    fun `can load and execute code that uses IO`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
             .isThrownBy { executor.run<TestIO>("test.dat") }
@@ -368,7 +368,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute code that uses reflection`() = parentedSandbox {
+    fun `can load and execute code that uses reflection`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         val ex = assertThrows<SandboxException>{ executor.run<TestReflection>(0) }
         assertThat(ex)
@@ -389,7 +389,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute code that uses notify()`() = parentedSandbox {
+    fun `can load and execute code that uses notify()`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, String?>(configuration)
         val ex = assertThrows<SandboxException>{ executor.run<TestMonitors>(1) }
         assertThat(ex)
@@ -401,7 +401,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute code that uses notifyAll()`() = parentedSandbox {
+    fun `can load and execute code that uses notifyAll()`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, String?>(configuration)
         val ex = assertThrows<SandboxException>{ executor.run<TestMonitors>(2) }
         assertThat(ex)
@@ -413,7 +413,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute code that uses wait()`() = parentedSandbox {
+    fun `can load and execute code that uses wait()`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, String?>(configuration)
         val ex = assertThrows<SandboxException>{ executor.run<TestMonitors>(3) }
         assertThat(ex)
@@ -425,7 +425,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute code that uses wait(long)`() = parentedSandbox {
+    fun `can load and execute code that uses wait(long)`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, String?>(configuration)
         val ex = assertThrows<SandboxException>{ executor.run<TestMonitors>(4) }
         assertThat(ex)
@@ -437,7 +437,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute code that uses wait(long,int)`() = parentedSandbox {
+    fun `can load and execute code that uses wait(long,int)`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, String?>(configuration)
         val ex = assertThrows<SandboxException>{ executor.run<TestMonitors>(5) }
         assertThat(ex)
@@ -449,7 +449,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `code after forbidden APIs is intact`() = parentedSandbox {
+    fun `code after forbidden APIs is intact`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, String?>(configuration)
         assertThat(executor.run<TestMonitors>(0).result)
                 .isEqualTo("unknown")
@@ -488,7 +488,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute code that has a native method`() = parentedSandbox {
+    fun `can load and execute code that has a native method`() = sandbox {
         assertThatExceptionOfType(UnsatisfiedLinkError::class.java)
             .isThrownBy { TestNativeMethod().apply(0) }
             .withMessageContaining("TestNativeMethod.evilDeeds()I")
@@ -509,7 +509,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `check arrays still work`() = parentedSandbox {
+    fun `check arrays still work`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Array<Int>>(configuration)
         executor.run<TestArray>(100).apply {
             assertThat(result).isEqualTo(arrayOf(100))
@@ -523,7 +523,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `check building a string`() = parentedSandbox {
+    fun `check building a string`() = sandbox {
         val executor = DeterministicSandboxExecutor<String?, String?>(configuration)
         executor.run<TestStringBuilding>("Hello Sandbox!").apply {
             assertThat(result)
@@ -548,7 +548,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `check System-arraycopy still works with Objects`() = parentedSandbox {
+    fun `check System-arraycopy still works with Objects`() = sandbox {
         val source = arrayOf("one", "two", "three")
         assertThat(TestArrayCopy().apply(source))
             .isEqualTo(source)
@@ -571,7 +571,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test System-arraycopy still works with CharArray`() = parentedSandbox {
+    fun `test System-arraycopy still works with CharArray`() = sandbox {
         val source = CharArray(10) { '?' }
         val executor = DeterministicSandboxExecutor<CharArray, CharArray>(configuration)
         executor.run<TestCharArrayCopy>(source).apply {
@@ -590,7 +590,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute class that has finalize`() = parentedSandbox {
+    fun `can load and execute class that has finalize`() = sandbox {
         assertThatExceptionOfType(UnsupportedOperationException::class.java)
             .isThrownBy { TestFinalizeMethod().apply(100) }
             .withMessageContaining("Very Bad Thing")
@@ -613,7 +613,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can execute parallel stream`() = parentedSandbox {
+    fun `can execute parallel stream`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, String>(configuration)
         executor.run<TestParallelStream>("Pebble").apply {
             assertThat(result).isEqualTo("Five,Four,One,Pebble,Three,Two")
@@ -650,7 +650,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         "TaskTypes",
         "Task"
     ])
-    fun `users cannot load our sandboxed classes`(className: String) = parentedSandbox {
+    fun `users cannot load our sandboxed classes`(className: String) = sandbox {
         // Show the class exists to be found.
         assertThat(Class.forName("sandbox.$className")).isNotNull
 
@@ -663,7 +663,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `users can load sandboxed classes`() = parentedSandbox {
+    fun `users can load sandboxed classes`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Class<*>>(configuration)
         executor.run<TestClassForName>("java.util.List").apply {
             assertThat(result?.name).isEqualTo("sandbox.java.util.List")
@@ -677,7 +677,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test case-insensitive string sorting`() = parentedSandbox {
+    fun `test case-insensitive string sorting`() = sandbox {
         val executor = DeterministicSandboxExecutor<Array<String>, Array<String>>(configuration)
         executor.run<CaseInsensitiveSort>(arrayOf("Zelda", "angela", "BOB", "betsy", "ALBERT")).apply {
             assertThat(result).isEqualTo(arrayOf("ALBERT", "angela", "betsy", "BOB", "Zelda"))
@@ -691,7 +691,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test unicode characters`() = parentedSandbox {
+    fun `test unicode characters`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, String>(configuration)
         executor.run<ExamineUnicodeBlock>(0x01f600).apply {
             assertThat(result).isEqualTo("EMOTICONS")
@@ -705,7 +705,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test unicode scripts`() = parentedSandbox {
+    fun `test unicode scripts`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Character.UnicodeScript?>(configuration)
         executor.run<ExamineUnicodeScript>("COMMON").apply {
             assertThat(result).isEqualTo(Character.UnicodeScript.COMMON)
@@ -720,7 +720,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot define new classes`() = parentedSandbox {
+    fun `test users cannot define new classes`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Class<*>>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<DefineNewClass>("sandbox.java.lang.DJVM") }
@@ -742,7 +742,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot load new classes`() = parentedSandbox {
+    fun `test users cannot load new classes`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Class<*>>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<LoadNewClass>("sandbox.java.lang.DJVM") }
@@ -763,7 +763,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot lookup classes`() = parentedSandbox {
+    fun `test users cannot lookup classes`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Class<*>>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<FindClass>("sandbox.java.lang.DJVM") }
@@ -784,7 +784,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot load system resources`() = parentedSandbox {
+    fun `test users cannot load system resources`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Boolean>(configuration)
         executor.run<GetSystemResources>("META-INF/MANIFEST.MF").apply {
             assertThat(result).isFalse()
@@ -798,7 +798,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot load system resource URL`() = parentedSandbox {
+    fun `test users cannot load system resource URL`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, String?>(configuration)
         executor.run<GetSystemResourceURL>("META-INF/MANIFEST.MF").apply {
             assertThat(result).isNull()
@@ -812,7 +812,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot load system resource stream`() = parentedSandbox {
+    fun `test users cannot load system resource stream`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Int?>(configuration)
         executor.run<GetSystemResourceStream>("META-INF/MANIFEST.MF").apply {
             assertThat(result).isNull()
@@ -826,7 +826,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot load resources`() = parentedSandbox {
+    fun `test users cannot load resources`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Boolean>(configuration)
         executor.run<GetResources>("META-INF/MANIFEST.MF").apply {
             assertThat(result).isFalse()
@@ -840,7 +840,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot load resource URL`() = parentedSandbox {
+    fun `test users cannot load resource URL`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, String?>(configuration)
         executor.run<GetResourceURL>("META-INF/MANIFEST.MF").apply {
             assertThat(result).isNull()
@@ -854,7 +854,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot load resource stream`() = parentedSandbox {
+    fun `test users cannot load resource stream`() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Int?>(configuration)
         executor.run<GetResourceStream>("META-INF/MANIFEST.MF").apply {
             assertThat(result).isNull()
@@ -868,7 +868,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test users cannot read package`() = parentedSandbox {
+    fun `test users cannot read package`() = sandbox {
         assertThat(GetClassPackage().apply(null))
             .isEqualTo(GetClassPackage::class.java.getPackage()?.toString())
 
@@ -885,7 +885,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test creating arrays of arrays`() = parentedSandbox {
+    fun `test creating arrays of arrays`() = sandbox {
         val executor = DeterministicSandboxExecutor<Any, Array<Any>>(configuration)
         executor.run<ArraysOfArrays>("THINGY").apply {
             assertThat(result).isEqualTo(arrayOf(arrayOf("THINGY")))
@@ -899,7 +899,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test creating arrays of int arrays`() = parentedSandbox {
+    fun `test creating arrays of int arrays`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, Array<IntArray>>(configuration)
         executor.run<ArrayOfIntArrays>(0).apply {
             assertThat(result).isEqualTo(arrayOf(intArrayOf(0)))
@@ -913,7 +913,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test class with protection domain`() = parentedSandbox {
+    fun `test class with protection domain`() = sandbox {
         val executor = DeterministicSandboxExecutor<Int, String>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)
             .isThrownBy { executor.run<AccessClassProtectionDomain>(0) }
@@ -929,7 +929,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test kotlin class access`() = parentedSandbox {
+    fun `test kotlin class access`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val accessTask = classLoader.typedTaskFor(taskFactory, AccessKotlinClass::class.java)
         assertThat(accessTask.apply("Message")).isEqualTo(classLoader.toSandboxClass(String::class.java))

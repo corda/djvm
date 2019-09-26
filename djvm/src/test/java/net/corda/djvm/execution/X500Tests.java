@@ -20,7 +20,7 @@ class X500Tests extends TestBase {
 
     @Test
     void testCreateX500Principal() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, CreateX500Principal.class, "CN=Example,O=Corda,C=GB");
             assertEquals("cn=example,o=corda,c=gb", success.getResult());
@@ -37,7 +37,7 @@ class X500Tests extends TestBase {
 
     @Test
     void testX500PrincipalToX500Name() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String[]> success = WithJava.run(executor, X500PrincipalToX500Name.class, "CN=Example,O=Corda,C=GB");
             assertThat(success.getResult()).isEqualTo(new String[] {
@@ -56,7 +56,7 @@ class X500Tests extends TestBase {
 
     @Test
     void testX500NameToX500Principal() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, X500NameToX500Principal.class, "CN=Example,O=Corda,C=GB");
             assertEquals("cn=example,o=corda,c=gb", success.getResult());

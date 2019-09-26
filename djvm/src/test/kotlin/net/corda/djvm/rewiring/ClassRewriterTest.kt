@@ -15,7 +15,7 @@ import java.util.*
 class ClassRewriterTest : TestBase(KOTLIN) {
 
     @Test
-    fun `empty transformer does nothing`() = sandbox(BLANK, enableTracing = false) {
+    fun `empty transformer does nothing`() = customSandbox(BLANK, enableTracing = false) {
         // An empty transformer doesn't contain the tracing emitters either.
         val callable = newCallable<Empty>()
         assertThat(callable).isSandboxed()
@@ -24,7 +24,7 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can transform class`() = sandbox(DEFAULT) {
+    fun `can transform class`() = sandbox {
         val callable = newCallable<A>()
         assertThat(callable).hasBeenModified()
         callable.createAndInvoke()
@@ -32,7 +32,7 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can transform another class`() = sandbox(DEFAULT) {
+    fun `can transform another class`() = sandbox {
         val callable = newCallable<B>()
         assertThat(callable).hasBeenModified()
         assertThat(callable).isSandboxed()
@@ -43,7 +43,7 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `cannot breach threshold`() = sandbox(ExecutionProfile.DISABLE_BRANCHING, DEFAULT) {
+    fun `cannot breach threshold`() = customSandbox(ExecutionProfile.DISABLE_BRANCHING, DEFAULT) {
         val callable = newCallable<B>()
         assertThat(callable).hasBeenModified()
         assertThat(callable).isSandboxed()
@@ -57,42 +57,42 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can transform class into using strictfp`() = sandbox(DEFAULT) {
+    fun `can transform class into using strictfp`() = sandbox {
         val callable = newCallable<StrictFloat>()
         assertThat(callable).hasBeenModified()
         callable.createAndInvoke()
     }
 
     @Test
-    fun `can load a Java API that still exists in Java runtime`() = sandbox(DEFAULT) {
+    fun `can load a Java API that still exists in Java runtime`() = sandbox {
         assertThat(loadClass<MutableList<*>>())
             .hasClassName("sandbox.java.util.List")
             .hasBeenModified()
     }
 
     @Test
-    fun `cannot load a Java API that was deleted from Java runtime`() = sandbox(DEFAULT) {
+    fun `cannot load a Java API that was deleted from Java runtime`() = sandbox {
         assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { loadClass<Paths>() }
             .withMessageContaining("Class file not found: java/nio/file/Paths.class")
     }
 
     @Test
-    fun `load internal Sun class that still exists in Java runtime`() = sandbox(DEFAULT) {
+    fun `load internal Sun class that still exists in Java runtime`() = sandbox {
         assertThat(loadClass<sun.misc.Unsafe>())
             .hasClassName("sandbox.sun.misc.Unsafe")
             .hasBeenModified()
     }
 
     @Test
-    fun `cannot load internal Sun class that was deleted from Java runtime`() = sandbox(DEFAULT) {
+    fun `cannot load internal Sun class that was deleted from Java runtime`() = sandbox {
         assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { loadClass<sun.misc.Timer>() }
             .withMessageContaining("Class file not found: sun/misc/Timer.class")
     }
 
     @Test
-    fun `can load local class`() = sandbox(DEFAULT) {
+    fun `can load local class`() = sandbox {
         assertThat(loadClass<Example>())
             .hasClassName("sandbox.net.corda.djvm.rewiring.ClassRewriterTest\$Example")
             .hasBeenModified()
@@ -105,21 +105,21 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load class with constant fields`() = sandbox(DEFAULT) {
+    fun `can load class with constant fields`() = sandbox {
         assertThat(loadClass<ObjectWithConstants>())
             .hasClassName("sandbox.net.corda.djvm.rewiring.ObjectWithConstants")
             .hasBeenModified()
     }
 
     @Test
-    fun `test rewrite static method`() = sandbox(DEFAULT) {
+    fun `test rewrite static method`() = sandbox {
         assertThat(loadClass<Arrays>())
             .hasClassName("sandbox.java.util.Arrays")
             .hasBeenModified()
     }
 
     @Test
-    fun `test stitch new super-interface`() = sandbox(DEFAULT) {
+    fun `test stitch new super-interface`() = sandbox {
         assertThat(loadClass<CharSequence>())
             .hasClassName("sandbox.java.lang.CharSequence")
             .hasInterface("java.lang.CharSequence")
@@ -127,7 +127,7 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test class with stitched interface`() = sandbox(DEFAULT) {
+    fun `test class with stitched interface`() = sandbox {
         assertThat(loadClass<StringBuilder>())
             .hasClassName("sandbox.java.lang.StringBuilder")
             .hasInterface("sandbox.java.lang.CharSequence")
@@ -135,34 +135,34 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test Java class is owned by parent classloader`() = parentedSandbox {
+    fun `test Java class is owned by parent classloader`() = sandbox {
         val stringBuilderClass = loadClass<StringBuilder>().type
-        assertThat(stringBuilderClass.classLoader).isEqualTo(parentClassLoader)
+        assertThat(stringBuilderClass.classLoader).isEqualTo(classLoader.parent)
     }
 
     @Test
-    fun `test user class is owned by new classloader`() = parentedSandbox {
+    fun `test user class is owned by new classloader`() = sandbox {
         assertThat(loadClass<Empty>())
             .hasClassLoader(classLoader)
             .hasBeenModified()
     }
 
     @Test
-    fun `test template class is owned by parent classloader`() = parentedSandbox {
+    fun `test template class is owned by parent classloader`() = sandbox {
         assertThat(classLoader.loadForSandbox("sandbox.java.lang.DJVM"))
-            .hasClassLoader(parentClassLoader)
+            .hasClassLoader(classLoader.parent)
             .hasNotBeenModified()
     }
 
     @Test
-    fun `test rule violation error cannot be loaded`() = parentedSandbox {
+    fun `test rule violation error cannot be loaded`() = sandbox {
         assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { loadClass<RuleViolationError>() }
             .withMessageContaining("Class file not found: net/corda/djvm/rules/RuleViolationError.class")
     }
 
     @Test
-    fun `test threshold violation error cannot be loaded`() = parentedSandbox {
+    fun `test threshold violation error cannot be loaded`() = sandbox {
         assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { loadClass<ThresholdViolationError>() }
             .withMessageContaining("Class file not found: net/corda/djvm/costing/ThresholdViolationError.class")

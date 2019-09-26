@@ -22,7 +22,7 @@ class BitSetTest extends TestBase {
     void testCreatingBitSet() {
         BitSet bitset = BitSet.valueOf(BITS);
 
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<byte[], int[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<int[]> success = WithJava.run(executor, CreateBitSet.class, BITS);
             assertThat(success.getResult())

@@ -39,14 +39,16 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
      * Run a set of actions within the provided sandbox context.
      */
     fun use(action: SandboxRuntimeContext.() -> Unit) {
-        instance = this
-        try {
-            action(this)
-        } catch (e: SandboxClassLoadingException) {
-            e.messages.acceptProvisional()
-            throw e
-        } finally {
-            threadLocalContext.remove()
+        classLoader.use {
+            instance = this
+            try {
+                action(this)
+            } catch (e: SandboxClassLoadingException) {
+                e.messages.acceptProvisional()
+                throw e
+            } finally {
+                threadLocalContext.remove()
+            }
         }
     }
 

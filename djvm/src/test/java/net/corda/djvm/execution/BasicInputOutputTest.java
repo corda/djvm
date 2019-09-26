@@ -21,7 +21,7 @@ class BasicInputOutputTest extends TestBase {
 
     @Test
     void testBasicInput() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ?> inputTask = ctx.getClassLoader().createBasicInput();
                 Object sandboxObject = inputTask.apply(MESSAGE);
@@ -36,7 +36,7 @@ class BasicInputOutputTest extends TestBase {
 
     @Test
     void testBasicOutput() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ?> inputTask = ctx.getClassLoader().createBasicInput();
                 Object sandboxObject = inputTask.apply(BIG_NUMBER);
@@ -55,7 +55,7 @@ class BasicInputOutputTest extends TestBase {
 
     @Test
     void testImportTask() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 Function<? super String, ?> importTask = classLoader.createForImport(new DoMagic());

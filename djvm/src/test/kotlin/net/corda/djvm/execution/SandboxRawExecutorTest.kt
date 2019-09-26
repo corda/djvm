@@ -11,7 +11,7 @@ import java.util.function.Function
 
 class SandboxRawExecutorTest : TestBase(KOTLIN) {
     @Test
-    fun `test raw executor`() = parentedSandbox {
+    fun `test raw executor`() = sandbox {
         val executor = SandboxRawExecutor(configuration)
         val inputData = "Hello World!".toByteArray()
         val result = executor.run(ClassSource.fromClassName(BackwardsUppercase::class.java.name), inputData).result
@@ -25,7 +25,7 @@ class SandboxRawExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test input unmarshalled`() = parentedSandbox {
+    fun `test input unmarshalled`() = sandbox {
         val executor = SandboxRawExecutor(configuration)
         val inputData = "Hello World!".toByteArray()
         val ex = assertThrows<SandboxException>{ executor.run(ClassSource.fromClassName(UnmarshalledInput::class.java.name), inputData) }
@@ -41,7 +41,7 @@ class SandboxRawExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test output is unmarshalled`() = parentedSandbox {
+    fun `test output is unmarshalled`() = sandbox {
         val executor = SandboxRawExecutor(configuration)
         val inputData = "Hello World!".toByteArray()
         val result = executor.run(ClassSource.fromClassName(UnmarshalledOutput::class.java.name), inputData).result

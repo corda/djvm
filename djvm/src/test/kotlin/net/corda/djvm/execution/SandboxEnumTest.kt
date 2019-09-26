@@ -9,7 +9,7 @@ import java.util.function.Function
 
 class SandboxEnumTest : TestBase(KOTLIN) {
     @Test
-    fun `test enum inside sandbox`() = parentedSandbox {
+    fun `test enum inside sandbox`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<Int, Array<String>, TransformEnum>(taskFactory)
             .apply(0)
@@ -17,7 +17,7 @@ class SandboxEnumTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `return enum from sandbox`() = parentedSandbox {
+    fun `return enum from sandbox`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<String, ExampleEnum, FetchEnum>(taskFactory)
             .apply("THREE")
@@ -25,7 +25,7 @@ class SandboxEnumTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test we can identify class as Enum`() = parentedSandbox {
+    fun `test we can identify class as Enum`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<ExampleEnum, Boolean, AssertEnum>(taskFactory)
             .apply(ExampleEnum.THREE)
@@ -33,7 +33,7 @@ class SandboxEnumTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test we can create EnumMap`() = parentedSandbox {
+    fun `test we can create EnumMap`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<ExampleEnum, Int, UseEnumMap>(taskFactory)
             .apply(ExampleEnum.TWO)
@@ -41,7 +41,7 @@ class SandboxEnumTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test we can create EnumSet`() = parentedSandbox {
+    fun `test we can create EnumSet`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<ExampleEnum, Boolean, UseEnumSet>(taskFactory)
             .apply(ExampleEnum.ONE)

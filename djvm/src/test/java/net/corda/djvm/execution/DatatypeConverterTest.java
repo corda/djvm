@@ -20,7 +20,7 @@ class DatatypeConverterTest extends TestBase {
 
     @Test
     void testHexToBinary() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, byte[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<byte[]> success = WithJava.run(executor, HexToBytes.class, TEXT);
             assertThat(success.getResult()).isEqualTo(BINARY);
@@ -37,7 +37,7 @@ class DatatypeConverterTest extends TestBase {
 
     @Test
     void testBinaryToHex() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<byte[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, BytesToHex.class, BINARY);
             assertThat(success.getResult()).isEqualTo(TEXT);

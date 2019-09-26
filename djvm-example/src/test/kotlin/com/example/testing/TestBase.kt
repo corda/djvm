@@ -4,16 +4,12 @@ import net.corda.core.serialization.ConstructorForDeserialization
 import net.corda.core.serialization.CordaSerializable
 import net.corda.core.serialization.DeprecatedConstructorForDeserialization
 import net.corda.djvm.SandboxConfiguration
-import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
-import net.corda.djvm.SandboxConfiguration.Companion.ALL_EMITTERS
-import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
 import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
 import net.corda.djvm.execution.ExecutionProfile.*
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.messages.Severity.*
-import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.AfterAll
@@ -37,14 +33,13 @@ abstract class TestBase(type: SandboxType) {
                 .split(File.pathSeparator).map { Paths.get(it) }.filter { exists(it) }
 
         private lateinit var bootstrapSource: BootstrapClassLoader
-        private lateinit var configuration: SandboxConfiguration
-        private lateinit var classLoader: SandboxClassLoader
+        private lateinit var rootConfiguration: AnalysisConfiguration
 
         @BeforeAll
         @JvmStatic
         fun setupClassLoader() {
             bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
-            val rootConfiguration = AnalysisConfiguration.createRoot(
+            rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
                 whitelist = MINIMAL,
                 visibleAnnotations = setOf(
@@ -54,15 +49,6 @@ abstract class TestBase(type: SandboxType) {
                 ),
                 bootstrapSource = bootstrapSource
             )
-            configuration = SandboxConfiguration.of(
-                UNLIMITED,
-                ALL_RULES,
-                ALL_EMITTERS,
-                ALL_DEFINITION_PROVIDERS,
-                true,
-                rootConfiguration
-            )
-            classLoader = SandboxClassLoader.createFor(configuration)
         }
 
         @AfterAll
@@ -100,20 +86,16 @@ abstract class TestBase(type: SandboxType) {
         thread {
             try {
                 UserPathSource(classPaths).use { userSource ->
-                    val analysisConfiguration = configuration.analysisConfiguration.createChild(
+                    val analysisConfiguration = rootConfiguration.createChild(
                         userSource = userSource,
                         newMinimumSeverityLevel = minimumSeverityLevel,
                         visibleAnnotations = visibleAnnotations,
                         sandboxOnlyAnnotations = sandboxOnlyAnnotations
                     )
-                    SandboxRuntimeContext(SandboxConfiguration.of(
-                        configuration.executionProfile,
-                        configuration.rules,
-                        configuration.emitters,
-                        configuration.definitionProviders,
-                        enableTracing,
+                    SandboxRuntimeContext(SandboxConfiguration.createFor(
                         analysisConfiguration,
-                        classLoader
+                        UNLIMITED,
+                        enableTracing
                     )).use {
                         action(this)
                     }

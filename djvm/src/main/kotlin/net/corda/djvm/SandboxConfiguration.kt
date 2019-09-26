@@ -5,7 +5,6 @@ import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.EMIT_TRACING
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.execution.ExecutionProfile
-import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.rules.implementation.*
 import net.corda.djvm.rules.implementation.instrumentation.*
@@ -19,15 +18,13 @@ import java.util.Collections.unmodifiableList
  * @property definitionProviders The meta-data providers to apply to class and member definitions.
  * @property executionProfile The execution profile to use in the sandbox.
  * @property analysisConfiguration The configuration used in the analysis of classes.
- * @property parentClassLoader The [SandboxClassLoader] that this sandbox will use as a parent.
  */
 class SandboxConfiguration private constructor(
         val rules: List<Rule>,
         val emitters: List<Emitter>,
         val definitionProviders: List<DefinitionProvider>,
         val executionProfile: ExecutionProfile,
-        val analysisConfiguration: AnalysisConfiguration,
-        val parentClassLoader: SandboxClassLoader?
+        val analysisConfiguration: AnalysisConfiguration
 ) {
     companion object {
         @JvmField
@@ -82,8 +79,7 @@ class SandboxConfiguration private constructor(
             emitters: List<Emitter>? = null,
             definitionProviders: List<DefinitionProvider> = ALL_DEFINITION_PROVIDERS,
             enableTracing: Boolean = true,
-            analysisConfiguration: AnalysisConfiguration,
-            parentClassLoader: SandboxClassLoader? = null
+            analysisConfiguration: AnalysisConfiguration
         ) = SandboxConfiguration(
                 executionProfile = profile,
                 rules = rules,
@@ -91,32 +87,19 @@ class SandboxConfiguration private constructor(
                     enableTracing || it.priority > EMIT_TRACING
                 },
                 definitionProviders = definitionProviders,
-                analysisConfiguration = analysisConfiguration,
-                parentClassLoader = parentClassLoader
+                analysisConfiguration = analysisConfiguration
         )
 
         /**
-         * Create a fresh [SandboxConfiguration] that respects the parent/child
-         * relationships of the linked [AnalysisConfiguration] objects. This
-         * configuration will contain all rules, emitters and definition providers.
+         * Create a fresh [SandboxConfiguration] that contains all rules,
+         * emitters and definition providers.
          */
         fun createFor(
             analysisConfiguration: AnalysisConfiguration,
             profile: ExecutionProfile,
             enableTracing: Boolean
         ): SandboxConfiguration {
-            return analysisConfiguration.parent?.let {
-                val parent = createFor(it, profile, enableTracing)
-                of(
-                    profile = parent.executionProfile,
-                    rules = parent.rules,
-                    emitters = parent.emitters,
-                    definitionProviders = parent.definitionProviders,
-                    enableTracing = enableTracing,
-                    analysisConfiguration = analysisConfiguration,
-                    parentClassLoader = SandboxClassLoader.createFor(parent)
-                )
-            } ?: of(
+            return of(
                 profile = profile,
                 enableTracing = enableTracing,
                 analysisConfiguration = analysisConfiguration

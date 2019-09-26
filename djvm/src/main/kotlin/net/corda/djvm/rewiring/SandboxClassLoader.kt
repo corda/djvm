@@ -28,6 +28,7 @@ import java.util.function.Function
  * @property supportingClassLoader The class loader used to find classes on the extended class path.
  * @property rewriter The re-writer to use for registered classes.
  * @property context The context in which analysis and processing is performed.
+ * @property byteCodeCache Precomputed class bytecode, to save us from regenerating it.
  * @param throwableClass This sandbox's definition of [sandbox.java.lang.Throwable].
  * @param parent This classloader's parent classloader.
  */
@@ -37,9 +38,10 @@ class SandboxClassLoader private constructor(
     private val supportingClassLoader: SourceClassLoader,
     private val rewriter: ClassRewriter,
     private val context: AnalysisContext,
+    private val byteCodeCache: Map<String, ByteCode>,
     throwableClass: Class<*>?,
     parent: ClassLoader?
-) : ClassLoader(parent ?: getSystemClassLoader()) {
+) : ClassLoader(parent ?: getSystemClassLoader()), AutoCloseable {
 
     /**
      * The analyzer used to traverse the class hierarchy.
@@ -56,6 +58,14 @@ class SandboxClassLoader private constructor(
      * Cache of loaded byte-code.
      */
     private val loadedByteCode = mutableMapOf<String, ByteCode>()
+
+    /**
+     * Update the common bytecode cache with the classes we have generated.
+     */
+    override fun close() {
+        analysisConfiguration.updateCache(loadedByteCode)
+        (parent as? SandboxClassLoader)?.close()
+    }
 
     /**
      * We need to load [sandbox.java.lang.Throwable] up front, so that we can
@@ -78,6 +88,7 @@ class SandboxClassLoader private constructor(
         supportingClassLoader,
         rewriter,
         newContext,
+        byteCodeCache,
         throwableClass,
         parent
     )
@@ -354,31 +365,33 @@ class SandboxClassLoader private constructor(
         val byteCode = if (analysisConfiguration.isTemplateClass(requestedPath)) {
             loadUnmodifiedByteCode(requestedPath)
         } else {
-            // Load the byte code for the specified class.
-            val reader = try {
-                supportingClassLoader.classReader(sourceName, context, request.origin)
-            } catch (e: SandboxClassLoadingException) {
-                e.messages.clearProvisional()
-                throw ClassNotFoundException(e.message)
-            }
+            byteCodeCache[request.qualifiedClassName] ?: run {
+                // Load the byte code for the specified class.
+                val reader = try {
+                    supportingClassLoader.classReader(sourceName, context, request.origin)
+                } catch (e: SandboxClassLoadingException) {
+                    e.messages.clearProvisional()
+                    throw ClassNotFoundException(e.message)
+                }
 
-            // Analyse the class if not matching the whitelist.
-            val readClassName = reader.className
-            if (!analysisConfiguration.whitelist.matches(readClassName)) {
-                logger.trace("Class {} does not match with the whitelist", request.qualifiedClassName)
-                logger.trace("Analyzing class {}...", request.qualifiedClassName)
-                analyzer.analyze(reader, context, SKIP_FRAMES)
-            }
+                // Analyse the class if not matching the whitelist.
+                val readClassName = reader.className
+                if (!analysisConfiguration.whitelist.matches(readClassName)) {
+                    logger.trace("Class {} does not match with the whitelist", request.qualifiedClassName)
+                    logger.trace("Analyzing class {}...", request.qualifiedClassName)
+                    analyzer.analyze(reader, context, SKIP_FRAMES)
+                }
 
-            // Check if any errors were found during analysis.
-            context.messages.acceptProvisional()
-            if (context.messages.errorCount > 0) {
-                logger.debug("Errors detected after analyzing class {}", request.qualifiedClassName)
-                throw SandboxClassLoadingException("Analysis failed for ${request.qualifiedClassName}", context)
-            }
+                // Check if any errors were found during analysis.
+                context.messages.acceptProvisional()
+                if (context.messages.errorCount > 0) {
+                    logger.debug("Errors detected after analyzing class {}", request.qualifiedClassName)
+                    throw SandboxClassLoadingException("Analysis failed for ${request.qualifiedClassName}", context)
+                }
 
-            // Transform the class definition and byte code in accordance with provided rules.
-            rewriter.rewrite(reader, context)
+                // Transform the class definition and byte code in accordance with provided rules.
+                rewriter.rewrite(reader, context)
+            }
         }
 
         // Try to define the transformed class.
@@ -450,10 +463,14 @@ class SandboxClassLoader private constructor(
          * @param configuration The [SandboxConfiguration] containing the classloader's configuration parameters.
          */
         fun createFor(configuration: SandboxConfiguration): SandboxClassLoader {
-            val analysisConfiguration = configuration.analysisConfiguration
-            val supportingClassLoader = analysisConfiguration.supportingClassLoader
-            val parentClassLoader = configuration.parentClassLoader
+            return createFor(configuration, configuration.analysisConfiguration)
+        }
 
+        private fun createFor(configuration: SandboxConfiguration, analysisConfiguration: AnalysisConfiguration): SandboxClassLoader {
+            val parentClassLoader = analysisConfiguration.parent?.let {
+                createFor(configuration, it)
+            }
+            val supportingClassLoader = analysisConfiguration.supportingClassLoader
             return SandboxClassLoader(
                 analysisConfiguration = analysisConfiguration,
                 supportingClassLoader = supportingClassLoader,
@@ -461,10 +478,10 @@ class SandboxClassLoader private constructor(
                                               configuration = analysisConfiguration),
                 rewriter = ClassRewriter(configuration, supportingClassLoader),
                 context = AnalysisContext.fromConfiguration(analysisConfiguration),
+                byteCodeCache = analysisConfiguration.byteCodeCache,
                 throwableClass = parentClassLoader?.throwableClass,
                 parent = parentClassLoader
             )
         }
     }
-
 }

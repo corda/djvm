@@ -285,9 +285,7 @@ val nativeOrder: ByteOrder = when (java.nio.ByteOrder.nativeOrder()) {
 /**
  * Replacement function for [ClassLoader.getSystemClassLoader].
  */
-val systemClassLoader: ClassLoader get() {
-    return SandboxRuntimeContext.instance.classLoader
-}
+val systemClassLoader: ClassLoader = SandboxRuntimeContext.instance.classLoader
 
 /**
  * Filter function for [Class.getClassLoader].

@@ -20,7 +20,7 @@ class SandboxConcurrentHashMapTest extends TestBase {
     @Test
     void testJoiningIterableInsideSandbox() {
         String[] inputs = new String[]{ "one", "One", "ONE" };
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, CreateMap.class, inputs);
             assertThat(success.getResult()).isEqualTo("[one has 3]");
@@ -68,7 +68,7 @@ class SandboxConcurrentHashMapTest extends TestBase {
     @Test
     void testStreamOfKeys() {
         Integer[] inputs = new Integer[]{ 1, 2, 3 };
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<Integer[], Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> success = WithJava.run(executor, KeyStreamMap.class, inputs);
             assertThat(success.getResult()).isEqualTo(6);

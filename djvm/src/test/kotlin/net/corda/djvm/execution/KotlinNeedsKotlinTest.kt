@@ -11,7 +11,7 @@ class KotlinNeedsKotlinTest : TestBase(JAVA) {
     @Test
     fun `kotlin code needs kotlin libraries`() {
         val exception = assertThrows<NoClassDefFoundError> {
-            parentedSandbox {
+            sandbox {
                 val taskFactory = classLoader.createTaskFactory()
                 classLoader.typedTaskFor<String, String, UseKotlinForSomething>(taskFactory)
                     .apply("Hello Kotlin!")
