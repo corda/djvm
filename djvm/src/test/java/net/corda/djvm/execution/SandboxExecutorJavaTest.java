@@ -6,9 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
 
-import static java.util.Collections.*;
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.messages.Severity.WARNING;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -21,7 +19,7 @@ class SandboxExecutorJavaTest extends TestBase {
 
     @Test
     void testTransaction() {
-        sandbox(new Object[0], emptySet(), emptySet(), WARNING, true, ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createRawTaskFactory();
                 Function<? super Object, ?> verifyTask = ctx.getClassLoader().createTaskFor(taskFactory, ContractWrapper.class);

@@ -23,7 +23,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testInstant() {
         Instant instant = Instant.now();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -45,7 +45,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testDuration() {
         Duration duration = Duration.ofHours(2);
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -67,7 +67,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testLocalDate() {
         LocalDate localDate = LocalDate.now();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -89,7 +89,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testLocalTime() {
         LocalTime localTime = LocalTime.now();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -111,7 +111,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testLocalDateTime() {
         LocalDateTime localDateTime = LocalDateTime.now();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -133,7 +133,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testMonthDay() {
         MonthDay monthDay = MonthDay.now();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -155,7 +155,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testOffsetDateTime() {
         OffsetDateTime offsetDateTime = OffsetDateTime.now();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -177,7 +177,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testOffsetTime() {
         OffsetTime offsetTime = OffsetTime.now();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -199,7 +199,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testPeriod() {
         Period period = Period.of(1, 2, 3);
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -221,7 +221,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testYear() {
         Year year = Year.now();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -243,7 +243,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testYearMonth() {
         YearMonth yearMonth = YearMonth.now();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -265,7 +265,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testZonedDateTime() {
         ZonedDateTime zonedDateTime = ZonedDateTime.now();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -287,7 +287,7 @@ class JavaTimeTest extends TestBase {
     @Test
     void testZoneOffset() {
         ZoneOffset zoneOffset = ZoneOffset.ofHours(7);
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
 
@@ -308,7 +308,7 @@ class JavaTimeTest extends TestBase {
 
     @Test
     void testAllZoneIDs() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
                 Function<?, String[]> allZoneIDs = typedTaskFor(ctx.getClassLoader(), taskFactory, AllZoneIDs.class);
@@ -323,7 +323,7 @@ class JavaTimeTest extends TestBase {
 
     @Test
     void testDefaultZoneID() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
                 Function<?, String> defaultZoneIdTask = typedTaskFor(ctx.getClassLoader(), taskFactory, DefaultZoneId.class);
@@ -338,14 +338,6 @@ class JavaTimeTest extends TestBase {
 
     @Test
     void testDefaultTimeZone() {
-        // We need to use a standalone sandbox here until we can
-        // recreate parent classloaders from cached byte-code.
-        // The problem is that each sandbox should know about those
-        // strings which have already been interned by the parent
-        // classloader when (e.g.) they were loaded into static
-        // final fields.
-        //
-        // THIS ISSUE AFFECTS ANYTHING THAT LOADS RESOURCE BUNDLES.
         sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
@@ -363,14 +355,6 @@ class JavaTimeTest extends TestBase {
     void testDate() {
         Date now = new Date();
 
-        // We need to use a standalone sandbox here until we can
-        // recreate parent classloaders from cached byte-code.
-        // The problem is that each sandbox should know about those
-        // strings which have already been interned by the parent
-        // classloader when (e.g.) they were loaded into static
-        // final fields.
-        //
-        // THIS ISSUE AFFECTS ANYTHING THAT LOADS RESOURCE BUNDLES.
         sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
@@ -389,7 +373,7 @@ class JavaTimeTest extends TestBase {
         Date now = new Date();
         Date later = new AddToDate().apply(now);
 
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             try {
                 Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
                 Function<Date, Date> addToDate = typedTaskFor(ctx.getClassLoader(), taskFactory, AddToDate.class);

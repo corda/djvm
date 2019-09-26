@@ -19,7 +19,7 @@ class SandboxCurrencyTest extends TestBase {
     @ParameterizedTest
     @CsvSource({"GBP,British Pound Sterling,GBP,2", "EUR,Euro,EUR,2", "USD,US Dollar,USD,2"})
     void testCurrencies(String currencyCode, String displayName, String symbol, int fractionDigits) {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Object[]> output = WithJava.run(executor, GetCurrency.class, currencyCode);
             assertThat(output.getResult()).isEqualTo(new Object[]{ displayName, symbol, fractionDigits });

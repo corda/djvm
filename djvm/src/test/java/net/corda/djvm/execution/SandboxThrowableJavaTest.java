@@ -6,10 +6,8 @@ import net.corda.djvm.rules.RuleViolationError;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import static java.util.Collections.*;
 import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.Utilities.*;
-import static net.corda.djvm.messages.Severity.*;
 
 import java.io.*;
 import java.net.URI;
@@ -28,7 +26,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testUserExceptionHandling() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String[]> output = WithJava.run(executor, ThrowAndCatchJavaExample.class, "Hello World!");
             assertThat(output.getResult())
@@ -39,7 +37,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testCheckedExceptions() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> {
@@ -57,7 +55,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testMultiCatchExceptions() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<Integer, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> {
@@ -104,7 +102,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testMultiCatchWithDisallowedExceptions() {
-        sandbox(new Object[0], emptySet(), emptySet(), WARNING, true, ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertAll(
                 () -> {
@@ -126,7 +124,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testSuppressedJvmExceptions() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable exception = assertThrows(IllegalArgumentException.class,
                 () -> WithJava.run(executor, WithSuppressedJvmExceptions.class, "Hello World!")
@@ -145,7 +143,7 @@ class SandboxThrowableJavaTest extends TestBase {
 
     @Test
     void testSuppressedUserExceptions() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable exception = assertThrows(IllegalArgumentException.class,
                 () -> WithJava.run(executor, WithSuppressedUserExceptions.class, "Hello World!")

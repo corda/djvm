@@ -62,7 +62,7 @@ class JarInputStreamTest extends TestBase {
             Files.copy(testJar.getPath(), baos);
             input = new ByteArrayInputStream(baos.toByteArray());
         }
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<InputStream, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String[]> success = WithJava.run(executor, JarStreamer.class, input);
             assertNotNull(success.getResult());

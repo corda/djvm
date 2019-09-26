@@ -61,8 +61,7 @@ abstract class TestBase(type: SandboxType) {
         val TEST_WHITELIST = Whitelist.MINIMAL + setOf("^net/corda/djvm/Utilities(\\..*)?\$".toRegex())
 
         private lateinit var parentConfiguration: SandboxConfiguration
-        lateinit var bootstrapClassLoader: BootstrapClassLoader
-        lateinit var parentClassLoader: SandboxClassLoader
+        private lateinit var bootstrapClassLoader: BootstrapClassLoader
 
         /**
          * Get the full name of type [T].
@@ -71,22 +70,18 @@ abstract class TestBase(type: SandboxType) {
 
         @BeforeAll
         @JvmStatic
-        fun setupParentClassLoader() {
+        fun setupRootClassLoader() {
             bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
             val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
                 whitelist = TEST_WHITELIST,
                 bootstrapSource = bootstrapClassLoader
             )
-            parentConfiguration = SandboxConfiguration.of(
-                ExecutionProfile.UNLIMITED,
-                ALL_RULES,
-                ALL_EMITTERS,
-                ALL_DEFINITION_PROVIDERS,
-                true,
-                rootConfiguration
+            parentConfiguration = SandboxConfiguration.createFor(
+                analysisConfiguration = rootConfiguration,
+                profile = ExecutionProfile.UNLIMITED,
+                enableTracing = true
             )
-            parentClassLoader = SandboxClassLoader.createFor(parentConfiguration)
         }
 
         @AfterAll
@@ -148,7 +143,14 @@ abstract class TestBase(type: SandboxType) {
         minimumSeverityLevel: Severity = INFORMATIONAL,
         noinline block: (RuleValidator.(AnalysisContext) -> Unit)
     ) {
-        val reader = ClassReader(T::class.java.name)
+        return validate(ClassReader(T::class.java.name), minimumSeverityLevel, block)
+    }
+
+    fun validate(
+        reader: ClassReader,
+        minimumSeverityLevel: Severity,
+        block: (RuleValidator.(AnalysisContext) -> Unit)
+    ) {
         UserPathSource(classPaths).use { userSource ->
             val analysisConfiguration = AnalysisConfiguration.createRoot(
                 userSource = userSource,
@@ -167,11 +169,11 @@ abstract class TestBase(type: SandboxType) {
      * Run action on a separate thread to ensure that the code is run off a clean slate. The sandbox context is local to
      * the current thread, so this allows inspection of the cost summary object, etc. from within the provided delegate.
      */
-    fun sandbox(
+    fun customSandbox(
         visibleAnnotations: Set<Class<out Annotation>>,
         action: SandboxRuntimeContext.() -> Unit
     ) {
-        return sandbox(
+        return customSandbox(
             visibleAnnotations = visibleAnnotations,
             minimumSeverityLevel = WARNING,
             enableTracing = true,
@@ -179,9 +181,9 @@ abstract class TestBase(type: SandboxType) {
         )
     }
 
-    fun sandbox(action: SandboxRuntimeContext.() -> Unit) = sandbox(emptySet(), action)
+    fun customSandbox(action: SandboxRuntimeContext.() -> Unit) = customSandbox(emptySet(), action)
 
-    fun sandbox(
+    fun customSandbox(
         vararg options: Any,
         visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
         sandboxOnlyAnnotations: Set<String> = emptySet(),
@@ -241,40 +243,30 @@ abstract class TestBase(type: SandboxType) {
         throw thrownException ?: return
     }
 
-    fun parentedSandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit)
-            = parentedSandbox(WARNING, visibleAnnotations, emptySet(), true, action)
+    fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit)
+            = sandbox(WARNING, visibleAnnotations, emptySet(), action)
 
-    fun parentedSandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, action: SandboxRuntimeContext.() -> Unit)
-            = parentedSandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, true, action)
+    fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, action: SandboxRuntimeContext.() -> Unit)
+            = sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, action)
 
-    fun parentedSandbox(action: SandboxRuntimeContext.() -> Unit)
-            = parentedSandbox(WARNING, emptySet(), emptySet(), true, action)
+    fun sandbox(action: SandboxRuntimeContext.() -> Unit)
+            = sandbox(WARNING, emptySet(), emptySet(), action)
 
-    fun parentedSandbox(
+    fun sandbox(
         minimumSeverityLevel: Severity,
         visibleAnnotations: Set<Class<out Annotation>>,
         sandboxOnlyAnnotations: Set<String>,
-        enableTracing: Boolean,
         action: SandboxRuntimeContext.() -> Unit
     ) {
         var thrownException: Throwable? = null
         thread {
             try {
                 UserPathSource(classPaths).use { userSource ->
-                    val analysisConfiguration = parentConfiguration.analysisConfiguration.createChild(
+                    SandboxRuntimeContext(parentConfiguration.createChild(
                         userSource = userSource,
                         newMinimumSeverityLevel = minimumSeverityLevel,
                         visibleAnnotations = visibleAnnotations,
                         sandboxOnlyAnnotations = sandboxOnlyAnnotations
-                    )
-                    SandboxRuntimeContext(SandboxConfiguration.of(
-                        parentConfiguration.executionProfile,
-                        parentConfiguration.rules,
-                        parentConfiguration.emitters,
-                        parentConfiguration.definitionProviders,
-                        enableTracing,
-                        analysisConfiguration,
-                        parentClassLoader
                     )).use {
                         assertThat(runtimeCosts).areZero()
                         action(this)

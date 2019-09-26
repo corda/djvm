@@ -9,7 +9,7 @@ import java.util.function.Function
 class SandboxThrowableTest : TestBase(KOTLIN) {
 
     @Test
-    fun `test user exception handling`() = parentedSandbox {
+    fun `test user exception handling`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<String, Array<String>, ThrowAndCatchExample>(taskFactory)
             .apply("Hello World")
@@ -18,7 +18,7 @@ class SandboxThrowableTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test rethrowing an exception`() = parentedSandbox {
+    fun `test rethrowing an exception`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<String, Array<String>, ThrowAndRethrowExample>(taskFactory)
             .apply("Hello World")
@@ -27,7 +27,7 @@ class SandboxThrowableTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test JVM exceptions still propagate`() = parentedSandbox {
+    fun `test JVM exceptions still propagate`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<Int, String, TriggerJVMException>(taskFactory)
             .apply(-1)

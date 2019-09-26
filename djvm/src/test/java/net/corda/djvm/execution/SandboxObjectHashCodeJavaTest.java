@@ -18,7 +18,7 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
 
     @Test
     void testHashForArray() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, ArrayHashCode.class, null);
             assertThat(output.getResult()).isEqualTo(0xfed_c0de + 1);
@@ -28,7 +28,7 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
 
     @Test
     void testHashForObjectInArray() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, ObjectInArrayHashCode.class, null);
             assertThat(output.getResult()).isEqualTo(0xfed_c0de + 1);
@@ -41,7 +41,7 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
         assertThatExceptionOfType(NullPointerException.class)
             .isThrownBy(() -> new HashCode().apply(null));
 
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             assertThatExceptionOfType(NullPointerException.class)
                 .isThrownBy(() -> WithJava.run(executor, HashCode.class, null));
@@ -51,7 +51,7 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
 
     @Test
     void testHashForWrappedInteger() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, HashCode.class, 1234);
             assertThat(output.getResult()).isEqualTo(Integer.hashCode(1234));
@@ -61,7 +61,7 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
 
     @Test
     void testHashForWrappedString() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, HashCode.class, "Burble");
             assertThat(output.getResult()).isEqualTo("Burble".hashCode());

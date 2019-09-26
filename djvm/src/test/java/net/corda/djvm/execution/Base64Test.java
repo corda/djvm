@@ -22,7 +22,7 @@ class Base64Test extends TestBase {
 
     @Test
     void testBase64ToBinary() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, byte[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<byte[]> success = WithJava.run(executor, Base64ToBytes.class, BASE64);
             assertNotNull(success.getResult());
@@ -40,7 +40,7 @@ class Base64Test extends TestBase {
 
     @Test
     void testBinaryToBase64() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<byte[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<String> success = WithJava.run(executor, BytesToBase64.class, MESSAGE.getBytes(UTF_8));
             assertThat(success.getResult()).isEqualTo(BASE64);

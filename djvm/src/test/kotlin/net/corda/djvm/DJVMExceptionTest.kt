@@ -11,7 +11,7 @@ import java.util.*
 
 class DJVMExceptionTest : TestBase(KOTLIN) {
     @Test
-    fun testSingleException() = parentedSandbox {
+    fun testSingleException() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val singleExceptionTask = classLoader.typedTaskFor(taskFactory, SingleExceptionTask::class.java)
         val result = singleExceptionTask.apply( "Hello World")
@@ -26,7 +26,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testMultipleExceptions() = parentedSandbox {
+    fun testMultipleExceptions() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val multipleExceptionsTask = classLoader.typedTaskFor(taskFactory, MultipleExceptionsTask::class.java)
         val result = multipleExceptionsTask.apply("Hello World")
@@ -62,7 +62,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testJavaThrowableToSandbox() = parentedSandbox {
+    fun testJavaThrowableToSandbox() = sandbox {
         val djvm = DJVM(classLoader)
         val helloWorld = djvm.stringOf("Hello World")
 
@@ -79,7 +79,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testWeCreateCorrectJVMExceptionAtRuntime() = parentedSandbox {
+    fun testWeCreateCorrectJVMExceptionAtRuntime() = sandbox {
         val djvm = DJVM(classLoader)
         val helloWorld = djvm.stringOf("Hello World")
 
@@ -100,7 +100,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testWeCreateCorrectSyntheticExceptionAtRuntime() = parentedSandbox {
+    fun testWeCreateCorrectSyntheticExceptionAtRuntime() = sandbox {
         val djvm = DJVM(classLoader)
 
         val result = djvm.sandbox(EmptyStackException())
@@ -119,7 +119,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testWeCannotCreateSyntheticExceptionForNonException() = parentedSandbox {
+    fun testWeCannotCreateSyntheticExceptionForNonException() = sandbox {
         val djvm = DJVM(classLoader)
         assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { djvm.classFor("sandbox.java.util.LinkedList\$1DJVM") }
@@ -131,7 +131,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
      * that the classloader can handle it.
      */
     @Test
-    fun testWeCannotCreateSyntheticExceptionForImaginaryJavaClass() = parentedSandbox {
+    fun testWeCannotCreateSyntheticExceptionForImaginaryJavaClass() = sandbox {
         val djvm = DJVM(classLoader)
         assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { djvm.classFor("sandbox.java.util.DoesNotExist\$1DJVM") }
@@ -143,7 +143,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
      * that the classloader can handle it.
      */
     @Test
-    fun testWeCannotCreateSyntheticExceptionForImaginaryUserClass() = parentedSandbox {
+    fun testWeCannotCreateSyntheticExceptionForImaginaryUserClass() = sandbox {
         val djvm = DJVM(classLoader)
         assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { djvm.classFor("sandbox.com.example.DoesNotExist\$1DJVM") }
@@ -151,7 +151,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testExceptionWithSingleConstructor() = parentedSandbox {
+    fun testExceptionWithSingleConstructor() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val task = classLoader.typedTaskFor(taskFactory, HandleTypeNotPresentException::class.java)
         val result = task.apply("NoSuchType")

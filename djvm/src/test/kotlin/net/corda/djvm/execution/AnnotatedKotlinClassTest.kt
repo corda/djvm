@@ -18,7 +18,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     private val kotlinMetadata: Class<out Annotation> = Class.forName("kotlin.Metadata") as Class<out Annotation>
 
     @Test
-    fun testSandboxAnnotation() = parentedSandbox(
+    fun testSandboxAnnotation() = sandbox(
         visibleAnnotations = emptySet(),
         sandboxOnlyAnnotations = setOf("net.corda.djvm.*")
     ) {
@@ -35,7 +35,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
 
     @Disabled("This test needs java.lang.Class.getEnclosingMethod() inside the sandbox.")
     @Test
-    fun testAnnotationInsideSandbox() = parentedSandbox {
+    fun testAnnotationInsideSandbox() = sandbox {
         val executor = DeterministicSandboxExecutor<Any?, String>(configuration)
         executor.run<ReadAnnotation>(null).apply {
             assertThat(result)
@@ -50,7 +50,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testPreservingKotlinMetadataAnnotation() = parentedSandbox {
+    fun testPreservingKotlinMetadataAnnotation() = sandbox {
         val sandboxClass = loadClass<UserKotlinData>().type
         @Suppress("unchecked_cast")
         val sandboxMetadataClass = loadClass(kotlinMetadata.name).type as Class<out Annotation>
@@ -86,7 +86,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test sandboxed class still knows its own primary constructor`() = parentedSandbox {
+    fun `test sandboxed class still knows its own primary constructor`() = sandbox {
         val sandboxClass = loadClass<UserKotlinData>().type
         val primaryConstructor = sandboxClass.kotlin.primaryConstructor ?: fail("Primary constructor missing!")
 
@@ -99,7 +99,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test reflection can fetch all annotations`() = parentedSandbox(
+    fun `test reflection can fetch all annotations`() = sandbox(
         visibleAnnotations = emptySet(),
         sandboxOnlyAnnotations = setOf("net.corda.djvm.**")
     ) {
@@ -123,32 +123,32 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test reflection can fetch all stitched annotations`() = parentedSandbox(
-        visibleAnnotations = setOf(KotlinAnnotation::class.java)
+    fun `test reflection can fetch all stitched annotations`() = sandbox(
+            visibleAnnotations = setOf(KotlinAnnotation::class.java)
     ) {
         val sandboxClass = loadClass<UserKotlinData>().type
         val kotlinAnnotations = sandboxClass.kotlin.annotations.map { ann ->
             ann.annotationClass.qualifiedName
         }
         assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
-            "sandbox.net.corda.djvm.KotlinAnnotation",
-            "net.corda.djvm.KotlinAnnotation",
-            "sandbox.kotlin.Metadata"
+                "sandbox.net.corda.djvm.KotlinAnnotation",
+                "net.corda.djvm.KotlinAnnotation",
+                "sandbox.kotlin.Metadata"
         )
 
         val javaAnnotations = sandboxClass.annotations.map { ann ->
             ann.annotationClass.qualifiedName
         }
         assertThat(javaAnnotations).containsExactlyInAnyOrder(
-            "sandbox.net.corda.djvm.KotlinAnnotation",
-            "net.corda.djvm.KotlinAnnotation",
-            "sandbox.kotlin.Metadata",
-            "kotlin.Metadata"
+                "sandbox.net.corda.djvm.KotlinAnnotation",
+                "net.corda.djvm.KotlinAnnotation",
+                "sandbox.kotlin.Metadata",
+                "kotlin.Metadata"
         )
     }
 
     @Test
-    fun `test reflection can fetch all meta-annotations`() = parentedSandbox {
+    fun `test reflection can fetch all meta-annotations`() = sandbox {
         @Suppress("unchecked_cast")
         val sandboxAnnotation = loadClass<KotlinAnnotation>().type as Class<out Annotation>
 

@@ -1,3 +1,4 @@
+@file:JvmName("Logging")
 package net.corda.djvm.utilities
 
 import org.slf4j.Logger

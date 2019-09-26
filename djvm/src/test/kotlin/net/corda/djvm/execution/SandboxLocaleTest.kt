@@ -12,7 +12,7 @@ import java.util.function.Function
 class SandboxLocaleTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @CsvSource("en,en,''", "en-GB,en,GB", "en-US,en,US", "en-CA,en,CA", "en-AU,en,AU")
-    fun `test loading locales`(tagName: String, language: String, country: String) = parentedSandbox {
+    fun `test loading locales`(tagName: String, language: String, country: String) = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<String, Array<String>, LookupLocale>(taskFactory)
             .apply(tagName)
@@ -28,7 +28,7 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test locale languages`() = parentedSandbox {
+    fun `test locale languages`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<String, Array<String>, GetAllLocaleLanguages>(taskFactory)
             .apply("")
@@ -44,7 +44,7 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test locale countries`() = parentedSandbox {
+    fun `test locale countries`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<String, Array<String>, GetAllLocaleCountries>(taskFactory)
             .apply("")
@@ -60,7 +60,7 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test default locale`() = parentedSandbox {
+    fun `test default locale`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<String, String, GetDefaultLocale>(taskFactory)
             .apply("")

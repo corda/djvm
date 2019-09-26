@@ -17,7 +17,7 @@ class SecurityManagerTest extends TestBase {
 
     @Test
     void testReplacingSecurityManager() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             RuntimeException ex = assertThrows(RuntimeException.class, () -> WithJava.run(executor, ReplacingSecurityManager.class, ""));
             assertThat(ex)

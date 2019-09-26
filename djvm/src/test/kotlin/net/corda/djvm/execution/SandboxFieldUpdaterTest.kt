@@ -11,7 +11,7 @@ import java.util.function.Function
 
 class SandboxFieldUpdaterTest : TestBase(KOTLIN) {
     @Test
-    fun `test long field updater`() = parentedSandbox {
+    fun `test long field updater`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<Long, Long, HasLongField>(taskFactory)
             .apply(1234)
@@ -30,7 +30,7 @@ class SandboxFieldUpdaterTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test integer field updater`() = parentedSandbox {
+    fun `test integer field updater`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<Int, Int, HasIntegerField>(taskFactory)
             .apply(4567)
@@ -49,7 +49,7 @@ class SandboxFieldUpdaterTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test reference field updater`() = parentedSandbox {
+    fun `test reference field updater`() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val result = classLoader.typedTaskFor<String, String, HasReferenceField>(taskFactory)
             .apply("Hello World!")

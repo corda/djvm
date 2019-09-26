@@ -10,7 +10,7 @@ import java.util.function.Function
 class DJVMTest : TestBase(KOTLIN) {
 
     @Test
-    fun testDJVMString() = parentedSandbox {
+    fun testDJVMString() = sandbox {
         with(DJVM(classLoader)) {
             val djvmString = stringOf("New Value")
             assertNotEquals(djvmString, "New Value")
@@ -19,7 +19,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testSimpleIntegerFormats() = parentedSandbox {
+    fun testSimpleIntegerFormats() = sandbox {
         val result = with(DJVM(classLoader)) {
             stringClass.getMethod("format", stringClass, Array<Any>::class.java)
                 .invoke(null,
@@ -31,7 +31,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testHexFormat() = parentedSandbox {
+    fun testHexFormat() = sandbox {
         val result = with(DJVM(classLoader)) {
             stringClass.getMethod("format", stringClass, Array<Any>::class.java)
                 .invoke(null, stringOf("%0#6x"), arrayOf(intOf(768))).toString()
@@ -40,7 +40,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testDoubleFormat() = parentedSandbox {
+    fun testDoubleFormat() = sandbox {
         val result = with(DJVM(classLoader)) {
             stringClass.getMethod("format", stringClass, Array<Any>::class.java)
                 .invoke(null, stringOf("%9.4f"), arrayOf(doubleOf(1234.5678))).toString()
@@ -50,7 +50,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testFloatFormat() = parentedSandbox {
+    fun testFloatFormat() = sandbox {
         val result = with(DJVM(classLoader)) {
             stringClass.getMethod("format", stringClass, Array<Any>::class.java)
                 .invoke(null, stringOf("%7.2f"), arrayOf(floatOf(1234.5678f))).toString()
@@ -60,7 +60,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testCharFormat() = parentedSandbox {
+    fun testCharFormat() = sandbox {
         val result = with(DJVM(classLoader)) {
             stringClass.getMethod("format", stringClass, Array<Any>::class.java)
                 .invoke(null, stringOf("[%c]"), arrayOf(charOf('A'))).toString()
@@ -69,7 +69,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testObjectFormat() = parentedSandbox {
+    fun testObjectFormat() = sandbox {
         val taskFactory = classLoader.createTaskFactory()
         val newObjectTask = classLoader.typedTaskFor(taskFactory, NewObject::class.java)
         val result = newObjectTask.apply(null)
@@ -83,7 +83,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testStringEquality() = parentedSandbox {
+    fun testStringEquality() = sandbox {
         with (DJVM(classLoader)) {
             val number = stringClass.getMethod("valueOf", Double::class.javaPrimitiveType)
                 .invoke(null, (Double.MIN_VALUE / 2.0) * 2.0)
@@ -92,7 +92,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testSandboxingArrays() = parentedSandbox {
+    fun testSandboxingArrays() = sandbox {
         with(DJVM(classLoader)) {
             val result = sandbox(arrayOf(1, 10L, "Hello World", '?', false, 1234.56))
             assertThat(result).isEqualTo(
@@ -101,7 +101,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testUnsandboxingObjectArray() = parentedSandbox {
+    fun testUnsandboxingObjectArray() = sandbox {
         val result = with(DJVM(classLoader)) {
             unsandbox(arrayOf(intOf(1), longOf(10L), stringOf("Hello World"), charOf('?'), booleanOf(false), doubleOf(1234.56)))
         }
@@ -110,7 +110,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testSandboxingPrimitiveArray() = parentedSandbox {
+    fun testSandboxingPrimitiveArray() = sandbox {
         val result = with(DJVM(classLoader)) {
             sandbox(intArrayOf(1, 2, 3, 10))
         }
@@ -118,7 +118,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testSandboxingIntegersAsObjectArray() = parentedSandbox {
+    fun testSandboxingIntegersAsObjectArray() = sandbox {
         with(DJVM(classLoader)) {
             val result = sandbox(arrayOf(1, 2, 3, 10))
             assertThat(result).isEqualTo(
@@ -128,7 +128,7 @@ class DJVMTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun testUnsandboxingArrays() = parentedSandbox {
+    fun testUnsandboxingArrays() = sandbox {
         val (array, result) = with(DJVM(classLoader)) {
             val arr = arrayOf(
                 objectArrayOf(stringOf("Hello")),

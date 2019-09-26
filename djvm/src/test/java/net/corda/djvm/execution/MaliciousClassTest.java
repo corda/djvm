@@ -21,7 +21,7 @@ class MaliciousClassTest extends TestBase {
 
     @Test
     void testImplementingToDJVMString() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(SandboxClassLoadingException.class, () -> WithJava.run(executor, EvilToString.class, ""));
             assertThat(ex)
@@ -44,7 +44,7 @@ class MaliciousClassTest extends TestBase {
 
     @Test
     void testImplementingFromDJVM() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<Object, Object> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(SandboxClassLoadingException.class, () -> WithJava.run(executor, EvilFromDJVM.class, null));
             assertThat(ex)
@@ -67,7 +67,7 @@ class MaliciousClassTest extends TestBase {
 
     @Test
     void testPassingClassIntoSandboxIsForbidden() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<Class<?>, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(executor, EvilClass.class, String.class));
             assertThat(ex)
@@ -86,7 +86,7 @@ class MaliciousClassTest extends TestBase {
     @Test
     void testPassingConstructorIntoSandboxIsForbidden() throws NoSuchMethodException {
         Constructor<?> constructor = getClass().getDeclaredConstructor();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<Constructor<?>, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(executor, EvilConstructor.class, constructor));
             assertThat(ex)
@@ -105,7 +105,7 @@ class MaliciousClassTest extends TestBase {
     @Test
     void testPassingClassLoaderIntoSandboxIsForbidden() {
         ClassLoader classLoader = getClass().getClassLoader();
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<ClassLoader, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(executor, EvilClassLoader.class, classLoader));
             assertThat(ex)
@@ -123,7 +123,7 @@ class MaliciousClassTest extends TestBase {
 
     @Test
     void testCannotInvokeSandboxMethodsExplicitly() {
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(SandboxClassLoadingException.class,
                                () -> WithJava.run(executor, SelfSandboxing.class, "Victory is mine!"));

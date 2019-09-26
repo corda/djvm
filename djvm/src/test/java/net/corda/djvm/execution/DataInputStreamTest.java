@@ -31,7 +31,7 @@ class DataInputStreamTest extends TestBase {
         }
         InputStream input = new ByteArrayInputStream(baos.toByteArray());
 
-        parentedSandbox(ctx -> {
+        sandbox(ctx -> {
             SandboxExecutor<InputStream, Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, DataStreamer.class, input);
             assertThat(success.getResult()).isEqualTo(new Object[]{
