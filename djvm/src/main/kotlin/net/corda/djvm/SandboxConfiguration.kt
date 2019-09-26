@@ -5,27 +5,57 @@ import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.EMIT_TRACING
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.execution.ExecutionProfile
+import net.corda.djvm.messages.Severity
+import net.corda.djvm.rewiring.ByteCodeCache
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.rules.implementation.*
 import net.corda.djvm.rules.implementation.instrumentation.*
+import net.corda.djvm.source.UserSource
 import java.util.Collections.unmodifiableList
 
 /**
- * Configuration to use for the deterministic sandbox.
+ * Configuration to use for the deterministic sandbox. It also caches the bytecode
+ * for the sandbox classes that have been generated according to these rules.
  *
  * @property rules The rules to apply during the analysis phase.
  * @property emitters The code emitters / re-writers to apply to all loaded classes.
  * @property definitionProviders The meta-data providers to apply to class and member definitions.
  * @property executionProfile The execution profile to use in the sandbox.
  * @property analysisConfiguration The configuration used in the analysis of classes.
+ * @property byteCodeCache A cache of bytecode generated using these rules, emitters and definition providers.
  */
 class SandboxConfiguration private constructor(
         val rules: List<Rule>,
         val emitters: List<Emitter>,
         val definitionProviders: List<DefinitionProvider>,
         val executionProfile: ExecutionProfile,
-        val analysisConfiguration: AnalysisConfiguration
+        val analysisConfiguration: AnalysisConfiguration,
+        val byteCodeCache: ByteCodeCache
 ) {
+    /**
+     * Creates a child [SandboxConfiguration] with this instance as its parent.
+     */
+    fun createChild(
+        userSource: UserSource,
+        newMinimumSeverityLevel: Severity?,
+        visibleAnnotations: Set<Class<out Annotation>>,
+        sandboxOnlyAnnotations: Set<String>
+    ): SandboxConfiguration {
+        return SandboxConfiguration(
+            rules = rules,
+            emitters = emitters,
+            definitionProviders = definitionProviders,
+            executionProfile = executionProfile,
+            analysisConfiguration = analysisConfiguration.createChild(
+                userSource = userSource,
+                newMinimumSeverityLevel = newMinimumSeverityLevel,
+                visibleAnnotations =  visibleAnnotations,
+                sandboxOnlyAnnotations = sandboxOnlyAnnotations
+            ),
+            byteCodeCache = ByteCodeCache(byteCodeCache)
+        )
+    }
+
     companion object {
         @JvmField
         val ALL_RULES: List<Rule> = unmodifiableList(listOf(
@@ -87,7 +117,8 @@ class SandboxConfiguration private constructor(
                     enableTracing || it.priority > EMIT_TRACING
                 },
                 definitionProviders = definitionProviders,
-                analysisConfiguration = analysisConfiguration
+                analysisConfiguration = analysisConfiguration,
+                byteCodeCache = ByteCodeCache.createFor(analysisConfiguration)
         )
 
         /**

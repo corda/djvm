@@ -38,7 +38,7 @@ class SandboxClassLoader private constructor(
     private val supportingClassLoader: SourceClassLoader,
     private val rewriter: ClassRewriter,
     private val context: AnalysisContext,
-    private val byteCodeCache: Map<String, ByteCode>,
+    private val byteCodeCache: ByteCodeCache,
     throwableClass: Class<*>?,
     parent: ClassLoader?
 ) : ClassLoader(parent ?: getSystemClassLoader()), AutoCloseable {
@@ -63,7 +63,7 @@ class SandboxClassLoader private constructor(
      * Update the common bytecode cache with the classes we have generated.
      */
     override fun close() {
-        analysisConfiguration.updateCache(loadedByteCode)
+        byteCodeCache.update(loadedByteCode)
         (parent as? SandboxClassLoader)?.close()
     }
 
@@ -463,12 +463,16 @@ class SandboxClassLoader private constructor(
          * @param configuration The [SandboxConfiguration] containing the classloader's configuration parameters.
          */
         fun createFor(configuration: SandboxConfiguration): SandboxClassLoader {
-            return createFor(configuration, configuration.analysisConfiguration)
+            return createFor(configuration, configuration.analysisConfiguration, configuration.byteCodeCache)
         }
 
-        private fun createFor(configuration: SandboxConfiguration, analysisConfiguration: AnalysisConfiguration): SandboxClassLoader {
+        private fun createFor(
+            configuration: SandboxConfiguration,
+            analysisConfiguration: AnalysisConfiguration,
+            byteCodeCache: ByteCodeCache?
+        ): SandboxClassLoader {
             val parentClassLoader = analysisConfiguration.parent?.let {
-                createFor(configuration, it)
+                createFor(configuration, it, byteCodeCache?.parent)
             }
             val supportingClassLoader = analysisConfiguration.supportingClassLoader
             return SandboxClassLoader(
@@ -478,7 +482,7 @@ class SandboxClassLoader private constructor(
                                               configuration = analysisConfiguration),
                 rewriter = ClassRewriter(configuration, supportingClassLoader),
                 context = AnalysisContext.fromConfiguration(analysisConfiguration),
-                byteCodeCache = analysisConfiguration.byteCodeCache,
+                byteCodeCache = byteCodeCache ?: ByteCodeCache(parentClassLoader?.byteCodeCache),
                 throwableClass = parentClassLoader?.throwableClass,
                 parent = parentClassLoader
             )

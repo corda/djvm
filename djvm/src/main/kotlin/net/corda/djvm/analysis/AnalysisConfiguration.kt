@@ -4,7 +4,6 @@ import net.corda.djvm.code.*
 import net.corda.djvm.formatting.MemberFormatter
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.references.*
-import net.corda.djvm.rewiring.ByteCode
 import net.corda.djvm.source.ApiSource
 import net.corda.djvm.source.EmptyApi
 import net.corda.djvm.source.SourceClassLoader
@@ -21,7 +20,6 @@ import java.security.SecureRandom
 import java.security.Security
 import java.util.*
 import java.util.Collections.*
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.regex.Pattern
 import javax.security.auth.x500.X500Principal
@@ -63,15 +61,6 @@ class AnalysisConfiguration private constructor(
         val supportingClassLoader: SourceClassLoader,
         private val memberFormatter: MemberFormatter
 ) {
-    private val _byteCodeCache: MutableMap<String, ByteCode> = ConcurrentHashMap()
-
-    val byteCodeCache: Map<String, ByteCode> get() = unmodifiableMap(_byteCodeCache)
-
-    internal fun updateCache(loadedClasses: Map<String, ByteCode>) {
-        loadedClasses.entries.forEach {
-            _byteCodeCache.putIfAbsent(it.key, it.value)
-        }
-    }
 
     fun formatFor(member: MemberInformation): String = memberFormatter.format(member)
 

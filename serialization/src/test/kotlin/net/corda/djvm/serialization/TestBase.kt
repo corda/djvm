@@ -36,13 +36,13 @@ abstract class TestBase(type: SandboxType) {
                 .split(File.pathSeparator).map { Paths.get(it) }.filter { exists(it) }
 
         private lateinit var bootstrapClassLoader: BootstrapClassLoader
-        private lateinit var rootConfiguration: AnalysisConfiguration
+        private lateinit var parentConfiguration: SandboxConfiguration
 
         @BeforeAll
         @JvmStatic
         fun setupClassLoader() {
             bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
-            rootConfiguration = AnalysisConfiguration.createRoot(
+            val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
                 whitelist = MINIMAL,
                 visibleAnnotations = setOf(
@@ -51,6 +51,11 @@ abstract class TestBase(type: SandboxType) {
                     DeprecatedConstructorForDeserialization::class.java
                 ),
                 bootstrapSource = bootstrapClassLoader
+            )
+            parentConfiguration = SandboxConfiguration.createFor(
+                analysisConfiguration = rootConfiguration,
+                profile = UNLIMITED,
+                enableTracing = false
             )
         }
 
@@ -67,38 +72,32 @@ abstract class TestBase(type: SandboxType) {
     }
 
     fun sandbox(action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(WARNING, emptySet(), emptySet(), false, action)
+        return sandbox(WARNING, emptySet(), emptySet(), action)
     }
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(WARNING, visibleAnnotations, emptySet(), false, action)
+        return sandbox(WARNING, visibleAnnotations, emptySet(), action)
     }
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, false, action)
+        return sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, action)
     }
 
     fun sandbox(
         minimumSeverityLevel: Severity,
         visibleAnnotations: Set<Class<out Annotation>>,
         sandboxOnlyAnnotations: Set<String>,
-        enableTracing: Boolean,
         action: SandboxRuntimeContext.() -> Unit
     ) {
         var thrownException: Throwable? = null
         thread {
             try {
                 UserPathSource(classPaths).use { userSource ->
-                    val analysisConfiguration = rootConfiguration.createChild(
+                    SandboxRuntimeContext(parentConfiguration.createChild(
                         userSource = userSource,
                         newMinimumSeverityLevel = minimumSeverityLevel,
                         visibleAnnotations = visibleAnnotations,
                         sandboxOnlyAnnotations = sandboxOnlyAnnotations
-                    )
-                    SandboxRuntimeContext(SandboxConfiguration.createFor(
-                        analysisConfiguration,
-                        UNLIMITED,
-                        enableTracing
                     )).use {
                         action(this)
                     }

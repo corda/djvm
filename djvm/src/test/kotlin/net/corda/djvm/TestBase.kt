@@ -4,7 +4,6 @@ import foo.bar.sandbox.Callable
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_EMITTERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
-import net.corda.djvm.SandboxConfiguration.Companion.createFor
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor
@@ -61,7 +60,7 @@ abstract class TestBase(type: SandboxType) {
         @JvmField
         val TEST_WHITELIST = Whitelist.MINIMAL + setOf("^net/corda/djvm/Utilities(\\..*)?\$".toRegex())
 
-        private lateinit var rootConfiguration: AnalysisConfiguration
+        private lateinit var parentConfiguration: SandboxConfiguration
         private lateinit var bootstrapClassLoader: BootstrapClassLoader
 
         /**
@@ -73,10 +72,15 @@ abstract class TestBase(type: SandboxType) {
         @JvmStatic
         fun setupRootClassLoader() {
             bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
-            rootConfiguration = AnalysisConfiguration.createRoot(
+            val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
                 whitelist = TEST_WHITELIST,
                 bootstrapSource = bootstrapClassLoader
+            )
+            parentConfiguration = SandboxConfiguration.createFor(
+                analysisConfiguration = rootConfiguration,
+                profile = ExecutionProfile.UNLIMITED,
+                enableTracing = true
             )
         }
 
@@ -240,35 +244,29 @@ abstract class TestBase(type: SandboxType) {
     }
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit)
-            = sandbox(WARNING, visibleAnnotations, emptySet(), true, action)
+            = sandbox(WARNING, visibleAnnotations, emptySet(), action)
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, action: SandboxRuntimeContext.() -> Unit)
-            = sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, true, action)
+            = sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, action)
 
     fun sandbox(action: SandboxRuntimeContext.() -> Unit)
-            = sandbox(WARNING, emptySet(), emptySet(), true, action)
+            = sandbox(WARNING, emptySet(), emptySet(), action)
 
     fun sandbox(
         minimumSeverityLevel: Severity,
         visibleAnnotations: Set<Class<out Annotation>>,
         sandboxOnlyAnnotations: Set<String>,
-        enableTracing: Boolean,
         action: SandboxRuntimeContext.() -> Unit
     ) {
         var thrownException: Throwable? = null
         thread {
             try {
                 UserPathSource(classPaths).use { userSource ->
-                    val analysisConfiguration = rootConfiguration.createChild(
+                    SandboxRuntimeContext(parentConfiguration.createChild(
                         userSource = userSource,
                         newMinimumSeverityLevel = minimumSeverityLevel,
                         visibleAnnotations = visibleAnnotations,
                         sandboxOnlyAnnotations = sandboxOnlyAnnotations
-                    )
-                    SandboxRuntimeContext(createFor(
-                        analysisConfiguration,
-                        ExecutionProfile.UNLIMITED,
-                        enableTracing
                     )).use {
                         assertThat(runtimeCosts).areZero()
                         action(this)
