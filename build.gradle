@@ -53,6 +53,9 @@ subprojects {
 
         // Configure the host timezone to match the DJVM's.
         systemProperty 'user.timezone', 'UTC'
+
+        // Choose which garbage-collector to use.
+        jvmArgs '-XX:+UseG1GC'
     }
 }
 
