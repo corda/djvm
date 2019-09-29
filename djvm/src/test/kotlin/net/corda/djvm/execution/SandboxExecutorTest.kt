@@ -375,16 +375,15 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
             .isExactlyInstanceOf(SandboxException::class.java)
             .hasCauseExactlyInstanceOf(RuleViolationError::class.java)
             .hasMessageContaining("Disallowed reference to API;")
-            .hasMessageContaining("java.lang.Class.getMethods()")
+            .hasMessageContaining("java.lang.Class.getDeclaredConstructor(Class[])")
         assertThat(ex.cause).extracting { it.stackTrace.toList() }.asList().hasSize(2)
     }
 
     class TestReflection : Function<Int, Int> {
         override fun apply(input: Int): Int {
             val clazz = Object::class.java
-            val obj = clazz.newInstance()
-            val result = clazz.methods.first().invoke(obj)
-            return obj.hashCode() + result.hashCode()
+            val obj = clazz.getDeclaredConstructor().newInstance()
+            return obj.hashCode()
         }
     }
 

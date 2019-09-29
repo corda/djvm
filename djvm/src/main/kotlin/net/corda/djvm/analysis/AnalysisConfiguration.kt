@@ -11,8 +11,6 @@ import net.corda.djvm.source.UserSource
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
-import sun.security.x509.X500Name
-import sun.util.locale.provider.JRELocaleProviderAdapter
 import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
@@ -133,6 +131,9 @@ class AnalysisConfiguration private constructor(
          */
         const val KOTLIN_METADATA = "Lkotlin/Metadata;"
 
+        private const val SHARED_SECRETS = "sandbox/sun/misc/SharedSecrets"
+        private const val X500_NAME = "sandbox/sun/security/x509/X500Name"
+
         /**
          * These annotations are duplicated into the sandbox, such
          * that the sandboxed class is annotated with both the original
@@ -201,12 +202,7 @@ class AnalysisConfiguration private constructor(
             java.util.concurrent.locks.ReentrantLock::class.java,
             java.util.zip.CRC32::class.java,
             java.util.zip.Inflater::class.java,
-            Any::class.java,
-            sun.misc.JavaLangAccess::class.java,
-            sun.misc.SharedSecrets::class.java,
-            sun.misc.VM::class.java,
-            sun.security.action.GetBooleanAction::class.java,
-            sun.security.action.GetPropertyAction::class.java
+            Any::class.java
         ).sandboxed() + setOf(
             "sandbox/BasicInput",
             "sandbox/BasicOutput",
@@ -233,10 +229,15 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/util/concurrent/atomic/DJVM",
             "sandbox/java/util/concurrent/locks/DJVMConditionObject",
             "sandbox/javax/security/auth/x500/DJVM",
-            "sandbox/sun/misc/SharedSecrets\$1",
-            "sandbox/sun/misc/SharedSecrets\$JavaLangAccessImpl",
+            "sandbox/sun/misc/JavaLangAccess",
+            SHARED_SECRETS,
+            "$SHARED_SECRETS\$1",
+            "$SHARED_SECRETS\$JavaLangAccessImpl",
+            "sandbox/sun/misc/VM",
+            "sandbox/sun/security/action/GetBooleanAction",
+            "sandbox/sun/security/action/GetPropertyAction",
             "sandbox/sun/security/provider/ByteArrayAccess",
-            "sandbox/sun/security/x509/X500Name\$1",
+            "$X500_NAME\$1",
             "sandbox/sun/util/calendar/ZoneInfoFile\$1"
         ))
 
@@ -430,7 +431,7 @@ class AnalysisConfiguration private constructor(
 
             object : MethodBuilder(
                 access = ACC_PRIVATE or ACC_STATIC,
-                className = sandboxed(JRELocaleProviderAdapter::class.java),
+                className = "sandbox/sun/util/locale/provider/JRELocaleProviderAdapter",
                 memberName = "isNonENLangSupported",
                 descriptor = "()Z"
             ) {
@@ -493,7 +494,7 @@ class AnalysisConfiguration private constructor(
              */
             object : MethodBuilder(
                 access = ACC_PUBLIC,
-                className = sandboxed(X500Name::class.java),
+                className = X500_NAME,
                 memberName = "asX500Principal",
                 descriptor = "()Lsandbox/javax/security/auth/x500/X500Principal;"
             ) {
@@ -514,7 +515,7 @@ class AnalysisConfiguration private constructor(
              .build(),
             object : MethodBuilder(
                 access = ACC_PUBLIC or ACC_STATIC,
-                className = sandboxed(X500Name::class.java),
+                className = X500_NAME,
                 memberName = "asX500Name",
                 descriptor = "(Lsandbox/javax/security/auth/x500/X500Principal;)Lsandbox/sun/security/x509/X500Name;"
             ) {
@@ -556,7 +557,7 @@ class AnalysisConfiguration private constructor(
                  *     return new com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl()
                  */
                 override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    val implementationClass = sandboxed(com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl::class.java)
+                    val implementationClass = "sandbox/com/sun/org/apache/xerces/internal/jaxp/datatype/DatatypeFactoryImpl"
                     new(implementationClass)
                     duplicate()
                     invokeSpecial(implementationClass, CONSTRUCTOR_NAME, "()V")
@@ -569,8 +570,8 @@ class AnalysisConfiguration private constructor(
         fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
         fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
 
-        private fun toSandboxDescriptor(clazz: Class<*>): String = "L$SANDBOX_PREFIX${Type.getInternalName(clazz)};"
-        private fun toDescriptor(clazz: Class<*>): String = "L${Type.getInternalName(clazz)};"
+        private fun toSandboxDescriptor(clazz: Class<*>): String = "L$SANDBOX_PREFIX${Type.getInternalName(clazz)};".intern()
+        private fun toDescriptor(clazz: Class<*>): String = "L${Type.getInternalName(clazz)};".intern()
 
         private fun Set<String>.mergeSandboxed(extra: Collection<Class<out Annotation>>): Set<String> {
             return merge(extra, ::toSandboxDescriptor)

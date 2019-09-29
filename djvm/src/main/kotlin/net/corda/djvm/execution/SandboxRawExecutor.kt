@@ -9,7 +9,7 @@ class SandboxRawExecutor(configuration: SandboxConfiguration) : Executor<Any?, A
     override fun run(runnableClass: ClassSource, input: Any?): ExecutionSummaryWithResult<Any?> {
         val result = IsolatedTask(runnableClass.qualifiedClassName, configuration).run {
             // Create the user's task object inside the sandbox.
-            val runnable = classLoader.loadClassForSandbox(runnableClass).newInstance()
+            val runnable = classLoader.loadClassForSandbox(runnableClass).getDeclaredConstructor().newInstance()
 
             val taskFactory = classLoader.createRawTaskFactory()
             val task = taskFactory.apply(runnable)

@@ -164,6 +164,10 @@ class SourceClassLoader(
         val idx = name.lastIndexOf('.')
         if (idx > 0) {
             val packageName = name.substring(0, idx)
+            /**
+             * [getPackage] is deprecated in Java 9 and above.
+             */
+            @Suppress("deprecation")
             if (getPackage(packageName) == null) {
                 definePackage(packageName, null, null, null, null, null, null, null)
             }
@@ -196,7 +200,7 @@ class SourceClassLoader(
              * Without a special [ApiSource], we need
              * to fetch Java API classes from the JVM itself.
              */
-            return getSystemClassLoader().getResource(name)
+            return getSystemResource(name)
         }
 
         return userSource.findResource(name)

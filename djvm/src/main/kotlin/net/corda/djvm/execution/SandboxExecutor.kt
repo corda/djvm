@@ -72,7 +72,7 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
             }
 
             // Create the user's task object inside the sandbox.
-            val runnable = classLoader.loadClassForSandbox(runnableClass).newInstance()
+            val runnable = classLoader.loadClassForSandbox(runnableClass).getDeclaredConstructor().newInstance()
 
             val taskFactory = classLoader.createTaskFactory()
             val task = taskFactory.apply(runnable)
