@@ -100,7 +100,9 @@ class SandboxClassLoader private constructor(
     @Throws(
         ClassNotFoundException::class,
         IllegalAccessException::class,
-        InstantiationException::class
+        InstantiationException::class,
+        InvocationTargetException::class,
+        NoSuchMethodException::class
     )
     fun createBasicInput(): Function<in Any?, out Any?> {
         return createBasicTask("sandbox.BasicInput")
@@ -113,7 +115,9 @@ class SandboxClassLoader private constructor(
     @Throws(
         ClassNotFoundException::class,
         IllegalAccessException::class,
-        InstantiationException::class
+        InstantiationException::class,
+        InvocationTargetException::class,
+        NoSuchMethodException::class
     )
     fun createBasicOutput(): Function<in Any?, out Any?> {
         return createBasicTask("sandbox.BasicOutput")
@@ -122,12 +126,14 @@ class SandboxClassLoader private constructor(
     @Throws(
         ClassNotFoundException::class,
         IllegalAccessException::class,
-        InstantiationException::class
+        InstantiationException::class,
+        InvocationTargetException::class,
+        NoSuchMethodException::class
     )
     private fun createBasicTask(taskName: String): Function<in Any?, out Any?> {
         val taskClass = loadClass(taskName)
         @Suppress("unchecked_cast")
-        val task = taskClass.newInstance() as Function<in Any?, out Any?>
+        val task = taskClass.getDeclaredConstructor().newInstance() as Function<in Any?, out Any?>
         return Function { value ->
             try {
                 task.apply(value)
@@ -205,7 +211,7 @@ class SandboxClassLoader private constructor(
         taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
         taskClass: Class<out Function<*, *>>
     ): Function<in Any?, out Any?> {
-        val task = toSandboxClass(taskClass).newInstance()
+        val task = toSandboxClass(taskClass).getDeclaredConstructor().newInstance()
         return taskFactory.apply(task)
     }
 
@@ -420,6 +426,10 @@ class SandboxClassLoader private constructor(
         val idx = name.lastIndexOf('.')
         if (idx > 0) {
             val packageName = name.substring(0, idx)
+            /**
+             * [getPackage] is deprecated in Java 9 and above.
+             */
+            @Suppress("deprecation")
             if (getPackage(packageName) == null) {
                 definePackage(packageName, null, null, null, null, null, null, null)
             }

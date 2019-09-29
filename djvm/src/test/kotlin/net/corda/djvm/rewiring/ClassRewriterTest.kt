@@ -87,7 +87,7 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     @Test
     fun `cannot load internal Sun class that was deleted from Java runtime`() = sandbox {
         assertThatExceptionOfType(ClassNotFoundException::class.java)
-            .isThrownBy { loadClass<sun.misc.Timer>() }
+            .isThrownBy { loadClass("sun.misc.Timer") }
             .withMessageContaining("Class file not found: sun/misc/Timer.class")
     }
 

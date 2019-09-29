@@ -297,7 +297,7 @@ abstract class TestBase(type: SandboxType) {
      * Run the entry-point of the loaded [Callable] class.
      */
     fun LoadedClass.createAndInvoke(methodName: String = "call") {
-        val instance = type.newInstance()
+        val instance = type.getDeclaredConstructor().newInstance()
         val method = instance.javaClass.getMethod(methodName)
         try {
             method.invoke(instance)

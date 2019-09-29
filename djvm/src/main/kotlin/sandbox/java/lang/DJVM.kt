@@ -91,7 +91,7 @@ fun Throwable.escapeSandbox(): kotlin.Throwable {
             try {
                 escapingType.getDeclaredConstructor(kotlin.String::class.java).newInstance(String.fromDJVM(message))
             } catch (e: NoSuchMethodException) {
-                escapingType.newInstance()
+                escapingType.getDeclaredConstructor().newInstance()
             }
         } else {
             val escapingMessage = "$sandboxedName -> $message"
@@ -476,7 +476,7 @@ private fun Class<*>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
         (try {
             getDeclaredConstructor(String::class.java).newInstance(String.toDJVM(t.message))
         } catch (_ : NoSuchMethodException) {
-            newInstance()
+            getDeclaredConstructor().newInstance()
         } as Throwable).apply {
             t.cause?.also {
                 initCause(it.toDJVMThrowable())
@@ -498,7 +498,7 @@ private fun Class<*>.createJavaThrowable(t: Throwable): kotlin.Throwable {
         (try {
             getDeclaredConstructor(kotlin.String::class.java).newInstance(String.fromDJVM(t.message))
         } catch (_ : NoSuchMethodException) {
-            newInstance()
+            getDeclaredConstructor().newInstance()
         }  as kotlin.Throwable).apply {
             t.cause?.also {
                 initCause(fromDJVM(it))
@@ -582,7 +582,7 @@ private fun loadResourceBundle(control: ResourceBundle.Control, key: DJVMResourc
     val bundle = try {
         val bundleClass = systemClassLoader.loadClass(toSandbox(bundleName.toString()))
         if (ResourceBundle::class.java.isAssignableFrom(bundleClass)) {
-            (bundleClass.newInstance() as ResourceBundle).also {
+            (bundleClass.getDeclaredConstructor().newInstance() as ResourceBundle).also {
                 it.init(key.baseName, key.locale)
             }
         } else {

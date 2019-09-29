@@ -1,6 +1,5 @@
 package net.corda.djvm.rules.implementation
 
-import jdk.internal.org.objectweb.asm.Type
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.EmitterModule
@@ -8,6 +7,7 @@ import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.DynamicInvocationInstruction
 import net.corda.djvm.references.MemberReference
 import org.objectweb.asm.Handle
+import org.objectweb.asm.Type
 
 /**
  * Checks for invalid dynamic invocations.
