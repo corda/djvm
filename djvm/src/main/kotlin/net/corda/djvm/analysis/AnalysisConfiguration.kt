@@ -4,10 +4,7 @@ import net.corda.djvm.code.*
 import net.corda.djvm.formatting.MemberFormatter
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.references.*
-import net.corda.djvm.source.ApiSource
-import net.corda.djvm.source.EmptyApi
-import net.corda.djvm.source.SourceClassLoader
-import net.corda.djvm.source.UserSource
+import net.corda.djvm.source.*
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
@@ -83,9 +80,9 @@ class AnalysisConfiguration private constructor(
     fun isMappedAnnotation(descriptor: String): Boolean
                 = descriptor in allowedAnnotations || sandboxAnnotations.any { ann -> ann.matcher(descriptor).matches() }
 
-    fun toSandboxClassName(type: Class<*>): String {
-        val sandboxName = classResolver.resolve(Type.getInternalName(type))
-        return if (Throwable::class.java.isAssignableFrom(type)) {
+    fun toSandboxClassName(header: ClassHeader): String {
+        val sandboxName = classResolver.resolve(header.internalName)
+        return if (header.isThrowable) {
             exceptionResolver.getThrowableOwnerName(sandboxName)
         } else {
             sandboxName

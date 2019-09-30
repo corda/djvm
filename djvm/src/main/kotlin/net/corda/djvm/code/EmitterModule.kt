@@ -308,8 +308,8 @@ class EmitterModule(
             type1 == OBJECT_NAME -> type1
             type2 == OBJECT_NAME -> type2
             else -> {
-                val class1 = configuration.supportingClassLoader.loadClass(type1.asPackagePath)
-                val class2 = configuration.supportingClassLoader.loadClass(type2.asPackagePath)
+                val class1 = configuration.supportingClassLoader.loadClassHeader(type1.asPackagePath)
+                val class2 = configuration.supportingClassLoader.loadClassHeader(type2.asPackagePath)
                 when {
                     class1.isAssignableFrom(class2) -> type1
                     class2.isAssignableFrom(class1) -> type2
@@ -317,9 +317,9 @@ class EmitterModule(
                     else -> {
                         var commonClass = class1
                         do {
-                            commonClass = commonClass.superclass
+                            commonClass = commonClass.superclass ?: break
                         } while (!commonClass.isAssignableFrom(class2))
-                        Type.getInternalName(commonClass)
+                        commonClass.internalName
                     }
                 }
             }
