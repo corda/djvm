@@ -27,12 +27,14 @@ public final class String extends Object implements Comparable<String>, CharSequ
     private static final Constructor SHARED;
 
     static {
+        Constructor ctor;
         try {
-            SHARED = java.lang.String.class.getDeclaredConstructor(char[].class, java.lang.Boolean.TYPE);
-            SHARED.setAccessible(true);
+            ctor = java.lang.String.class.getDeclaredConstructor(char[].class, java.lang.Boolean.TYPE);
+            ctor.setAccessible(true);
         } catch (NoSuchMethodException e) {
-            throw new NoSuchMethodError(e.getMessage());
+            ctor = null;
         }
+        SHARED = ctor;
     }
 
     private final java.lang.String value;
@@ -106,14 +108,19 @@ public final class String extends Object implements Comparable<String>, CharSequ
     }
 
     String(char[] value, boolean share) {
-        java.lang.String newValue;
-        try {
-            // This is (presumably) an optimisation for memory usage.
-            newValue = (java.lang.String) SHARED.newInstance(value, share);
-        } catch (Exception e) {
-            newValue = new java.lang.String(value);
+        if (SHARED == null) {
+            // No exact equivalent for this constructor exists in Java 11.
+            this.value = new java.lang.String(value);
+        } else {
+            java.lang.String newValue;
+            try {
+                // This is (presumably) an optimisation for memory usage.
+                newValue = (java.lang.String) SHARED.newInstance(value, share);
+            } catch (Exception e) {
+                newValue = new java.lang.String(value);
+            }
+            this.value = newValue;
         }
-        this.value = newValue;
     }
 
     @Override
