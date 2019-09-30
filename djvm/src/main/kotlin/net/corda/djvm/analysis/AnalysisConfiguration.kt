@@ -74,34 +74,6 @@ class AnalysisConfiguration private constructor(
      */
     val stitchedClasses: Map<String, List<Member>> get() = STITCHED_CLASSES
 
-    /**
-     * Creates a child [AnalysisConfiguration] with this instance as its parent.
-     * The child inherits the same [whitelist].
-     */
-    fun createChild(
-        userSource: UserSource,
-        newMinimumSeverityLevel: Severity?,
-        visibleAnnotations: Set<Class<out Annotation>>,
-        sandboxOnlyAnnotations: Set<String>
-    ): AnalysisConfiguration {
-        return AnalysisConfiguration(
-            parent = this,
-            whitelist = whitelist,
-            sandboxAnnotations = unmodifiable(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern) + sandboxAnnotations),
-            allowedAnnotations = allowedAnnotations.merge(visibleAnnotations),
-            stitchedAnnotations = stitchedAnnotations.mergeSandboxed(visibleAnnotations),
-            classResolver = classResolver,
-            exceptionResolver = exceptionResolver,
-            minimumSeverityLevel = newMinimumSeverityLevel ?: minimumSeverityLevel,
-            analyzeAnnotations = analyzeAnnotations,
-            prefixFilters = prefixFilters,
-            classModule = classModule,
-            memberModule = memberModule,
-            supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi, supportingClassLoader),
-            memberFormatter = memberFormatter
-        )
-    }
-
     fun isTemplateClass(className: String): Boolean = className in TEMPLATE_CLASSES
 
     fun isJvmException(className: String): Boolean = className in JVM_EXCEPTIONS
@@ -117,6 +89,63 @@ class AnalysisConfiguration private constructor(
             exceptionResolver.getThrowableOwnerName(sandboxName)
         } else {
             sandboxName
+        }
+    }
+
+    /**
+     * Creates a [ChildBuilder], which will build a child [AnalysisConfiguration]
+     * with this instance as its parent. The child inherits the same [whitelist].
+     */
+    fun createChild(userSource: UserSource) = ChildBuilder(userSource)
+
+    @Suppress("unused")
+    inner class ChildBuilder internal constructor(private val userSource: UserSource) {
+        private val sandboxOnlyAnnotations = linkedSetOf<String>()
+        private val visibleAnnotations = linkedSetOf<Class<out Annotation>>()
+        private var newMinimumSeverityLevel = minimumSeverityLevel
+
+        fun withNewMinimumSeverityLevel(level: Severity): ChildBuilder {
+            newMinimumSeverityLevel = level
+            return this
+        }
+
+        fun withSandboxOnlyAnnotations(vararg annotations: String): ChildBuilder {
+            sandboxOnlyAnnotations.addAll(annotations)
+            return this
+        }
+
+        fun withSandboxOnlyAnnotations(annotations: Iterable<String>): ChildBuilder {
+            sandboxOnlyAnnotations.addAll(annotations)
+            return this
+        }
+
+        fun withVisibleAnnotations(vararg annotations: Class<out Annotation>): ChildBuilder {
+            visibleAnnotations.addAll(annotations)
+            return this
+        }
+
+        fun withVisibleAnnotations(annotations: Iterable<Class<out Annotation>>): ChildBuilder {
+            visibleAnnotations.addAll(annotations)
+            return this
+        }
+
+        fun build(): AnalysisConfiguration {
+            return AnalysisConfiguration(
+                parent = this@AnalysisConfiguration,
+                whitelist = whitelist,
+                sandboxAnnotations = unmodifiable(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern) + sandboxAnnotations),
+                allowedAnnotations = allowedAnnotations.merge(visibleAnnotations),
+                stitchedAnnotations = stitchedAnnotations.mergeSandboxed(visibleAnnotations),
+                classResolver = classResolver,
+                exceptionResolver = exceptionResolver,
+                minimumSeverityLevel = newMinimumSeverityLevel,
+                analyzeAnnotations = analyzeAnnotations,
+                prefixFilters = prefixFilters,
+                classModule = classModule,
+                memberModule = memberModule,
+                supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi, supportingClassLoader),
+                memberFormatter = memberFormatter
+            )
         }
     }
 

@@ -35,10 +35,12 @@ import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections.unmodifiableList
+import java.util.function.Consumer
 import java.util.function.Function
 import kotlin.concurrent.thread
 import kotlin.reflect.jvm.jvmName
 
+@Suppress("unused")
 abstract class TestBase(type: SandboxType) {
 
     companion object {
@@ -262,12 +264,11 @@ abstract class TestBase(type: SandboxType) {
         thread {
             try {
                 UserPathSource(classPaths).use { userSource ->
-                    SandboxRuntimeContext(parentConfiguration.createChild(
-                        userSource = userSource,
-                        newMinimumSeverityLevel = minimumSeverityLevel,
-                        visibleAnnotations = visibleAnnotations,
-                        sandboxOnlyAnnotations = sandboxOnlyAnnotations
-                    )).use {
+                    SandboxRuntimeContext(parentConfiguration.createChild(userSource, Consumer {
+                        it.withNewMinimumSeverityLevel(minimumSeverityLevel)
+                            .withSandboxOnlyAnnotations(sandboxOnlyAnnotations)
+                            .withVisibleAnnotations(visibleAnnotations)
+                    })).use {
                         assertThat(runtimeCosts).areZero()
                         action(this)
                     }

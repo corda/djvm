@@ -2,7 +2,6 @@ package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.Whitelist
-import net.corda.djvm.messages.Severity
 import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -21,12 +20,7 @@ class ByteCodeCacheTest {
     @Test
     fun testCacheWithParent() {
         val parentConfiguration = createAnalysisConfiguration()
-        val configuration = parentConfiguration.createChild(
-            userSource = UserPathSource(emptyList()),
-            newMinimumSeverityLevel = Severity.WARNING,
-            sandboxOnlyAnnotations = emptySet(),
-            visibleAnnotations = emptySet()
-        )
+        val configuration = parentConfiguration.createChild(UserPathSource(emptyList())).build()
         assertNotNull(configuration.parent)
         assertNull(configuration.parent!!.parent)
 

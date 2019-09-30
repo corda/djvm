@@ -1,17 +1,18 @@
 package net.corda.djvm
 
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.analysis.AnalysisConfiguration.ChildBuilder
 import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.EMIT_TRACING
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.execution.ExecutionProfile
-import net.corda.djvm.messages.Severity
 import net.corda.djvm.rewiring.ByteCodeCache
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.rules.implementation.*
 import net.corda.djvm.rules.implementation.instrumentation.*
 import net.corda.djvm.source.UserSource
 import java.util.Collections.unmodifiableList
+import java.util.function.Consumer
 
 /**
  * Configuration to use for the deterministic sandbox. It also caches the bytecode
@@ -25,35 +26,38 @@ import java.util.Collections.unmodifiableList
  * @property byteCodeCache A cache of bytecode generated using these rules, emitters and definition providers.
  */
 class SandboxConfiguration private constructor(
-        val rules: List<Rule>,
-        val emitters: List<Emitter>,
-        val definitionProviders: List<DefinitionProvider>,
-        val executionProfile: ExecutionProfile,
-        val analysisConfiguration: AnalysisConfiguration,
-        val byteCodeCache: ByteCodeCache
+    val rules: List<Rule>,
+    val emitters: List<Emitter>,
+    val definitionProviders: List<DefinitionProvider>,
+    val executionProfile: ExecutionProfile,
+    val analysisConfiguration: AnalysisConfiguration,
+    val byteCodeCache: ByteCodeCache
 ) {
     /**
      * Creates a child [SandboxConfiguration] with this instance as its parent.
+     * @param userSource Source for additional classes to be included in the new sandbox.
+     * @param configure A callback function so that we can configure the [ChildBuilder].
      */
-    fun createChild(
-        userSource: UserSource,
-        newMinimumSeverityLevel: Severity?,
-        visibleAnnotations: Set<Class<out Annotation>>,
-        sandboxOnlyAnnotations: Set<String>
-    ): SandboxConfiguration {
+    fun createChild(userSource: UserSource, configure: Consumer<ChildBuilder>): SandboxConfiguration {
         return SandboxConfiguration(
             rules = rules,
             emitters = emitters,
             definitionProviders = definitionProviders,
             executionProfile = executionProfile,
-            analysisConfiguration = analysisConfiguration.createChild(
-                userSource = userSource,
-                newMinimumSeverityLevel = newMinimumSeverityLevel,
-                visibleAnnotations =  visibleAnnotations,
-                sandboxOnlyAnnotations = sandboxOnlyAnnotations
-            ),
+            analysisConfiguration = with(analysisConfiguration.createChild(userSource)) {
+                configure.accept(this)
+                build()
+            },
             byteCodeCache = ByteCodeCache(byteCodeCache)
         )
+    }
+
+    /**
+     * Creates a child [SandboxConfiguration] with this instance as its parent.
+     * @param userSource Source for additional classes to be included in the new sandbox.
+     */
+    fun createChild(userSource: UserSource): SandboxConfiguration {
+        return createChild(userSource, Consumer {})
     }
 
     companion object {
