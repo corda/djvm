@@ -525,7 +525,7 @@ class AnalysisConfiguration private constructor(
                 descriptor = "()Lsandbox/javax/security/auth/x500/X500Principal;"
             ) {
                 /**
-                 * Reimplement [X500Name.asX500Principal] without reflection.
+                 * Reimplement [sandbox.sun.security.x509.X500Name.asX500Principal] without reflection.
                  *     return DJVM.create(this)
                  */
                 override fun writeBody(emitter: EmitterModule) = with(emitter) {
@@ -546,7 +546,7 @@ class AnalysisConfiguration private constructor(
                 descriptor = "(Lsandbox/javax/security/auth/x500/X500Principal;)Lsandbox/sun/security/x509/X500Name;"
             ) {
                 /**
-                 * Reimplement [X500Name.asX500Name] without reflection.
+                 * Reimplement [sandbox.sun.security.x509.X500Name.asX500Name] without reflection.
                  *     X500Name name = DJVM.unwrap(principal)
                  *     name.x500Principal = principal
                  *     return name
