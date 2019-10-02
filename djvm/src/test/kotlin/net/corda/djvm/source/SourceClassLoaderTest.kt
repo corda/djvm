@@ -5,7 +5,7 @@ import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.Whitelist
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.nio.file.Files
@@ -18,15 +18,15 @@ class SourceClassLoaderTest {
     @Test
     fun `can load class from Java's lang package when no files are provided to the class loader`() {
         val classLoader = SourceClassLoader(classResolver, UserPathSource(emptyList()))
-        val clazz = classLoader.loadClass("java.lang.Boolean")
-        assertThat(clazz.simpleName).isEqualTo("Boolean")
+        val clazz = classLoader.loadClassHeader("java.lang.Boolean")
+        assertThat(clazz.name).isEqualTo("java.lang.Boolean")
     }
 
     @Test
     fun `cannot load arbitrary class when no files are provided to the class loader`() {
         val classLoader = SourceClassLoader(classResolver, UserPathSource(emptyList()))
         assertThrows<ClassNotFoundException> {
-            classLoader.loadClass("net.foo.NonExistentClass")
+            classLoader.loadClassHeader("net.foo.NonExistentClass")
         }
     }
 
@@ -34,8 +34,8 @@ class SourceClassLoaderTest {
     fun `can load class when JAR file is provided to the class loader`() {
         useTemporaryFile("jar-with-single-class.jar") {
             val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
-            val clazz = classLoader.loadClass("net.foo.Bar")
-            assertThat(clazz.simpleName).isEqualTo("Bar")
+            val clazz = classLoader.loadClassHeader("net.foo.Bar")
+            assertThat(clazz.name).isEqualTo("net.foo.Bar")
         }
     }
 
@@ -44,7 +44,7 @@ class SourceClassLoaderTest {
         useTemporaryFile("jar-with-single-class.jar") {
             val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
             assertThrows<ClassNotFoundException> {
-                classLoader.loadClass("net.foo.NonExistentClass")
+                classLoader.loadClassHeader("net.foo.NonExistentClass")
             }
         }
     }
@@ -53,10 +53,10 @@ class SourceClassLoaderTest {
     fun `can load classes when multiple JAR files are provided to the class loader`() {
         useTemporaryFile("jar-with-single-class.jar", "jar-with-two-classes.jar") {
             val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
-            val firstClass = classLoader.loadClass("com.somewhere.Test")
-            assertThat(firstClass.simpleName).isEqualTo("Test")
-            val secondClass = classLoader.loadClass("com.somewhere.AnotherTest")
-            assertThat(secondClass.simpleName).isEqualTo("AnotherTest")
+            val firstClass = classLoader.loadClassHeader("com.somewhere.Test")
+            assertThat(firstClass.name).isEqualTo("com.somewhere.Test")
+            val secondClass = classLoader.loadClassHeader("com.somewhere.AnotherTest")
+            assertThat(secondClass.name).isEqualTo("com.somewhere.AnotherTest")
         }
     }
 
@@ -65,7 +65,7 @@ class SourceClassLoaderTest {
         useTemporaryFile("jar-with-single-class.jar", "jar-with-two-classes.jar") {
             val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
             assertThrows<ClassNotFoundException> {
-                classLoader.loadClass("com.somewhere.NonExistentClass")
+                classLoader.loadClassHeader("com.somewhere.NonExistentClass")
             }
         }
     }
@@ -99,12 +99,86 @@ class SourceClassLoaderTest {
                         .doesNotContainAnyElementsOf(childLoader.getURLs().toList())
 
                 // Check that loading child with parent succeeds.
-                assertNotNull(childLoader.loadSourceClass(ExampleAction::class.java.name))
+                assertNotNull(childLoader.loadClassHeader(ExampleAction::class.java.name))
 
                 // Check that loading child without parent does fail.
                 val orphanLoader = SourceClassLoader(classResolver, childSource)
-                assertThrows<NoClassDefFoundError> { orphanLoader.loadSourceClass(ExampleAction::class.java.name) }
+                assertThrows<NoClassDefFoundError> { orphanLoader.loadClassHeader(ExampleAction::class.java.name) }
             }
+        }
+    }
+
+    @Test
+    fun `test interface headers are assignable`() {
+        UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
+            val parentLoader = SourceClassLoader(classResolver, parentSource)
+
+            val map = parentLoader.loadClassHeader("java.util.Map")
+            assertTrue(map.isInterface)
+
+            val concurrentMap = parentLoader.loadClassHeader("java.util.concurrent.ConcurrentMap")
+            assertTrue(concurrentMap.isInterface)
+
+            assertTrue(map.isAssignableFrom(map))
+            assertTrue(map.isAssignableFrom(concurrentMap))
+            assertTrue(concurrentMap.isAssignableFrom(concurrentMap))
+            assertFalse(concurrentMap.isAssignableFrom(map))
+        }
+    }
+
+    @Test
+    fun `test class headers are assignable`() {
+        UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
+            val parentLoader = SourceClassLoader(classResolver, parentSource)
+
+            val abstractMap = parentLoader.loadClassHeader("java.util.AbstractMap")
+            assertFalse(abstractMap.isInterface)
+
+            val concurrentHashMap = parentLoader.loadClassHeader("java.util.concurrent.ConcurrentHashMap")
+            assertFalse(concurrentHashMap.isInterface)
+
+            assertTrue(abstractMap.isAssignableFrom(abstractMap))
+            assertTrue(abstractMap.isAssignableFrom(concurrentHashMap))
+            assertTrue(concurrentHashMap.isAssignableFrom(concurrentHashMap))
+            assertFalse(concurrentHashMap.isAssignableFrom(abstractMap))
+        }
+    }
+
+    @Test
+    fun `test classes are assignable to interfaces`() {
+        UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
+            val parentLoader = SourceClassLoader(classResolver, parentSource)
+
+            val serializable = parentLoader.loadClassHeader("java.io.Serializable")
+            assertTrue(serializable.isInterface)
+
+            val concurrentHashMap = parentLoader.loadClassHeader("java.util.concurrent.ConcurrentHashMap")
+            assertFalse(concurrentHashMap.isInterface)
+
+            assertTrue(serializable.isAssignableFrom(concurrentHashMap))
+            assertFalse(concurrentHashMap.isAssignableFrom(serializable))
+        }
+    }
+
+    @Test
+    fun `test loading throwables`() {
+        UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
+            val parentLoader = SourceClassLoader(classResolver, parentSource)
+
+            val throwable = parentLoader.loadClassHeader("java.lang.Throwable")
+            assertTrue(throwable.isThrowable)
+
+            val exception = parentLoader.loadClassHeader("java.lang.Exception")
+            assertTrue(exception.isThrowable)
+
+            val runtimeException = parentLoader.loadClassHeader("java.lang.RuntimeException")
+            assertTrue(runtimeException.isThrowable)
+
+            val error = parentLoader.loadClassHeader("java.lang.Error")
+            assertTrue(error.isThrowable)
+
+            val baseObject = parentLoader.loadClassHeader("java.lang.Object")
+            assertFalse(baseObject.isThrowable)
         }
     }
 

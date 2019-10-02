@@ -2,16 +2,20 @@
 package net.corda.djvm.source
 
 import net.corda.djvm.analysis.AnalysisContext
+import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMExceptionOwner
 import net.corda.djvm.analysis.ExceptionResolver.Companion.isDJVMException
 import net.corda.djvm.analysis.SourceLocation
+import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.code.asResourcePath
 import net.corda.djvm.messages.Message
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassReader.SKIP_FRAMES
+import org.objectweb.asm.ClassVisitor
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.URL
@@ -19,9 +23,7 @@ import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.security.CodeSigner
-import java.security.CodeSource
-import java.security.SecureClassLoader
+import java.util.*
 import kotlin.streams.toList
 
 /**
@@ -92,10 +94,12 @@ class SourceClassLoader(
     private val userSource: UserSource,
     private val bootstrap: ApiSource? = null,
     parent: SourceClassLoader? = null
-) : SecureClassLoader(parent) {
+) : ClassLoader(parent) {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
     }
+
+    private val headers = mutableMapOf<String, ClassHeader>()
 
     fun getURLs(): Array<URL> = userSource.getURLs()
 
@@ -120,16 +124,16 @@ class SourceClassLoader(
         return try {
             logger.trace("Opening ClassReader for class {}...", originalName)
             getResourceAsStream("$originalName.class")?.use(::ClassReader) ?: run(::throwClassLoadingError)
-        } catch (exception: IOException) {
+        } catch (_: IOException) {
             throwClassLoadingError()
         }
     }
 
     /**
-     * Load the class with the specified binary name.
+     * Load the class header with the specified binary name.
      */
     @Throws(ClassNotFoundException::class)
-    fun loadSourceClass(name: String): Class<*> {
+    fun loadSourceHeader(name: String): ClassHeader {
         logger.trace("Loading source class {}...", name)
         // We need the name of the equivalent class outside of the sandbox.
         // This class is expected to belong to the application classloader.
@@ -142,13 +146,41 @@ class SourceClassLoader(
                 n
             }
         }
-        return loadClass(originalName)
+        return loadClassHeader(originalName)
     }
 
     @Throws(ClassNotFoundException::class)
-    override fun findClass(name: String): Class<*> {
-        val resourceName = name.asResourcePath + ".class"
-        val url = userSource.findResource(resourceName) ?: throw ClassNotFoundException(name)
+    fun loadClassHeader(name: String): ClassHeader {
+        return loadClassHeader(name, name.asResourcePath)
+    }
+
+    private fun loadClassHeader(name: String, internalName: String): ClassHeader {
+        synchronized(getClassLoadingLock(name)) {
+            return headers[internalName] ?: run {
+                (parent as? SourceClassLoader)?.run {
+                    try {
+                        loadClassHeader(name, internalName)
+                    } catch (_: ClassNotFoundException) {
+                        null
+                    }
+                } ?: loadBootstrapClassHeader(name, internalName)
+                  ?: findClassHeader(name, internalName)
+            }
+        }
+    }
+
+    private fun loadBootstrapClassHeader(name: String, internalName: String): ClassHeader? {
+        return findBootstrapResource("$internalName.class")?.let {
+            defineHeader(name, internalName, it)
+        }
+    }
+
+    private fun findClassHeader(name: String, internalName: String): ClassHeader {
+        val url = userSource.findResource("$internalName.class") ?: throw ClassNotFoundException(name)
+        return defineHeader(name, internalName, url)
+    }
+
+    private fun defineHeader(name: String, internalName: String, url: URL): ClassHeader {
         val byteCode = try {
             url.openStream().use {
                 it.readBytes()
@@ -156,37 +188,42 @@ class SourceClassLoader(
         } catch (e: IOException) {
             throw ClassNotFoundException(name, e)
         }
-        return defineClass(name, byteCode, url)
+        return defineHeader(name, internalName, byteCode)
     }
 
-    @Throws(ClassNotFoundException::class)
-    private fun defineClass(name: String, byteCode: ByteArray, url: URL): Class<*> {
-        val idx = name.lastIndexOf('.')
-        if (idx > 0) {
-            val packageName = name.substring(0, idx)
-            /**
-             * [getPackage] is deprecated in Java 9 and above.
-             */
-            @Suppress("deprecation")
-            if (getPackage(packageName) == null) {
-                definePackage(packageName, null, null, null, null, null, null, null)
-            }
+    private fun defineHeader(name: String, internalName: String, byteCode: ByteArray): ClassHeader {
+        val visitor = HeaderVisitor()
+        ClassReader(byteCode).accept(visitor, SKIP_FRAMES)
+
+        if (internalName != visitor.internalName) {
+            throw NoClassDefFoundError(internalName)
         }
-        return defineClass(name, byteCode, 0, byteCode.size, CodeSource(url, arrayOf<CodeSigner>()))
+
+        return ClassHeader(
+            classLoader = this,
+            name = name,
+            internalName = internalName,
+            superclass = visitor.superName?.run {
+                try {
+                    loadClassHeader(asPackagePath, this)
+                } catch (e: ClassNotFoundException) {
+                    throw NoClassDefFoundError(e.message).apply { initCause(e) }
+                }
+            },
+            interfaces = visitor.interfaces.mapTo(LinkedHashSet()) {
+                try {
+                    loadClassHeader(it.asPackagePath, it)
+                } catch (e: ClassNotFoundException) {
+                    throw NoClassDefFoundError(e.message).apply { initCause(e) }
+                }
+            },
+            flags = visitor.access
+        ).apply {
+            headers[internalName] = this
+        }
     }
 
-    /**
-     * First check the parent classloader, if we have one.
-     * Otherwise check any bootstrap classloader, followed by
-     * the user-supplied jars.
-     */
-    override fun getResource(name: String): URL? {
-        if (parent != null) {
-            val resource = parent.getResource(name)
-            if (resource != null) {
-                return resource
-            }
-        }
+    private fun findBootstrapResource(name: String): URL? {
         if (bootstrap != null) {
             val resource = bootstrap.findResource(name)
             if (resource != null) {
@@ -202,8 +239,49 @@ class SourceClassLoader(
              */
             return getSystemResource(name)
         }
+        return null
+    }
 
-        return userSource.findResource(name)
+    /**
+     * First check the parent classloader, if we have one.
+     * Otherwise check any bootstrap classloader, followed by
+     * the user-supplied jars.
+     */
+    override fun getResource(name: String): URL? {
+        if (parent != null) {
+            val resource = parent.getResource(name)
+            if (resource != null) {
+                return resource
+            }
+        }
+        return findBootstrapResource(name) ?: userSource.findResource(name)
+    }
+
+    /**
+     * Internal [ClassVisitor] that reads only a class's superclass
+     * and the interfaces that it implements. This allows us to
+     * implement just enough reflection-like functionality for ASM's
+     * common superclass algorithm without loading these classes.
+     */
+    private class HeaderVisitor : ClassVisitor(API_VERSION) {
+        var access: Int = 0
+        var internalName: String = ""
+        var superName: String? = null
+        val interfaces = mutableListOf<String>()
+
+        override fun visit(
+            version: Int,
+            access: Int,
+            name: String,
+            signature: String?,
+            superName: String?,
+            interfaces: Array<String>?
+        ) {
+            this.access = access
+            this.internalName = name
+            this.superName = superName
+            Collections.addAll(this.interfaces, *interfaces ?: emptyArray())
+        }
     }
 }
 

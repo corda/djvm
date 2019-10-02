@@ -35,18 +35,18 @@ open class SandboxClassWriter(
      * Get the common super type of [type1] and [type2].
      */
     override fun getCommonSuperClass(type1: String, type2: String): String {
-        // Need to override [getCommonSuperClass] to ensure that we use SourceClassLoader.loadSourceClass().
+        // Need to override [getCommonSuperClass] to ensure that we use SourceClassLoader.loadSourceHeader().
         return when {
             type1 == OBJECT_NAME -> type1
             type2 == OBJECT_NAME -> type2
             else -> {
                 val class1 = try {
-                    classLoader.loadSourceClass(type1.asPackagePath)
+                    classLoader.loadSourceHeader(type1.asPackagePath)
                 } catch (exception: Exception) {
                     throw TypeNotPresentException(type1, exception)
                 }
                 val class2 = try {
-                    classLoader.loadSourceClass(type2.asPackagePath)
+                    classLoader.loadSourceHeader(type2.asPackagePath)
                 } catch (exception: Exception) {
                     throw TypeNotPresentException(type2, exception)
                 }
@@ -57,7 +57,7 @@ open class SandboxClassWriter(
                     else -> {
                         var clazz = class1
                         do {
-                            clazz = clazz.superclass
+                            clazz = clazz.superclass ?: break
                         } while (!clazz.isAssignableFrom(class2))
 
                         // Return name of a common superclass within the sandbox.
