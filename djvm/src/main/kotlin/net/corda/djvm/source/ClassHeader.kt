@@ -15,10 +15,22 @@ class ClassHeader(
     val interfaces: Set<ClassHeader>,
     val flags: Int
 ) {
-    private fun isAssignableFromClass(header: ClassHeader): Boolean {
-        var current = header
+    private fun matchesClass(clazz: ClassHeader): Boolean {
+        return clazz.internalName == internalName
+    }
+
+    private fun matchesInterface(iface: ClassHeader): Boolean {
+        return iface.interfaces.any(::isAssignableFromInterface)
+    }
+
+    private fun isAssignableFromInterface(iface: ClassHeader): Boolean {
+        return iface.internalName == internalName || matchesInterface(iface)
+    }
+
+    private fun isAssignableFromClass(clazz: ClassHeader, matches: ClassHeader.(ClassHeader) -> Boolean): Boolean {
+        var current = clazz
         while (true) {
-            if (current.internalName == internalName) {
+            if (matches(current)) {
                 return true
             }
             current = current.superclass ?: break
@@ -26,19 +38,23 @@ class ClassHeader(
         return false
     }
 
-    private fun isAssignableFromInterface(header: ClassHeader): Boolean {
-        return internalName == header.internalName || header.interfaces.any(::isAssignableFromInterface)
-    }
-
     fun isAssignableFrom(header: ClassHeader): Boolean {
         return if (isInterface) {
-            isAssignableFromInterface(header)
+            if (header.isInterface) {
+                isAssignableFromInterface(header)
+            } else {
+                isAssignableFromClass(header) { i -> matchesInterface(i) }
+            }
+        } else if (!header.isInterface) {
+            isAssignableFromClass(header) { c -> matchesClass(c) }
         } else {
-            isAssignableFromClass(header)
+            false
         }
     }
 
     val isInterface: Boolean get() = (flags and ACC_INTERFACE) != 0
 
     val isThrowable: Boolean get() = internalName == THROWABLE_NAME || (superclass != null && superclass.isThrowable)
+
+    override fun toString(): String = name
 }
