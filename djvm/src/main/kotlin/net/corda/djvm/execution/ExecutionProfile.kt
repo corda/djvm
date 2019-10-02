@@ -1,5 +1,7 @@
 package net.corda.djvm.execution
 
+import kotlin.Long.Companion.MAX_VALUE
+
 /**
  * The execution profile of a [java.util.function.Function] when run in a sandbox.
  *
@@ -8,38 +10,55 @@ package net.corda.djvm.execution
  * @property jumpCostThreshold The threshold placed on jumps.
  * @property throwCostThreshold The threshold placed on throw statements.
  */
-enum class ExecutionProfile(
-        val allocationCostThreshold: Long = Long.MAX_VALUE,
-        val invocationCostThreshold: Long = Long.MAX_VALUE,
-        val jumpCostThreshold: Long = Long.MAX_VALUE,
-        val throwCostThreshold: Long = Long.MAX_VALUE
+data class ExecutionProfile(
+    val allocationCostThreshold: Long,
+    val invocationCostThreshold: Long,
+    val jumpCostThreshold: Long,
+    val throwCostThreshold: Long
 ) {
-
-    // TODO Define sensible runtime thresholds and make further improvements to instrumentation.
-
-    /**
-     * Profile with a set of default thresholds.
-     */
-    DEFAULT(
+    companion object {
+        /**
+         * Profile with a set of default thresholds.
+         */
+        @JvmField
+        val DEFAULT = ExecutionProfile(
             allocationCostThreshold = 1024 * 1024 * 1024,
             invocationCostThreshold = 1_000_000,
             jumpCostThreshold = 1_000_000,
             throwCostThreshold = 1_000_000
-    ),
+        )
 
-    /**
-     * Profile where no limitations have been imposed on the sandbox.
-     */
-    UNLIMITED(),
+        /**
+         * Profile where no limitations have been imposed on the sandbox.
+         */
+        @JvmField
+        val UNLIMITED = ExecutionProfile(
+            allocationCostThreshold = MAX_VALUE,
+            invocationCostThreshold = MAX_VALUE,
+            jumpCostThreshold = MAX_VALUE,
+            throwCostThreshold = MAX_VALUE
+        )
 
-    /**
-     * Profile where throw statements have been disallowed.
-     */
-    DISABLE_THROWS(throwCostThreshold = 0),
+        /**
+         * Profile where throw statements have been disallowed.
+         */
+        @JvmField
+        val DISABLE_THROWS = ExecutionProfile(
+            allocationCostThreshold = MAX_VALUE,
+            invocationCostThreshold = MAX_VALUE,
+            jumpCostThreshold = MAX_VALUE,
+            throwCostThreshold = 0
+        )
 
-    /**
-     * Profile where branching statements have been disallowed.
-     */
-    DISABLE_BRANCHING(jumpCostThreshold = 0)
-
+        /**
+         * Profile where branching statements have been disallowed.
+         */
+        @JvmField
+        val DISABLE_BRANCHING = ExecutionProfile(
+            allocationCostThreshold = MAX_VALUE,
+            invocationCostThreshold = MAX_VALUE,
+            jumpCostThreshold = 0,
+            throwCostThreshold = MAX_VALUE
+        )
+    }
 }
