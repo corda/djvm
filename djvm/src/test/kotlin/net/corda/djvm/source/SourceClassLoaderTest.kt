@@ -109,7 +109,7 @@ class SourceClassLoaderTest {
     }
 
     @Test
-    fun `test interface headers are assignable`() {
+    fun `test interfaces are assignable to interfaces`() {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
             val parentLoader = SourceClassLoader(classResolver, parentSource)
 
@@ -127,7 +127,7 @@ class SourceClassLoaderTest {
     }
 
     @Test
-    fun `test class headers are assignable`() {
+    fun `test classes are assignable to classes`() {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
             val parentLoader = SourceClassLoader(classResolver, parentSource)
 
@@ -161,24 +161,44 @@ class SourceClassLoaderTest {
     }
 
     @Test
-    fun `test loading throwables`() {
+    fun `test classes are assignable to superinterfaces`() {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
             val parentLoader = SourceClassLoader(classResolver, parentSource)
 
+            val iterable = parentLoader.loadClassHeader("java.lang.Iterable")
+            assertTrue(iterable.isInterface)
+
+            val linkedHashSet = parentLoader.loadClassHeader("java.util.LinkedHashSet")
+            assertFalse(linkedHashSet.isInterface)
+            assertTrue(iterable.isAssignableFrom(linkedHashSet))
+        }
+    }
+
+    @Test
+    fun `test loading throwables`() {
+        UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
+            val parentLoader = SourceClassLoader(classResolver, parentSource)
+            val serializable = parentLoader.loadClassHeader("java.io.Serializable")
+
             val throwable = parentLoader.loadClassHeader("java.lang.Throwable")
             assertTrue(throwable.isThrowable)
+            assertTrue(serializable.isAssignableFrom(throwable))
 
             val exception = parentLoader.loadClassHeader("java.lang.Exception")
             assertTrue(exception.isThrowable)
+            assertTrue(serializable.isAssignableFrom(exception))
 
             val runtimeException = parentLoader.loadClassHeader("java.lang.RuntimeException")
             assertTrue(runtimeException.isThrowable)
+            assertTrue(serializable.isAssignableFrom(runtimeException))
 
             val error = parentLoader.loadClassHeader("java.lang.Error")
             assertTrue(error.isThrowable)
+            assertTrue(serializable.isAssignableFrom(error))
 
             val baseObject = parentLoader.loadClassHeader("java.lang.Object")
             assertFalse(baseObject.isThrowable)
+            assertFalse(serializable.isAssignableFrom(baseObject))
         }
     }
 
