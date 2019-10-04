@@ -474,9 +474,15 @@ private fun Class<*>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
             .newInstance(String.toDJVM(t.message), t.cause?.toDJVMThrowable()) as Throwable
     } catch (_ : NoSuchMethodException) {
         (try {
-            getDeclaredConstructor(String::class.java).newInstance(String.toDJVM(t.message))
+            with(getDeclaredConstructor(String::class.java)) {
+                isAccessible = true
+                newInstance(String.toDJVM(t.message))
+            }
         } catch (_ : NoSuchMethodException) {
-            getDeclaredConstructor().newInstance()
+            with(getDeclaredConstructor()) {
+                isAccessible = true
+                newInstance()
+            }
         } as Throwable).apply {
             t.cause?.also {
                 initCause(it.toDJVMThrowable())
@@ -496,9 +502,15 @@ private fun Class<*>.createJavaThrowable(t: Throwable): kotlin.Throwable {
             .newInstance(String.fromDJVM(t.message), t.cause?.fromDJVM()) as kotlin.Throwable
     } catch (_ : NoSuchMethodException) {
         (try {
-            getDeclaredConstructor(kotlin.String::class.java).newInstance(String.fromDJVM(t.message))
+            with(getDeclaredConstructor(kotlin.String::class.java)) {
+                isAccessible = true
+                newInstance(String.fromDJVM(t.message))
+            }
         } catch (_ : NoSuchMethodException) {
-            getDeclaredConstructor().newInstance()
+            with(getDeclaredConstructor()) {
+                isAccessible = true
+                newInstance()
+            }
         }  as kotlin.Throwable).apply {
             t.cause?.also {
                 initCause(fromDJVM(it))

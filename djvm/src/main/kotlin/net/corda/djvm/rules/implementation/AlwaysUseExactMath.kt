@@ -51,14 +51,11 @@ object AlwaysUseExactMath : Emitter {
      * bit operations, but the overflows are harmless.
      */
     private fun requiresInexactMaths(className: String): Boolean
-                    = className.startsWith("sun/security/") ||
-                        className.startsWith("sun/misc/") ||
-                        className.startsWith("java/math/") ||
-                        className.startsWith("java/util/regex/") ||
-                        className == "java/lang/Math" ||
+                    = className.startsWith("sun/") ||
+                        className.startsWith("java/") ||
                         /*
                          * I REALLY didn't want to include non-JVM
                          * packages here, but Corda NEEDS this!
                          */
-                        className.startsWith("org/bouncycastle/math/")
+                        className.startsWith("org/bouncycastle/")
 }
