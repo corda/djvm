@@ -90,4 +90,27 @@ class CryptoTest : TestBase(KOTLIN) {
             assertEquals("O=Alice Corp, L=Madrid, C=ES", sandboxParty.toString())
         }
     }
+
+    @ArgumentsSource(SignatureSchemeProvider::class)
+    @ParameterizedTest(name = "{index} => {0}")
+    fun `test verifying RSA signature`(signatureScheme: SignatureScheme) {
+        val clearData = "Very Secret Message! Do Not Reveal!!!".toByteArray()
+
+        val keyPair = Crypto.generateKeyPair(signatureScheme)
+        val signature = Crypto.doSign(signatureScheme, keyPair.`private`, clearData)
+
+        val nameData = signatureScheme.schemeCodeName.serialize()
+        val keyData = keyPair.`public`.serialize()
+
+        sandbox {
+            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
+            val sandboxSchemeName = nameData.deserializeFor(classLoader)
+            val sandboxKey = keyData.deserializeFor(classLoader)
+
+            val taskFactory = classLoader.createRawTaskFactory()
+            val verifier = classLoader.createTaskFor(taskFactory, VerifySignature::class.java)
+            val result = verifier.apply(arrayOf(sandboxSchemeName, sandboxKey, signature, clearData))
+            assertEquals(true.toString(), result.toString())
+        }
+    }
 }
