@@ -594,7 +594,7 @@ class AnalysisConfiguration private constructor(
         )).mapByClassName())
 
         fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
-        fun Set<Class<*>>.sandboxed(): Set<String> = map(Companion::sandboxed).toSet()
+        fun Set<Class<*>>.sandboxed(): Set<String> = mapTo(LinkedHashSet(), Companion::sandboxed)
 
         private fun toSandboxDescriptor(clazz: Class<*>): String = "L$SANDBOX_PREFIX${Type.getInternalName(clazz)};".intern()
         private fun toDescriptor(clazz: Class<*>): String = "L${Type.getInternalName(clazz)};".intern()
@@ -685,8 +685,7 @@ class AnalysisConfiguration private constructor(
                     .flatMap(Map.Entry<String, List<Member>>::value)
                     .filter { it.body.isNotEmpty() }
                     .filter(MemberFilter(whitelist)::isWhitelistable)
-                    .map(Member::reference)
-                    .toSet()
+                    .mapTo(LinkedHashSet(), Member::reference)
             )
             val classResolver = ClassResolver(TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
 

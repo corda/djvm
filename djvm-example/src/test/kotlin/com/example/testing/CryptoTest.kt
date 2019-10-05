@@ -16,14 +16,26 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
+import org.junit.jupiter.params.provider.CsvSource
+import java.security.Signature
 import java.util.stream.Stream
 
 @ExtendWith(LocalSerialization::class)
 class CryptoTest : TestBase(KOTLIN) {
+    companion object {
+        const val IMPORTANT_MESSAGE = "Very Important Message! Trust Me!"
+        const val PASSWORD = "deterministic"
+
+        @RegisterExtension
+        @JvmField
+        val keyStore = KeyStoreProvider("keystore.pkcs12", PASSWORD, "PKCS12")
+    }
+
     class SignatureSchemeProvider : ArgumentsProvider {
         override fun provideArguments(context: ExtensionContext?): Stream<out Arguments> {
             return Crypto.supportedSignatureSchemes().stream()
@@ -33,7 +45,7 @@ class CryptoTest : TestBase(KOTLIN) {
     }
 
     @ArgumentsSource(SignatureSchemeProvider::class)
-    @ParameterizedTest(name = "{index} => {0}")
+    @ParameterizedTest(name = "deserialise public key: {index} => {0}")
     fun `test non-composite public keys`(signatureScheme: SignatureScheme) {
         val keyPair = Crypto.generateKeyPair(signatureScheme)
         val key = keyPair.public
@@ -92,9 +104,9 @@ class CryptoTest : TestBase(KOTLIN) {
     }
 
     @ArgumentsSource(SignatureSchemeProvider::class)
-    @ParameterizedTest(name = "{index} => {0}")
-    fun `test verifying RSA signature`(signatureScheme: SignatureScheme) {
-        val clearData = "Very Secret Message! Do Not Reveal!!!".toByteArray()
+    @ParameterizedTest(name = "verifying signature: {index} => {0}")
+    fun `test verifying signature`(signatureScheme: SignatureScheme) {
+        val clearData = IMPORTANT_MESSAGE.toByteArray()
 
         val keyPair = Crypto.generateKeyPair(signatureScheme)
         val signature = Crypto.doSign(signatureScheme, keyPair.`private`, clearData)
@@ -110,6 +122,34 @@ class CryptoTest : TestBase(KOTLIN) {
             val taskFactory = classLoader.createRawTaskFactory()
             val verifier = classLoader.createTaskFor(taskFactory, VerifySignature::class.java)
             val result = verifier.apply(arrayOf(sandboxSchemeName, sandboxKey, signature, clearData))
+            assertEquals(true.toString(), result.toString())
+        }
+    }
+
+    @CsvSource("rsa,SHA256WithRSA", "ec,SHA256WithECDSA")
+    @ParameterizedTest(name = "verifying with certificate: {index} => {0},{1}")
+    fun `test verify signature with certificate`(alias: String, algorithm: String) {
+        val clearData = IMPORTANT_MESSAGE.toByteArray()
+
+        val keyPair = keyStore.getKeyPair(alias, PASSWORD)
+        val certificate = keyStore.getCertificate(alias)
+
+        val algorithmData = algorithm.serialize()
+        val certificateData = certificate.serialize()
+        val signature = with(Signature.getInstance(algorithm)) {
+            initSign(keyPair.`private`)
+            update(clearData)
+            sign()
+        }
+
+        sandbox {
+            _contextSerializationEnv.set(createSandboxSerializationEnv(classLoader))
+            val sandboxCertificate = certificateData.deserializeFor(classLoader)
+            val sandboxAlgorithm = algorithmData.deserializeFor(classLoader)
+
+            val taskFactory = classLoader.createRawTaskFactory()
+            val verifier = classLoader.createTaskFor(taskFactory, VerifyWithCertificate::class.java)
+            val result = verifier.apply(arrayOf(sandboxAlgorithm, sandboxCertificate, signature, clearData))
             assertEquals(true.toString(), result.toString())
         }
     }
