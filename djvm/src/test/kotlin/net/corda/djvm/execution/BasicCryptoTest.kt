@@ -3,7 +3,6 @@ package net.corda.djvm.execution
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import org.assertj.core.api.Assertions.assertThat
-import java.util.function.Function
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -14,6 +13,7 @@ import java.security.*
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.security.spec.X509EncodedKeySpec
+import java.util.function.Function
 import java.util.stream.Stream
 
 class BasicCryptoTest : TestBase(KOTLIN) {

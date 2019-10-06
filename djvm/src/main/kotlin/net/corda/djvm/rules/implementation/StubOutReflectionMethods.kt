@@ -14,7 +14,7 @@ object StubOutReflectionMethods : MemberDefinitionProvider {
     )
 
     override fun define(context: AnalysisRuntimeContext, member: Member): Member = when {
-        member.isMethod && isConcreteApi(member) && isReflection(member) && !isAllowedFor(member)
+        member.isMethod && isConcreteApi(member) && isReflection(member) && !isAllowedFor(context, member)
              -> member.copy(body = member.body + MemberRuleEnforcer(member)::forbidReflection)
         else -> member
     }
@@ -29,5 +29,7 @@ object StubOutReflectionMethods : MemberDefinitionProvider {
                || member.className == "sun/misc/Unsafe"
     }
 
-    private fun isAllowedFor(member: Member): Boolean = member.className in ALLOWS_REFLECTION
+    private fun isAllowedFor(context: AnalysisRuntimeContext, member: Member): Boolean {
+        return member.className in ALLOWS_REFLECTION || context.configuration.getSourceHeader(member.className).isThrowable
+    }
 }
