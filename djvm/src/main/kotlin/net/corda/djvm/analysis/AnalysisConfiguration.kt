@@ -89,6 +89,11 @@ class AnalysisConfiguration private constructor(
         }
     }
 
+    @Throws(ClassNotFoundException::class)
+    fun getSourceHeader(internalClassName: String): ClassHeader {
+        return supportingClassLoader.loadClassHeader(internalClassName.asPackagePath)
+    }
+
     /**
      * Creates a [ChildBuilder], which will build a child [AnalysisConfiguration]
      * with this instance as its parent. The child inherits the same [whitelist].

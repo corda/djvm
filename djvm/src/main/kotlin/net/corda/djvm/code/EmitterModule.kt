@@ -3,6 +3,7 @@ package net.corda.djvm.code
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.references.MemberInformation
 import net.corda.djvm.references.MethodBody
+import net.corda.djvm.source.ClassHeader
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
@@ -308,8 +309,8 @@ class EmitterModule(
             type1 == OBJECT_NAME -> type1
             type2 == OBJECT_NAME -> type2
             else -> {
-                val class1 = configuration.supportingClassLoader.loadClassHeader(type1.asPackagePath)
-                val class2 = configuration.supportingClassLoader.loadClassHeader(type2.asPackagePath)
+                val class1 = configuration.getSourceHeader(type1)
+                val class2 = configuration.getSourceHeader(type2)
                 when {
                     class1.isAssignableFrom(class2) -> type1
                     class2.isAssignableFrom(class1) -> type2

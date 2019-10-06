@@ -91,7 +91,10 @@ fun Throwable.escapeSandbox(): kotlin.Throwable {
             try {
                 escapingType.getDeclaredConstructor(kotlin.String::class.java).newInstance(String.fromDJVM(message))
             } catch (e: NoSuchMethodException) {
-                escapingType.getDeclaredConstructor().newInstance()
+                with(escapingType.getDeclaredConstructor()) {
+                    isAccessible = true
+                    newInstance()
+                }
             }
         } else {
             val escapingMessage = "$sandboxedName -> $message"
@@ -473,19 +476,24 @@ private fun Class<*>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
         getDeclaredConstructor(String::class.java, Throwable::class.java)
             .newInstance(String.toDJVM(t.message), t.cause?.toDJVMThrowable()) as Throwable
     } catch (_ : NoSuchMethodException) {
-        (try {
-            with(getDeclaredConstructor(String::class.java)) {
-                isAccessible = true
-                newInstance(String.toDJVM(t.message))
-            }
+        try {
+            getDeclaredConstructor(Throwable::class.java, String::class.java)
+                .newInstance(t.cause?.toDJVMThrowable(), String.toDJVM(t.message)) as Throwable
         } catch (_ : NoSuchMethodException) {
-            with(getDeclaredConstructor()) {
-                isAccessible = true
-                newInstance()
-            }
-        } as Throwable).apply {
-            t.cause?.also {
-                initCause(it.toDJVMThrowable())
+            (try {
+                with(getDeclaredConstructor(String::class.java)) {
+                    isAccessible = true
+                    newInstance(String.toDJVM(t.message))
+                }
+            } catch (_: NoSuchMethodException) {
+                with(getDeclaredConstructor()) {
+                    isAccessible = true
+                    newInstance()
+                }
+            } as Throwable).apply {
+                t.cause?.also {
+                    initCause(it.toDJVMThrowable())
+                }
             }
         }
     }.apply {
@@ -501,19 +509,24 @@ private fun Class<*>.createJavaThrowable(t: Throwable): kotlin.Throwable {
         getDeclaredConstructor(kotlin.String::class.java, kotlin.Throwable::class.java)
             .newInstance(String.fromDJVM(t.message), t.cause?.fromDJVM()) as kotlin.Throwable
     } catch (_ : NoSuchMethodException) {
-        (try {
-            with(getDeclaredConstructor(kotlin.String::class.java)) {
-                isAccessible = true
-                newInstance(String.fromDJVM(t.message))
-            }
+        try {
+            getDeclaredConstructor(kotlin.Throwable::class.java, kotlin.String::class.java)
+                .newInstance(t.cause?.fromDJVM(), String.fromDJVM(t.message)) as kotlin.Throwable
         } catch (_ : NoSuchMethodException) {
-            with(getDeclaredConstructor()) {
-                isAccessible = true
-                newInstance()
-            }
-        }  as kotlin.Throwable).apply {
-            t.cause?.also {
-                initCause(fromDJVM(it))
+            (try {
+                with(getDeclaredConstructor(kotlin.String::class.java)) {
+                    isAccessible = true
+                    newInstance(String.fromDJVM(t.message))
+                }
+            } catch (_: NoSuchMethodException) {
+                with(getDeclaredConstructor()) {
+                    isAccessible = true
+                    newInstance()
+                }
+            } as kotlin.Throwable).apply {
+                t.cause?.also {
+                    initCause(fromDJVM(it))
+                }
             }
         }
     }.apply {
