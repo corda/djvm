@@ -15,6 +15,7 @@ import sandbox.java.io.*
 import sandbox.java.nio.ByteOrder
 import sandbox.java.util.*
 import java.lang.reflect.Constructor
+import java.lang.reflect.InvocationTargetException
 
 private const val SANDBOX_PREFIX = "sandbox."
 private val OBJECT_ARRAY = "^(\\[++L)([^;]++);\$".toRegex()
@@ -78,7 +79,7 @@ fun Any.sandbox(): Any {
 
 fun kotlin.Throwable.escapeSandbox(): kotlin.Throwable {
     val sandboxed = (this as? DJVMException)?.throwable ?: sandboxedExceptions.remove(this)
-    return sandboxed?.escapeSandbox() ?: sanitise(0)
+    return sandboxed?.escapeSandbox() ?: safeCopy()
 }
 
 fun Throwable.escapeSandbox(): kotlin.Throwable {
@@ -118,6 +119,27 @@ fun Throwable.escapeSandbox(): kotlin.Throwable {
         }
     } catch (e: Exception) {
         RuleViolationError("${e::class.java.name} -> ${e.message}").sanitise(1)
+    }
+}
+
+private fun kotlin.Throwable.safeCopy(): kotlin.Throwable {
+    sanitise(0)
+    return when (this) {
+        /**
+         * [InvocationTargetException] and [java.lang.ExceptionInInitializerError] can
+         * contain a sandbox exception as their underlying target / cause.
+         */
+        is InvocationTargetException -> InvocationTargetException(targetException.escapeSandbox()).also(::copyExtraTo)
+        is java.lang.ExceptionInInitializerError -> ExceptionInInitializerError(exception.escapeSandbox()).also(::copyExtraTo)
+        else -> this
+    }
+}
+
+private fun kotlin.Throwable.copyExtraTo(t: kotlin.Throwable) {
+    // This stack trace should already have been sanitised.
+    t.stackTrace = stackTrace
+    suppressed.forEach { sup ->
+        t.addSuppressed(sup.safeCopy())
     }
 }
 
@@ -476,23 +498,29 @@ private fun Class<*>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
         getDeclaredConstructor(String::class.java, Throwable::class.java)
             .newInstance(String.toDJVM(t.message), t.cause?.toDJVMThrowable()) as Throwable
     } catch (_ : NoSuchMethodException) {
-        try {
-            getDeclaredConstructor(Throwable::class.java, String::class.java)
-                .newInstance(t.cause?.toDJVMThrowable(), String.toDJVM(t.message)) as Throwable
-        } catch (_ : NoSuchMethodException) {
-            (try {
-                with(getDeclaredConstructor(String::class.java)) {
-                    isAccessible = true
-                    newInstance(String.toDJVM(t.message))
-                }
-            } catch (_: NoSuchMethodException) {
-                with(getDeclaredConstructor()) {
-                    isAccessible = true
-                    newInstance()
-                }
-            } as Throwable).apply {
-                t.cause?.also {
-                    initCause(it.toDJVMThrowable())
+        when (t) {
+            /**
+             * For [InvocationTargetException] and [java.lang.ExceptionInInitializerError],
+             * which don't allow their underlying cause to be reset.
+             */
+            is InvocationTargetException, is java.lang.ExceptionInInitializerError ->
+                getDeclaredConstructor(Throwable::class.java)
+                    .newInstance(t.cause?.toDJVMThrowable()) as Throwable
+            else -> {
+                (try {
+                    with(getDeclaredConstructor(String::class.java)) {
+                        isAccessible = true
+                        newInstance(String.toDJVM(t.message))
+                    }
+                } catch (_: NoSuchMethodException) {
+                    with(getDeclaredConstructor()) {
+                        isAccessible = true
+                        newInstance()
+                    }
+                } as Throwable).apply {
+                    t.cause?.also {
+                        initCause(it.toDJVMThrowable())
+                    }
                 }
             }
         }
@@ -509,23 +537,29 @@ private fun Class<*>.createJavaThrowable(t: Throwable): kotlin.Throwable {
         getDeclaredConstructor(kotlin.String::class.java, kotlin.Throwable::class.java)
             .newInstance(String.fromDJVM(t.message), t.cause?.fromDJVM()) as kotlin.Throwable
     } catch (_ : NoSuchMethodException) {
-        try {
-            getDeclaredConstructor(kotlin.Throwable::class.java, kotlin.String::class.java)
-                .newInstance(t.cause?.fromDJVM(), String.fromDJVM(t.message)) as kotlin.Throwable
-        } catch (_ : NoSuchMethodException) {
-            (try {
-                with(getDeclaredConstructor(kotlin.String::class.java)) {
-                    isAccessible = true
-                    newInstance(String.fromDJVM(t.message))
-                }
-            } catch (_: NoSuchMethodException) {
-                with(getDeclaredConstructor()) {
-                    isAccessible = true
-                    newInstance()
-                }
-            } as kotlin.Throwable).apply {
-                t.cause?.also {
-                    initCause(fromDJVM(it))
+        when (t) {
+            /**
+             * For [sandbox.java.lang.reflect.InvocationTargetException] and [ExceptionInInitializerError],
+             * which don't allow their underlying cause to be reset.
+             */
+            is sandbox.java.lang.reflect.InvocationTargetException, is ExceptionInInitializerError ->
+                getDeclaredConstructor(kotlin.Throwable::class.java)
+                    .newInstance(t.cause?.fromDJVM()) as kotlin.Throwable
+            else -> {
+                (try {
+                    with(getDeclaredConstructor(kotlin.String::class.java)) {
+                        isAccessible = true
+                        newInstance(String.fromDJVM(t.message))
+                    }
+                } catch (_: NoSuchMethodException) {
+                    with(getDeclaredConstructor()) {
+                        isAccessible = true
+                        newInstance()
+                    }
+                } as kotlin.Throwable).apply {
+                    t.cause?.also {
+                        initCause(fromDJVM(it))
+                    }
                 }
             }
         }
