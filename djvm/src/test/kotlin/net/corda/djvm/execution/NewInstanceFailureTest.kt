@@ -1,9 +1,6 @@
 package net.corda.djvm.execution
 
-import com.example.testing.HasBrokenConstructor
-import com.example.testing.HasProtectedConstructor
-import com.example.testing.HasUserExceptionConstructor
-import com.example.testing.ImpossibleInstance
+import com.example.testing.*
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.Utilities.newInstance
@@ -99,6 +96,26 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
             .hasMessage("sandbox.net.corda.djvm.execution.ExpectedException -> INVOCATION-TARGET,sandbox.java.io.FileNotFoundException,missing.dat")
     }
 
+    @Test
+    fun `throwing invocation target exception`() = sandbox {
+        val taskFactory = classLoader.createTaskFactory()
+        val newInstance = classLoader.typedTaskFor(taskFactory, ConstructNewInstance::class.java)
+        val t = assertThrows<InvocationTargetException> { newInstance.apply(HasUserExceptionConstructor::class.java.name) }
+        assertThat(t.cause)
+                .isExactlyInstanceOf(Exception::class.java)
+                .hasMessage("sandbox.java.io.FileNotFoundException -> missing.dat")
+    }
+
+    @Test
+    fun `throwing exception in initializer`() = sandbox {
+        val taskFactory = classLoader.createTaskFactory()
+        val newInstance = classLoader.typedTaskFor(taskFactory, ConstructNewInstance::class.java)
+        val t = assertThrows<ExceptionInInitializerError> { newInstance.apply(HasBrokenInitializer::class.java.name) }
+        assertThat(t.cause)
+            .isExactlyInstanceOf(RuntimeException::class.java)
+            .hasMessage("sandbox.java.io.UncheckedIOException -> sandbox.java.io.FileNotFoundException: missing.dat")
+    }
+
     class FailingNewInstance : Function<String, String?> {
         override fun apply(className: String): String? {
             try {
@@ -130,6 +147,12 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
             } catch (e: Exception) {
                 throw ExpectedException("${e::class.java.name},${e.message}", e)
             }
+        }
+    }
+
+    class ConstructNewInstance : Function<String, String?> {
+        override fun apply(className: String): String? {
+            return newInstance(javaClass.classLoader.loadClass(className)).toString()
         }
     }
 }
