@@ -327,7 +327,8 @@ class AnalysisConfiguration private constructor(
             java.lang.UnsupportedClassVersionError::class.java,
             java.lang.UnsupportedOperationException::class.java,
             java.lang.VerifyError::class.java,
-            java.lang.VirtualMachineError::class.java
+            java.lang.VirtualMachineError::class.java,
+            java.lang.reflect.InvocationTargetException::class.java
         ).sandboxed() + setOf(
             // Mentioned here to prevent the DJVM from generating a synthetic wrapper.
             "sandbox/java/lang/DJVMThrowableWrapper"
