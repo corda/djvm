@@ -11,7 +11,7 @@ import org.objectweb.asm.Opcodes.*
 object DisallowUnsupportedApiVersions : ClassRule() {
 
     override fun validate(context: RuleContext, clazz: ClassRepresentation) = context.validate {
-        fail("Unsupported API version '${versionString(clazz.apiVersion)}'") given
+        fail("Unsupported Java API version '${versionString(clazz.apiVersion)}'") given
                 (clazz.apiVersion !in supportedVersions)
     }
 
@@ -20,7 +20,8 @@ object DisallowUnsupportedApiVersions : ClassRule() {
     private val versionMap = mapOf(
         V1_1 to "1.1", V1_2 to "1.2", V1_3 to "1.3", V1_4 to "1.4",
         V1_5 to "1.5", V1_6 to "1.6", V1_7 to "1.7", V1_8 to "1.8",
-        V9 to "9", V10 to "10"
+        V9 to "9", V10 to "10", V11 to "11", V12 to "12", V13 to "13",
+        V14 to "14"
     )
 
     private fun versionString(version: Int) = versionMap.getOrDefault(version, "unknown")
