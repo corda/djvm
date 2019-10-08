@@ -26,7 +26,7 @@ class IsolatedTask(
         var output: T? = null
         var costs = CostSummary.empty
         var exception: Throwable? = null
-        thread(name = threadName, isDaemon = true) {
+        thread(start = false, isDaemon = true, name = threadName) {
             logger.trace("Entering isolated runtime environment...")
             SandboxRuntimeContext(configuration).use {
                 output = try {
@@ -39,7 +39,13 @@ class IsolatedTask(
                 costs = CostSummary(runtimeCosts)
             }
             logger.trace("Exiting isolated runtime environment...")
-        }.join( )
+        }.apply {
+            uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->
+                exception = ex
+            }
+            start()
+            join()
+        }
         val messages = exception.let {
             when (it) {
                 is SandboxClassLoadingException -> it.messages
