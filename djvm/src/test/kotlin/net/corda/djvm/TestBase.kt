@@ -216,30 +216,26 @@ abstract class TestBase(type: SandboxType) {
         }
         var thrownException: Throwable? = null
         thread(start = false) {
-            try {
-                UserPathSource(classPaths).use { userSource ->
-                    val analysisConfiguration = AnalysisConfiguration.createRoot(
-                        userSource = userSource,
-                        whitelist = whitelist,
-                        visibleAnnotations = visibleAnnotations,
-                        sandboxOnlyAnnotations = sandboxOnlyAnnotations,
-                        minimumSeverityLevel = minimumSeverityLevel,
-                        bootstrapSource = bootstrapClassLoader
-                    )
-                    SandboxRuntimeContext(SandboxConfiguration.of(
-                        executionProfile,
-                        rules.distinctBy(Any::javaClass),
-                        emitters.distinctBy(Any::javaClass),
-                        definitionProviders.distinctBy(Any::javaClass),
-                        enableTracing,
-                        analysisConfiguration
-                    )).use {
-                        assertThat(runtimeCosts).areZero()
-                        action(this)
-                    }
+            UserPathSource(classPaths).use { userSource ->
+                val analysisConfiguration = AnalysisConfiguration.createRoot(
+                    userSource = userSource,
+                    whitelist = whitelist,
+                    visibleAnnotations = visibleAnnotations,
+                    sandboxOnlyAnnotations = sandboxOnlyAnnotations,
+                    minimumSeverityLevel = minimumSeverityLevel,
+                    bootstrapSource = bootstrapClassLoader
+                )
+                SandboxRuntimeContext(SandboxConfiguration.of(
+                    executionProfile,
+                    rules.distinctBy(Any::javaClass),
+                    emitters.distinctBy(Any::javaClass),
+                    definitionProviders.distinctBy(Any::javaClass),
+                    enableTracing,
+                    analysisConfiguration
+                )).use {
+                    assertThat(runtimeCosts).areZero()
+                    action(this)
                 }
-            } catch (exception: Throwable) {
-                thrownException = exception
             }
         }.apply {
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->
@@ -268,19 +264,15 @@ abstract class TestBase(type: SandboxType) {
     ) {
         var thrownException: Throwable? = null
         thread(start = false) {
-            try {
-                UserPathSource(classPaths).use { userSource ->
-                    SandboxRuntimeContext(parentConfiguration.createChild(userSource, Consumer {
-                        it.withNewMinimumSeverityLevel(minimumSeverityLevel)
-                            .withSandboxOnlyAnnotations(sandboxOnlyAnnotations)
-                            .withVisibleAnnotations(visibleAnnotations)
-                    })).use {
-                        assertThat(runtimeCosts).areZero()
-                        action(this)
-                    }
+            UserPathSource(classPaths).use { userSource ->
+                SandboxRuntimeContext(parentConfiguration.createChild(userSource, Consumer {
+                    it.withNewMinimumSeverityLevel(minimumSeverityLevel)
+                        .withSandboxOnlyAnnotations(sandboxOnlyAnnotations)
+                        .withVisibleAnnotations(visibleAnnotations)
+                })).use {
+                    assertThat(runtimeCosts).areZero()
+                    action(this)
                 }
-            } catch (exception: Throwable) {
-                thrownException = exception
             }
         }.apply {
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->
