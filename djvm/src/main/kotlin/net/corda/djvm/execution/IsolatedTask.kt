@@ -21,7 +21,6 @@ class IsolatedTask(
      * Run an action in an isolated environment.
      */
     fun <T> run(action: IsolatedTask.() -> T?): Result<T> {
-        val runnable = this
         val threadName = "DJVM-$identifier-${uniqueIdentifier.getAndIncrement()}"
         var output: T? = null
         var costs = CostSummary.empty
@@ -30,18 +29,16 @@ class IsolatedTask(
             logger.trace("Entering isolated runtime environment...")
             SandboxRuntimeContext(configuration).use {
                 output = try {
-                    action(runnable)
-                } catch (ex: Throwable) {
-                    logger.error("Exception caught in isolated runtime environment", ex)
-                    exception = (ex as? LinkageError)?.cause ?: ex
-                    null
+                    action(this@IsolatedTask)
+                } finally {
+                    costs = CostSummary(runtimeCosts)
                 }
-                costs = CostSummary(runtimeCosts)
             }
             logger.trace("Exiting isolated runtime environment...")
         }.apply {
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->
-                exception = ex
+                logger.error("Exception caught in isolated runtime environment", ex)
+                exception = (ex as? LinkageError)?.cause ?: ex
             }
             start()
             join()
@@ -58,7 +55,7 @@ class IsolatedTask(
                 else -> null
             }
         } ?: MessageCollection()
-        return Result(threadName, output, costs, messages.acceptProvisional(), exception)
+        return Result(threadName, output, costs, messages, exception)
     }
 
     /**
