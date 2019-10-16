@@ -8,12 +8,18 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 class SourceClassLoaderTest {
 
     private val classResolver = ClassResolver(emptySet(), Whitelist.MINIMAL, "")
+    private val apiSource = BootstrapClassLoader(Paths.get(
+        System.getProperty("deterministic-rt.path") ?: fail("deterministic-rt.path property not set")
+    ))
 
     @Test
     fun `can load class from Java's lang package when no files are provided to the class loader`() {
@@ -202,13 +208,41 @@ class SourceClassLoaderTest {
         }
     }
 
+    @ParameterizedTest
+    @CsvSource(
+        "META-INF/MANIFEST.MF,1",
+        "java/nio/file/Paths.class,0",
+        "sun/misc/Timer.class,0",
+        "net/corda/djvm/Action.class,1",
+        "net/corda/djvm/source/ExampleAction.class,1"
+    )
+    fun `test getting resources`(resourceName: String, expected: Int) {
+        UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
+            val parentLoader = SourceClassLoader(classResolver, parentSource, apiSource)
+
+            UserPathSource(arrayOf(ExampleAction::class.java.protectionDomain.codeSource.location)).use { childSource ->
+                val childLoader = SourceClassLoader(
+                    classResolver,
+                    childSource,
+                    null,
+                    parentLoader
+                )
+
+                val resources = childLoader.getResources(resourceName).toList()
+                assertEquals(expected, resources.size)
+            }
+        }
+    }
+
     @AfterEach
     fun cleanup() {
-        openedFiles.forEach {
-            try {
-                Files.deleteIfExists(it)
-            } catch (exception: Exception) {
-                // Ignore
+        apiSource.use {
+            openedFiles.forEach {
+                try {
+                    Files.deleteIfExists(it)
+                } catch (exception: Exception) {
+                    // Ignore
+                }
             }
         }
     }

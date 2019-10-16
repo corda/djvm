@@ -24,6 +24,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
+import java.util.Collections.emptyEnumeration
 import kotlin.streams.toList
 
 /**
@@ -31,6 +32,7 @@ import kotlin.streams.toList
  */
 interface Source : AutoCloseable {
     fun findResource(name: String): URL?
+    fun findResources(name: String): Enumeration<URL>
 }
 
 /**
@@ -53,9 +55,14 @@ interface UserSource : Source {
 class BootstrapClassLoader(bootstrapJar: Path)
     : URLClassLoader(resolvePaths(listOf(bootstrapJar)), null), ApiSource {
     /**
-     * Only search our own jars for the given resource.
+     * Only search our own jar for the given resource.
      */
     override fun getResource(name: String): URL? = findResource(name)
+
+    /**
+     * Only search our own jar for the given resources.
+     */
+    override fun getResources(name: String): Enumeration<URL> = findResources(name)
 }
 
 /**
@@ -66,7 +73,11 @@ object EmptyApi : ClassLoader(null), ApiSource {
     override fun findResource(name: String): URL? {
         return super.findResource(name)
     }
+    override fun findResources(name: String): Enumeration<URL> {
+        return super.findResources(name)
+    }
     override fun getResource(name: String): URL? = findResource(name)
+    override fun getResources(name: String): Enumeration<URL> = findResources(name)
     override fun close() {}
 }
 
@@ -242,19 +253,38 @@ class SourceClassLoader(
         return null
     }
 
+    private fun findBootstrapResources(name: String): Enumeration<URL> {
+        return bootstrap?.findResources(name)
+            ?: if (isJvmInternal(name)) {
+                /**
+                 * Without a special [ApiSource], we need
+                 * to fetch Java API classes from the JVM itself.
+                 */
+                getSystemResources(name)
+            } else {
+                emptyEnumeration()
+            }
+    }
+
     /**
      * First check the parent classloader, if we have one.
      * Otherwise check any bootstrap classloader, followed by
      * the user-supplied jars.
      */
     override fun getResource(name: String): URL? {
-        if (parent != null) {
-            val resource = parent.getResource(name)
-            if (resource != null) {
-                return resource
-            }
-        }
-        return findBootstrapResource(name) ?: userSource.findResource(name)
+        return parent?.getResource(name) ?: findBootstrapResource(name) ?: userSource.findResource(name)
+    }
+
+    /**
+     * Check the parent [SourceClassLoader] first, if we have one.
+     * Otherwise check our [ApiSource], followed by any of our
+     * own resources.
+     */
+    override fun getResources(name: String): Enumeration<URL> {
+        val resources = mutableListOf<Enumeration<URL>>()
+        resources.add(parent?.getResources(name) ?: findBootstrapResources(name))
+        resources.add(userSource.findResources(name))
+        return CompoundEnumeration(resources)
     }
 
     /**
@@ -328,5 +358,29 @@ private fun isJavaxInternal(name: String): Boolean {
             || startsWith("crypto/")
             || startsWith("security/")
             || startsWith("xml/")
+    }
+}
+
+/**
+ * Rewrite this class because it has been removed from Java 9+.
+ */
+private class CompoundEnumeration<E>(private val enums: List<Enumeration<E>>) : Enumeration<E> {
+    private var index: Int = 0
+
+    override fun hasMoreElements(): Boolean {
+        while (index < enums.size) {
+            if (enums[index].hasMoreElements()) {
+                return true
+            }
+            ++index
+        }
+        return false
+    }
+
+    override fun nextElement(): E {
+        if (hasMoreElements()) {
+            return enums[index].nextElement()
+        }
+        throw NoSuchElementException()
     }
 }

@@ -18,6 +18,7 @@ import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
+import java.util.*
 import java.util.function.Function
 
 /**
@@ -462,6 +463,13 @@ class SandboxClassLoader private constructor(
      */
     override fun getResource(resourceName: String): URL? {
         return supportingClassLoader.getResource(resourceName)
+    }
+
+    /**
+     * Allow access to resources in the source classloader.
+     */
+    override fun getResources(resourceName: String): Enumeration<URL> {
+        return supportingClassLoader.getResources(resourceName)
     }
 
     companion object {
