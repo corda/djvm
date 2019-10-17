@@ -234,6 +234,30 @@ class SourceClassLoaderTest {
         }
     }
 
+    @Test
+    fun `test getting all URLs`() {
+        UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
+            val parentLoader = SourceClassLoader(classResolver, parentSource, apiSource)
+            val urlsForParent = parentLoader.getAllURLs()
+            assertEquals(1, urlsForParent.size)
+            assertThat(urlsForParent).containsExactly(*parentLoader.getURLs())
+
+            UserPathSource(arrayOf(ExampleAction::class.java.protectionDomain.codeSource.location)).use { childSource ->
+                val childLoader = SourceClassLoader(
+                    classResolver,
+                    childSource,
+                    null,
+                    parentLoader
+                )
+                val urlsForChild = childLoader.getAllURLs()
+                assertEquals(2, urlsForChild.size)
+                assertThat(urlsForChild).containsExactlyInAnyOrder(
+                    *parentLoader.getURLs() + childLoader.getURLs()
+                )
+            }
+        }
+    }
+
     @AfterEach
     fun cleanup() {
         apiSource.use {

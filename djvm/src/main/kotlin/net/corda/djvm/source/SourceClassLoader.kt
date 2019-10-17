@@ -114,6 +114,16 @@ class SourceClassLoader(
 
     fun getURLs(): Array<URL> = userSource.getURLs()
 
+    fun getAllURLs(): Set<URL> {
+        val urls = mutableSetOf(*getURLs())
+        var next = parent as? SourceClassLoader
+        while (next != null) {
+            Collections.addAll<URL>(urls, *next.getURLs())
+            next = next.parent as? SourceClassLoader
+        }
+        return urls
+    }
+
     /**
      * Open a [ClassReader] for the provided class name.
      */

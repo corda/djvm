@@ -2,17 +2,20 @@ package net.corda.djvm
 
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisConfiguration.ChildBuilder
-import net.corda.djvm.code.DefinitionProvider
-import net.corda.djvm.code.EMIT_TRACING
-import net.corda.djvm.code.Emitter
+import net.corda.djvm.code.*
 import net.corda.djvm.execution.ExecutionProfile
+import net.corda.djvm.execution.IsolatedTask
 import net.corda.djvm.rewiring.ByteCodeCache
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.rules.implementation.*
 import net.corda.djvm.rules.implementation.instrumentation.*
 import net.corda.djvm.source.UserSource
+import net.corda.djvm.utilities.loggerFor
+import java.io.IOException
+import java.net.URL
 import java.util.Collections.unmodifiableList
 import java.util.function.Consumer
+import java.util.zip.ZipInputStream
 
 /**
  * Configuration to use for the deterministic sandbox. It also caches the bytecode
@@ -60,7 +63,72 @@ class SandboxConfiguration private constructor(
         return createChild(userSource, Consumer {})
     }
 
+    /**
+     * Generate sandbox byte-code for every class inside selected source JARs.
+     * These source jars must each contain a META-INF/DJVM-preload entry.
+     */
+    @Throws(ClassNotFoundException::class, IOException::class)
+    fun preload() {
+        val preloadURLs = getPreloadURLs()
+        if (preloadURLs.isNotEmpty()) {
+            IsolatedTask(PRELOAD_THREAD_PREFIX, this).run {
+                val knownReferences = hashSetOf<String>().apply {
+                    // These classes are always present.
+                    add(OBJECT_NAME)
+                    add("java/lang/StackTraceElement")
+                    add(THROWABLE_NAME)
+                }
+
+                /**
+                 * Generate sandbox byte-code for all of these jars.
+                 */
+                for (preloadURL in preloadURLs) {
+                    log.info("Preloading classes from {}", preloadURL.path)
+                    ZipInputStream(preloadURL.openStream()).use {
+                        while (true) {
+                            val entryName = (it.nextEntry ?: break).name
+                            if (entryName.endsWith(CLASS_SUFFIX)) {
+                                val internalClassName = entryName.dropLast(CLASS_SUFFIX.length)
+                                knownReferences.add(internalClassName)
+
+                                val className = internalClassName.asPackagePath
+                                classLoader.toSandboxClass(className)
+                                log.debug("- loaded {}", className)
+
+                                /**
+                                 * Now ensure that we've also loaded every other
+                                 * class that this class has referenced.
+                                 */
+                                classLoader.resolveReferences(knownReferences)
+                            }
+                        }
+                    }
+                }
+
+                log.info("Preloaded {} classes into sandbox.",
+                          knownReferences.size - INITIAL_CLASSES)
+            }
+        }
+    }
+
+    private fun getPreloadURLs(): Set<URL> {
+        return with (analysisConfiguration.supportingClassLoader) {
+            val sourceURLs = getAllURLs()
+            getResources(DJVM_PRELOAD_TAG).asSequence().mapNotNullTo(LinkedHashSet()) { url ->
+                val jarPath = url.path.substringBeforeLast("!/")
+                sourceURLs.find { it.toString().endsWith(jarPath) }
+            }
+        }
+    }
+
     companion object {
+        const val DJVM_PRELOAD_TAG = "META-INF/DJVM-preload"
+        private const val PRELOAD_THREAD_PREFIX = "preloader"
+        private const val CLASS_SUFFIX = ".class"
+        private const val INITIAL_CLASSES = 3
+
+        private val log = loggerFor<SandboxConfiguration>()
+
         @JvmField
         val ALL_RULES: List<Rule> = unmodifiableList(listOf(
             AlwaysUseNonSynchronizedMethods,
