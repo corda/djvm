@@ -26,7 +26,7 @@ subprojects {
         sourceCompatibility = VERSION_1_8
         targetCompatibility = VERSION_1_8
         options.encoding = 'UTF-8'
-        options.compilerArgs += '-XDenableSunApiLintControl'
+        options.compilerArgs << '-XDenableSunApiLintControl' << '-Werror'
     }
 
     tasks.withType(KotlinCompile) {
@@ -35,6 +35,7 @@ subprojects {
             apiVersion = '1.2'
             jvmTarget = VERSION_1_8
             freeCompilerArgs = ['-Xjvm-default=enable']
+            allWarningsAsErrors = true
         }
     }
 

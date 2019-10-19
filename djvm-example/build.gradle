@@ -78,7 +78,7 @@ dependencies {
 tasks.withType(JavaCompile) {
     sourceCompatibility = VERSION_1_8
     targetCompatibility = VERSION_1_8
-    options.compilerArgs << '-parameters'
+    options.compilerArgs << '-parameters' << '-Werror'
     options.encoding = 'UTF-8'
 }
 
@@ -89,6 +89,7 @@ tasks.withType(KotlinCompile) {
         jvmTarget = VERSION_1_8
         javaParameters = true    // Required for reflection / deserialization
         freeCompilerArgs = ['-Xjvm-default=enable']
+        allWarningsAsErrors = true
     }
 }
 
