@@ -4,11 +4,14 @@ import net.corda.djvm.analysis.AnalysisConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static java.util.Collections.unmodifiableSet;
+
 /**
- * An internal cache of class byte-code, indexed by the class's internal name.
+ * An internal cache of class byte-code, indexed by the class's binary name.
  * It has been written in Java so that {@link #update} can be package private.
  */
 public final class ByteCodeCache {
@@ -26,6 +29,11 @@ public final class ByteCodeCache {
 
     public ByteCode get(String name) {
         return byteCodeCache.get(name);
+    }
+
+    @NotNull
+    public Set<String> getClassNames() {
+        return unmodifiableSet(byteCodeCache.keySet());
     }
 
     void update(@NotNull Map<String, ByteCode> loadedClasses) {

@@ -18,6 +18,7 @@ import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
+import java.util.*
 import java.util.function.Function
 
 /**
@@ -274,6 +275,9 @@ class SandboxClassLoader private constructor(
         return loadClassForSandbox(ClassSource.fromClassName(clazz.name))
     }
 
+    @Throws(ClassNotFoundException::class)
+    fun toSandboxClass(className: String): Class<*> = loadClassForSandbox(className)
+
     /**
      * Load the class with the specified binary name.
      *
@@ -458,10 +462,53 @@ class SandboxClassLoader private constructor(
     }
 
     /**
+     * Forces this [SandboxClassLoader] to load every class that has
+     * been referenced while loading the current set of classes.
+     * Consumes all of the references queued on the [AnalysisContext].
+     * @param knownReferences A set of internal names of classes that
+     * we know we have loaded already.
+     */
+    @Throws(ClassNotFoundException::class)
+    fun resolveReferences(knownReferences: MutableSet<String>) {
+        val unknownReferences = LinkedList<String>()
+        while (true) {
+            context.references.process { ref ->
+                if (ref is ClassReference && knownReferences.add(ref.className)) {
+                    unknownReferences.addLast(ref.className)
+                }
+            }
+
+            /**
+             * No more unknown class references means that all
+             * class references from the previous iteration were
+             * already known. Which must mean that everything has
+             * now been resolved.
+             */
+            if (unknownReferences.isEmpty()) {
+                break
+            }
+
+            /**
+             * Load the next unknown class, which will
+             * in turn generate a new batch of class
+             * references to examine.
+             */
+            toSandboxClass(unknownReferences.removeFirst().asPackagePath)
+        }
+    }
+
+    /**
      * Allow access to resources in the source classloader.
      */
     override fun getResource(resourceName: String): URL? {
         return supportingClassLoader.getResource(resourceName)
+    }
+
+    /**
+     * Allow access to resources in the source classloader.
+     */
+    override fun getResources(resourceName: String): Enumeration<URL> {
+        return supportingClassLoader.getResources(resourceName)
     }
 
     companion object {
@@ -491,7 +538,7 @@ class SandboxClassLoader private constructor(
                 ruleValidator = RuleValidator(rules = configuration.rules,
                                               configuration = analysisConfiguration),
                 rewriter = ClassRewriter(configuration, supportingClassLoader),
-                context = AnalysisContext.fromConfiguration(analysisConfiguration),
+                context = parentClassLoader?.context ?: AnalysisContext.fromConfiguration(analysisConfiguration),
                 byteCodeCache = byteCodeCache ?: ByteCodeCache(parentClassLoader?.byteCodeCache),
                 throwableClass = parentClassLoader?.throwableClass,
                 parent = parentClassLoader
