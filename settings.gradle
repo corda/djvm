@@ -5,7 +5,7 @@ pluginManagement {
 
     plugins {
         id 'org.jetbrains.kotlin.jvm' version kotlin_version
-        id 'net.corda.plugins.publish-utils' version '4.0.46'
+        id 'net.corda.plugins.publish-utils' version '5.0.4'
         id 'com.github.johnrengelman.shadow' version '5.1.0'
         id 'com.jfrog.artifactory' version '4.9.6'
         id 'com.jfrog.bintray' version '1.7.3'
