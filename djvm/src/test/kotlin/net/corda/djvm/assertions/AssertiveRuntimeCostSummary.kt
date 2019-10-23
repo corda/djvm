@@ -1,7 +1,7 @@
 package net.corda.djvm.assertions
 
 import net.corda.djvm.costing.RuntimeCostSummary
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 
 @Suppress("MemberVisibilityCanBePrivate")
 class AssertiveRuntimeCostSummary(private val costs: RuntimeCostSummary) {

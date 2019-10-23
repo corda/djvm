@@ -1,6 +1,6 @@
 package net.corda.djvm.assertions
 
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 
 class AssertiveDJVMObject(private val djvmObj: Any) {
 

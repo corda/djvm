@@ -6,8 +6,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.util.EmptyStackException
 import java.util.function.Function
-import java.util.*
 
 class DJVMExceptionTest : TestBase(KOTLIN) {
     @Test

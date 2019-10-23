@@ -1,13 +1,21 @@
 package com.example.testing
 
 import net.corda.core.serialization.SerializationContext
-import net.corda.core.serialization.SerializationContext.UseCase.*
+import net.corda.core.serialization.SerializationContext.UseCase.P2P
 import net.corda.core.serialization.SerializationCustomSerializer
 import net.corda.core.serialization.SerializationWhitelist
 import net.corda.core.serialization.internal.SerializationEnvironment
 import net.corda.core.serialization.internal._contextSerializationEnv
-import net.corda.serialization.internal.*
-import net.corda.serialization.internal.amqp.*
+import net.corda.serialization.internal.BuiltInExceptionsWhitelist
+import net.corda.serialization.internal.CordaSerializationMagic
+import net.corda.serialization.internal.GlobalTransientClassWhiteList
+import net.corda.serialization.internal.SerializationContextImpl
+import net.corda.serialization.internal.SerializationFactoryImpl
+import net.corda.serialization.internal.amqp.AbstractAMQPSerializationScheme
+import net.corda.serialization.internal.amqp.AccessOrderLinkedHashMap
+import net.corda.serialization.internal.amqp.SerializationFactoryCacheKey
+import net.corda.serialization.internal.amqp.SerializerFactory
+import net.corda.serialization.internal.amqp.amqpMagic
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext

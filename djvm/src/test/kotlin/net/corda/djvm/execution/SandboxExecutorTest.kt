@@ -5,7 +5,8 @@ import foo.bar.sandbox.testClock
 import foo.bar.sandbox.toNumber
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
-import net.corda.djvm.Utilities.*
+import net.corda.djvm.Utilities.throwRuleViolationError
+import net.corda.djvm.Utilities.throwThresholdViolationError
 import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
 import net.corda.djvm.assertions.AssertionExtensions.withProblem
 import net.corda.djvm.costing.ThresholdViolationError
@@ -19,7 +20,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.function.Function
-import java.util.stream.Collectors.*
+import java.util.stream.Collectors.joining
 
 class SandboxExecutorTest : TestBase(KOTLIN) {
     companion object {

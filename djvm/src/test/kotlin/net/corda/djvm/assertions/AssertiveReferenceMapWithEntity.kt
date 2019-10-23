@@ -3,7 +3,7 @@ package net.corda.djvm.assertions
 import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.references.EntityReference
 import net.corda.djvm.references.ReferenceMap
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 
 class AssertiveReferenceMapWithEntity(
         references: ReferenceMap,

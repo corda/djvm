@@ -2,7 +2,7 @@ package net.corda.djvm.assertions
 
 import net.corda.djvm.references.ClassHierarchy
 import net.corda.djvm.references.Member
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 
 @Suppress("unused", "CanBeParameter")
 class AssertiveClassHierarchyWithClassAndMember(

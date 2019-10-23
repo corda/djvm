@@ -6,7 +6,7 @@ import net.corda.djvm.TestBase
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import org.junit.jupiter.api.Test
 import org.objectweb.asm.Type
-import java.util.*
+import java.util.Random
 
 class ReferenceExtractorTest : TestBase(KOTLIN) {
 

@@ -13,12 +13,15 @@ import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.messages.Severity
-import net.corda.djvm.messages.Severity.*
+import net.corda.djvm.messages.Severity.INFORMATIONAL
+import net.corda.djvm.messages.Severity.WARNING
 import net.corda.djvm.references.ClassHierarchy
 import net.corda.djvm.rewiring.LoadedClass
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rules.Rule
-import net.corda.djvm.source.*
+import net.corda.djvm.source.BootstrapClassLoader
+import net.corda.djvm.source.ClassSource
+import net.corda.djvm.source.UserPathSource
 import net.corda.djvm.validation.RuleValidator
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach

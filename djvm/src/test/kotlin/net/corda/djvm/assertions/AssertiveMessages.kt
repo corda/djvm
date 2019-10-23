@@ -2,7 +2,7 @@ package net.corda.djvm.assertions
 
 import net.corda.djvm.messages.MessageCollection
 import net.corda.djvm.messages.Severity
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 
 @Suppress("unused")
 class AssertiveMessages(private val messages: MessageCollection) {

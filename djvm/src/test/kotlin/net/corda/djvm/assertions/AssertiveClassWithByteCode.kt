@@ -1,7 +1,7 @@
 package net.corda.djvm.assertions
 
 import net.corda.djvm.rewiring.LoadedClass
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 
 class AssertiveClassWithByteCode(private val loadedClass: LoadedClass) {
 

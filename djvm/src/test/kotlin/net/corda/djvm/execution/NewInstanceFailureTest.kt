@@ -1,6 +1,10 @@
 package net.corda.djvm.execution
 
-import com.example.testing.*
+import com.example.testing.HasBrokenConstructor
+import com.example.testing.HasBrokenInitializer
+import com.example.testing.HasProtectedConstructor
+import com.example.testing.HasUserExceptionConstructor
+import com.example.testing.ImpossibleInstance
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.Utilities.newInstance

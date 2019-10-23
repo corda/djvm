@@ -5,7 +5,7 @@ import net.corda.djvm.execution.DeterministicSandboxExecutor
 import net.corda.djvm.execution.SandboxException
 import net.corda.djvm.rules.RuleViolationError
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
