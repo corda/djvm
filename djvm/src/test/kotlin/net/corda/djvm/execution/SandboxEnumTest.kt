@@ -4,7 +4,8 @@ import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.util.*
+import java.util.EnumMap
+import java.util.EnumSet
 import java.util.function.Function
 
 class SandboxEnumTest : TestBase(KOTLIN) {

@@ -1,25 +1,48 @@
 package net.corda.djvm.analysis
 
-import net.corda.djvm.code.*
+import net.corda.djvm.code.CLASS_CONSTRUCTOR_NAME
+import net.corda.djvm.code.CONSTRUCTOR_NAME
+import net.corda.djvm.code.DJVM_EXCEPTION_NAME
+import net.corda.djvm.code.DJVM_NAME
+import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
+import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.formatting.MemberFormatter
 import net.corda.djvm.messages.Severity
-import net.corda.djvm.references.*
-import net.corda.djvm.source.*
+import net.corda.djvm.references.ClassModule
+import net.corda.djvm.references.Member
+import net.corda.djvm.references.MemberInformation
+import net.corda.djvm.references.MemberModule
+import net.corda.djvm.source.ApiSource
+import net.corda.djvm.source.ClassHeader
+import net.corda.djvm.source.EmptyApi
+import net.corda.djvm.source.SourceClassLoader
+import net.corda.djvm.source.UserSource
 import org.objectweb.asm.Label
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Opcodes.ACC_ABSTRACT
+import org.objectweb.asm.Opcodes.ACC_BRIDGE
+import org.objectweb.asm.Opcodes.ACC_FINAL
+import org.objectweb.asm.Opcodes.ACC_PRIVATE
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
+import org.objectweb.asm.Opcodes.ACC_STATIC
+import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
+import org.objectweb.asm.Opcodes.IFNONNULL
 import org.objectweb.asm.Type
 import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.security.Security
-import java.util.*
-import java.util.Collections.*
+import java.util.Collections.unmodifiableList
+import java.util.Collections.unmodifiableMap
+import java.util.Collections.unmodifiableSet
+import java.util.Random
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.regex.Pattern
 import javax.security.auth.x500.X500Principal
 import javax.xml.datatype.DatatypeFactory
 import kotlin.Comparator
+import kotlin.collections.LinkedHashSet
 
 /**
  * The configuration to use for an analysis.
@@ -41,20 +64,20 @@ import kotlin.Comparator
  * @property supportingClassLoader ClassLoader providing the classes to run inside the sandbox.
  */
 class AnalysisConfiguration private constructor(
-        val parent: AnalysisConfiguration?,
-        val whitelist: Whitelist,
-        val sandboxAnnotations: Set<Pattern>,
-        val allowedAnnotations: Set<String>,
-        val stitchedAnnotations: Set<String>,
-        val classResolver: ClassResolver,
-        val exceptionResolver: ExceptionResolver,
-        val minimumSeverityLevel: Severity,
-        val analyzeAnnotations: Boolean,
-        val prefixFilters: List<String>,
-        val classModule: ClassModule,
-        val memberModule: MemberModule,
-        val supportingClassLoader: SourceClassLoader,
-        private val memberFormatter: MemberFormatter
+    val parent: AnalysisConfiguration?,
+    val whitelist: Whitelist,
+    val sandboxAnnotations: Set<Pattern>,
+    val allowedAnnotations: Set<String>,
+    val stitchedAnnotations: Set<String>,
+    val classResolver: ClassResolver,
+    val exceptionResolver: ExceptionResolver,
+    val minimumSeverityLevel: Severity,
+    val analyzeAnnotations: Boolean,
+    val prefixFilters: List<String>,
+    val classModule: ClassModule,
+    val memberModule: MemberModule,
+    val supportingClassLoader: SourceClassLoader,
+    private val memberFormatter: MemberFormatter
 ) {
 
     fun formatFor(member: MemberInformation): String = memberFormatter.format(member)

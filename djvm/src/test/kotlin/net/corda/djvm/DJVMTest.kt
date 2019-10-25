@@ -1,8 +1,10 @@
 package net.corda.djvm
 
 import net.corda.djvm.SandboxType.KOTLIN
-import org.assertj.core.api.Assertions.*
-import org.junit.jupiter.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 import java.text.DecimalFormatSymbols
 import java.util.function.Function

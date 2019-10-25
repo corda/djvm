@@ -1,16 +1,20 @@
 package net.corda.djvm.rewiring
 
-import foo.bar.sandbox.*
+import foo.bar.sandbox.A
+import foo.bar.sandbox.B
+import foo.bar.sandbox.Empty
+import foo.bar.sandbox.StrictFloat
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.rules.RuleViolationError
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
-import java.util.*
+import java.util.Arrays
 
 class ClassRewriterTest : TestBase(KOTLIN) {
 

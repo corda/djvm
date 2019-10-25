@@ -1,6 +1,6 @@
 package net.corda.djvm
 
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.file.Files
@@ -11,7 +11,8 @@ import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
-import java.util.zip.ZipEntry.*
+import java.util.zip.ZipEntry.DEFLATED
+import java.util.zip.ZipEntry.STORED
 
 /**
  * Factory object for creating a dummy jar with a basic manifest.

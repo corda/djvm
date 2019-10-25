@@ -3,7 +3,7 @@ package net.corda.djvm.assertions
 import net.corda.djvm.references.ClassReference
 import net.corda.djvm.references.MemberReference
 import net.corda.djvm.references.ReferenceMap
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 
 @Suppress("unused")
 open class AssertiveReferenceMap(private val references: ReferenceMap) {

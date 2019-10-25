@@ -1,7 +1,6 @@
 package com.example.testing
 
 import net.corda.core.crypto.Crypto
-import java.security.CryptoPrimitive
 import java.security.Signature
 import java.security.cert.Certificate
 import java.util.function.Function

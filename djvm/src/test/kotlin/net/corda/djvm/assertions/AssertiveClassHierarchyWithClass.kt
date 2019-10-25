@@ -2,7 +2,7 @@ package net.corda.djvm.assertions
 
 import net.corda.djvm.references.ClassRepresentation
 import net.corda.djvm.references.ClassHierarchy
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 
 open class AssertiveClassHierarchyWithClass(
         hierarchy: ClassHierarchy,

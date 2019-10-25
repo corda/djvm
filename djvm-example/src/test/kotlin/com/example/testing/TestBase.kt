@@ -9,7 +9,7 @@ import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
 import net.corda.djvm.execution.ExecutionProfile.Companion.UNLIMITED
 import net.corda.djvm.messages.Severity
-import net.corda.djvm.messages.Severity.*
+import net.corda.djvm.messages.Severity.WARNING
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.AfterAll
