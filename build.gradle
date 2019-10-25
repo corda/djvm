@@ -65,7 +65,7 @@ bintrayConfig {
     key = System.getenv('CORDA_BINTRAY_KEY')
     repo = 'corda'
     org = 'r3'
-    licenses = ['Apache-2.0']
+    licenses = ['GPLv2+CE']
     vcsUrl = 'https://github.com/corda/djvm'
     projectUrl = 'https://github.com/corda/djvm'
     gpgSign = true
@@ -75,8 +75,8 @@ bintrayConfig {
         'corda-djvm-cli'
     ]
     license {
-        name = 'Apache-2.0'
-        url = 'https://www.apache.org/licenses/LICENSE-2.0'
+        name = 'GPLv2+CE'
+        url = 'https://openjdk.java.net/legal/gplv2+ce.html'
         distribution = 'repo'
     }
     developer {
