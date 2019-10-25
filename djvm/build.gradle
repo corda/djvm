@@ -118,7 +118,7 @@ shadowJar {
     exclude 'sandbox/java/util/*List*.class'
     exclude 'sandbox/java/util/*Map*.class'
     exclude 'sandbox/java/util/*Set*.class'
-    exclude 'sandbox/java/util/Collection.class'
+    exclude 'sandbox/java/util/Collection*.class'
     exclude 'sandbox/java/util/Comparator.class'
     exclude 'sandbox/java/util/Currency.class'
     exclude "sandbox/java/util/Date.class"

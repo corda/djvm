@@ -14,6 +14,7 @@ import sandbox.isEntryPoint
 import sandbox.java.io.*
 import sandbox.java.nio.ByteOrder
 import sandbox.java.util.*
+import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 
@@ -344,6 +345,16 @@ fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
 fun loadSystemResource(name: kotlin.String): DataInputStream {
     val input = getSystemResourceAsStream(name) ?: throw InternalError("Missing $name")
     return DataInputStream(BufferedInputStream(input))
+}
+
+/**
+ * Return [Properties] containing system's calendars.properties file.
+ */
+@Throws(IOException::class)
+fun getCalendarProperties(): Properties {
+    return Properties().apply {
+        load(loadSystemResource("calendars.properties"))
+    }
 }
 
 /**
