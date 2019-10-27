@@ -7,6 +7,6 @@ package net.corda.djvm.execution
  * @see ExecutionSummary
  */
 class ExecutionSummaryWithResult<out TResult>(
-        val result: TResult? = null,
-        costs: CostSummary = CostSummary.empty
+        val result: TResult?,
+        costs: CostSummary
 ) : ExecutionSummary(costs)

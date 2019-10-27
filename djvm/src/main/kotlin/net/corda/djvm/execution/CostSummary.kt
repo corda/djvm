@@ -31,6 +31,7 @@ data class CostSummary(
         /**
          * A blank summary of costs.
          */
+        @JvmField
         val empty = CostSummary(0, 0, 0, 0)
     }
 

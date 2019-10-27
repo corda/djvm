@@ -4,11 +4,14 @@ package net.corda.djvm.analysis
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Opcodes.ACC_BRIDGE
+import org.objectweb.asm.Opcodes.ACC_FINAL
+import org.objectweb.asm.Opcodes.ACC_PROTECTED
+import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 
 const val FROM_DJVM = "fromDJVM"
 
-open class MethodBuilder(
+internal open class MethodBuilder(
     protected val access: Int,
     protected val className: String,
     protected val memberName: String,
@@ -38,11 +41,14 @@ open class MethodBuilder(
     )
 }
 
-abstract class FromDJVMBuilder(
+internal abstract class FromDJVMBuilder(
     protected val className: String,
     private val bridgeDescriptor: String,
-    signature: String = ""
+    signature: String
 ) {
+    constructor(className: String, bridgeDescriptor: String)
+        : this(className, bridgeDescriptor, "")
+
     private val builder = MethodBuilder(
         access = ACC_FINAL or ACC_PROTECTED,
         className = className,

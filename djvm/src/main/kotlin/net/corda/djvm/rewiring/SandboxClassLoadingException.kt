@@ -18,10 +18,12 @@ import net.corda.djvm.references.EntityReference
 class SandboxClassLoadingException(
         message: String,
         private val context: AnalysisContext,
-        val messages: MessageCollection = context.messages,
-        val classes: ClassHierarchy = context.classes,
-        val classOrigins: Map<String, Set<EntityReference>> = context.classOrigins
+        val messages: MessageCollection,
+        val classes: ClassHierarchy,
+        val classOrigins: Map<String, Set<EntityReference>>
 ) : SandboxRuntimeException(message) {
+    constructor(message: String, context: AnalysisContext)
+        : this(message, context, context.messages, context.classes, context.classOrigins)
 
     /**
      * The detailed description of the exception.

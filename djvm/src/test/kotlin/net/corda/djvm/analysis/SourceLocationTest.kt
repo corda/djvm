@@ -7,7 +7,7 @@ class SourceLocationTest {
 
     @Test
     fun `can derive description of source location without source`() {
-        val location = SourceLocation(className = "net/foo/Bar")
+        val location = SourceLocation.Builder(className = "net/foo/Bar").build()
         assertThat(location.format())
                 .contains("net/foo/Bar")
         assertThat(location.copy(memberName = "baz").format())
@@ -23,7 +23,9 @@ class SourceLocationTest {
 
     @Test
     fun `can derive description of source location with source`() {
-        val location = SourceLocation(className = "net/foo/Bar", sourceFile = "Bar.kt")
+        val location = SourceLocation.Builder(className = "net/foo/Bar")
+            .withSourceFile("Bar.kt")
+            .build()
         assertThat(location.format())
                 .contains("Bar.kt")
         assertThat(location.copy(memberName = "baz").format())

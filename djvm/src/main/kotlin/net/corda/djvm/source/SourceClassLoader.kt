@@ -103,14 +103,20 @@ class UserPathSource(urls: Array<URL>) : URLClassLoader(urls, null), UserSource 
 class SourceClassLoader(
     private val classResolver: ClassResolver,
     private val userSource: UserSource,
-    private val bootstrap: ApiSource? = null,
-    parent: SourceClassLoader? = null
+    private val bootstrap: ApiSource?,
+    parent: SourceClassLoader?
 ) : ClassLoader(parent) {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
     }
 
     private val headers = mutableMapOf<String, ClassHeader>()
+
+    // Java-friendly constructors
+    constructor(classResolver: ClassResolver, userSource: UserSource, bootstrap: ApiSource?)
+        : this(classResolver, userSource, bootstrap, null)
+    constructor(classResolver: ClassResolver, userSource: UserSource)
+        : this(classResolver, userSource, null, null)
 
     fun getURLs(): Array<URL> = userSource.getURLs()
 
@@ -137,7 +143,7 @@ class SourceClassLoader(
             context.messages.provisionalAdd(Message(
                 message = message,
                 severity = Severity.ERROR,
-                location = SourceLocation(origin ?: "")
+                location = SourceLocation.Builder(origin ?: "").build()
             ))
             throw SandboxClassLoadingException(message, context)
         }

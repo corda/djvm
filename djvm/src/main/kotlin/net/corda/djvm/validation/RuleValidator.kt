@@ -22,7 +22,7 @@ import org.objectweb.asm.MethodVisitor
  * @param configuration The configuration to use for class analysis.
  */
 class RuleValidator(
-        private val rules: List<Rule> = emptyList(),
+        private val rules: List<Rule>,
         configuration: AnalysisConfiguration
 ) : ClassAndMemberVisitor(configuration, STUB) {
     private companion object {
