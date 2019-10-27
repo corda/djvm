@@ -22,7 +22,12 @@ class ClassMutatorTest : TestBase(KOTLIN) {
             }
         }
         val context = context
-        val mutator = ClassMutator(Writer(), configuration, listOf(definitionProvider))
+        val mutator = ClassMutator(
+            classVisitor = Writer(),
+            configuration = configuration,
+            definitionProviders = listOf(definitionProvider),
+            emitters = emptyList()
+        )
         mutator.analyze<TestClass>(context)
         assertThat(hasProvidedDefinition).isTrue()
         assertThat(context.classes.get<TestClass>().access or ACC_STRICT).isNotEqualTo(0)
@@ -40,7 +45,12 @@ class ClassMutatorTest : TestBase(KOTLIN) {
             }
         }
         val context = context
-        val mutator = ClassMutator(Writer(), configuration, listOf(definitionProvider))
+        val mutator = ClassMutator(
+            classVisitor = Writer(),
+            configuration = configuration,
+            definitionProviders = listOf(definitionProvider),
+            emitters = emptyList()
+        )
         mutator.analyze<TestClassWithMembers>(context)
         assertThat(hasProvidedDefinition).isTrue()
         for (member in context.classes.get<TestClassWithMembers>().members.values) {
@@ -68,7 +78,12 @@ class ClassMutatorTest : TestBase(KOTLIN) {
             }
         }
         val context = context
-        val mutator = ClassMutator(Writer(), configuration, emitters = listOf(emitter))
+        val mutator = ClassMutator(
+            classVisitor = Writer(),
+            configuration = configuration,
+            definitionProviders = emptyList(),
+            emitters = listOf(emitter)
+        )
         mutator.analyze<TestClassWithMembers>(context)
         assertThat(hasEmittedCode).isTrue()
         assertThat(shouldPreventDefault).isTrue()

@@ -22,8 +22,8 @@ import org.objectweb.asm.Opcodes.*
 class ClassMutator(
         classVisitor: ClassVisitor,
         private val configuration: AnalysisConfiguration,
-        private val definitionProviders: List<DefinitionProvider> = emptyList(),
-        emitters: List<Emitter> = emptyList()
+        private val definitionProviders: List<DefinitionProvider>,
+        emitters: List<Emitter>
 ) : ClassAndMemberVisitor(configuration, classVisitor) {
 
     /**

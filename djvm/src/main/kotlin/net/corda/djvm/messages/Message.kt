@@ -14,8 +14,10 @@ import net.corda.djvm.rewiring.SandboxClassLoadingException
 data class Message(
         val message: String,
         val severity: Severity,
-        val location: SourceLocation = SourceLocation()
+        val location: SourceLocation
 ) {
+    constructor(message: String, severity: Severity)
+        : this(message, severity, SourceLocation.Builder().build())
 
     override fun toString() = location.toString().let {
         when {
@@ -29,7 +31,7 @@ data class Message(
         /**
          * Construct a message from a [Throwable] with an optional location.
          */
-        fun fromThrowable(throwable: Throwable, location: SourceLocation = SourceLocation()): Message {
+        fun fromThrowable(throwable: Throwable, location: SourceLocation): Message {
             return Message(getMessageFromException(throwable), Severity.ERROR, location)
         }
 

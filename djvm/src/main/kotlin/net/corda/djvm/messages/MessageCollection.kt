@@ -12,9 +12,10 @@ import net.corda.djvm.references.MemberInformation
  */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class MessageCollection(
-        private val minimumSeverity: Severity = Severity.INFORMATIONAL,
-        private val prefixFilters: List<String> = emptyList()
+    private val minimumSeverity: Severity,
+    private val prefixFilters: List<String>
 ) {
+    constructor() : this(Severity.INFORMATIONAL, emptyList())
 
     private val seenEntries = mutableSetOf<String>()
 

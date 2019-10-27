@@ -37,7 +37,7 @@ open class ClassAndMemberVisitor(
     /**
      * The current source location.
      */
-    private var sourceLocation = SourceLocation()
+    private var sourceLocation = SourceLocation.Builder().build()
 
     /**
      * Analyze class by using the provided qualified name of the class.
@@ -227,7 +227,7 @@ open class ClassAndMemberVisitor(
             ClassRepresentation(version, access, name, superClassName, interfaceNames, genericsDetails = signature ?: "").also {
                 currentClass = it
                 currentMember = null
-                sourceLocation = SourceLocation(className = name)
+                sourceLocation = SourceLocation.Builder(name).build()
             }
             captureExceptions {
                 currentClass = visitClass(currentClass!!)

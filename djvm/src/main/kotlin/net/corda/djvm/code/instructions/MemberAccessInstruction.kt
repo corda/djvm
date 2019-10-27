@@ -16,5 +16,12 @@ class MemberAccessInstruction(
         override val className: String,
         override val memberName: String,
         override val descriptor: String,
-        val ownerIsInterface: Boolean = false
-) : Instruction(operation), MemberInformation
+        val ownerIsInterface: Boolean
+) : Instruction(operation), MemberInformation {
+    constructor(
+        operation: Int,
+        className: String,
+        memberName: String,
+        descriptor: String
+    ) : this(operation, className, memberName, descriptor, false)
+}

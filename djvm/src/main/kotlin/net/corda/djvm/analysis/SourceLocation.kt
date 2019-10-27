@@ -16,11 +16,11 @@ import net.corda.djvm.references.MemberModule
  * @property lineNumber The index of the line from which the instruction was compiled.
  */
 data class SourceLocation(
-        override val className: String = "",
-        val sourceFile: String = "",
-        override val memberName: String = "",
-        override val descriptor: String = "",
-        val lineNumber: Int = 0
+        override val className: String,
+        val sourceFile: String,
+        override val memberName: String,
+        override val descriptor: String,
+        val lineNumber: Int
 ) : MemberInformation {
 
     /**
@@ -81,6 +81,46 @@ data class SourceLocation(
                 append("|@")
             }
         }.toString()
+    }
+
+    @Suppress("unused")
+    class Builder(private val className: String) {
+        constructor() : this("")
+
+        private var sourceFile: String = ""
+        private var memberName: String = ""
+        private var descriptor: String = ""
+        private var lineNumber: Int = 0
+
+        fun withSourceFile(sourceFile: String): Builder {
+            this.sourceFile = sourceFile
+            return this
+        }
+
+        fun withMemberName(memberName: String): Builder {
+            this.memberName = memberName
+            return this
+        }
+
+        fun withDescriptor(descriptor: String): Builder {
+            this.descriptor = descriptor
+            return this
+        }
+
+        fun withLineNumber(lineNumber: Int): Builder {
+            this.lineNumber = lineNumber
+            return this
+        }
+
+        fun build(): SourceLocation {
+            return SourceLocation(
+                className = className,
+                sourceFile = sourceFile,
+                memberName = memberName,
+                descriptor = descriptor,
+                lineNumber = lineNumber
+            )
+        }
     }
 
     private companion object {

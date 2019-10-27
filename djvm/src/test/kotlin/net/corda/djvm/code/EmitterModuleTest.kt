@@ -37,7 +37,12 @@ class EmitterModuleTest : TestBase(KOTLIN) {
 
         }
         val context = context
-        val mutator = ClassMutator(visitor, configuration, emitters = listOf(emitter))
+        val mutator = ClassMutator(
+            classVisitor = visitor,
+            configuration = configuration,
+            definitionProviders = emptyList(),
+            emitters = listOf(emitter)
+        )
         mutator.analyze<TestClass>(context)
         assertThat(hasEmittedTypeInstruction).isTrue()
     }

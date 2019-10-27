@@ -22,7 +22,8 @@ object Processor {
             try {
                 processor(item)
             } catch (exception: Throwable) {
-                messages.add(Message.fromThrowable(exception, SourceLocation(item.toString())))
+                val location = SourceLocation.Builder(item.toString()).build()
+                messages.add(Message.fromThrowable(exception, location))
             }
         }
     }
