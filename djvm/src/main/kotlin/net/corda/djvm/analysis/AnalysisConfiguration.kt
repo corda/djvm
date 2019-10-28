@@ -248,6 +248,7 @@ class AnalysisConfiguration private constructor(
             java.lang.Throwable::class.java,
             java.lang.ref.Reference::class.java,
             java.security.AccessController::class.java,
+            java.util.ServiceLoader::class.java,
             java.util.concurrent.ConcurrentHashMap::class.java,
             java.util.concurrent.ConcurrentHashMap.KeySetView::class.java,
             java.util.concurrent.atomic.AtomicInteger::class.java,
@@ -419,6 +420,7 @@ class AnalysisConfiguration private constructor(
          * trying to invoke [sun.misc.Unsafe] and other assorted native methods.
          */
         private val STITCHED_CLASSES: Map<String, List<Member>> = unmodifiable((
+            generateJavaCalendarMethods() +
             generateJavaTimeMethods() +
             generateJavaResourceBundleMethods() +
             generateJavaUuidMethods() +
