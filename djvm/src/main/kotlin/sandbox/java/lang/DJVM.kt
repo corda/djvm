@@ -130,8 +130,8 @@ private fun kotlin.Throwable.safeCopy(): kotlin.Throwable {
          * [InvocationTargetException] and [java.lang.ExceptionInInitializerError] can
          * contain a sandbox exception as their underlying target / cause.
          */
-        is InvocationTargetException -> InvocationTargetException(targetException.escapeSandbox()).also(::copyExtraTo)
-        is java.lang.ExceptionInInitializerError -> ExceptionInInitializerError(exception.escapeSandbox()).also(::copyExtraTo)
+        is InvocationTargetException -> InvocationTargetException(targetException?.escapeSandbox()).also(::copyExtraTo)
+        is java.lang.ExceptionInInitializerError -> ExceptionInInitializerError(exception?.escapeSandbox()).also(::copyExtraTo)
         else -> this
     }
 }
