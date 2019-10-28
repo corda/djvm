@@ -1,17 +1,22 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' apply false
+    id 'net.corda.plugins.api-scanner' apply false
     id 'net.corda.plugins.publish-utils'
     id 'com.jfrog.artifactory'
     id 'org.owasp.dependencycheck'
     id 'com.gradle.build-scan'
+    id 'base'
 }
 
 import static org.gradle.api.JavaVersion.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import net.corda.plugins.GenerateApi
 
 ext {
     artifactory_contextUrl = 'https://software.r3.com/artifactory'
 }
+
+version corda_djvm_version
 
 subprojects {
     group 'net.corda.djvm'
@@ -19,7 +24,6 @@ subprojects {
 
     repositories {
         mavenCentral()
-        jcenter()
     }
 
     tasks.withType(JavaCompile) {
@@ -102,6 +106,10 @@ artifactory {
             }
         }
     }
+}
+
+task generateApi(type: GenerateApi) {
+    baseName = 'api-djvm'
 }
 
 wrapper {
