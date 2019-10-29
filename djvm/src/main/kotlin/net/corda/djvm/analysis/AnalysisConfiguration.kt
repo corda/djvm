@@ -400,9 +400,22 @@ class AnalysisConfiguration private constructor(
                 descriptor = "()Ljava/util/Iterator;"
             ) {
                 override fun writeBody(emitter: EmitterModule) = with(emitter) {
+                    val doStart = Label()
+                    lineNumber(0, doStart)
                     pushObject(0)
                     invokeInterface(className, memberName, "()Lsandbox/java/util/Iterator;")
+                    val doEnd = Label()
+                    lineNumber(1, doEnd)
                     returnObject()
+                    newLocal(
+                        name = "this",
+                        descriptor = "Lsandbox/java/lang/Iterable;",
+                        // We are assuming that this interface is declared as "Iterable<T>".
+                        signature = "Lsandbox/java/lang/Iterable<TT;>;",
+                        start = doStart,
+                        end = doEnd,
+                        index = 0
+                    )
                 }
             }.withBody()
              .build()

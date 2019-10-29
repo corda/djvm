@@ -78,7 +78,8 @@ open class ClassRewriter(
                 if (stitchedSignature != null) {
                     /*
                      * All of our stitched interfaces have a single generic
-                     * parameter. This simplifies how we update the signature.
+                     * parameter. This simplifies how we update the signature
+                     * to include this new interface.
                      */
                     GENERIC_SIGNATURE.matchEntire(stitchedSignature)?.run {
                         val typeVar = groupValues[1]
