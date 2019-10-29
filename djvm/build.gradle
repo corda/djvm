@@ -2,6 +2,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'com.github.johnrengelman.shadow'
     id 'net.corda.plugins.publish-utils'
+    id 'net.corda.plugins.api-scanner'
     id 'com.jfrog.artifactory'
     id 'com.jfrog.bintray'
     id 'idea'
@@ -147,6 +148,13 @@ tasks.withType(Test) {
 
 artifacts {
     publish shadowJar
+}
+
+scanApi {
+    excludePackages = [
+        'sandbox',
+        'djvm'
+    ]
 }
 
 publish {

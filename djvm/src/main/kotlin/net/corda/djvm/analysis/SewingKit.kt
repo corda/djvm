@@ -1,6 +1,7 @@
 @file:JvmName("SewingKit")
 package net.corda.djvm.analysis
 
+import net.corda.djvm.CordaInternal
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
@@ -11,7 +12,8 @@ import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 
 const val FROM_DJVM = "fromDJVM"
 
-internal open class MethodBuilder(
+@CordaInternal
+open class MethodBuilder(
     protected val access: Int,
     protected val className: String,
     protected val memberName: String,
@@ -41,7 +43,8 @@ internal open class MethodBuilder(
     )
 }
 
-internal abstract class FromDJVMBuilder(
+@CordaInternal
+abstract class FromDJVMBuilder(
     protected val className: String,
     private val bridgeDescriptor: String,
     signature: String
