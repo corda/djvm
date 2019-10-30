@@ -3,7 +3,6 @@ package net.corda.djvm.code
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.references.MemberInformation
 import net.corda.djvm.references.MethodBody
-import net.corda.djvm.source.ClassHeader
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
@@ -46,6 +45,21 @@ class EmitterModule(
      */
     inline fun <reified T> new() {
         new(Type.getInternalName(T::class.java))
+    }
+
+    /**
+     * Emit instruction for declaring a new local variable.
+     */
+    fun newLocal(
+        name: String,
+        descriptor: String,
+        signature: String?,
+        start: Label,
+        end: Label,
+        index: Int
+    ) {
+        hasEmittedCustomCode = true
+        methodVisitor.visitLocalVariable(name, descriptor, signature, start, end, index)
     }
 
     /**

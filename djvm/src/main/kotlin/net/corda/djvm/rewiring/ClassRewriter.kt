@@ -57,6 +57,7 @@ open class ClassRewriter(
 
     private companion object {
         private val logger = loggerFor<ClassRewriter>()
+        private val GENERIC_SIGNATURE = "^<([^:]++):.*>.*".toRegex()
     }
 
     /**
@@ -70,16 +71,29 @@ open class ClassRewriter(
         private val extraMethods = mutableListOf<Member>()
 
         override fun visit(version: Int, access: Int, className: String, signature: String?, superName: String?, interfaces: Array<String>?) {
+            var stitchedSignature = signature
             val stitchedInterfaces = analysisConfig.stitchedInterfaces[className]?.let { methods ->
                 extraMethods += methods
-                arrayOf(*(interfaces ?: emptyArray()), analysisConfig.classResolver.reverse(className))
+                val baseInterface = analysisConfig.classResolver.reverse(className)
+                if (stitchedSignature != null) {
+                    /*
+                     * All of our stitched interfaces have a single generic
+                     * parameter. This simplifies how we update the signature
+                     * to include this new interface.
+                     */
+                    GENERIC_SIGNATURE.matchEntire(stitchedSignature)?.run {
+                        val typeVar = groupValues[1]
+                        stitchedSignature += "L$baseInterface<T$typeVar;>;"
+                    }
+                }
+                arrayOf(*(interfaces ?: emptyArray()), baseInterface)
             } ?: interfaces
 
             analysisConfig.stitchedClasses[className]?.also { methods ->
                 extraMethods += methods
             }
 
-            super.visit(version, access, className, signature, superName, stitchedInterfaces)
+            super.visit(version, access, className, stitchedSignature, superName, stitchedInterfaces)
         }
 
         override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
