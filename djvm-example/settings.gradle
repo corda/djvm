@@ -13,9 +13,9 @@ rootProject.name = "djvm-example"
 if (file('../djvm').isDirectory()) {
     includeBuild('..') {
         dependencySubstitution {
-            substitute module('net.corda.djvm:corda-djvm') with project(':djvm')
-            substitute module('net.corda.djvm:corda-djvm-serialization') with project(':serialization')
-            substitute module('net.corda.djvm:corda-djvm-deserializers') with project(':serialization:deserializers')
+            // The DJVM is a shaded JAR, so ensure we composite it into
+            // this project with its correct transitive dependencies.
+            substitute module('net.corda.djvm:corda-djvm') with project(':djvm:bootstrap')
         }
     }
 }

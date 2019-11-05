@@ -9,8 +9,8 @@ import net.corda.core.identity.Party
 import net.corda.core.internal.hash
 import net.corda.core.serialization.internal._contextSerializationEnv
 import net.corda.core.serialization.serialize
-import net.corda.djvm.serialization.createSandboxSerializationEnv
-import net.corda.djvm.serialization.deserializeFor
+import net.corda.serialization.djvm.createSandboxSerializationEnv
+import net.corda.serialization.djvm.deserializeFor
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

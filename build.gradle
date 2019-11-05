@@ -46,7 +46,6 @@ subprojects {
     tasks.withType(Jar) { task ->
         manifest {
             attributes('Corda-Vendor': 'Corda Open Source')
-            attributes('Automatic-Module-Name': "net.corda.${task.project.name.replaceAll('-', '.')}")
         }
     }
 

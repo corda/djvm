@@ -60,6 +60,7 @@ shadowJar {
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
 
     manifest {
+        attributes('Automatic-Module-Name': 'net.corda.djvm')
         attributes('Sealed': true)
     }
 
@@ -104,8 +105,8 @@ shadowJar {
     exclude 'sandbox/java/time/Period.class'
     exclude 'sandbox/java/time/Year*.class'
     exclude 'sandbox/java/time/Zone*.class'
-    exclude "sandbox/java/time/zone/ZoneRulesException.class"
-    exclude "sandbox/java/time/zone/*ZoneRulesProvider.class"
+    exclude 'sandbox/java/time/zone/ZoneRulesException.class'
+    exclude 'sandbox/java/time/zone/*ZoneRulesProvider.class'
     exclude 'sandbox/java/util/concurrent/ConcurrentMap.class'
     exclude 'sandbox/java/util/concurrent/ConcurrentHashMap\$CollectionView.class'
     exclude 'sandbox/java/util/concurrent/TimeUnit.class'

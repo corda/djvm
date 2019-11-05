@@ -27,9 +27,11 @@ repositories {
 
 configurations {
     sandboxTesting
-    jdkRt.resolutionStrategy {
-        // Always check the repository for a newer SNAPSHOT.
-        cacheChangingModulesFor 0, 'seconds'
+
+    all {
+        resolutionStrategy {
+            force "net.corda.djvm:corda-djvm:$djvm_version"
+        }
     }
 
     // This is for the latest deterministic Corda SNAPSHOT artifacts...
@@ -45,9 +47,11 @@ configurations {
         }
     }
 
-    testRuntimeClasspath.resolutionStrategy {
-        // Always check the repository for a newer SNAPSHOT.
-        cacheChangingModulesFor 0, 'seconds'
+    [ jdkRt, testCompileClasspath, testRuntimeClasspath ].forEach { cfg ->
+        cfg.resolutionStrategy {
+            // Always check the repository for a newer SNAPSHOT.
+            cacheChangingModulesFor 0, 'seconds'
+        }
     }
 }
 
@@ -58,10 +62,9 @@ dependencies {
     implementation "com.r3.corda.lib.tokens:tokens-money:$corda_tokens_version"
     implementation "net.corda:corda-core:$corda_version"
     implementation "net.corda:corda-serialization:$corda_version"
-    implementation "net.corda.djvm:corda-djvm-deserializers:$djvm_version"
 
+    testImplementation "net.corda:corda-serialization-djvm:$corda_version"
     testImplementation "net.corda.djvm:corda-djvm:$djvm_version"
-    testImplementation "net.corda.djvm:corda-djvm-serialization:$djvm_version"
     testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"
     jdkRt "net.corda:deterministic-rt:latest.integration"
 
@@ -72,6 +75,7 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
 
     sandboxTesting sourceSets.getByName('main').runtimeClasspath
+    sandboxTesting "net.corda:corda-deserializers-djvm:$corda_version"
     sandboxTesting "org.slf4j:slf4j-nop:$slf4j_version"
 }
 
@@ -101,7 +105,7 @@ tasks.withType(Test) {
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 
     if (djvmProject) {
-        dependsOn = [ djvmProject.task(':djvm:assemble'), djvmProject.task(':serialization:assemble') ]
+        dependsOn djvmProject.task(':djvm:bootstrap:assemble')
     }
 }
 
