@@ -1,0 +1,11 @@
+plugins {
+    id 'base'
+}
+
+/*
+ * Configure this module's default configuration with the
+ * shaded DJVM jar and its correct transitive dependencies.
+ */
+dependencies {
+    'default' project(path: ':djvm', configuration: 'shadow')
+}
