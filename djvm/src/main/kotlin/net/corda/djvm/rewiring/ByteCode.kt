@@ -7,6 +7,6 @@ package net.corda.djvm.rewiring
  * @property isModified Indication of whether the class has been modified as part of loading.
  */
 class ByteCode(
-        val bytes: ByteArray,
-        val isModified: Boolean
+    val bytes: ByteArray,
+    val isModified: Boolean
 )
