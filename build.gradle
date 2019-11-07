@@ -1,3 +1,10 @@
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import static org.gradle.api.JavaVersion.*
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import net.corda.plugins.GenerateApi
+
 plugins {
     id 'org.jetbrains.kotlin.jvm' apply false
     id 'net.corda.plugins.api-scanner' apply false
@@ -7,10 +14,6 @@ plugins {
     id 'com.gradle.build-scan'
     id 'base'
 }
-
-import static org.gradle.api.JavaVersion.*
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import net.corda.plugins.GenerateApi
 
 ext {
     artifactory_contextUrl = 'https://software.r3.com/artifactory'
@@ -91,11 +94,22 @@ bintrayConfig {
 
 artifactory {
     publish {
+        // Load Artifactory credentials from either:
+        // - $HOME/.artifactory_credentials, or
+        // - the environment
+        Properties credentials = new Properties()
+        Path artifactoryCredentials = Paths.get(System.getProperty('user.home'), '.artifactory_credentials')
+        if (Files.isReadable(artifactoryCredentials)) {
+            artifactoryCredentials.withInputStream { input ->
+                credentials.load(input)
+            }
+        }
+
         contextUrl = artifactory_contextUrl
         repository {
             repoKey = 'corda-dev'
-            username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-            password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+            username = credentials.getProperty('artifactory.username', System.getenv('CORDA_ARTIFACTORY_USERNAME'))
+            password = credentials.getProperty('artifactory.password', System.getenv('CORDA_ARTIFACTORY_PASSWORD'))
         }
 
         defaults {
