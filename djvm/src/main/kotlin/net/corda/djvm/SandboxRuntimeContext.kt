@@ -2,7 +2,6 @@ package net.corda.djvm
 
 import net.corda.djvm.costing.RuntimeCostSummary
 import net.corda.djvm.rewiring.SandboxClassLoader
-import net.corda.djvm.rewiring.SandboxClassLoadingException
 
 /**
  * The context in which a sandboxed operation is run.
@@ -43,9 +42,6 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
             instance = this
             try {
                 action(this)
-            } catch (e: SandboxClassLoadingException) {
-                e.messages.acceptProvisional()
-                throw e
             } finally {
                 threadLocalContext.remove()
             }

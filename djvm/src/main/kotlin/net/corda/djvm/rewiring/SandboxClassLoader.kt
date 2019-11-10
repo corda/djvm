@@ -14,7 +14,9 @@ import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
+import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
+import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
@@ -258,11 +260,7 @@ class SandboxClassLoader private constructor(
 
     private fun loadClassForSandbox(className: String): Class<*> {
         val sandboxName = analysisConfiguration.classResolver.resolveNormalized(className)
-        return try {
-            loadClass(sandboxName)
-        } finally {
-            context.messages.acceptProvisional()
-        }
+        return loadClass(sandboxName)
     }
 
     @Throws(ClassNotFoundException::class)
@@ -377,11 +375,13 @@ class SandboxClassLoader private constructor(
         } else {
             byteCodeCache[request.qualifiedClassName] ?: run {
                 // Load the byte code for the specified class.
+                val resourceName = sourceName.asResourcePath + ".class"
+                val resource = supportingClassLoader.getResource(resourceName)
+                        ?: throw ClassNotFoundException("Class file not found: $resourceName")
                 val reader = try {
-                    supportingClassLoader.classReader(sourceName, context, request.origin)
-                } catch (e: SandboxClassLoadingException) {
-                    e.messages.clearProvisional()
-                    throw ClassNotFoundException(e.message)
+                    resource.openStream().use(::ClassReader)
+                } catch (_: IOException) {
+                    throw ClassNotFoundException("Class file not found: $resourceName")
                 }
 
                 // Analyse the class if not matching the whitelist.
@@ -393,7 +393,6 @@ class SandboxClassLoader private constructor(
                 }
 
                 // Check if any errors were found during analysis.
-                context.messages.acceptProvisional()
                 if (context.messages.errorCount > 0) {
                     logger.debug("Errors detected after analyzing class {}", request.qualifiedClassName)
                     throw SandboxClassLoadingException("Analysis failed for ${request.qualifiedClassName}", context)
