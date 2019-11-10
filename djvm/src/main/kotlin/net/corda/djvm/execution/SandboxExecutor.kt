@@ -155,8 +155,6 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
             } catch (exception: SandboxClassLoadingException) {
                 // Continue; all warnings and errors are captured in [context.messages]
                 false
-            } finally {
-                context.messages.acceptProvisional()
             }
             if (didLoad) {
                 context.classes[className]?.apply {

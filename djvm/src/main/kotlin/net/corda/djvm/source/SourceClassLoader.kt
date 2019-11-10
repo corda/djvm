@@ -134,13 +134,13 @@ class SourceClassLoader(
      * Open a [ClassReader] for the provided class name.
      */
     fun classReader(
-        className: String, context: AnalysisContext, origin: String? = null
+        className: String, context: AnalysisContext, origin: String?
     ): ClassReader {
         val originalName = classResolver.reverse(className.asResourcePath)
 
         fun throwClassLoadingError(): Nothing {
             val message = "Class file not found: $originalName.class"
-            context.messages.provisionalAdd(Message(
+            context.messages.add(Message(
                 message = message,
                 severity = Severity.ERROR,
                 location = SourceLocation.Builder(origin ?: "").build()
@@ -148,9 +148,10 @@ class SourceClassLoader(
             throw SandboxClassLoadingException(message, context)
         }
 
+        val resource = getResource("$originalName.class") ?: run(::throwClassLoadingError)
         return try {
             logger.trace("Opening ClassReader for class {}...", originalName)
-            getResourceAsStream("$originalName.class")?.use(::ClassReader) ?: run(::throwClassLoadingError)
+            resource.openStream().use(::ClassReader)
         } catch (_: IOException) {
             throwClassLoadingError()
         }

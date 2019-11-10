@@ -23,7 +23,6 @@ class MessageCollection(
 
     private val memberMessages = mutableMapOf<String, MutableList<Message>>()
 
-    private val provisional = mutableListOf<Message>()
     private var cachedEntries: List<Message>? = null
 
     /**
@@ -58,29 +57,6 @@ class MessageCollection(
         for (message in messages) {
             add(message)
         }
-    }
-
-    /**
-     * Hold this message until we've decided whether or not it's real.
-     */
-    fun provisionalAdd(message: Message) {
-        provisional.add(message)
-    }
-
-    /**
-     * Discard all provisional messages.
-     */
-    fun clearProvisional() {
-        provisional.clear()
-    }
-
-    /**
-     * Accept all provisional messages.
-     */
-    fun acceptProvisional(): MessageCollection {
-        addAll(provisional)
-        clearProvisional()
-        return this
     }
 
     /**
