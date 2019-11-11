@@ -72,12 +72,7 @@ class SandboxConfiguration private constructor(
         val preloadURLs = getPreloadURLs()
         if (preloadURLs.isNotEmpty()) {
             IsolatedTask(PRELOAD_THREAD_PREFIX, this).run {
-                val knownReferences = hashSetOf<String>().apply {
-                    // These classes are always present.
-                    add(OBJECT_NAME)
-                    add("java/lang/StackTraceElement")
-                    add(THROWABLE_NAME)
-                }
+                val knownReferences = HashSet<String>(INITIAL_CLASSES)
 
                 /**
                  * Generate sandbox byte-code for all of these jars.
@@ -106,7 +101,7 @@ class SandboxConfiguration private constructor(
                 }
 
                 log.info("Preloaded {} classes into sandbox.",
-                          knownReferences.size - INITIAL_CLASSES)
+                          knownReferences.size - INITIAL_CLASSES.size)
             }
         }
     }
@@ -125,7 +120,10 @@ class SandboxConfiguration private constructor(
         const val DJVM_PRELOAD_TAG = "META-INF/DJVM-preload"
         private const val PRELOAD_THREAD_PREFIX = "preloader"
         private const val CLASS_SUFFIX = ".class"
-        private const val INITIAL_CLASSES = 3
+        private val INITIAL_CLASSES = setOf(
+            // These classes are always present inside a sandbox.
+            OBJECT_NAME, "java/lang/StackTraceElement", THROWABLE_NAME
+        )
 
         private val log = loggerFor<SandboxConfiguration>()
 
