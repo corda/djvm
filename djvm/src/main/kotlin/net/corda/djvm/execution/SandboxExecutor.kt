@@ -160,11 +160,11 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
             if (didLoad) {
                 context.classes[className]?.apply {
                     context.references.referencesFromLocation(className)
+                            .asSequence()
                             .map(ReferenceWithLocation::reference)
                             .filterIsInstance<ClassReference>()
                             .filter { it.className != className }
-                            .distinct()
-                            .map { ClassSource.fromClassName(it.className, className) }
+                            .mapTo(LinkedHashSet()) { ClassSource.fromClassName(it.className, className) }
                             .forEach(::enqueue)
                 }
             }
