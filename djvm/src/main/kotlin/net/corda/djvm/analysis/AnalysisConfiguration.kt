@@ -117,44 +117,34 @@ class AnalysisConfiguration private constructor(
         return supportingClassLoader.loadClassHeader(internalClassName.asPackagePath)
     }
 
+    interface Builder : AnalysisOptions {
+        fun build(): AnalysisConfiguration
+    }
+
     /**
-     * Creates a [ChildBuilder], which will build a child [AnalysisConfiguration]
+     * Creates a [Builder], which will build a child [AnalysisConfiguration]
      * with this instance as its parent. The child inherits the same [whitelist].
      */
-    fun createChild(userSource: UserSource) = ChildBuilder(userSource)
+    fun createChild(userSource: UserSource): Builder = AnalysisChildBuilder(userSource)
 
-    @Suppress("unused")
-    inner class ChildBuilder internal constructor(private val userSource: UserSource) {
+    private inner class AnalysisChildBuilder(private val userSource: UserSource): Builder {
         private val sandboxOnlyAnnotations = linkedSetOf<String>()
         private val visibleAnnotations = linkedSetOf<Class<out Annotation>>()
         private var newMinimumSeverityLevel = minimumSeverityLevel
 
-        fun withNewMinimumSeverityLevel(level: Severity): ChildBuilder {
+        override fun setMinimumSeverityLevel(level: Severity) {
             newMinimumSeverityLevel = level
-            return this
         }
 
-        fun withSandboxOnlyAnnotations(vararg annotations: String): ChildBuilder {
+        override fun setSandboxOnlyAnnotations(annotations: Iterable<String>) {
             sandboxOnlyAnnotations.addAll(annotations)
-            return this
         }
 
-        fun withSandboxOnlyAnnotations(annotations: Iterable<String>): ChildBuilder {
-            sandboxOnlyAnnotations.addAll(annotations)
-            return this
-        }
-
-        fun withVisibleAnnotations(vararg annotations: Class<out Annotation>): ChildBuilder {
+        override fun setVisibleAnnotations(annotations: Iterable<Class<out Annotation>>) {
             visibleAnnotations.addAll(annotations)
-            return this
         }
 
-        fun withVisibleAnnotations(annotations: Iterable<Class<out Annotation>>): ChildBuilder {
-            visibleAnnotations.addAll(annotations)
-            return this
-        }
-
-        fun build(): AnalysisConfiguration {
+        override fun build(): AnalysisConfiguration {
             return AnalysisConfiguration(
                 parent = this@AnalysisConfiguration,
                 whitelist = whitelist,
@@ -163,7 +153,7 @@ class AnalysisConfiguration private constructor(
                 stitchedAnnotations = stitchedAnnotations.mergeSandboxed(visibleAnnotations),
                 classResolver = classResolver,
                 exceptionResolver = exceptionResolver,
-                minimumSeverityLevel = newMinimumSeverityLevel,
+                minimumSeverityLevel = minimumSeverityLevel,
                 analyzeAnnotations = analyzeAnnotations,
                 prefixFilters = prefixFilters,
                 classModule = classModule,

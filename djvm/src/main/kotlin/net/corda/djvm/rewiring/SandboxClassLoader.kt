@@ -21,6 +21,7 @@ import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
 import java.util.*
+import java.util.concurrent.ConcurrentMap
 import java.util.function.Function
 
 /**
@@ -32,6 +33,7 @@ import java.util.function.Function
  * @property rewriter The re-writer to use for registered classes.
  * @property context The context in which analysis and processing is performed.
  * @property byteCodeCache Precomputed class bytecode, to save us from regenerating it.
+ * @property externalCache An externally-provided [ConcurrentMap] of pre-computed byte-code.
  * @param throwableClass This sandbox's definition of [sandbox.java.lang.Throwable].
  * @param parent This classloader's parent classloader.
  */
@@ -42,6 +44,7 @@ class SandboxClassLoader private constructor(
     private val rewriter: ClassRewriter,
     private val context: AnalysisContext,
     private val byteCodeCache: ByteCodeCache,
+    private val externalCache: ExternalCache?,
     throwableClass: Class<*>?,
     parent: ClassLoader?
 ) : ClassLoader(parent ?: getSystemClassLoader()), AutoCloseable {
@@ -81,6 +84,17 @@ class SandboxClassLoader private constructor(
     }
 
     /**
+     * Enables / disables the external cache for this [SandboxClassLoader].
+     *
+     * IMPORTANT! Declaring this property after [throwableClass] means that
+     * its value will always be false while this basic class is pre-loaded.
+     */
+    var externalCaching: Boolean = (externalCache != null)
+        set(value) {
+            field = value && (externalCache != null)
+        }
+
+    /**
      * Creates an empty [SandboxClassLoader] with exactly the same
      * configuration as this one, but with the given [AnalysisContext].
      * @param newContext The [AnalysisContext] to use for the child classloader.
@@ -92,6 +106,7 @@ class SandboxClassLoader private constructor(
         rewriter,
         newContext,
         byteCodeCache,
+        externalCache,
         throwableClass,
         parent
     )
@@ -374,32 +389,24 @@ class SandboxClassLoader private constructor(
             loadUnmodifiedByteCode(requestedPath)
         } else {
             byteCodeCache[request.qualifiedClassName] ?: run {
-                // Load the byte code for the specified class.
+                // Load the source byte code for the specified class.
                 val resourceName = sourceName.asResourcePath + ".class"
                 val resource = supportingClassLoader.getResource(resourceName)
                         ?: throw ClassNotFoundException("Class file not found: $resourceName")
-                val reader = try {
-                    resource.openStream().use(::ClassReader)
-                } catch (_: IOException) {
-                    throw ClassNotFoundException("Class file not found: $resourceName")
-                }
 
-                // Analyse the class if not matching the whitelist.
-                val readClassName = reader.className
-                if (!analysisConfiguration.whitelist.matches(readClassName)) {
-                    logger.trace("Class {} does not match with the whitelist", request.qualifiedClassName)
-                    logger.trace("Analyzing class {}...", request.qualifiedClassName)
-                    analyzer.analyze(reader, context, SKIP_FRAMES)
-                }
+                if (externalCaching) {
+                    val externalKey = ByteCodeKey(
+                        request.qualifiedClassName,
+                        resource.toString().substringBefore("!/")
+                    )
 
-                // Check if any errors were found during analysis.
-                if (context.messages.errorCount > 0) {
-                    logger.debug("Errors detected after analyzing class {}", request.qualifiedClassName)
-                    throw SandboxClassLoadingException("Analysis failed for ${request.qualifiedClassName}", context)
+                    // The externalCache cannot be null if enableCaching is true.
+                    externalCache!!.getOrPut(externalKey) {
+                        generateByteCode(request.qualifiedClassName, resource, context)
+                    }
+                } else {
+                    generateByteCode(request.qualifiedClassName, resource, context)
                 }
-
-                // Transform the class definition and byte code in accordance with provided rules.
-                rewriter.rewrite(reader, context)
             }
         }
 
@@ -423,6 +430,33 @@ class SandboxClassLoader private constructor(
                 request.qualifiedClassName, byteCode.bytes.size, byteCode.isModified)
 
         return clazz
+    }
+
+    /**
+     * Generates the byte-code for [qualifiedClassName] using byte-code from [resource].
+     */
+    private fun generateByteCode(qualifiedClassName: String, resource: URL, context: AnalysisContext): ByteCode {
+        val reader = try {
+            resource.openStream().use(::ClassReader)
+        } catch (e: IOException) {
+            throw ClassNotFoundException("Error reading source byte-code for $qualifiedClassName: ${e.message}")
+        }
+
+        // Analyse the class if not matching the whitelist.
+        if (!analysisConfiguration.whitelist.matches(reader.className)) {
+            logger.trace("Class {} does not match with the whitelist", qualifiedClassName)
+            logger.trace("Analyzing class {}...", qualifiedClassName)
+            analyzer.analyze(reader, context, SKIP_FRAMES)
+        }
+
+        // Check if any errors were found during analysis.
+        if (context.messages.errorCount > 0) {
+            logger.debug("Errors detected after analyzing class {}", qualifiedClassName)
+            throw SandboxClassLoadingException("Analysis failed for $qualifiedClassName", context)
+        }
+
+        // Transform the class definition and byte code in accordance with provided rules.
+        return rewriter.rewrite(reader, context)
     }
 
     private fun defineClass(name: String, byteCode: ByteCode): Class<*> {
@@ -539,6 +573,7 @@ class SandboxClassLoader private constructor(
                 rewriter = ClassRewriter(configuration, supportingClassLoader),
                 context = parentClassLoader?.context ?: AnalysisContext.fromConfiguration(analysisConfiguration),
                 byteCodeCache = byteCodeCache ?: ByteCodeCache(parentClassLoader?.byteCodeCache),
+                externalCache = configuration.externalCache,
                 throwableClass = parentClassLoader?.throwableClass,
                 parent = parentClassLoader
             )

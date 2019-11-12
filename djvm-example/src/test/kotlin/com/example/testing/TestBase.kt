@@ -10,6 +10,7 @@ import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
 import net.corda.djvm.execution.ExecutionProfile.Companion.UNLIMITED
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.messages.Severity.WARNING
+import net.corda.djvm.rewiring.ExternalCache
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.AfterAll
@@ -71,30 +72,36 @@ abstract class TestBase(type: SandboxType) {
     }
 
     fun sandbox(action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(WARNING, emptySet(), emptySet(), action)
+        return sandbox(WARNING, emptySet(), emptySet(), null, action)
+    }
+
+    fun sandbox(externalCache: ExternalCache, action: SandboxRuntimeContext.() -> Unit) {
+        return sandbox(WARNING, emptySet(), emptySet(), externalCache, action)
     }
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, action)
+        return sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, null, action)
     }
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(WARNING, visibleAnnotations, emptySet(), action)
+        return sandbox(WARNING, visibleAnnotations, emptySet(), null, action)
     }
 
     fun sandbox(
         minimumSeverityLevel: Severity,
         visibleAnnotations: Set<Class<out Annotation>>,
         sandboxOnlyAnnotations: Set<String>,
+        externalCache: ExternalCache?,
         action: SandboxRuntimeContext.() -> Unit
     ) {
         var thrownException: Throwable? = null
         thread(start = false) {
             UserPathSource(classPaths).use { userSource ->
                 SandboxRuntimeContext(parentConfiguration.createChild(userSource, Consumer {
-                    it.withNewMinimumSeverityLevel(minimumSeverityLevel)
-                        .withSandboxOnlyAnnotations(sandboxOnlyAnnotations)
-                        .withVisibleAnnotations(visibleAnnotations)
+                    it.setMinimumSeverityLevel(minimumSeverityLevel)
+                    it.setSandboxOnlyAnnotations(sandboxOnlyAnnotations)
+                    it.setVisibleAnnotations(visibleAnnotations)
+                    it.setExternalCache(externalCache)
                 })).use {
                     action(this)
                 }

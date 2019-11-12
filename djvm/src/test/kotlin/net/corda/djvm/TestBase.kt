@@ -16,8 +16,10 @@ import net.corda.djvm.messages.Severity
 import net.corda.djvm.messages.Severity.INFORMATIONAL
 import net.corda.djvm.messages.Severity.WARNING
 import net.corda.djvm.references.ClassHierarchy
+import net.corda.djvm.rewiring.ExternalCache
 import net.corda.djvm.rewiring.LoadedClass
 import net.corda.djvm.rewiring.SandboxClassLoader
+import net.corda.djvm.rewiring.flush
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.ClassSource
@@ -141,6 +143,10 @@ abstract class TestBase(type: SandboxType) {
         userSource.close()
     }
 
+    fun flushParentCache() {
+        parentConfiguration.byteCodeCache.flush()
+    }
+
     /**
      * Short-hand for analysing and validating a class.
      */
@@ -194,6 +200,7 @@ abstract class TestBase(type: SandboxType) {
         sandboxOnlyAnnotations: Set<String> = emptySet(),
         minimumSeverityLevel: Severity = WARNING,
         enableTracing: Boolean = true,
+        externalCache: ExternalCache? = null,
         action: SandboxRuntimeContext.() -> Unit
     ) {
         val rules = mutableListOf<Rule>()
@@ -234,7 +241,8 @@ abstract class TestBase(type: SandboxType) {
                     emitters.distinctBy(Any::javaClass),
                     definitionProviders.distinctBy(Any::javaClass),
                     enableTracing,
-                    analysisConfiguration
+                    analysisConfiguration,
+                    externalCache
                 )).use {
                     assertThat(runtimeCosts).areZero()
                     action(this)
@@ -251,27 +259,32 @@ abstract class TestBase(type: SandboxType) {
     }
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit)
-            = sandbox(WARNING, visibleAnnotations, emptySet(), action)
+            = sandbox(WARNING, visibleAnnotations, emptySet(), null, action)
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, action: SandboxRuntimeContext.() -> Unit)
-            = sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, action)
+            = sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, null, action)
+
+    fun sandbox(externalCache: ExternalCache, action: SandboxRuntimeContext.() -> Unit)
+            = sandbox(WARNING, emptySet(), emptySet(), externalCache, action)
 
     fun sandbox(action: SandboxRuntimeContext.() -> Unit)
-            = sandbox(WARNING, emptySet(), emptySet(), action)
+            = sandbox(WARNING, emptySet(), emptySet(), null, action)
 
     fun sandbox(
         minimumSeverityLevel: Severity,
         visibleAnnotations: Set<Class<out Annotation>>,
         sandboxOnlyAnnotations: Set<String>,
+        externalCache: ExternalCache?,
         action: SandboxRuntimeContext.() -> Unit
     ) {
         var thrownException: Throwable? = null
         thread(start = false) {
             UserPathSource(classPaths).use { userSource ->
                 SandboxRuntimeContext(parentConfiguration.createChild(userSource, Consumer {
-                    it.withNewMinimumSeverityLevel(minimumSeverityLevel)
-                        .withSandboxOnlyAnnotations(sandboxOnlyAnnotations)
-                        .withVisibleAnnotations(visibleAnnotations)
+                    it.setMinimumSeverityLevel(minimumSeverityLevel)
+                    it.setSandboxOnlyAnnotations(sandboxOnlyAnnotations)
+                    it.setVisibleAnnotations(visibleAnnotations)
+                    it.setExternalCache(externalCache)
                 })).use {
                     assertThat(runtimeCosts).areZero()
                     action(this)
