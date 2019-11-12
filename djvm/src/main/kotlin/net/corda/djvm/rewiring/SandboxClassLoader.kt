@@ -28,7 +28,7 @@ import java.util.function.Function
  * Class loader that enables registration of rewired classes.
  *
  * @property analysisConfiguration The configuration to use for the analysis.
- * @property ruleValidator The instance used to validate that any loaded class complies with the specified rules.
+ * @property analyzer The instance used to validate that any loaded class complies with the specified rules.
  * @property supportingClassLoader The class loader used to find classes on the extended class path.
  * @property rewriter The re-writer to use for registered classes.
  * @property context The context in which analysis and processing is performed.
@@ -39,7 +39,7 @@ import java.util.function.Function
  */
 class SandboxClassLoader private constructor(
     private val analysisConfiguration: AnalysisConfiguration,
-    private val ruleValidator: RuleValidator,
+    private val analyzer: ClassAndMemberVisitor,
     private val supportingClassLoader: SourceClassLoader,
     private val rewriter: ClassRewriter,
     private val context: AnalysisContext,
@@ -48,12 +48,6 @@ class SandboxClassLoader private constructor(
     throwableClass: Class<*>?,
     parent: ClassLoader?
 ) : ClassLoader(parent ?: getSystemClassLoader()), AutoCloseable {
-
-    /**
-     * The analyzer used to traverse the class hierarchy.
-     */
-    private val analyzer: ClassAndMemberVisitor
-        get() = ruleValidator
 
     /**
      * Set of classes that should be left untouched due to whitelisting.
@@ -101,7 +95,7 @@ class SandboxClassLoader private constructor(
      */
     fun copyEmpty(newContext: AnalysisContext) = SandboxClassLoader(
         analysisConfiguration,
-        ruleValidator,
+        analyzer,
         supportingClassLoader,
         rewriter,
         newContext,
@@ -568,8 +562,8 @@ class SandboxClassLoader private constructor(
             return SandboxClassLoader(
                 analysisConfiguration = analysisConfiguration,
                 supportingClassLoader = supportingClassLoader,
-                ruleValidator = RuleValidator(rules = configuration.rules,
-                                              configuration = analysisConfiguration),
+                analyzer = RuleValidator(rules = configuration.rules,
+                                         configuration = analysisConfiguration),
                 rewriter = ClassRewriter(configuration, supportingClassLoader),
                 context = parentClassLoader?.context ?: AnalysisContext.fromConfiguration(analysisConfiguration),
                 byteCodeCache = byteCodeCache ?: ByteCodeCache(parentClassLoader?.byteCodeCache),

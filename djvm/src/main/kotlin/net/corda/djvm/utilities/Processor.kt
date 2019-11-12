@@ -3,6 +3,7 @@ package net.corda.djvm.utilities
 import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.messages.Message
 import net.corda.djvm.messages.MessageCollection
+import java.util.function.Consumer
 
 /**
  * Utility for processing a set of entries in a list matching a particular type.
@@ -16,11 +17,11 @@ object Processor {
     inline fun <reified T> processEntriesOfType(
             list: List<*>,
             messages: MessageCollection,
-            processor: (T) -> Unit
+            processor: Consumer<T>
     ) {
         for (item in list.filterIsInstance<T>()) {
             try {
-                processor(item)
+                processor.accept(item)
             } catch (exception: Throwable) {
                 val location = SourceLocation.Builder(item.toString()).build()
                 messages.add(Message.fromThrowable(exception, location))

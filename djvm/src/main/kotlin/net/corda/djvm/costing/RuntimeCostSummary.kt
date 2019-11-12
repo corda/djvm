@@ -1,6 +1,7 @@
 package net.corda.djvm.costing
 
 import net.corda.djvm.execution.ExecutionProfile
+import java.util.function.Function
 
 /**
  * This class provides a summary of the accumulated costs for the runtime metrics that are being tracked. It also keeps
@@ -29,29 +30,29 @@ class RuntimeCostSummary private constructor(
     /**
      * Accumulated cost of memory allocations.
      */
-    val allocationCost = RuntimeCost(allocationCostThreshold) {
+    val allocationCost = RuntimeCost(allocationCostThreshold, Function {
         "Sandbox [${it.name}] terminated due to over-allocation"
-    }
+    })
 
     /**
      * Accumulated cost of jump operations.
      */
-    val jumpCost = RuntimeCost(jumpCostThreshold) {
+    val jumpCost = RuntimeCost(jumpCostThreshold, Function {
         "Sandbox [${it.name}] terminated due to excessive use of looping"
-    }
+    })
 
     /**
      * Accumulated cost of method invocations.
      */
-    val invocationCost = RuntimeCost(invocationCostThreshold) {
+    val invocationCost = RuntimeCost(invocationCostThreshold, Function {
         "Sandbox [${it.name}] terminated due to excessive method calling"
-    }
+    })
 
     /**
      * Accumulated cost of throw operations.
      */
-    val throwCost = RuntimeCost(throwCostThreshold) {
+    val throwCost = RuntimeCost(throwCostThreshold, Function {
         "Sandbox [${it.name}] terminated due to excessive exception throwing"
-    }
+    })
 
 }

@@ -10,6 +10,7 @@ import net.corda.djvm.utilities.Processor
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes.*
+import java.util.function.Consumer
 
 /**
  * Helper class for applying a set of definition providers and emitters to a class or set of classes.
@@ -60,9 +61,9 @@ class ClassMutator(
      */
     override fun visitClass(clazz: ClassRepresentation): ClassRepresentation {
         var resultingClass = clazz
-        Processor.processEntriesOfType<ClassDefinitionProvider>(definitionProviders, analysisContext.messages) {
+        Processor.processEntriesOfType<ClassDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
             resultingClass = it.define(currentAnalysisContext(), resultingClass)
-        }
+        })
         if (clazz != resultingClass) {
             logger.trace("Type has been mutated {}", clazz)
             hasBeenModified = true
@@ -99,9 +100,9 @@ class ClassMutator(
      */
     override fun visitMethod(clazz: ClassRepresentation, method: Member): Member {
         var resultingMethod = method
-        Processor.processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages) {
+        Processor.processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
             resultingMethod = it.define(currentAnalysisContext(), resultingMethod)
-        }
+        })
         if (method != resultingMethod) {
             logger.trace("Method has been mutated {}", method)
             hasBeenModified = true
@@ -115,9 +116,9 @@ class ClassMutator(
      */
     override fun visitField(clazz: ClassRepresentation, field: Member): Member {
         var resultingField = field
-        Processor.processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages) {
+        Processor.processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
             resultingField = it.define(currentAnalysisContext(), resultingField)
-        }
+        })
         if (field != resultingField) {
             logger.trace("Field has been mutated {}", field)
             initializers += resultingField.body
@@ -132,9 +133,9 @@ class ClassMutator(
      */
     override fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {
         val context = EmitterContext(currentAnalysisContext(), configuration, emitter)
-        Processor.processEntriesOfType<Emitter>(emitters, analysisContext.messages) {
+        Processor.processEntriesOfType<Emitter>(emitters, analysisContext.messages, Consumer {
             it.emit(context, instruction)
-        }
+        })
         if (!emitter.emitDefaultInstruction || emitter.hasEmittedCustomCode) {
             hasBeenModified = true
         }

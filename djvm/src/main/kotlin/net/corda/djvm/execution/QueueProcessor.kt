@@ -2,11 +2,11 @@ package net.corda.djvm.execution
 
 import net.corda.djvm.utilities.loggerFor
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.function.BiConsumer
 
 /**
  * Helper class for processing queued entities.
  */
-@Suppress("MemberVisibilityCanBePrivate")
 class QueueProcessor<T>(
         private val deduplicationKeyExtractor: (T) -> String,
         vararg elements: T
@@ -45,10 +45,10 @@ class QueueProcessor<T>(
     /**
      * Process the current queue with provided action per element.
      */
-    inline fun process(action: QueueProcessor<T>.(T) -> Unit) {
+    fun process(action: BiConsumer<QueueProcessor<T>, T>) {
         while (isNotEmpty()) {
             val element = dequeue()
-            action(this, element)
+            action.accept(this, element)
         }
     }
 
