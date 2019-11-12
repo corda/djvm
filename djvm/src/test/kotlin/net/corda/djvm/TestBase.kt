@@ -19,6 +19,7 @@ import net.corda.djvm.references.ClassHierarchy
 import net.corda.djvm.rewiring.ExternalCache
 import net.corda.djvm.rewiring.LoadedClass
 import net.corda.djvm.rewiring.SandboxClassLoader
+import net.corda.djvm.rewiring.flush
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.ClassSource
@@ -140,6 +141,10 @@ abstract class TestBase(type: SandboxType) {
     @AfterEach
     fun destroy() {
         userSource.close()
+    }
+
+    fun flushParentCache() {
+        parentConfiguration.byteCodeCache.flush()
     }
 
     /**

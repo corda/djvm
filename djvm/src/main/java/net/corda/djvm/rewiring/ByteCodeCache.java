@@ -42,6 +42,10 @@ public final class ByteCodeCache {
         }
     }
 
+    void clear() {
+        byteCodeCache.clear();
+    }
+
     /**
      * Create a chain of {@link ByteCodeCache} objects that will underlie
      * the sandbox's chain of {@link SandboxClassLoader} objects.

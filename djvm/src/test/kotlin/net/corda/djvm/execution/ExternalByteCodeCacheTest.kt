@@ -4,6 +4,7 @@ import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.rewiring.ByteCode
 import net.corda.djvm.rewiring.ByteCodeKey
+import net.corda.djvm.rewiring.SandboxClassLoader
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -11,18 +12,23 @@ import org.junit.jupiter.api.assertThrows
 import sandbox.SandboxFunction
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Function
-import java.util.function.Supplier
 
 class ExternalByteCodeCacheTest : TestBase(KOTLIN) {
     @Test
     fun testSubsequentSandboxesWithCaching() {
+        // Ensure that the shared parent configuration's internal
+        // cache does not already contain the Function class.
+        flushParentCache()
+
         val externalCache = ConcurrentHashMap<ByteCodeKey, ByteCode>()
         sandbox(externalCache) {
+            assertTrue((classLoader.parent as SandboxClassLoader).externalCaching)
             assertTrue(classLoader.externalCaching)
         }
         assertThat(externalCache).isEmpty()
 
         sandbox(externalCache) {
+            assertTrue((classLoader.parent as SandboxClassLoader).externalCaching)
             assertTrue(classLoader.externalCaching)
             classLoader.loadForSandbox(ExternalTask::class.java.name)
         }
@@ -38,11 +44,13 @@ class ExternalByteCodeCacheTest : TestBase(KOTLIN) {
     fun testDisablingExternalCache() {
         val externalCache = ConcurrentHashMap<ByteCodeKey, ByteCode>()
         sandbox(externalCache) {
+            assertTrue((classLoader.parent as SandboxClassLoader).externalCaching)
             assertTrue(classLoader.externalCaching)
         }
         assertThat(externalCache).isEmpty()
 
         sandbox(externalCache) {
+            (classLoader.parent as SandboxClassLoader).externalCaching = false
             classLoader.externalCaching = false
             classLoader.loadForSandbox(ExternalTask::class.java.name)
         }
@@ -53,6 +61,7 @@ class ExternalByteCodeCacheTest : TestBase(KOTLIN) {
     fun testExternalCacheIsUsed() {
         val externalCache = ConcurrentHashMap<ByteCodeKey, ByteCode>()
         sandbox(externalCache) {
+            (classLoader.parent as SandboxClassLoader).externalCaching = false
             classLoader.loadForSandbox(ExternalTask::class.java.name)
         }
         assertThat(externalCache).hasSize(1)
@@ -70,21 +79,15 @@ class ExternalByteCodeCacheTest : TestBase(KOTLIN) {
         assertThat(ex).hasMessage("Truncated class file")
     }
 
-    class ExternalTask : Function<String, String> {
-        override fun apply(input: String): String {
-            return input
-        }
-    }
-
-    /**
-     * Use [Supplier] instead of [Function] to prevent this
-     * test's classes overlapping with the other tests'.
-     */
     @Test
     fun testInternalCacheTakesPrecedenceOverExternalCache() {
+        // Ensure that the shared parent configuration's internal
+        // cache does not already contain the Function class.
+        flushParentCache()
+
         val externalCache = ConcurrentHashMap<ByteCodeKey, ByteCode>()
         sandbox(externalCache) {
-            classLoader.loadForSandbox(Supplier::class.java.name)
+            classLoader.loadForSandbox(Function::class.java.name)
         }
         assertThat(externalCache).hasSize(1)
 
@@ -93,14 +96,14 @@ class ExternalByteCodeCacheTest : TestBase(KOTLIN) {
         externalCache[key] = ByteCode(byteArrayOf(), false)
 
         sandbox(externalCache) {
-            classLoader.loadForSandbox(ExternalSupplier::class.java.name)
+            classLoader.loadForSandbox(ExternalTask::class.java.name)
         }
         assertThat(externalCache).hasSize(2)
     }
 
-    class ExternalSupplier : Supplier<String> {
-        override fun get(): String {
-            return "Hello World!"
+    class ExternalTask : Function<String, String> {
+        override fun apply(input: String): String {
+            return input
         }
     }
 }
