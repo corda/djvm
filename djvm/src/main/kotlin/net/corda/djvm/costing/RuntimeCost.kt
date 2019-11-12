@@ -1,5 +1,9 @@
 package net.corda.djvm.costing
 
+import java.util.function.Function
+import java.util.function.Predicate
+import java.util.function.UnaryOperator
+
 /**
  * Cost metric to be used in a sandbox environment. The metric has a threshold and a mechanism for reporting violations.
  * The implementation assumes that each metric is tracked on a per-thread basis, i.e., that each sandbox runs on its own
@@ -10,13 +14,12 @@ package net.corda.djvm.costing
  */
 class RuntimeCost(
         threshold: Long,
-        errorMessage: (Thread) -> String
+        errorMessage: Function<Thread, String>
 ) : TypedRuntimeCost<Long>(
         0,
-        { value: Long -> value > threshold },
+        Predicate { it > threshold },
         errorMessage
 ) {
-
     /**
      * Increment the accumulated cost by an integer.
      */
@@ -25,6 +28,12 @@ class RuntimeCost(
     /**
      * Increment the accumulated cost by a long integer.
      */
-    fun increment(incrementBy: Long = 1) = incrementAndCheck { value -> Math.addExact(value, incrementBy) }
+    fun increment(incrementBy: Long) = incrementAndCheck(UnaryOperator { value ->
+        Math.addExact(value, incrementBy)
+    })
 
+    /**
+     * Increment the accumulated cost by one.
+     */
+    fun increment() = increment(1L)
 }

@@ -1,6 +1,9 @@
 package net.corda.djvm.costing
 
 import net.corda.djvm.utilities.loggerFor
+import java.util.function.Function
+import java.util.function.Predicate
+import java.util.function.UnaryOperator
 
 /**
  * Cost metric to be used in a sandbox environment. The metric has a threshold and a mechanism for reporting violations.
@@ -12,9 +15,9 @@ import net.corda.djvm.utilities.loggerFor
  * @property errorMessage A delegate for generating an error message based on the thread it was reported from.
  */
 open class TypedRuntimeCost<T>(
-        initialValue: T,
-        private val thresholdPredicate: (T) -> Boolean,
-        private val errorMessage: (Thread) -> String
+    initialValue: T,
+    private val thresholdPredicate: Predicate<T>,
+    private val errorMessage: Function<Thread, String>
 ) {
 
     /**
@@ -34,12 +37,12 @@ open class TypedRuntimeCost<T>(
      * Helper function for doing a guarded increment of the cost value, with a mechanism for consistent error reporting
      * and nuking of the current thread environment if threshold breaches are encountered.
      */
-    protected fun incrementAndCheck(increment: (T) -> T) {
+    protected fun incrementAndCheck(increment: UnaryOperator<T>) {
         val currentThread = getAndCheckThread() ?: return
-        val newValue = increment(costValue.get())
+        val newValue = increment.apply(costValue.get())
         costValue.set(newValue)
-        if (thresholdPredicate(newValue)) {
-            val message = errorMessage(currentThread)
+        if (thresholdPredicate.test(newValue)) {
+            val message = errorMessage.apply(currentThread)
             logger.error("Threshold breached; {}", message)
             throw ThresholdViolationError(message)
         }
