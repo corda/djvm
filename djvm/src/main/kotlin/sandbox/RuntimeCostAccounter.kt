@@ -66,7 +66,7 @@ fun recordAllocation(typeName: String) {
 fun recordArrayAllocation(length: Int, typeName: String) {
     require(length >= 0) { "Length must be a positive integer" }
     val size = allocationCosts.getOrDefault(typeName, 16)
-    runtimeCosts.allocationCost.increment(length * size)
+    runtimeCosts.allocationCost.increment(length.toLong() * size)
 }
 
 /**
@@ -78,7 +78,7 @@ fun recordArrayAllocation(length: Int, typeName: String) {
 fun recordArrayAllocation(length: Int, typeSize: Int) {
     require(length >= 0) { "Length must be a positive integer" }
     require(typeSize > 0) { "Type size must be a positive integer" }
-    runtimeCosts.allocationCost.increment(length * typeSize)
+    runtimeCosts.allocationCost.increment(length.toLong() * typeSize)
 }
 
 /**

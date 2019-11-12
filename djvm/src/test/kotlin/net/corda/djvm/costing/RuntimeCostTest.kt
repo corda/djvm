@@ -11,7 +11,7 @@ class RuntimeCostTest {
     @Test
     fun `can increment cost`() {
         val cost = RuntimeCost(10, Function { "failed" })
-        cost.increment(1)
+        cost.increment()
         assertThat(cost.value).isEqualTo(1)
     }
 
