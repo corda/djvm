@@ -12,7 +12,8 @@ import static java.util.Collections.unmodifiableSet;
 
 /**
  * An internal cache of class byte-code, indexed by the class's binary name.
- * It has been written in Java so that {@link #update} can be package private.
+ * It has been written in Java so that both {@link #update} and {@link #clear}
+ * can be package private.
  */
 public final class ByteCodeCache {
     private final ConcurrentMap<String, ByteCode> byteCodeCache;
