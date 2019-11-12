@@ -35,8 +35,8 @@ class ChildOptionsBean implements ConfigurationOptions, Consumer<AnalysisOptions
     }
 
     @Override
-    public void setExternalCache(ConcurrentMap<ByteCodeKey, ByteCode> extenralCache) {
-        this.externalCache = extenralCache;
+    public void setExternalCache(ConcurrentMap<ByteCodeKey, ByteCode> externalCache) {
+        this.externalCache = externalCache;
     }
 
     public ConcurrentMap<ByteCodeKey, ByteCode> getExternalCache() {
