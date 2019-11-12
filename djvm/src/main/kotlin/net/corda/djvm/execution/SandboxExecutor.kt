@@ -12,6 +12,7 @@ import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.ReferenceValidationSummary
+import java.util.function.BiConsumer
 
 /**
  * The executor is responsible for spinning up a sandboxed environment and launching the referenced code block inside
@@ -176,15 +177,15 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
     /**
      * Process a dynamic queue of [ClassSource] entries.
      */
-    private inline fun processClassQueue(
+    private fun processClassQueue(
             vararg elements: ClassSource, action: QueueProcessor<ClassSource>.(ClassSource, String) -> Unit
     ) {
-        QueueProcessor(ClassSource::qualifiedClassName, *elements).process { classSource ->
+        QueueProcessor(ClassSource::qualifiedClassName, *elements).process(BiConsumer { processor, classSource ->
             val className = classResolver.reverse(classModule.getBinaryClassName(classSource.qualifiedClassName))
             if (!whitelist.matches(className)) {
-                action(classSource, className)
+                processor.action(classSource, className)
             }
-        }
+        })
     }
 
     /**
