@@ -20,7 +20,9 @@ class KotlinSandboxTest : TestBase(KOTLIN) {
     @Test
     fun testBadTask() = sandbox {
         val executor = DeterministicSandboxExecutor<String, Long>(configuration)
-        val exception = assertThrows<SandboxException> { executor.run<BadKotlinTask>("field") }
+        val exception = assertThrows<SandboxException> {
+            executor.run<BadKotlinTask>("field")
+        }
         assertThat(exception)
             .hasCauseExactlyInstanceOf(RuleViolationError::class.java)
             .hasMessageContaining("Disallowed reference to API; java.lang.Class.getField(String)")

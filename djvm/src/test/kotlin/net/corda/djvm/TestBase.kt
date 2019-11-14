@@ -4,6 +4,8 @@ import foo.bar.sandbox.Callable
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_EMITTERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
+import net.corda.djvm.SandboxType.JAVA
+import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor
@@ -40,6 +42,7 @@ import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections.unmodifiableList
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import java.util.function.Function
 import kotlin.concurrent.thread
@@ -47,8 +50,8 @@ import kotlin.reflect.jvm.jvmName
 
 @Suppress("unused")
 abstract class TestBase(type: SandboxType) {
-
     companion object {
+        private val threadId = AtomicInteger(0)
 
         @JvmField
         val BLANK = emptySet<Any>()
@@ -117,8 +120,8 @@ abstract class TestBase(type: SandboxType) {
     }
 
     val classPaths: List<Path> = when(type) {
-        SandboxType.KOTLIN -> TESTING_LIBRARIES
-        SandboxType.JAVA -> TESTING_LIBRARIES.filter { isDirectory(it) }
+        KOTLIN -> TESTING_LIBRARIES
+        JAVA -> TESTING_LIBRARIES.filter { isDirectory(it) }
     }
 
     private val userSource = UserPathSource(classPaths)
@@ -225,7 +228,7 @@ abstract class TestBase(type: SandboxType) {
             }
         }
         var thrownException: Throwable? = null
-        thread(start = false) {
+        thread(start = false, name = "DJVM-${javaClass.name}-${threadId.getAndIncrement()}") {
             UserPathSource(classPaths).use { userSource ->
                 val analysisConfiguration = AnalysisConfiguration.createRoot(
                     userSource = userSource,
@@ -278,7 +281,7 @@ abstract class TestBase(type: SandboxType) {
         action: SandboxRuntimeContext.() -> Unit
     ) {
         var thrownException: Throwable? = null
-        thread(start = false) {
+        thread(start = false, name = "DJVM-${javaClass.name}-${threadId.getAndIncrement()}") {
             UserPathSource(classPaths).use { userSource ->
                 SandboxRuntimeContext(parentConfiguration.createChild(userSource, Consumer {
                     it.setMinimumSeverityLevel(minimumSeverityLevel)

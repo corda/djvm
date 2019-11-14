@@ -1,5 +1,7 @@
 package com.example.testing
 
+import com.example.testing.SandboxType.JAVA
+import com.example.testing.SandboxType.KOTLIN
 import net.corda.core.serialization.ConstructorForDeserialization
 import net.corda.core.serialization.CordaSerializable
 import net.corda.core.serialization.DeprecatedConstructorForDeserialization
@@ -21,12 +23,15 @@ import java.nio.file.Files.exists
 import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import kotlin.concurrent.thread
 
 @Suppress("unused")
 abstract class TestBase(type: SandboxType) {
     companion object {
+        private val threadId = AtomicInteger(0)
+
         @JvmField
         val DETERMINISTIC_RT: Path = Paths.get(
             System.getProperty("deterministic-rt.path") ?: fail("deterministic-rt.path property not set"))
@@ -67,8 +72,8 @@ abstract class TestBase(type: SandboxType) {
     }
 
     val classPaths: List<Path> = when(type) {
-        SandboxType.KOTLIN -> TESTING_LIBRARIES
-        SandboxType.JAVA -> TESTING_LIBRARIES.filter { isDirectory(it) }
+        KOTLIN -> TESTING_LIBRARIES
+        JAVA -> TESTING_LIBRARIES.filter { isDirectory(it) }
     }
 
     fun sandbox(action: SandboxRuntimeContext.() -> Unit) {
@@ -95,7 +100,7 @@ abstract class TestBase(type: SandboxType) {
         action: SandboxRuntimeContext.() -> Unit
     ) {
         var thrownException: Throwable? = null
-        thread(start = false) {
+        thread(start = false, name = "DJVM-${javaClass.name}-${threadId.getAndIncrement()}") {
             UserPathSource(classPaths).use { userSource ->
                 SandboxRuntimeContext(parentConfiguration.createChild(userSource, Consumer {
                     it.setMinimumSeverityLevel(minimumSeverityLevel)
