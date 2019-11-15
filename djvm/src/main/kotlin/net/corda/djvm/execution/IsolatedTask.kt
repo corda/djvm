@@ -7,6 +7,8 @@ import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.utilities.loggerFor
 import java.util.concurrent.atomic.AtomicLong
+import java.util.function.Consumer
+import java.util.function.Function
 import kotlin.concurrent.thread
 
 /**
@@ -20,20 +22,20 @@ class IsolatedTask(
     /**
      * Run an action in an isolated environment.
      */
-    fun <T> run(action: IsolatedTask.() -> T?): Result<T> {
+    fun <T> run(action: Function<SandboxClassLoader, T?>): Result<T> {
         val threadName = "DJVM-$identifier-${uniqueIdentifier.getAndIncrement()}"
         var output: T? = null
         var costs = CostSummary.empty
         var exception: Throwable? = null
         thread(start = false, isDaemon = true, name = threadName) {
             logger.trace("Entering isolated runtime environment...")
-            SandboxRuntimeContext(configuration).use {
+            SandboxRuntimeContext(configuration).use(Consumer { ctx ->
                 output = try {
-                    action(this@IsolatedTask)
+                    action.apply(ctx.classLoader)
                 } finally {
-                    costs = CostSummary(runtimeCosts)
+                    costs = CostSummary(ctx.runtimeCosts)
                 }
-            }
+            })
             logger.trace("Exiting isolated runtime environment...")
         }.apply {
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->

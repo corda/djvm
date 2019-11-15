@@ -3,11 +3,12 @@ package net.corda.djvm.execution
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.messages.Message
 import net.corda.djvm.source.ClassSource
+import java.util.function.Function
 
 class SandboxRawExecutor(configuration: SandboxConfiguration) : Executor<Any?, Any?>(configuration) {
     @Throws(Exception::class)
     override fun run(runnableClass: ClassSource, input: Any?): ExecutionSummaryWithResult<Any?> {
-        val result = IsolatedTask(runnableClass.qualifiedClassName, configuration).run {
+        val result = IsolatedTask(runnableClass.qualifiedClassName, configuration).run<Any>(Function { classLoader ->
             // Create the user's task object inside the sandbox.
             val runnable = classLoader.loadClassForSandbox(runnableClass).getDeclaredConstructor().newInstance()
 
@@ -16,7 +17,7 @@ class SandboxRawExecutor(configuration: SandboxConfiguration) : Executor<Any?, A
 
             // Execute the task...
             task.apply(input)
-        }
+        })
 
         when (result.exception) {
             null -> return ExecutionSummaryWithResult(result.output, result.costs)

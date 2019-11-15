@@ -102,9 +102,9 @@ abstract class TestBase(type: SandboxType) {
                     it.setSandboxOnlyAnnotations(sandboxOnlyAnnotations)
                     it.setVisibleAnnotations(visibleAnnotations)
                     it.setExternalCache(externalCache)
-                })).use {
-                    action(this)
-                }
+                })).use(Consumer { ctx ->
+                    ctx.action()
+                })
             }
         }.apply {
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->

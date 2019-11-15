@@ -2,6 +2,7 @@ package net.corda.djvm
 
 import net.corda.djvm.costing.RuntimeCostSummary
 import net.corda.djvm.rewiring.SandboxClassLoader
+import java.util.function.Consumer
 
 /**
  * The context in which a sandboxed operation is run.
@@ -37,11 +38,11 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
     /**
      * Run a set of actions within the provided sandbox context.
      */
-    fun use(action: SandboxRuntimeContext.() -> Unit) {
+    fun use(action: Consumer<SandboxRuntimeContext>) {
         classLoader.use {
             instance = this
             try {
-                action(this)
+                action.accept(this)
             } finally {
                 threadLocalContext.remove()
             }

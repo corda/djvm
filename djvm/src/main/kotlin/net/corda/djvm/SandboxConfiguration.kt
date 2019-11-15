@@ -15,6 +15,7 @@ import java.io.IOException
 import java.net.URL
 import java.util.Collections.unmodifiableList
 import java.util.function.Consumer
+import java.util.function.Function
 import java.util.zip.ZipInputStream
 
 /**
@@ -79,8 +80,8 @@ class SandboxConfiguration private constructor(
     fun preload() {
         val preloadURLs = getPreloadURLs()
         if (preloadURLs.isNotEmpty()) {
-            IsolatedTask(PRELOAD_THREAD_PREFIX, this).run {
-                val knownReferences = HashSet<String>(INITIAL_CLASSES)
+            IsolatedTask(PRELOAD_THREAD_PREFIX, this).run<Any>(Function { classLoader ->
+                val knownReferences = HashSet(INITIAL_CLASSES)
 
                 /**
                  * Generate sandbox byte-code for all of these jars.
@@ -110,7 +111,7 @@ class SandboxConfiguration private constructor(
 
                 log.info("Preloaded {} classes into sandbox.",
                           knownReferences.size - INITIAL_CLASSES.size)
-            }
+            })
         }
     }
 
