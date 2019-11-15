@@ -123,6 +123,10 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
     class FailingNewInstance : Function<String, String?> {
         override fun apply(className: String): String? {
             try {
+                /**
+                 * [Class.newInstance] has been deprecated for Java 9+.
+                 */
+                @Suppress("deprecation")
                 return javaClass.classLoader.loadClass(className).newInstance().toString()
             } catch (e: InvocationTargetException) {
                 val target = e.cause!!

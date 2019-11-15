@@ -31,7 +31,8 @@ class JavaSandboxTest extends TestBase {
             Throwable ex = assertThrows(NoSuchMethodError.class, () -> WithJava.run(executor, BadJavaTask.class, 1234L));
             assertThat(ex)
                 .isExactlyInstanceOf(NoSuchMethodError.class)
-                .hasMessageContaining("sandbox.java.lang.System.currentTimeMillis()J");
+                .hasMessageContaining("sandbox.java.lang.System.currentTimeMillis()")
+                .hasMessageFindingMatch("(long sandbox\\.|\\.currentTimeMillis\\(\\)J)+");
             return null;
         });
     }

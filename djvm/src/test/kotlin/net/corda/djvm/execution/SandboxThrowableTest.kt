@@ -32,7 +32,8 @@ class SandboxThrowableTest : TestBase(KOTLIN) {
         val result = classLoader.typedTaskFor<Int, String, TriggerJVMException>(taskFactory)
             .apply(-1)
         assertThat(result)
-            .isEqualTo("sandbox.java.lang.ArrayIndexOutOfBoundsException:-1")
+            .startsWith("sandbox.java.lang.ArrayIndexOutOfBoundsException:")
+            .matches(".*:(-1|Index -1 out of bounds for length 3)+\$")
     }
 }
 

@@ -33,7 +33,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
 
         val annotationValue = sandboxClass.getAnnotation(sandboxAnnotation)
         assertThat(annotationValue.toString())
-            .isEqualTo("@sandbox.net.corda.djvm.KotlinAnnotation(value=Hello Kotlin!)")
+            .matches("^\\Q@sandbox.net.corda.djvm.KotlinAnnotation(value=\\E\"?Hello Kotlin!\"?\\)\$")
     }
 
     @Disabled("This test needs java.lang.Class.getEnclosingMethod() inside the sandbox.")
@@ -42,7 +42,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
         val executor = DeterministicSandboxExecutor<Any?, String>(configuration)
         executor.run<ReadAnnotation>(null).apply {
             assertThat(result)
-                .isEqualTo("@sandbox.net.corda.djvm.KotlinAnnotation(value=Hello Kotlin!)")
+                .matches("^\\Q@sandbox.net.corda.djvm.KotlinAnnotation(value=\\E\"?Hello Kotlin!\"?\\)\$")
         }
     }
 

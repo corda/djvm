@@ -25,7 +25,8 @@ class MaliciousClassLoaderTest extends TestBase {
             SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
             Throwable ex = assertThrows(NoSuchMethodError.class, () -> WithJava.run(executor, ActOfEvil.class, PureEvil.class.getName()));
             assertThat(ex)
-                .hasMessageContaining("sandbox.java.lang.System.currentTimeMillis()J")
+                .hasMessageContaining("sandbox.java.lang.System.currentTimeMillis()")
+                .hasMessageFindingMatch("(long sandbox\\.|\\.currentTimeMillis\\(\\)J)+")
                 .hasNoCause();
             return null;
         });
