@@ -35,7 +35,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 Annotation annotationValue = sandboxClass.getAnnotation(sandboxAnnotation);
                 assertThat(annotationValue).isNotNull();
                 assertThat(annotationValue.toString())
-                    .isEqualTo("@sandbox.net.corda.djvm.JavaAnnotation(value=Hello Java!)");
+                    .matches("^\\Q@sandbox.net.corda.djvm.JavaAnnotation(value=\\E\"?Hello Java!\"?\\)$");
             } catch (Exception e) {
                 fail(e);
             }
@@ -50,7 +50,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
                 ExecutionSummaryWithResult<String> success = WithJava.run(executor, ReadAnnotation.class, null);
                 assertThat(success.getResult())
-                    .isEqualTo("@sandbox.net.corda.djvm.JavaAnnotation(value=Hello Java!)");
+                    .matches("^\\Q@sandbox.net.corda.djvm.JavaAnnotation(value=\\E\"?Hello Java!\"?\\)$");
             } catch (Exception e) {
                 fail(e);
             }

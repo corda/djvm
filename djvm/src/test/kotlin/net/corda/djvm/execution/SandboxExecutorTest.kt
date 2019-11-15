@@ -8,7 +8,6 @@ import net.corda.djvm.TestBase
 import net.corda.djvm.Utilities.throwRuleViolationError
 import net.corda.djvm.Utilities.throwThresholdViolationError
 import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
-import net.corda.djvm.assertions.AssertionExtensions.withProblem
 import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.rules.RuleViolationError
 import org.assertj.core.api.Assertions.assertThat
@@ -146,7 +145,8 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<TestKotlinMetaClasses>(0) }
                 .withCauseInstanceOf(NoSuchMethodError::class.java)
-                .withProblem("sandbox.java.lang.System.nanoTime()J")
+                .withMessageContaining("sandbox.java.lang.System.nanoTime()")
+                .withMessageMatching(".*(long sandbox\\.|\\.nanoTime\\(\\)J)+.*")
     }
 
     class TestKotlinMetaClasses : Function<Int, Long> {
@@ -162,7 +162,8 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         assertThatExceptionOfType(SandboxException::class.java)
                 .isThrownBy { executor.run<TestNonDeterministicCode>(0) }
                 .withCauseInstanceOf(NoSuchMethodError::class.java)
-                .withProblem("sandbox.java.lang.System.currentTimeMillis()J")
+                .withMessageContaining("sandbox.java.lang.System.currentTimeMillis()")
+                .withMessageMatching(".*(long sandbox\\.|\\.currentTimeMillis\\(\\)J)+.*")
     }
 
     class TestNonDeterministicCode : Function<Int, Long> {
@@ -491,7 +492,8 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     fun `can load and execute code that has a native method`() = sandbox {
         assertThatExceptionOfType(UnsatisfiedLinkError::class.java)
             .isThrownBy { TestNativeMethod().apply(0) }
-            .withMessageContaining("TestNativeMethod.evilDeeds()I")
+            .withMessageContaining("${TestNativeMethod::class.java.name}.evilDeeds()")
+            .withMessageMatching(".*(int \\Q${TestNativeMethod::class.java.name}\\E\\.|\\.evilDeeds\\(\\)I)+.*")
 
         val executor = DeterministicSandboxExecutor<Int, Int>(configuration)
         assertThatExceptionOfType(SandboxException::class.java)

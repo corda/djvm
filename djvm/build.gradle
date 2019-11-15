@@ -1,3 +1,5 @@
+import static org.gradle.api.JavaVersion.*
+
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'com.github.johnrengelman.shadow'
@@ -13,6 +15,17 @@ description 'Corda deterministic JVM sandbox'
 repositories {
     maven {
         url "$artifactory_contextUrl/corda-dev"
+    }
+}
+
+if (current() > VERSION_1_8) {
+    sourceSets {
+        // Exclude test classes which cannot be compiled for Java > 8.
+        test {
+            java {
+                exclude 'net/corda/djvm/execution/DatatypeConverterTest.java'
+            }
+        }
     }
 }
 

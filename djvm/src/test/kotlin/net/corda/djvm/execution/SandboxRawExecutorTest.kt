@@ -30,7 +30,7 @@ class SandboxRawExecutorTest : TestBase(KOTLIN) {
         val inputData = "Hello World!".toByteArray()
         val ex = assertThrows<SandboxException>{ executor.run(ClassSource.fromClassName(UnmarshalledInput::class.java.name), inputData) }
         assertThat(ex)
-            .hasMessageContaining("[B cannot be cast to sandbox.java.lang.String")
+            .hasMessageFindingMatch("(class )?\\[B cannot be cast to (class )?\\Qsandbox.java.lang.String\\E")
             .hasCauseExactlyInstanceOf(ClassCastException::class.java)
     }
 

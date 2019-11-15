@@ -27,7 +27,8 @@ class SandboxStrictMathTest extends TestBase {
             Throwable error = assertThrows(NoSuchMethodError.class, () -> WithJava.run(executor, StrictRandom.class, 0));
             assertThat(error)
                 .isExactlyInstanceOf(NoSuchMethodError.class)
-                .hasMessage("sandbox.java.lang.StrictMath.random()D");
+                .hasMessageContaining("sandbox.java.lang.StrictMath.random()")
+                .hasMessageFindingMatch("(double sandbox\\.|\\.random\\(\\)D)+");
             return null;
         });
     }
