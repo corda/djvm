@@ -243,10 +243,10 @@ abstract class TestBase(type: SandboxType) {
                     enableTracing,
                     analysisConfiguration,
                     externalCache
-                )).use {
-                    assertThat(runtimeCosts).areZero()
-                    action(this)
-                }
+                )).use(Consumer { ctx ->
+                    assertThat(ctx.runtimeCosts).areZero()
+                    ctx.action()
+                })
             }
         }.apply {
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->
@@ -285,10 +285,10 @@ abstract class TestBase(type: SandboxType) {
                     it.setSandboxOnlyAnnotations(sandboxOnlyAnnotations)
                     it.setVisibleAnnotations(visibleAnnotations)
                     it.setExternalCache(externalCache)
-                })).use {
-                    assertThat(runtimeCosts).areZero()
-                    action(this)
-                }
+                })).use(Consumer { ctx ->
+                    assertThat(ctx.runtimeCosts).areZero()
+                    ctx.action()
+                })
             }
         }.apply {
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->

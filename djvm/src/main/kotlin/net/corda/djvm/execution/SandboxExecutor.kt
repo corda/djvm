@@ -13,6 +13,7 @@ import net.corda.djvm.source.ClassSource
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.ReferenceValidationSummary
 import java.util.function.BiConsumer
+import java.util.function.Function
 
 /**
  * The executor is responsible for spinning up a sandboxed environment and launching the referenced code block inside
@@ -66,7 +67,7 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
         // parallel, caching any intermediate state and subsequently process enqueued sources in parallel batches as well.
         // Note that this would require some rework of the [IsolatedTask] and the class loader to bypass the limitation
         // of caching and state preserved in thread-local contexts.
-        val result = IsolatedTask(runnableClass.qualifiedClassName, configuration).run {
+        val result = IsolatedTask(runnableClass.qualifiedClassName, configuration).run<OUTPUT>(Function { classLoader ->
             if (validating) {
                 val context = AnalysisContext.fromConfiguration(configuration.analysisConfiguration)
                 validate(context, classLoader, listOf(runnableClass))
@@ -81,7 +82,7 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
             // Execute the task...
             @Suppress("UNCHECKED_CAST")
             task.apply(input) as? OUTPUT
-        }
+        })
         logger.trace("Execution of {} with input {} resulted in {}", runnableClass, input, result)
         when (result.exception) {
             null -> return ExecutionSummaryWithResult(result.output, result.costs)
@@ -105,9 +106,9 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
      */
     fun load(classSource: ClassSource): LoadedClass {
         val context = AnalysisContext.fromConfiguration(configuration.analysisConfiguration)
-        val result = IsolatedTask("LoadClass", configuration).run {
+        val result = IsolatedTask("LoadClass", configuration).run<LoadedClass>(Function { classLoader ->
             classLoader.copyEmpty(context).loadForSandbox(classSource)
-        }
+        })
         return result.output ?: throw ClassNotFoundException(classSource.qualifiedClassName)
     }
 
@@ -125,9 +126,9 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
     fun validate(vararg classSources: ClassSource): ReferenceValidationSummary {
         logger.trace("Validating {}...", classSources)
         val context = AnalysisContext.fromConfiguration(configuration.analysisConfiguration)
-        val result = IsolatedTask("Validation", configuration).run {
+        val result = IsolatedTask("Validation", configuration).run<ReferenceValidationSummary>(Function { classLoader ->
             validate(context, classLoader, classSources.toList())
-        }
+        })
         logger.trace("Validation of {} resulted in {}", classSources, result)
         when (result.exception) {
             null -> return result.output!!

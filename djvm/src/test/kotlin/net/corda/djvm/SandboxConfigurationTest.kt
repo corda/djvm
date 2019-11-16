@@ -17,6 +17,7 @@ class SandboxConfigurationTest : TestBase(KOTLIN) {
     companion object {
         private lateinit var testJar: DummyJar
 
+        @Suppress("unused")
         @JvmStatic
         @BeforeAll
         fun setup(@TempDir testProjectDir: Path) {
