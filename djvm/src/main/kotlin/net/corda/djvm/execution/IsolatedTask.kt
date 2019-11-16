@@ -77,12 +77,6 @@ class IsolatedTask(
             val exception: Throwable?
     )
 
-    /**
-     * The class loader to use for loading the [java.util.function.Function] and any referenced code in [SandboxExecutor.run].
-     */
-    val classLoader: SandboxClassLoader
-        get() = SandboxRuntimeContext.instance.classLoader
-
     // TODO Caching can transcend thread-local contexts by taking the sandbox configuration into account in the key derivation
 
     private companion object {
