@@ -26,6 +26,7 @@ repositories {
 }
 
 configurations {
+    jdkRt
     sandboxTesting
 
     all {
@@ -47,7 +48,7 @@ configurations {
         }
     }
 
-    [ jdkRt, testCompileClasspath, testRuntimeClasspath ].forEach { cfg ->
+    [ testCompileClasspath, testRuntimeClasspath ].forEach { cfg ->
         cfg.resolutionStrategy {
             // Always check the repository for a newer SNAPSHOT.
             cacheChangingModulesFor 0, 'seconds'
@@ -66,7 +67,7 @@ dependencies {
     testImplementation "net.corda:corda-serialization-djvm:$corda_version"
     testImplementation "net.corda.djvm:corda-djvm:$djvm_version"
     testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"
-    jdkRt "net.corda:deterministic-rt:latest.integration"
+    jdkRt "net.corda:deterministic-rt:$deterministic_rt_version"
 
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testImplementation "org.assertj:assertj-core:$assertj_version"
