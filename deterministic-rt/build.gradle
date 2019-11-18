@@ -182,6 +182,24 @@ publishing {
             artifactId 'deterministic-rt'
             artifact runtimeJar
             artifact apiJar
+
+            pom {
+                licenses {
+                    license {
+                        name = 'GPLv2+CE'
+                        url = 'https://openjdk.java.net/legal/gplv2+ce.html'
+                        distribution = 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'R3'
+                        name = 'R3'
+                        email = 'dev@corda.net'
+                    }
+                }
+            }
         }
     }
 }
