@@ -1,0 +1,11 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+
+    plugins {
+        id 'com.jfrog.artifactory' version artifactory_plugin_version
+    }
+}
+
+rootProject.name = 'deterministic-rt'
