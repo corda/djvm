@@ -9,12 +9,13 @@ jdk8u/build/%/spec.gmk: jdk8u/common/autoconf/configure
 	cd jdk8u && $(SHELL) configure
 
 .PHONY: jdk-image clean all
-jdk-image: jdk8u/build/linux-x86_64-normal-server-release/spec.gmk
+jdk-image: jdk8u/build/*/spec.gmk
+	cd jdk8u && git checkout -f $(RT_TAG)
 	$(MAKE) -C jdk8u images docs
 
 all: libs/rt.jar libs/jce.jar libs/jsse.jar libs/currency.data libs/tzdb.dat libs/calendars.properties
 
-clean: jdk8u/build/%/spec.gmk
+clean: jdk8u/build/*/spec.gmk
 	$(MAKE) -C jdk8u clean
 
 libs:
