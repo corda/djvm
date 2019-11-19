@@ -52,6 +52,7 @@ task runtimeJar(type: Jar, dependsOn: makeJdk) {
     from 'libs/currency.data'
     from 'libs/tzdb.dat'
 
+    preserveFileTimestamps = false
     reproducibleFileOrder = true
     includeEmptyDirs = false
 }
