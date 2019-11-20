@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
+    id 'scala'
 }
 
 ext {
@@ -59,6 +60,7 @@ configurations {
 dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation "org.scala-lang:scala-library:$scala_version"
     implementation "com.r3.corda.lib.tokens:tokens-contracts:$corda_tokens_version"
     implementation "com.r3.corda.lib.tokens:tokens-money:$corda_tokens_version"
     implementation "net.corda:corda-core:$corda_version"
@@ -95,6 +97,16 @@ tasks.withType(KotlinCompile) {
         javaParameters = true    // Required for reflection / deserialization
         freeCompilerArgs = ['-Xjvm-default=enable']
         allWarningsAsErrors = true
+    }
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.with {
+        encoding = 'UTF-8'
+        additionalParameters = [
+            '-opt:l:method',
+            '-opt:l:inline', '-opt-inline-from:**'
+        ]
     }
 }
 

@@ -7,9 +7,12 @@ import org.junit.jupiter.api.Test;
 
 import static com.example.testing.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JavaSandboxTest extends TestBase {
+    private static final long BIG_NUMBER = 1234L;
+
     JavaSandboxTest() {
         super(JAVA);
     }
@@ -28,7 +31,7 @@ class JavaSandboxTest extends TestBase {
     void testBadTask() {
         sandbox(ctx -> {
             SandboxExecutor<Long, Long> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable ex = assertThrows(NoSuchMethodError.class, () -> WithJava.run(executor, BadJavaTask.class, 1234L));
+            Throwable ex = assertThrows(NoSuchMethodError.class, () -> WithJava.run(executor, BadJavaTask.class, BIG_NUMBER));
             assertThat(ex)
                 .isExactlyInstanceOf(NoSuchMethodError.class)
                 .hasMessageContaining("sandbox.java.lang.System.currentTimeMillis()")

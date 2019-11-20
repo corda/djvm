@@ -18,7 +18,7 @@ repositories {
     }
 }
 
-if (current() > VERSION_1_8) {
+if (current().java9Compatible) {
     sourceSets {
         // Exclude test classes which cannot be compiled for Java > 8.
         test {
