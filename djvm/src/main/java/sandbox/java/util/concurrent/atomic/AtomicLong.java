@@ -80,23 +80,23 @@ public class AtomicLong extends Number implements Serializable {
         return (value += delta);
     }
 
-    public final long getAndUpdate(LongUnaryOperator updater) {
+    public final long getAndUpdate(@NotNull LongUnaryOperator updater) {
         long oldValue = value;
         value = updater.applyAsLong(oldValue);
         return oldValue;
     }
 
-    public final long updateAndGet(LongUnaryOperator updater) {
+    public final long updateAndGet(@NotNull LongUnaryOperator updater) {
         return (value = updater.applyAsLong(value));
     }
 
-    public final long getAndAccumulate(long x, LongBinaryOperator accumulator) {
+    public final long getAndAccumulate(long x, @NotNull LongBinaryOperator accumulator) {
         long oldValue = value;
         value = accumulator.applyAsLong(oldValue, x);
         return oldValue;
     }
 
-    public final long accumulateAndGet(long x, LongBinaryOperator accumulator) {
+    public final long accumulateAndGet(long x, @NotNull LongBinaryOperator accumulator) {
         return (value = accumulator.applyAsLong(value, x));
     }
 

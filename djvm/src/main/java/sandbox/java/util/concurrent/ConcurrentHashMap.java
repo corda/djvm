@@ -128,10 +128,12 @@ public class ConcurrentHashMap<K, V> extends AbstractMap<K, V> implements Concur
         return map.size();
     }
 
+    @NotNull
     public static <K> KeySetView<K, Boolean> newKeySet() {
         return new KeySetView<>(new ConcurrentHashMap<>(), Boolean.TRUE);
     }
 
+    @NotNull
     public static <K> KeySetView<K, Boolean> newKeySet(int initialCapacity) {
         return new KeySetView<>(new ConcurrentHashMap<>(initialCapacity), Boolean.TRUE);
     }

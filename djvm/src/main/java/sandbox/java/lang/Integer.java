@@ -66,7 +66,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 
     @Override
     public double doubleValue() {
-        return (double) value;
+        return value;
     }
 
     @Override

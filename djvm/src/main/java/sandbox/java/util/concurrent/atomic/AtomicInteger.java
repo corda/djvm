@@ -81,29 +81,29 @@ public class AtomicInteger extends Number implements Serializable {
         return (value += delta);
     }
 
-    public final int getAndUpdate(IntUnaryOperator updater) {
+    public final int getAndUpdate(@NotNull IntUnaryOperator updater) {
         int oldValue = value;
         value = updater.applyAsInt(oldValue);
         return oldValue;
     }
 
-    public final int updateAndGet(IntUnaryOperator updater) {
+    public final int updateAndGet(@NotNull IntUnaryOperator updater) {
         return (value = updater.applyAsInt(value));
     }
 
-    public final int getAndAccumulate(int x, IntBinaryOperator accumulator) {
+    public final int getAndAccumulate(int x, @NotNull IntBinaryOperator accumulator) {
         int oldValue = value;
         value = accumulator.applyAsInt(oldValue, x);
         return oldValue;
     }
 
-    public final int accumulateAndGet(int x, IntBinaryOperator accumulator) {
+    public final int accumulateAndGet(int x, @NotNull IntBinaryOperator accumulator) {
         return (value = accumulator.applyAsInt(value, x));
     }
 
     @Override
     public double doubleValue() {
-        return (double) value;
+        return value;
     }
 
     @Override
@@ -113,7 +113,7 @@ public class AtomicInteger extends Number implements Serializable {
 
     @Override
     public long longValue() {
-        return (long) value;
+        return value;
     }
 
     @Override
