@@ -47,7 +47,7 @@ class SandboxClassLoader private constructor(
     private val externalCache: ExternalCache?,
     throwableClass: Class<*>?,
     parent: ClassLoader?
-) : ClassLoader(parent ?: getSystemClassLoader()), AutoCloseable {
+) : ClassLoader(parent ?: SandboxClassLoader::class.java.classLoader), AutoCloseable {
 
     /**
      * Set of classes that should be left untouched due to whitelisting.
