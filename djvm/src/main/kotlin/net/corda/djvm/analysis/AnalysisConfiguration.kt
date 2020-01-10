@@ -53,15 +53,15 @@ import kotlin.collections.LinkedHashSet
  * inside the sandbox.
  * @property allowedAnnotations Literal descriptors for annotations which should be preserved inside the sandbox.
  * @property stitchedAnnotations Descriptors for annotation classes whose unsandboxed values must also be preserved.
+ * @property minimumSeverityLevel The minimum severity level to log and report.
+ * @property supportingClassLoader ClassLoader providing the classes to run inside the sandbox.
  * @property classResolver Functionality used to resolve the qualified name and relevant information about a class.
  * @property exceptionResolver Resolves the internal names of synthetic exception classes.
- * @property minimumSeverityLevel The minimum severity level to log and report.
  * @property analyzeAnnotations Analyze annotations despite not being explicitly referenced.
  * @property prefixFilters Only record messages where the originating class name matches one of the provided prefixes.
  * If none are provided, all messages will be reported.
  * @property classModule Module for handling evolution of a class hierarchy during analysis.
  * @property memberModule Module for handling the specification and inspection of class members.
- * @property supportingClassLoader ClassLoader providing the classes to run inside the sandbox.
  */
 class AnalysisConfiguration private constructor(
     val parent: AnalysisConfiguration?,
@@ -69,14 +69,14 @@ class AnalysisConfiguration private constructor(
     val sandboxAnnotations: Set<Pattern>,
     val allowedAnnotations: Set<String>,
     val stitchedAnnotations: Set<String>,
+    val minimumSeverityLevel: Severity,
+    val supportingClassLoader: SourceClassLoader,
     val classResolver: ClassResolver,
     val exceptionResolver: ExceptionResolver,
-    val minimumSeverityLevel: Severity,
     val analyzeAnnotations: Boolean,
     val prefixFilters: List<String>,
     val classModule: ClassModule,
     val memberModule: MemberModule,
-    val supportingClassLoader: SourceClassLoader,
     private val memberFormatter: MemberFormatter
 ) {
 
@@ -697,17 +697,19 @@ class AnalysisConfiguration private constructor(
         /**
          * @see [AnalysisConfiguration]
          */
+        @JvmOverloads
+        @JvmStatic
         fun createRoot(
             userSource: UserSource,
             whitelist: Whitelist,
             visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
             sandboxOnlyAnnotations: Set<String> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
+            bootstrapSource: ApiSource? = null,
             analyzeAnnotations: Boolean = false,
             prefixFilters: List<String> = emptyList(),
             classModule: ClassModule = ClassModule(),
-            memberModule: MemberModule = MemberModule(),
-            bootstrapSource: ApiSource? = null
+            memberModule: MemberModule = MemberModule()
         ): AnalysisConfiguration {
             /**
              * We may need to whitelist the descriptors for methods that we
@@ -729,15 +731,37 @@ class AnalysisConfiguration private constructor(
                 sandboxAnnotations = unmodifiable<Pattern>(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern)),
                 allowedAnnotations = ALLOWED_ANNOTATIONS.merge(visibleAnnotations),
                 stitchedAnnotations = STITCHED_ANNOTATIONS.mergeSandboxed(visibleAnnotations),
+                minimumSeverityLevel = minimumSeverityLevel,
+                supportingClassLoader = SourceClassLoader(classResolver, userSource, bootstrapSource),
                 classResolver = classResolver,
                 exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, SANDBOX_PREFIX),
-                minimumSeverityLevel = minimumSeverityLevel,
                 analyzeAnnotations = analyzeAnnotations,
                 prefixFilters = prefixFilters,
                 classModule = classModule,
                 memberModule = memberModule,
-                supportingClassLoader = SourceClassLoader(classResolver, userSource, bootstrapSource),
                 memberFormatter = MemberFormatter(classModule, memberModule)
+            )
+        }
+
+        /**
+         * @see [AnalysisConfiguration]
+         */
+        @Suppress("unused")
+        @JvmStatic
+        fun createRoot(
+            userSource: UserSource,
+            visibleAnnotations: Set<Class<out Annotation>>,
+            sandboxOnlyAnnotations: Set<String>,
+            minimumSeverityLevel: Severity,
+            bootstrapSource: ApiSource?
+        ): AnalysisConfiguration {
+            return createRoot(
+                userSource = userSource,
+                whitelist = Whitelist.MINIMAL,
+                visibleAnnotations = visibleAnnotations,
+                sandboxOnlyAnnotations = sandboxOnlyAnnotations,
+                minimumSeverityLevel = minimumSeverityLevel,
+                bootstrapSource = bootstrapSource
             )
         }
     }

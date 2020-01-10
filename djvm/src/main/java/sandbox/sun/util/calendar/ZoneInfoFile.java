@@ -11,7 +11,7 @@ import java.io.IOException;
  * This is a dummy class that implements just enough of {@link sun.util.calendar.ZoneInfoFile}
  * to allow us to compile its anonymous inner class.
  */
-@SuppressWarnings({"unused", "WeakerAccess", "Convert2Lambda", "RedundantThrows"})
+@SuppressWarnings({"unused", "Convert2Lambda", "RedundantThrows"})
 public final class ZoneInfoFile extends sandbox.java.lang.Object {
     static {
         /*

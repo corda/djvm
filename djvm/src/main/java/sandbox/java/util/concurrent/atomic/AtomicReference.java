@@ -50,23 +50,23 @@ public class AtomicReference<V> extends sandbox.java.lang.Object implements Seri
         return oldValue;
     }
 
-    public final V getAndUpdate(UnaryOperator<V> updater) {
+    public final V getAndUpdate(@NotNull UnaryOperator<V> updater) {
         V oldValue = value;
         value = updater.apply(oldValue);
         return oldValue;
     }
 
-    public final V updateAndGet(UnaryOperator<V> updater) {
+    public final V updateAndGet(@NotNull UnaryOperator<V> updater) {
         return (value = updater.apply(value));
     }
 
-    public final V getAndAccumulate(V x, BinaryOperator<V> accumulator) {
+    public final V getAndAccumulate(V x, @NotNull BinaryOperator<V> accumulator) {
         V oldValue = value;
         value = accumulator.apply(oldValue, x);
         return oldValue;
     }
 
-    public final V accumulateAndGet(V x, BinaryOperator<V> accumulator) {
+    public final V accumulateAndGet(V x, @NotNull BinaryOperator<V> accumulator) {
         return (value = accumulator.apply(value, x));
     }
 

@@ -56,7 +56,7 @@ public final class Float extends Number implements Comparable<Float> {
 
     @Override
     public double doubleValue() {
-        return (double)value;
+        return value;
     }
 
     @Override

@@ -39,17 +39,17 @@ public final class Short extends Number implements Comparable<Short> {
 
     @Override
     public long longValue() {
-        return (long)value;
+        return value;
     }
 
     @Override
     public float floatValue() {
-        return (float)value;
+        return value;
     }
 
     @Override
     public double doubleValue() {
-        return (double)value;
+        return value;
     }
 
     @Override

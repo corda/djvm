@@ -1,5 +1,6 @@
 package sandbox.sun.security.x509;
 
+import org.jetbrains.annotations.NotNull;
 import sandbox.java.security.PrivilegedExceptionAction;
 import sandbox.javax.security.auth.x500.DJVM;
 import sandbox.javax.security.auth.x500.X500Principal;
@@ -39,6 +40,7 @@ public class X500Name extends sandbox.java.lang.Object {
      * @param principal Any {@link X500Principal} object.
      * @return The {@link X500Name} contained within this {@link X500Principal}.
      */
+    @NotNull
     public static X500Name asX500Name(X500Principal principal) {
         X500Name name = DJVM.unwrap(principal);
         name.x500Principal = principal;

@@ -20,7 +20,6 @@ plugins {
 
 ext {
     artifactory_contextUrl = 'https://software.r3.com/artifactory'
-    deterministic_rt_tag = 'deterministic/1.0-RC01'
 }
 
 /*

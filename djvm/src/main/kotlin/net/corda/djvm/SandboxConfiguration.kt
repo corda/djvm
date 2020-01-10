@@ -206,6 +206,7 @@ class SandboxConfiguration private constructor(
          * emitters and definition providers, and maybe an external cache.
          */
         @Suppress("unused")
+        @JvmStatic
         fun createFor(
             analysisConfiguration: AnalysisConfiguration,
             profile: ExecutionProfile?,
@@ -222,6 +223,7 @@ class SandboxConfiguration private constructor(
          * Create a fresh [SandboxConfiguration] that contains all rules,
          * emitters and definition providers.
          */
+        @JvmStatic
         fun createFor(
             analysisConfiguration: AnalysisConfiguration,
             profile: ExecutionProfile?
