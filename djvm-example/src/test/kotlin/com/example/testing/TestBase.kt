@@ -59,8 +59,7 @@ abstract class TestBase(type: SandboxType) {
             )
             parentConfiguration = SandboxConfiguration.createFor(
                 analysisConfiguration = rootConfiguration,
-                profile = UNLIMITED,
-                enableTracing = false
+                profile = null
             )
         }
 

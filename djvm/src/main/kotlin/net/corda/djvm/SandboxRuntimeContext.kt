@@ -1,6 +1,7 @@
 package net.corda.djvm
 
 import net.corda.djvm.costing.RuntimeCostSummary
+import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.rewiring.SandboxClassLoader
 import java.util.function.Consumer
 
@@ -19,7 +20,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
     /**
      * A summary of the currently accumulated runtime costs (for, e.g., memory allocations, invocations, etc.).
      */
-    val runtimeCosts = RuntimeCostSummary(configuration.executionProfile)
+    val runtimeCosts = RuntimeCostSummary(configuration.executionProfile ?: ExecutionProfile.UNLIMITED)
 
     private val hashCodes: MutableMap<Int, Int> = mutableMapOf()
     private var objectCounter: Int = 0

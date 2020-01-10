@@ -181,11 +181,10 @@ abstract class ClassCommand : CommandBase() {
 
     private fun getConfiguration(whitelist: Whitelist): SandboxConfiguration {
         return SandboxConfiguration.of(
-                profile = profile,
+                profile = if (disableTracing) { null } else { profile },
                 rules = if (ignoreRules) { emptyList() } else { ALL_RULES },
                 emitters = ignoreEmitters.emptyListIfTrueOtherwiseNull(),
                 definitionProviders = if (ignoreDefinitionProviders) { emptyList() } else { ALL_DEFINITION_PROVIDERS },
-                enableTracing = !disableTracing,
                 analysisConfiguration = AnalysisConfiguration.createRoot(
                         userSource = UserPathSource(getClasspath()),
                         whitelist = whitelist,
