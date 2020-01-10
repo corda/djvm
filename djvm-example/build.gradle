@@ -18,10 +18,10 @@ repositories {
         url "$artifactory_contextUrl/corda-dev"
     }
     maven {
-        url "$artifactory_contextUrl/corda-lib"
+        url "$artifactory_contextUrl/corda-dependencies"
     }
     maven {
-        url "$artifactory_contextUrl/corda-dependencies"
+        url "$artifactory_contextUrl/corda-lib"
     }
     mavenCentral()
 }
