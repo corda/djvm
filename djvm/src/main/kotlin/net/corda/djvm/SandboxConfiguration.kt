@@ -34,7 +34,7 @@ class SandboxConfiguration private constructor(
     val rules: List<Rule>,
     val emitters: List<Emitter>,
     val definitionProviders: List<DefinitionProvider>,
-    val executionProfile: ExecutionProfile,
+    val executionProfile: ExecutionProfile?,
     val analysisConfiguration: AnalysisConfiguration,
     val byteCodeCache: ByteCodeCache,
     val externalCache: ExternalCache?
@@ -183,18 +183,17 @@ class SandboxConfiguration private constructor(
          * Create a sandbox configuration where one or more properties deviates from the default.
          */
         fun of(
-            profile: ExecutionProfile = ExecutionProfile.DEFAULT,
+            profile: ExecutionProfile? = ExecutionProfile.DEFAULT,
             rules: List<Rule> = ALL_RULES,
             emitters: List<Emitter>? = null,
             definitionProviders: List<DefinitionProvider> = ALL_DEFINITION_PROVIDERS,
-            enableTracing: Boolean = true,
             analysisConfiguration: AnalysisConfiguration,
             externalCache: ExternalCache? = null
         ) = SandboxConfiguration(
                 executionProfile = profile,
                 rules = rules,
                 emitters = (emitters ?: ALL_EMITTERS).filter {
-                    enableTracing || it.priority > EMIT_TRACING
+                    (profile != null) || it.priority > EMIT_TRACING
                 },
                 definitionProviders = definitionProviders,
                 analysisConfiguration = analysisConfiguration,
@@ -209,13 +208,11 @@ class SandboxConfiguration private constructor(
         @Suppress("unused")
         fun createFor(
             analysisConfiguration: AnalysisConfiguration,
-            profile: ExecutionProfile,
-            enableTracing: Boolean,
+            profile: ExecutionProfile?,
             externalCache: ExternalCache?
         ): SandboxConfiguration {
             return of(
                 profile = profile,
-                enableTracing = enableTracing,
                 analysisConfiguration = analysisConfiguration,
                 externalCache = externalCache
             )
@@ -227,12 +224,10 @@ class SandboxConfiguration private constructor(
          */
         fun createFor(
             analysisConfiguration: AnalysisConfiguration,
-            profile: ExecutionProfile,
-            enableTracing: Boolean
+            profile: ExecutionProfile?
         ): SandboxConfiguration {
             return of(
                 profile = profile,
-                enableTracing = enableTracing,
                 analysisConfiguration = analysisConfiguration
             )
         }

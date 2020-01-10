@@ -89,8 +89,7 @@ abstract class TestBase(type: SandboxType) {
             )
             parentConfiguration = SandboxConfiguration.createFor(
                 analysisConfiguration = rootConfiguration,
-                profile = ExecutionProfile.UNLIMITED,
-                enableTracing = true
+                profile = ExecutionProfile.UNLIMITED
             )
         }
 
@@ -210,14 +209,14 @@ abstract class TestBase(type: SandboxType) {
         val emitters = mutableListOf<Emitter>().apply { addAll(ALL_EMITTERS) }
         val definitionProviders = mutableListOf<DefinitionProvider>().apply { addAll(ALL_DEFINITION_PROVIDERS) }
         val classSources = mutableListOf<ClassSource>()
-        var executionProfile = ExecutionProfile.UNLIMITED
+        var profile = ExecutionProfile.UNLIMITED
         var whitelist = TEST_WHITELIST
         for (option in options) {
             when (option) {
                 is Rule -> rules.add(option)
                 is Emitter -> emitters.add(option)
                 is DefinitionProvider -> definitionProviders.add(option)
-                is ExecutionProfile -> executionProfile = option
+                is ExecutionProfile -> profile = option
                 is ClassSource -> classSources.add(option)
                 is Whitelist -> whitelist = option
                 is List<*> -> {
@@ -228,6 +227,7 @@ abstract class TestBase(type: SandboxType) {
             }
         }
         var thrownException: Throwable? = null
+        val executionProfile = if (enableTracing) { profile } else { null }
         thread(start = false, name = "DJVM-${javaClass.name}-${threadId.getAndIncrement()}") {
             UserPathSource(classPaths).use { userSource ->
                 val analysisConfiguration = AnalysisConfiguration.createRoot(
@@ -243,7 +243,6 @@ abstract class TestBase(type: SandboxType) {
                     rules.distinctBy(Any::javaClass),
                     emitters.distinctBy(Any::javaClass),
                     definitionProviders.distinctBy(Any::javaClass),
-                    enableTracing,
                     analysisConfiguration,
                     externalCache
                 )).use(Consumer { ctx ->
