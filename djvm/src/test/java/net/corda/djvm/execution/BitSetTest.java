@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +10,7 @@ import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class BitSetTest extends TestBase {
     private static final byte[] BITS = new byte[] { 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08 };
@@ -23,18 +25,22 @@ class BitSetTest extends TestBase {
         BitSet bitset = BitSet.valueOf(BITS);
 
         sandbox(ctx -> {
-            SandboxExecutor<byte[], int[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<int[]> success = WithJava.run(executor, CreateBitSet.class, BITS);
-            assertThat(success.getResult())
-                .isEqualTo(new int[] {
-                    bitset.length(),
-                    bitset.cardinality(),
-                    bitset.size(),
-                    bitset.nextClearBit(POSITION),
-                    bitset.previousClearBit(POSITION),
-                    bitset.nextSetBit(POSITION),
-                    bitset.previousSetBit(POSITION)
-                });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                int[] result = WithJava.run(taskFactory, CreateBitSet.class, BITS);
+                assertThat(result)
+                    .isEqualTo(new int[]{
+                        bitset.length(),
+                        bitset.cardinality(),
+                        bitset.size(),
+                        bitset.nextClearBit(POSITION),
+                        bitset.previousClearBit(POSITION),
+                        bitset.nextSetBit(POSITION),
+                        bitset.previousSetBit(POSITION)
+                    });
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

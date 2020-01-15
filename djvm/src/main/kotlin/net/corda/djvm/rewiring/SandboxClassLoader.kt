@@ -1,6 +1,7 @@
 package net.corda.djvm.rewiring
 
 import net.corda.djvm.SandboxConfiguration
+import net.corda.djvm.TypedTaskFactory
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor
@@ -63,8 +64,8 @@ class SandboxClassLoader private constructor(
      * Update the common bytecode cache with the classes we have generated.
      */
     override fun close() {
-        byteCodeCache.update(loadedByteCode)
         (parent as? SandboxClassLoader)?.close()
+        byteCodeCache.update(loadedByteCode)
     }
 
     /**
@@ -186,6 +187,30 @@ class SandboxClassLoader private constructor(
         return createTaskFactory("sandbox.RawTask")
     }
 
+    /**
+     * Factory to create a [Function] that will execute a sandboxed
+     * task that implements [sandbox.java.util.function.Function].
+     * This is just a convenience function which assumes that the
+     * task has a no-argument constructor, but is still likely to
+     * be what you want.
+     * The task's input and output are marshalled using
+     * the [sandbox.BasicInput] and [sandbox.BasicOutput]
+     * transformations.
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        NoSuchMethodException::class
+    )
+    fun createTypedTaskFactory(): TypedTaskFactory {
+        val typedTaskFactory = createTaskFactory().compose(createSandboxFunction())
+        return object : TypedTaskFactory {
+            override fun <T, R> create(taskClass: Class<out Function<T, R>>): Function<T, R> {
+                @Suppress("unchecked_cast")
+                return typedTaskFactory.apply(taskClass) as Function<T, R>
+            }
+        }
+    }
+
     @Throws(
         ClassNotFoundException::class,
         NoSuchMethodException::class
@@ -210,14 +235,30 @@ class SandboxClassLoader private constructor(
 
     /**
      * Factory to create a [Function] that will execute a sandboxed
-     * instance of [taskClass]. This is just a convenience function
-     * which assumes that the task has a no-argument constructor,
-     * but is still likely to be what you want.
+     * instance of a task, where this task also implements [Function].
+     * This is just a convenience function which assumes that the
+     * task has a no-argument constructor, but is still likely to be
+     * what you want.
      */
+    fun createSandboxFunction(): Function<Class<out Function<*, *>>, out Any> {
+        return Function { taskClass ->
+            try {
+                toSandboxClass(taskClass).getDeclaredConstructor().newInstance()
+            } catch (ex: Throwable) {
+                val target = (ex as? InvocationTargetException)?.targetException ?: ex
+                throw when (target) {
+                    is RuntimeException, is Error -> target
+                    else -> SandboxRuntimeException(target.message, target)
+                }
+            }
+        }
+    }
+
+    @Deprecated("Replaced by createSandboxFunction")
     @Throws(
         ClassNotFoundException::class,
         InstantiationException::class,
-        IllegalAccessError::class
+        InvocationTargetException::class
     )
     fun createTaskFor(
         taskFactory: Function<in Any, out Function<in Any?, out Any?>>,

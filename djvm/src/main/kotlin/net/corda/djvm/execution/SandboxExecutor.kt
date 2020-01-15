@@ -23,7 +23,7 @@ import java.util.function.Function
  * @property configuration The configuration of sandbox.
  * @property validating Whether the sandbox should pre-validate the class before executing it.
  */
-open class SandboxExecutor<in INPUT, out OUTPUT>(
+class SandboxExecutor<in INPUT, out OUTPUT>(
         configuration: SandboxConfiguration,
         private val validating: Boolean
 ) : Executor<INPUT, OUTPUT>(configuration) {
@@ -33,6 +33,14 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
     private val classResolver = configuration.analysisConfiguration.classResolver
 
     private val whitelist = configuration.analysisConfiguration.whitelist
+
+    /**
+     * Short-hand for running a [Function] in a sandbox by its type reference.
+     */
+    inline fun <T, R, reified TRunnable : Function<T, R>> run(input: INPUT):
+            ExecutionSummaryWithResult<OUTPUT> {
+        return run(ClassSource.fromClassName(TRunnable::class.java.name), input)
+    }
 
     /**
      * Executes a [sandbox.java.util.function.Function] implementation.
@@ -45,7 +53,7 @@ open class SandboxExecutor<in INPUT, out OUTPUT>(
      * caller, with additional information about the sandboxed environment.
      */
     @Throws(Exception::class)
-    final override fun run(
+    override fun run(
             runnableClass: ClassSource,
             input: INPUT
     ): ExecutionSummaryWithResult<OUTPUT> {

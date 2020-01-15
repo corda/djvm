@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import net.corda.djvm.rules.RuleViolationError;
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +28,14 @@ class SandboxThrowableJavaTest extends TestBase {
     @Test
     void testUserExceptionHandling() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String[]> output = WithJava.run(executor, ThrowAndCatchJavaExample.class, "Hello World!");
-            assertThat(output.getResult())
-                .isEqualTo(new String[]{ "FIRST FINALLY", "BASE EXCEPTION", "Hello World!", "SECOND FINALLY" });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String[] result = WithJava.run(taskFactory, ThrowAndCatchJavaExample.class, "Hello World!");
+                assertThat(result)
+                    .isEqualTo(new String[]{"FIRST FINALLY", "BASE EXCEPTION", "Hello World!", "SECOND FINALLY"});
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -38,17 +43,21 @@ class SandboxThrowableJavaTest extends TestBase {
     @Test
     void testCheckedExceptions() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertAll(
-                () -> {
-                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, JavaWithCheckedExceptions.class, "http://localhost:8080/hello/world");
-                    assertThat(success.getResult()).isEqualTo("/hello/world");
-                },
-                () -> {
-                    ExecutionSummaryWithResult<String> failure = WithJava.run(executor, JavaWithCheckedExceptions.class, "nasty string");
-                    assertThat(failure.getResult()).isEqualTo("CATCH:Illegal character in path at index 5: nasty string");
-                }
-            );
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertAll(
+                    () -> {
+                        String result = WithJava.run(taskFactory, JavaWithCheckedExceptions.class, "http://localhost:8080/hello/world");
+                        assertThat(result).isEqualTo("/hello/world");
+                    },
+                    () -> {
+                        String result = WithJava.run(taskFactory, JavaWithCheckedExceptions.class, "nasty string");
+                        assertThat(result).isEqualTo("CATCH:Illegal character in path at index 5: nasty string");
+                    }
+                );
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -56,46 +65,50 @@ class SandboxThrowableJavaTest extends TestBase {
     @Test
     void testMultiCatchExceptions() {
         sandbox(ctx -> {
-            SandboxExecutor<Integer, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertAll(
-                () -> {
-                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, WithMultiCatchExceptions.class, 1);
-                    assertThat(success.getResult()).isEqualTo("sandbox.net.corda.djvm.execution.MyExampleException:1");
-                },
-                () -> {
-                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, WithMultiCatchExceptions.class, 2);
-                    assertThat(success.getResult()).isEqualTo("sandbox.net.corda.djvm.execution.MyOtherException:2");
-                },
-                () -> {
-                    Throwable exception = assertThrows(RuntimeException.class,
-                        () -> WithJava.run(executor, WithMultiCatchExceptions.class, 3)
-                    );
-                    assertThat(exception)
-                        .isExactlyInstanceOf(RuntimeException.class)
-                        .hasMessage("sandbox.net.corda.djvm.execution.BigTroubleException -> 3")
-                        .hasCauseExactlyInstanceOf(Exception.class);
-                    assertThat(exception.getCause())
-                        .hasMessage("sandbox.net.corda.djvm.execution.MyBaseException -> sandbox.net.corda.djvm.execution.BigTroubleException=3");
-                },
-                () -> {
-                    Throwable exception = assertThrows(IllegalArgumentException.class,
-                        () -> WithJava.run(executor, WithMultiCatchExceptions.class, 4)
-                    );
-                    assertThat(exception)
-                        .hasMessage("4")
-                        .hasCauseExactlyInstanceOf(Exception.class);
-                    assertThat(exception.getCause())
-                        .hasMessage("sandbox.net.corda.djvm.execution.MyBaseException -> sandbox.java.lang.IllegalArgumentException=4");
-                },
-                () -> {
-                    Throwable exception = assertThrows(UnsupportedOperationException.class,
-                        () -> WithJava.run(executor, WithMultiCatchExceptions.class, 1000)
-                    );
-                    assertThat(exception)
-                        .hasMessage("Unknown")
-                        .hasNoCause();
-                }
-            );
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertAll(
+                    () -> {
+                        String result = WithJava.run(taskFactory, WithMultiCatchExceptions.class, 1);
+                        assertThat(result).isEqualTo("sandbox.net.corda.djvm.execution.MyExampleException:1");
+                    },
+                    () -> {
+                        String result = WithJava.run(taskFactory, WithMultiCatchExceptions.class, 2);
+                        assertThat(result).isEqualTo("sandbox.net.corda.djvm.execution.MyOtherException:2");
+                    },
+                    () -> {
+                        Throwable exception = assertThrows(RuntimeException.class,
+                            () -> WithJava.run(taskFactory, WithMultiCatchExceptions.class, 3)
+                        );
+                        assertThat(exception)
+                            .isExactlyInstanceOf(RuntimeException.class)
+                            .hasMessage("sandbox.net.corda.djvm.execution.BigTroubleException -> 3")
+                            .hasCauseExactlyInstanceOf(Exception.class);
+                        assertThat(exception.getCause())
+                            .hasMessage("sandbox.net.corda.djvm.execution.MyBaseException -> sandbox.net.corda.djvm.execution.BigTroubleException=3");
+                    },
+                    () -> {
+                        Throwable exception = assertThrows(IllegalArgumentException.class,
+                            () -> WithJava.run(taskFactory, WithMultiCatchExceptions.class, 4)
+                        );
+                        assertThat(exception)
+                            .hasMessage("4")
+                            .hasCauseExactlyInstanceOf(Exception.class);
+                        assertThat(exception.getCause())
+                            .hasMessage("sandbox.net.corda.djvm.execution.MyBaseException -> sandbox.java.lang.IllegalArgumentException=4");
+                    },
+                    () -> {
+                        Throwable exception = assertThrows(UnsupportedOperationException.class,
+                            () -> WithJava.run(taskFactory, WithMultiCatchExceptions.class, 1000)
+                        );
+                        assertThat(exception)
+                            .hasMessage("Unknown")
+                            .hasNoCause();
+                    }
+                );
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -103,21 +116,25 @@ class SandboxThrowableJavaTest extends TestBase {
     @Test
     void testMultiCatchWithDisallowedExceptions() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertAll(
-                () -> {
-                    ExecutionSummaryWithResult<String> success = WithJava.run(executor, WithMultiCatchDisallowedExceptions.class, "Hello World!");
-                    assertThat(success.getResult()).isEqualTo("sandbox.net.corda.djvm.execution.MyExampleException:Hello World!");
-                },
-                () -> {
-                    Throwable exception = assertThrows(RuleViolationError.class,
-                        () -> WithJava.run(executor, WithMultiCatchDisallowedExceptions.class, "")
-                    );
-                    assertThat(exception)
-                        .hasMessage(CANNOT_CATCH)
-                        .hasNoCause();
-                }
-            );
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertAll(
+                    () -> {
+                        String result = WithJava.run(taskFactory, WithMultiCatchDisallowedExceptions.class, "Hello World!");
+                        assertThat(result).isEqualTo("sandbox.net.corda.djvm.execution.MyExampleException:Hello World!");
+                    },
+                    () -> {
+                        Throwable exception = assertThrows(RuleViolationError.class,
+                            () -> WithJava.run(taskFactory, WithMultiCatchDisallowedExceptions.class, "")
+                        );
+                        assertThat(exception)
+                            .hasMessage(CANNOT_CATCH)
+                            .hasNoCause();
+                    }
+                );
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -125,18 +142,22 @@ class SandboxThrowableJavaTest extends TestBase {
     @Test
     void testSuppressedJvmExceptions() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable exception = assertThrows(IllegalArgumentException.class,
-                () -> WithJava.run(executor, WithSuppressedJvmExceptions.class, "Hello World!")
-            );
-            assertThat(exception)
-                .hasCauseExactlyInstanceOf(IOException.class)
-                .hasMessage("READ=Hello World!");
-            assertThat(exception.getCause())
-                 .hasMessage("READ=Hello World!");
-            assertThat(exception.getCause().getSuppressed())
-                .hasSize(1)
-                .allMatch(t -> t instanceof IOException && t.getMessage().equals("CLOSING"));
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable exception = assertThrows(IllegalArgumentException.class,
+                    () -> WithJava.run(taskFactory, WithSuppressedJvmExceptions.class, "Hello World!")
+                );
+                assertThat(exception)
+                    .hasCauseExactlyInstanceOf(IOException.class)
+                    .hasMessage("READ=Hello World!");
+                assertThat(exception.getCause())
+                    .hasMessage("READ=Hello World!");
+                assertThat(exception.getCause().getSuppressed())
+                    .hasSize(1)
+                    .allMatch(t -> t instanceof IOException && t.getMessage().equals("CLOSING"));
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -144,19 +165,23 @@ class SandboxThrowableJavaTest extends TestBase {
     @Test
     void testSuppressedUserExceptions() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable exception = assertThrows(IllegalArgumentException.class,
-                () -> WithJava.run(executor, WithSuppressedUserExceptions.class, "Hello World!")
-            );
-            assertThat(exception)
-                .hasMessage("THROW: Hello World!")
-                .hasCauseExactlyInstanceOf(Exception.class);
-            assertThat(exception.getCause())
-                .hasMessage("sandbox.net.corda.djvm.execution.MyExampleException -> THROW: Hello World!");
-            assertThat(exception.getCause().getSuppressed())
-                .hasSize(1)
-                .allMatch(t -> t instanceof RuntimeException
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable exception = assertThrows(IllegalArgumentException.class,
+                    () -> WithJava.run(taskFactory, WithSuppressedUserExceptions.class, "Hello World!")
+                );
+                assertThat(exception)
+                    .hasMessage("THROW: Hello World!")
+                    .hasCauseExactlyInstanceOf(Exception.class);
+                assertThat(exception.getCause())
+                    .hasMessage("sandbox.net.corda.djvm.execution.MyExampleException -> THROW: Hello World!");
+                assertThat(exception.getCause().getSuppressed())
+                    .hasSize(1)
+                    .allMatch(t -> t instanceof RuntimeException
                         && t.getMessage().equals("sandbox.net.corda.djvm.execution.BigTroubleException -> BadResource: Hello World!"));
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

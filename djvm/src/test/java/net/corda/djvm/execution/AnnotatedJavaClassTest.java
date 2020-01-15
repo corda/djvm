@@ -2,6 +2,7 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
 import net.corda.djvm.JavaAnnotation;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
@@ -47,9 +48,9 @@ class AnnotatedJavaClassTest extends TestBase {
     void testAnnotationInsideSandbox() {
         sandbox(emptySet(), singleton("net.corda.djvm.*"), ctx -> {
             try {
-                SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-                ExecutionSummaryWithResult<String> success = WithJava.run(executor, ReadAnnotation.class, null);
-                assertThat(success.getResult())
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, ReadAnnotation.class, null);
+                assertThat(result)
                     .matches("^\\Q@sandbox.net.corda.djvm.JavaAnnotation(value=\\E\"?Hello Java!\"?\\)$");
             } catch (Exception e) {
                 fail(e);

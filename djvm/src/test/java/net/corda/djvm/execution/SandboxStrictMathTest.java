@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
@@ -23,12 +24,16 @@ class SandboxStrictMathTest extends TestBase {
     @Test
     void testStrictMathHasNoRandom() {
         sandbox(ctx -> {
-            SandboxExecutor<Integer, Double> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable error = assertThrows(NoSuchMethodError.class, () -> WithJava.run(executor, StrictRandom.class, 0));
-            assertThat(error)
-                .isExactlyInstanceOf(NoSuchMethodError.class)
-                .hasMessageContaining("sandbox.java.lang.StrictMath.random()")
-                .hasMessageFindingMatch("(double sandbox\\.|\\.random\\(\\)D)+");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable error = assertThrows(NoSuchMethodError.class, () -> WithJava.run(taskFactory, StrictRandom.class, 0));
+                assertThat(error)
+                    .isExactlyInstanceOf(NoSuchMethodError.class)
+                    .hasMessageContaining("sandbox.java.lang.StrictMath.random()")
+                    .hasMessageFindingMatch("(double sandbox\\.|\\.random\\(\\)D)+");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -43,17 +48,21 @@ class SandboxStrictMathTest extends TestBase {
     @Test
     void testStrictMathHasTrigonometry() {
         sandbox(ctx -> {
-            SandboxExecutor<Integer, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictTrigonometry.class, 0);
-            assertThat(success.getResult()).isEqualTo(new Double[] {
-                0.0,
-                -1.0,
-                0.0,
-                StrictMath.PI / 2.0,
-                StrictMath.PI / 2.0,
-                0.0,
-                StrictMath.PI / 4.0
-            });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Double[] result = WithJava.run(taskFactory, StrictTrigonometry.class, 0);
+                assertThat(result).isEqualTo(new Double[]{
+                    0.0,
+                    -1.0,
+                    0.0,
+                    StrictMath.PI / 2.0,
+                    StrictMath.PI / 2.0,
+                    0.0,
+                    StrictMath.PI / 4.0
+                });
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -76,10 +85,14 @@ class SandboxStrictMathTest extends TestBase {
     @Test
     void testStrictMathRoots() {
         sandbox(ctx -> {
-            SandboxExecutor<Double, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictRoots.class, 64.0);
-            assertThat(success.getResult())
-                .isEqualTo(new Double[] { 8.0, 4.0, 13.0 });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Double[] result = WithJava.run(taskFactory, StrictRoots.class, 64.0);
+                assertThat(result)
+                    .isEqualTo(new Double[]{8.0, 4.0, 13.0});
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -98,10 +111,14 @@ class SandboxStrictMathTest extends TestBase {
     @Test
     void testStrictMaxMin() {
         sandbox(ctx -> {
-            SandboxExecutor<Integer, Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, StrictMaxMin.class, 100);
-            assertThat(success.getResult())
-                .isEqualTo(new Object[] { 100.0d, 0.0d, 100.0f, 0.0f, 100L, 0L, 100, 0 });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Object[] result = WithJava.run(taskFactory, StrictMaxMin.class, 100);
+                assertThat(result)
+                    .isEqualTo(new Object[]{100.0d, 0.0d, 100.0f, 0.0f, 100L, 0L, 100, 0});
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -125,10 +142,14 @@ class SandboxStrictMathTest extends TestBase {
     @Test
     void testStrictAbsolute() {
         sandbox(ctx -> {
-            SandboxExecutor<Integer, Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, StrictAbsolute.class, -100);
-            assertThat(success.getResult())
-                .isEqualTo(new Object[] { 100.0d, 100.0f, 100L, 100 });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Object[] result = WithJava.run(taskFactory, StrictAbsolute.class, -100);
+                assertThat(result)
+                    .isEqualTo(new Object[]{100.0d, 100.0f, 100L, 100});
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -149,10 +170,14 @@ class SandboxStrictMathTest extends TestBase {
     void testStrictRound() {
         Double[] inputs = new Double[] { 2019.3, 2020.9 };
         sandbox(ctx -> {
-            SandboxExecutor<Double[], Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, StrictRound.class, inputs);
-            assertThat(success.getResult())
-                .isEqualTo(new Object[]{ 2019, 2019L, 2021, 2021L });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Object[] result = WithJava.run(taskFactory, StrictRound.class, inputs);
+                assertThat(result)
+                    .isEqualTo(new Object[]{2019, 2019L, 2021, 2021L});
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -172,18 +197,22 @@ class SandboxStrictMathTest extends TestBase {
     @Test
     void testStrictExponents() {
         sandbox(ctx -> {
-            SandboxExecutor<Integer, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Double[] result = WithJava.run(executor, StrictExponents.class, 0).getResult();
-            assertNotNull(result);
-            assertAll(
-                () -> assertThat(result).hasSize(6),
-                () -> assertThat(result[0]).isEqualTo(81.0),
-                () -> assertThat(result[1]).isEqualTo(1.0),
-                () -> assertThat(result[2]).isEqualTo(3.0),
-                () -> assertThat(result[3]).isEqualTo(StrictMath.E, within(ERROR_DELTA)),
-                () -> assertThat(result[4]).isEqualTo(StrictMath.E - 1.0, within(ERROR_DELTA)),
-                () -> assertThat(result[5]).isEqualTo(1.0, within(ERROR_DELTA))
-            );
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Double[] result = WithJava.run(taskFactory, StrictExponents.class, 0);
+                assertNotNull(result);
+                assertAll(
+                    () -> assertThat(result).hasSize(6),
+                    () -> assertThat(result[0]).isEqualTo(81.0),
+                    () -> assertThat(result[1]).isEqualTo(1.0),
+                    () -> assertThat(result[2]).isEqualTo(3.0),
+                    () -> assertThat(result[3]).isEqualTo(StrictMath.E, within(ERROR_DELTA)),
+                    () -> assertThat(result[4]).isEqualTo(StrictMath.E - 1.0, within(ERROR_DELTA)),
+                    () -> assertThat(result[5]).isEqualTo(1.0, within(ERROR_DELTA))
+                );
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -205,10 +234,14 @@ class SandboxStrictMathTest extends TestBase {
     @Test
     void testStrictAngles() {
         sandbox(ctx -> {
-            SandboxExecutor<Integer, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictAngles.class, 0);
-            assertThat(success.getResult())
-                .isEqualTo(new Object[]{ 180.0, StrictMath.PI });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Double[] result = WithJava.run(taskFactory, StrictAngles.class, 0);
+                assertThat(result)
+                    .isEqualTo(new Object[]{180.0, StrictMath.PI});
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -226,10 +259,14 @@ class SandboxStrictMathTest extends TestBase {
     @Test
     void testStrictHyperbolics() {
         sandbox(ctx -> {
-            SandboxExecutor<Double, Double[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Double[]> success = WithJava.run(executor, StrictHyperbolics.class, 0.0);
-            assertThat(success.getResult())
-                .isEqualTo(new Double[]{ 0.0, 1.0, 0.0 });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Double[] result = WithJava.run(taskFactory, StrictHyperbolics.class, 0.0);
+                assertThat(result)
+                    .isEqualTo(new Double[]{0.0, 1.0, 0.0});
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -248,12 +285,16 @@ class SandboxStrictMathTest extends TestBase {
     @Test
     void testStrictRemainder() {
         sandbox(ctx -> {
-            SandboxExecutor<Double, Double> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertAll(
-                () -> assertThat(WithJava.run(executor, StrictRemainder.class, 10.0).getResult()).isEqualTo(3.0),
-                () -> assertThat(WithJava.run(executor, StrictRemainder.class, 7.0).getResult()).isEqualTo(0.0),
-                () -> assertThat(WithJava.run(executor, StrictRemainder.class, 5.0).getResult()).isEqualTo(-2.0)
-            );
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertAll(
+                    () -> assertThat(WithJava.run(taskFactory, StrictRemainder.class, 10.0)).isEqualTo(3.0),
+                    () -> assertThat(WithJava.run(taskFactory, StrictRemainder.class, 7.0)).isEqualTo(0.0),
+                    () -> assertThat(WithJava.run(taskFactory, StrictRemainder.class, 5.0)).isEqualTo(-2.0)
+                );
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

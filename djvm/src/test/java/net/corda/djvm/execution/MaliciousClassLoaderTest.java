@@ -2,6 +2,7 @@ package net.corda.djvm.execution;
 
 import greymalkin.PureEvil;
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoader;
 import net.corda.djvm.rules.RuleViolationError;
@@ -22,12 +23,16 @@ class MaliciousClassLoaderTest extends TestBase {
     @Test
     void testWithAnEvilClassLoader() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable ex = assertThrows(NoSuchMethodError.class, () -> WithJava.run(executor, ActOfEvil.class, PureEvil.class.getName()));
-            assertThat(ex)
-                .hasMessageContaining("sandbox.java.lang.System.currentTimeMillis()")
-                .hasMessageFindingMatch("(long sandbox\\.|\\.currentTimeMillis\\(\\)J)+")
-                .hasNoCause();
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable ex = assertThrows(NoSuchMethodError.class, () -> WithJava.run(taskFactory, ActOfEvil.class, PureEvil.class.getName()));
+                assertThat(ex)
+                    .hasMessageContaining("sandbox.java.lang.System.currentTimeMillis()")
+                    .hasMessageFindingMatch("(long sandbox\\.|\\.currentTimeMillis\\(\\)J)+")
+                    .hasNoCause();
+            } catch(Exception e){
+                fail(e);
+            }
             return null;
         });
     }
@@ -62,11 +67,15 @@ class MaliciousClassLoaderTest extends TestBase {
     @Test
     void testWithEvilParentClassLoader() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(executor, ActOfEvilParent.class, PureEvil.class.getName()));
-            assertThat(ex)
-                .hasMessage("Disallowed reference to API; java.lang.ClassLoader(ClassLoader)")
-                .hasNoCause();
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(taskFactory, ActOfEvilParent.class, PureEvil.class.getName()));
+                assertThat(ex)
+                    .hasMessage("Disallowed reference to API; java.lang.ClassLoader(ClassLoader)")
+                    .hasNoCause();
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -102,8 +111,8 @@ class MaliciousClassLoaderTest extends TestBase {
     void testAccessingParentClassLoader() {
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
-                Function<String, ClassLoader> getParentClassLoader = typedTaskFor(ctx.getClassLoader(), taskFactory, GetParentClassLoader.class);
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Function<String, ClassLoader> getParentClassLoader = taskFactory.create(GetParentClassLoader.class);
                 ClassLoader result = getParentClassLoader.apply("");
                 assertThat(result)
                     .isExactlyInstanceOf(SandboxClassLoader.class)
@@ -134,10 +143,14 @@ class MaliciousClassLoaderTest extends TestBase {
     @Test
     void testClassLoaderForWhitelistedClass() {
         sandbox(ctx -> {
-            SandboxExecutor<String, ClassLoader> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ClassLoader result = WithJava.run(executor, GetWhitelistedClassLoader.class, "").getResult();
-            assertThat(result)
-                .isExactlyInstanceOf(SandboxClassLoader.class);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                ClassLoader result = WithJava.run(taskFactory, GetWhitelistedClassLoader.class, "");
+                assertThat(result)
+                    .isExactlyInstanceOf(SandboxClassLoader.class);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

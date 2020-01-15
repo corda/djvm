@@ -56,7 +56,7 @@ class CryptoTest : TestBase(KOTLIN) {
             val sandboxKey = data.deserializeFor(classLoader)
 
             val taskFactory = classLoader.createRawTaskFactory()
-            val publicKeyFunction = classLoader.createTaskFor(taskFactory, PublicKeyFunction::class.java)
+            val publicKeyFunction = taskFactory.compose(classLoader.createSandboxFunction()).apply(PublicKeyFunction::class.java)
             val result = publicKeyFunction.apply(sandboxKey)
             assertThat(result.toString())
                 .isEqualTo("Format='${key.format}', Algorithm='${key.algorithm}', Hash='${key.hash}'")
@@ -81,7 +81,7 @@ class CryptoTest : TestBase(KOTLIN) {
             val sandboxKey = data.deserializeFor(classLoader)
 
             val taskFactory = classLoader.createRawTaskFactory()
-            val publicKeyFunction = classLoader.createTaskFor(taskFactory, PublicKeyFunction::class.java)
+            val publicKeyFunction = taskFactory.compose(classLoader.createSandboxFunction()).apply(PublicKeyFunction::class.java)
             val result = publicKeyFunction.apply(sandboxKey)
             assertThat(result.toString())
                 .isEqualTo("Format='${compositeKey.format}', Algorithm='${compositeKey.algorithm}', Hash='${compositeKey.hash}'")
@@ -120,7 +120,7 @@ class CryptoTest : TestBase(KOTLIN) {
             val sandboxKey = keyData.deserializeFor(classLoader)
 
             val taskFactory = classLoader.createRawTaskFactory()
-            val verifier = classLoader.createTaskFor(taskFactory, VerifySignature::class.java)
+            val verifier = taskFactory.compose(classLoader.createSandboxFunction()).apply(VerifySignature::class.java)
             val result = verifier.apply(arrayOf(sandboxSchemeName, sandboxKey, signature, clearData))
             assertEquals(true.toString(), result.toString())
         }
@@ -148,7 +148,7 @@ class CryptoTest : TestBase(KOTLIN) {
             val sandboxAlgorithm = algorithmData.deserializeFor(classLoader)
 
             val taskFactory = classLoader.createRawTaskFactory()
-            val verifier = classLoader.createTaskFor(taskFactory, VerifyWithCertificate::class.java)
+            val verifier = taskFactory.compose(classLoader.createSandboxFunction()).apply(VerifyWithCertificate::class.java)
             val result = verifier.apply(arrayOf(sandboxAlgorithm, sandboxCertificate, signature, clearData))
             assertEquals(true.toString(), result.toString())
         }

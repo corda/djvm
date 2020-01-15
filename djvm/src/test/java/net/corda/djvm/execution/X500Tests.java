@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 import sun.security.x509.AVA;
@@ -21,9 +22,13 @@ class X500Tests extends TestBase {
     @Test
     void testCreateX500Principal() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String> success = WithJava.run(executor, CreateX500Principal.class, "CN=Example,O=Corda,C=GB");
-            assertEquals("cn=example,o=corda,c=gb", success.getResult());
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, CreateX500Principal.class, "CN=Example,O=Corda,C=GB");
+                assertEquals("cn=example,o=corda,c=gb", result);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -38,11 +43,15 @@ class X500Tests extends TestBase {
     @Test
     void testX500PrincipalToX500Name() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String[]> success = WithJava.run(executor, X500PrincipalToX500Name.class, "CN=Example,O=Corda,C=GB");
-            assertThat(success.getResult()).isEqualTo(new String[] {
-                "c=gb", "cn=example", "o=corda"
-            });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String[] result = WithJava.run(taskFactory, X500PrincipalToX500Name.class, "CN=Example,O=Corda,C=GB");
+                assertThat(result).isEqualTo(new String[]{
+                    "c=gb", "cn=example", "o=corda"
+                });
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -57,9 +66,13 @@ class X500Tests extends TestBase {
     @Test
     void testX500NameToX500Principal() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String> success = WithJava.run(executor, X500NameToX500Principal.class, "CN=Example,O=Corda,C=GB");
-            assertEquals("cn=example,o=corda,c=gb", success.getResult());
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, X500NameToX500Principal.class, "CN=Example,O=Corda,C=GB");
+                assertEquals("cn=example,o=corda,c=gb", result);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

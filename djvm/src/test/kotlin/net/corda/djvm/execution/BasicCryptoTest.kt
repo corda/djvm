@@ -34,9 +34,10 @@ class BasicCryptoTest : TestBase(KOTLIN) {
     @ValueSource(strings = [ "SHA", "SHA-256", "SHA-384", "SHA-512" ])
     @ParameterizedTest
     fun `test SHA hashing`(algorithmName: String) = sandbox {
-        val executor = DeterministicSandboxExecutor<Array<String>, ByteArray>(configuration)
-        val summary = executor.run<Hashing>(arrayOf(algorithmName, SECRET_MESSAGE))
-        assertThat(summary.result)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val hashing = taskFactory.create(Hashing::class.java)
+        val result = hashing.apply(arrayOf(algorithmName, SECRET_MESSAGE))
+        assertThat(result)
             .isEqualTo(MessageDigest.getInstance(algorithmName).digest(SECRET_MESSAGE.toByteArray()))
     }
 
@@ -58,11 +59,12 @@ class BasicCryptoTest : TestBase(KOTLIN) {
             sign()
         }
 
-        val executor = DeterministicSandboxExecutor<Array<*>, Boolean>(configuration)
-        val summary = executor.run<VerifySignature>(
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val verifySignature = taskFactory.create(VerifySignature::class.java)
+        val result = verifySignature.apply(
             arrayOf(algorithm, keyPair.public.encoded, algorithmName, data, signature)
         )
-        assertThat(summary.result).isTrue()
+        assertThat(result).isTrue()
     }
 
     class VerifySignature : Function<Array<*>, Boolean> {
@@ -81,9 +83,10 @@ class BasicCryptoTest : TestBase(KOTLIN) {
 
     @Test
     fun `test security providers`() = sandbox {
-        val executor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
-        val summary = executor.run<SecurityProviders>("")
-        assertThat(summary.result).isEqualTo(arrayOf("SUN", "SunRsaSign"))
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val securityProviders = taskFactory.create(SecurityProviders::class.java)
+        val result = securityProviders.apply("")
+        assertThat(result).isEqualTo(arrayOf("SUN", "SunRsaSign"))
     }
 
     class SecurityProviders : Function<String, Array<String>> {
@@ -115,9 +118,10 @@ class BasicCryptoTest : TestBase(KOTLIN) {
     @ArgumentsSource(AlgorithmProvider::class)
     @ParameterizedTest
     fun `test service algorithms`(serviceName: String, algorithms: Array<String>) = sandbox {
-        val executor = DeterministicSandboxExecutor<String, Array<String>>(configuration)
-        val summary = executor.run<ServiceAlgorithms>(serviceName)
-        assertThat(summary.result)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val serviceAlgorithms = taskFactory.create(ServiceAlgorithms::class.java)
+        val result = serviceAlgorithms.apply(serviceName)
+        assertThat(result)
             .isEqualTo(algorithms)
     }
 
@@ -130,10 +134,11 @@ class BasicCryptoTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @ValueSource(strings = [ "SUN", "SunRsaSign" ])
     fun `test no secure random for`(serviceName: String) = sandbox {
-        val executor = DeterministicSandboxExecutor<String, Double>(configuration)
-        val exception = assertThrows<SandboxException> { executor.run<SecureRandomService>(serviceName) }
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val secureRandomService = taskFactory.create(SecureRandomService::class.java)
+        val exception = assertThrows<Exception> { secureRandomService.apply(serviceName) }
         assertThat(exception)
-            .hasCauseExactlyInstanceOf(Exception::class.java)
+            .isExactlyInstanceOf(Exception::class.java)
             .hasMessage("sandbox.java.security.NoSuchAlgorithmException -> $serviceName SecureRandom not available")
     }
 
@@ -145,10 +150,11 @@ class BasicCryptoTest : TestBase(KOTLIN) {
 
     @Test
     fun `test secure random instance`() = sandbox {
-        val executor = DeterministicSandboxExecutor<ByteArray?, Double>(configuration)
-        val exception = assertThrows<SandboxException> { executor.run<SecureRandomInstance>(null) }
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val secureRandomInstance = taskFactory.create(SecureRandomInstance::class.java)
+        val exception = assertThrows<Exception> { secureRandomInstance.apply(null) }
         assertThat(exception)
-            .hasCauseExactlyInstanceOf(UnsupportedOperationException::class.java)
+            .isExactlyInstanceOf(UnsupportedOperationException::class.java)
             .hasMessageContaining("Seed generation disabled")
     }
 
@@ -161,12 +167,13 @@ class BasicCryptoTest : TestBase(KOTLIN) {
     @ValueSource(strings = [ "RSA", "DSA" ])
     @ParameterizedTest
     fun `test decode public key`(algorithm: String) = sandbox {
-        val executor = DeterministicSandboxExecutor<Array<Any>, ByteArray>(configuration)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val decodePublicKey =  taskFactory.create(DecodePublicKey::class.java)
         val generator = KeyPairGenerator.getInstance(algorithm)
         val keyPair = generator.genKeyPair()
 
         val input = keyPair.public.encoded
-        assertThat(executor.run<DecodePublicKey>(arrayOf(algorithm, input)).result).isEqualTo(input)
+        assertThat(decodePublicKey.apply(arrayOf(algorithm, input))).isEqualTo(input)
     }
 
     class DecodePublicKey : Function<Array<Any>, ByteArray> {
@@ -185,9 +192,10 @@ class BasicCryptoTest : TestBase(KOTLIN) {
         } ?: fail("Certificate not found")
 
         sandbox {
-            val executor = DeterministicSandboxExecutor<Array<Any>, String>(configuration)
-            val summary = executor.run<DecodeCertificate>(arrayOf("X.509", certificate))
-            assertThat(summary.result)
+            val taskFactory = classLoader.createTypedTaskFactory()
+            val decodeCertificate = taskFactory.create(DecodeCertificate::class.java)
+            val result = decodeCertificate.apply(arrayOf("X.509", certificate))
+            assertThat(result)
                 .isEqualTo("""Certificate:
                              |- type:                X.509
                              |- version:             3

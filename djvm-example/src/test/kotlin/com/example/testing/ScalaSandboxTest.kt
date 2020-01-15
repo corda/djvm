@@ -1,8 +1,6 @@
 package com.example.testing
 
 import com.example.testing.SandboxType.KOTLIN
-import net.corda.djvm.execution.DeterministicSandboxExecutor
-import net.corda.djvm.execution.SandboxException
 import net.corda.djvm.rules.RuleViolationError
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,19 +14,18 @@ import org.junit.jupiter.api.assertThrows
 class ScalaSandboxTest : TestBase(KOTLIN) {
     @Test
     fun testGoodTask() = sandbox {
-        val executor = DeterministicSandboxExecutor<Int, String>(configuration)
-        val output = executor.run<ScalaTask>(0xbadf00d).result
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val output = taskFactory.create(ScalaTask::class.java).apply(0xbadf00d)
         assertEquals("Sandbox says: 'BADF00D'", output)
     }
 
     @Test
     fun testBadTask() = sandbox {
-        val executor = DeterministicSandboxExecutor<ByteArray, String>(configuration)
-        val ex = assertThrows<SandboxException> {
-            executor.run<BadScalaTask>("Secret Message!".toByteArray())
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val ex = assertThrows<RuleViolationError> {
+            taskFactory.create(BadScalaTask::class.java).apply("Secret Message!".toByteArray())
         }
         assertThat(ex)
-            .hasCauseExactlyInstanceOf(RuleViolationError::class.java)
             .hasMessageContaining("Disallowed reference to reflection API; java.lang.invoke.MethodHandleImpl\$1.run()")
     }
 }

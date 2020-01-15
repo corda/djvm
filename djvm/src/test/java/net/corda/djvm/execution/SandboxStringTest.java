@@ -8,6 +8,7 @@ import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,9 +34,13 @@ class SandboxStringTest extends TestBase {
     void testJoiningIterableInsideSandbox() {
         String[] inputs = new String[]{"one", "two", "three"};
         sandbox(ctx -> {
-            SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String> success = WithJava.run(executor, JoinIterableStrings.class, inputs);
-            assertThat(success.getResult()).isEqualTo("one+two+three");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, JoinIterableStrings.class, inputs);
+                assertThat(result).isEqualTo("one+two+three");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -51,9 +56,13 @@ class SandboxStringTest extends TestBase {
     void testJoiningVarargInsideSandbox() {
         String[] inputs = new String[]{"ONE", "TWO", "THREE"};
         sandbox(ctx -> {
-            SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String> success = WithJava.run(executor, JoinVarargStrings.class, inputs);
-            assertThat(success.getResult()).isEqualTo("ONE+TWO+THREE");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, JoinVarargStrings.class, inputs);
+                assertThat(result).isEqualTo("ONE+TWO+THREE");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -68,9 +77,13 @@ class SandboxStringTest extends TestBase {
     @Test
     void testStringConstant() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertThat(WithJava.run(executor, StringConstant.class, "Wibble!").getResult())
-                .isEqualTo("Wibble!");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertThat(WithJava.run(taskFactory, StringConstant.class, "Wibble!"))
+                        .isEqualTo("Wibble!");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -92,12 +105,16 @@ class SandboxStringTest extends TestBase {
     @Test
     void encodeStringWithUnknownCharset() {
         sandbox(ctx -> {
-            SandboxExecutor<String, byte[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable exception = assertThrows(RuntimeException.class, () -> WithJava.run(executor, GetEncoding.class, "Nonsense-101"));
-            assertThat(exception)
-                .isExactlyInstanceOf(SandboxRuntimeException.class)
-                .hasCauseExactlyInstanceOf(UnsupportedEncodingException.class)
-                .hasMessage("Nonsense-101");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable exception = assertThrows(RuntimeException.class, () -> WithJava.run(taskFactory, GetEncoding.class, "Nonsense-101"));
+                assertThat(exception)
+                    .isExactlyInstanceOf(SandboxRuntimeException.class)
+                    .hasCauseExactlyInstanceOf(UnsupportedEncodingException.class)
+                    .hasMessage("Nonsense-101");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
    }
@@ -117,9 +134,13 @@ class SandboxStringTest extends TestBase {
     @ValueSource(strings = {"UTF-8", "UTF-16", "UTF-32"})
     void decodeStringWithCharset(String charsetName) {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String> success = WithJava.run(executor, CreateString.class, charsetName);
-            assertThat(success.getResult()).isEqualTo(UNICODE_MESSAGE);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, CreateString.class, charsetName);
+                assertThat(result).isEqualTo(UNICODE_MESSAGE);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -138,15 +159,19 @@ class SandboxStringTest extends TestBase {
     @Test
     void testCaseInsensitiveComparison() {
         sandbox(ctx -> {
-            SandboxExecutor<String, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertAll(
-                () -> assertThat(WithJava.run(executor, CaseInsensitiveCompare.class, "hello world!").getResult())
-                        .isEqualTo(0),
-                () -> assertThat(WithJava.run(executor, CaseInsensitiveCompare.class, "GOODBYE!").getResult())
-                        .isLessThan(0),
-                () -> assertThat(WithJava.run(executor, CaseInsensitiveCompare.class, "zzzzz...").getResult())
-                        .isGreaterThan(0)
-            );
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertAll(
+                    () -> assertThat(WithJava.run(taskFactory, CaseInsensitiveCompare.class, "hello world!"))
+                            .isEqualTo(0),
+                    () -> assertThat(WithJava.run(taskFactory, CaseInsensitiveCompare.class, "GOODBYE!"))
+                            .isLessThan(0),
+                    () -> assertThat(WithJava.run(taskFactory, CaseInsensitiveCompare.class, "zzzzz..."))
+                            .isGreaterThan(0)
+                );
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -162,9 +187,13 @@ class SandboxStringTest extends TestBase {
     void testStream() {
         String[] inputs = new String[] {"dog", "cat", "mouse", "squirrel"};
         sandbox(ctx -> {
-            SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertThat(WithJava.run(executor, Concatenate.class, inputs).getResult())
-                .isEqualTo("{dog + cat + mouse + squirrel}");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertThat(WithJava.run(taskFactory, Concatenate.class, inputs))
+                    .isEqualTo("{dog + cat + mouse + squirrel}");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -180,9 +209,13 @@ class SandboxStringTest extends TestBase {
     void testSorting() {
         String[] inputs = Stream.of("Wolf", "Cat", "Tree", "Pig").map(String::toUpperCase).toArray(String[]::new);
         sandbox(ctx -> {
-            SandboxExecutor<String[], String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertThat(WithJava.run(executor, Sorted.class, inputs).getResult())
-                 .containsExactly("CAT", "PIG", "TREE", "WOLF");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertThat(WithJava.run(taskFactory, Sorted.class, inputs))
+                    .containsExactly("CAT", "PIG", "TREE", "WOLF");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -200,9 +233,13 @@ class SandboxStringTest extends TestBase {
     void testComplexStream() {
         String[] inputs = new String[] { "one", "two", "three", "four", "five" };
         sandbox(ctx -> {
-            SandboxExecutor<String[], String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertThat(WithJava.run(executor, ComplexStream.class, inputs).getResult())
-                .containsExactly("ONE", "TWO", "THREE", "FOUR", "FIVE");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertThat(WithJava.run(taskFactory, ComplexStream.class, inputs))
+                    .containsExactly("ONE", "TWO", "THREE", "FOUR", "FIVE");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -218,9 +255,13 @@ class SandboxStringTest extends TestBase {
     void testSpliterator() {
         String[] inputs = new String[] { "one", "two", "three", "four" };
         sandbox(ctx -> {
-            SandboxExecutor<String[], String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertThat(WithJava.run(executor, Spliterate.class, inputs).getResult())
-                .containsExactlyInAnyOrder("one+two", "three+four");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertThat(WithJava.run(taskFactory, Spliterate.class, inputs))
+                    .containsExactlyInAnyOrder("one+two", "three+four");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

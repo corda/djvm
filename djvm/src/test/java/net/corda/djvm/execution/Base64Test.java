@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
@@ -11,6 +12,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class Base64Test extends TestBase {
     private static final String MESSAGE = "Round and round the rugged rocks...";
@@ -23,10 +25,14 @@ class Base64Test extends TestBase {
     @Test
     void testBase64ToBinary() {
         sandbox(ctx -> {
-            SandboxExecutor<String, byte[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<byte[]> success = WithJava.run(executor, Base64ToBytes.class, BASE64);
-            assertNotNull(success.getResult());
-            assertThat(new String(success.getResult(), UTF_8)).isEqualTo(MESSAGE);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                byte[] result = WithJava.run(taskFactory, Base64ToBytes.class, BASE64);
+                assertNotNull(result);
+                assertThat(new String(result, UTF_8)).isEqualTo(MESSAGE);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -41,9 +47,13 @@ class Base64Test extends TestBase {
     @Test
     void testBinaryToBase64() {
         sandbox(ctx -> {
-            SandboxExecutor<byte[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String> success = WithJava.run(executor, BytesToBase64.class, MESSAGE.getBytes(UTF_8));
-            assertThat(success.getResult()).isEqualTo(BASE64);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, BytesToBase64.class, MESSAGE.getBytes(UTF_8));
+                assertThat(result).isEqualTo(BASE64);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

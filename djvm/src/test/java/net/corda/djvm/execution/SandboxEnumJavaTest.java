@@ -1,11 +1,13 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -21,10 +23,14 @@ class SandboxEnumJavaTest extends TestBase {
     @Test
     void testEnumInsideSandbox() {
         sandbox(ctx -> {
-            SandboxExecutor<Integer, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String[]> output = WithJava.run(executor, TransformEnum.class, 0);
-            assertThat(output.getResult())
-                    .isEqualTo(new String[]{ "ONE", "TWO", "THREE" });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String[] result = WithJava.run(taskFactory, TransformEnum.class, 0);
+                assertThat(result)
+                    .isEqualTo(new String[]{"ONE", "TWO", "THREE"});
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -39,10 +45,14 @@ class SandboxEnumJavaTest extends TestBase {
     @Test
     void testReturnEnumFromSandbox() {
         sandbox(ctx -> {
-            SandboxExecutor<String, ExampleEnum> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<ExampleEnum> output = WithJava.run(executor, FetchEnum.class, "THREE");
-            assertThat(output.getResult())
-                    .isEqualTo(ExampleEnum.THREE);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                ExampleEnum result = WithJava.run(taskFactory, FetchEnum.class, "THREE");
+                assertThat(result)
+                     .isEqualTo(ExampleEnum.THREE);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -56,9 +66,13 @@ class SandboxEnumJavaTest extends TestBase {
     @Test
     void testWeCanIdentifyClassAsEnum() {
         sandbox(ctx -> {
-            SandboxExecutor<ExampleEnum, Boolean> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Boolean> output = WithJava.run(executor, AssertEnum.class, ExampleEnum.THREE);
-            assertThat(output.getResult()).isTrue();
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Boolean result = WithJava.run(taskFactory, AssertEnum.class, ExampleEnum.THREE);
+                assertThat(result).isTrue();
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -73,9 +87,13 @@ class SandboxEnumJavaTest extends TestBase {
     @Test
     void testWeCanCreateEnumMap() {
         sandbox(ctx -> {
-            SandboxExecutor<ExampleEnum, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, UseEnumMap.class, ExampleEnum.TWO);
-            assertThat(output.getResult()).isEqualTo(1);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Integer result = WithJava.run(taskFactory, UseEnumMap.class, ExampleEnum.TWO);
+                assertThat(result).isEqualTo(1);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -92,9 +110,13 @@ class SandboxEnumJavaTest extends TestBase {
     @Test
     void testWeCanCreateEnumSet() {
         sandbox(ctx -> {
-            SandboxExecutor<ExampleEnum, Boolean> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Boolean> output = WithJava.run(executor, UseEnumSet.class, ExampleEnum.ONE);
-            assertThat(output.getResult()).isTrue();
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Boolean result = WithJava.run(taskFactory, UseEnumSet.class, ExampleEnum.ONE);
+                assertThat(result).isTrue();
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -109,9 +131,13 @@ class SandboxEnumJavaTest extends TestBase {
     @Test
     void testWeCanReadConstantEnum() {
         sandbox(ctx -> {
-            SandboxExecutor<Object, ExampleEnum> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<ExampleEnum> output = WithJava.run(executor, ConstantEnum.class, null);
-            assertThat(output.getResult()).isEqualTo(ExampleEnum.ONE);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                ExampleEnum result = WithJava.run(taskFactory, ConstantEnum.class, null);
+                assertThat(result).isEqualTo(ExampleEnum.ONE);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -128,9 +154,13 @@ class SandboxEnumJavaTest extends TestBase {
     @Test
     void testWeCanReadStaticConstantEnum() {
         sandbox(ctx -> {
-            SandboxExecutor<Object, ExampleEnum> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<ExampleEnum> output = WithJava.run(executor, StaticConstantEnum.class, null);
-            assertThat(output.getResult()).isEqualTo(ExampleEnum.TWO);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                ExampleEnum result = WithJava.run(taskFactory, StaticConstantEnum.class, null);
+                assertThat(result).isEqualTo(ExampleEnum.TWO);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

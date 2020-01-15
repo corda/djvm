@@ -13,8 +13,8 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
     @ParameterizedTest
     @CsvSource("en,en,''", "en-GB,en,GB", "en-US,en,US", "en-CA,en,CA", "en-AU,en,AU")
     fun `test loading locales`(tagName: String, language: String, country: String) = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val result = classLoader.typedTaskFor<String, Array<String>, LookupLocale>(taskFactory)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val result = taskFactory.create(LookupLocale::class.java)
             .apply(tagName)
         assertThat(result).isEqualTo(arrayOf(language, country))
     }
@@ -29,8 +29,8 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
 
     @Test
     fun `test locale languages`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val result = classLoader.typedTaskFor<String, Array<String>, GetAllLocaleLanguages>(taskFactory)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val result = taskFactory.create(GetAllLocaleLanguages::class.java)
             .apply("")
         assertThat(result)
             .hasSize(188)
@@ -45,8 +45,8 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
 
     @Test
     fun `test locale countries`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val result = classLoader.typedTaskFor<String, Array<String>, GetAllLocaleCountries>(taskFactory)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val result = taskFactory.create(GetAllLocaleCountries::class.java)
             .apply("")
         assertThat(result)
             .hasSize(250)
@@ -61,8 +61,8 @@ class SandboxLocaleTest : TestBase(KOTLIN) {
 
     @Test
     fun `test default locale`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val result = classLoader.typedTaskFor<String, String, GetDefaultLocale>(taskFactory)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val result = taskFactory.create(GetDefaultLocale::class.java)
             .apply("")
         assertThat(result).isEqualTo("en")
     }

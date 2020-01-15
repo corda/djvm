@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +10,7 @@ import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class CapturingLambdaTest extends TestBase {
     private static final long BIG_NUMBER = 1234L;
@@ -21,9 +23,13 @@ class CapturingLambdaTest extends TestBase {
     @Test
     void testCapturingLambda() {
         sandbox(ctx -> {
-            SandboxExecutor<Long, Long> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult success = WithJava.run(executor, CapturingLambda.class, BIG_NUMBER);
-            assertEquals(BIG_NUMBER * MULTIPLIER, success.getResult());
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Long result = WithJava.run(taskFactory, CapturingLambda.class, BIG_NUMBER);
+                assertEquals(BIG_NUMBER * MULTIPLIER, result);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

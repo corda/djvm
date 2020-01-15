@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.rewiring.SandboxClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -21,10 +22,11 @@ class SandboxExecutorJavaTest extends TestBase {
     void testTransaction() {
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createRawTaskFactory();
-                Function<? super Object, ?> verifyTask = ctx.getClassLoader().createTaskFor(taskFactory, ContractWrapper.class);
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = classLoader.createRawTaskFactory();
+                Function<? super Object, ?> verifyTask = taskFactory.compose(classLoader.createSandboxFunction()).apply(ContractWrapper.class);
 
-                Class<?> sandboxClass = ctx.getClassLoader().toSandboxClass(Transaction.class);
+                Class<?> sandboxClass = classLoader.toSandboxClass(Transaction.class);
                 Object sandboxTx = sandboxClass.getDeclaredConstructor(Integer.TYPE).newInstance(TX_ID);
 
                 assertThatExceptionOfType(IllegalArgumentException.class)

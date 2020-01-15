@@ -12,8 +12,8 @@ import java.util.function.Function
 class DJVMExceptionTest : TestBase(KOTLIN) {
     @Test
     fun testSingleException() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val singleExceptionTask = classLoader.typedTaskFor(taskFactory, SingleExceptionTask::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val singleExceptionTask = taskFactory.create(SingleExceptionTask::class.java)
         val result = singleExceptionTask.apply( "Hello World")
         assertThat(result).isInstanceOf(Throwable::class.java)
         result as Throwable
@@ -27,8 +27,8 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
 
     @Test
     fun testMultipleExceptions() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val multipleExceptionsTask = classLoader.typedTaskFor(taskFactory, MultipleExceptionsTask::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val multipleExceptionsTask = taskFactory.create(MultipleExceptionsTask::class.java)
         val result = multipleExceptionsTask.apply("Hello World")
         assertThat(result).isInstanceOf(Throwable::class.java)
         result as Throwable
@@ -152,8 +152,8 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
 
     @Test
     fun testExceptionWithSingleConstructor() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val task = classLoader.typedTaskFor(taskFactory, HandleTypeNotPresentException::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val task = taskFactory.create(HandleTypeNotPresentException::class.java)
         val result = task.apply("NoSuchType")
         assertEquals("Type NoSuchType not present", result)
     }

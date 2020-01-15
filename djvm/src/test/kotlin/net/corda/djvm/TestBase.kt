@@ -20,7 +20,6 @@ import net.corda.djvm.messages.Severity.WARNING
 import net.corda.djvm.references.ClassHierarchy
 import net.corda.djvm.rewiring.ExternalCache
 import net.corda.djvm.rewiring.LoadedClass
-import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.flush
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.source.BootstrapClassLoader
@@ -44,7 +43,6 @@ import java.nio.file.Paths
 import java.util.Collections.unmodifiableList
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
-import java.util.function.Function
 import kotlin.concurrent.thread
 import kotlin.reflect.jvm.jvmName
 
@@ -98,24 +96,6 @@ abstract class TestBase(type: SandboxType) {
         fun destroyRootContext() {
             bootstrapClassLoader.close()
         }
-
-        @JvmStatic
-        @Throws(
-            ClassNotFoundException::class,
-            InstantiationException::class,
-            IllegalAccessException::class
-        )
-        fun <T, R> SandboxClassLoader.typedTaskFor(
-            taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
-            taskClass: Class<out Function<T, R>>
-        ): Function<T, R> {
-            @Suppress("unchecked_cast")
-            return createTaskFor(taskFactory, taskClass) as Function<T, R>
-        }
-
-        inline fun <T, R, reified K : Function<T, R>> SandboxClassLoader.typedTaskFor(
-            taskFactory: Function<in Any, out Function<in Any?, out Any?>>
-        ) = typedTaskFor(taskFactory, K::class.java)
     }
 
     val classPaths: List<Path> = when(type) {

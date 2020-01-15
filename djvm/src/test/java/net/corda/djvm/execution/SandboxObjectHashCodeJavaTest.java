@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import java.util.function.Function;
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class SandboxObjectHashCodeJavaTest extends TestBase {
     SandboxObjectHashCodeJavaTest() {
@@ -19,9 +21,13 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
     @Test
     void testHashForArray() {
         sandbox(ctx -> {
-            SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, ArrayHashCode.class, null);
-            assertThat(output.getResult()).isEqualTo(0xfed_c0de + 1);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Integer result = WithJava.run(taskFactory, ArrayHashCode.class, null);
+                assertThat(result).isEqualTo(0xfed_c0de + 1);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -29,9 +35,13 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
     @Test
     void testHashForObjectInArray() {
         sandbox(ctx -> {
-            SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, ObjectInArrayHashCode.class, null);
-            assertThat(output.getResult()).isEqualTo(0xfed_c0de + 1);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Integer result = WithJava.run(taskFactory, ObjectInArrayHashCode.class, null);
+                assertThat(result).isEqualTo(0xfed_c0de + 1);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -42,9 +52,13 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
             .isThrownBy(() -> new HashCode().apply(null));
 
         sandbox(ctx -> {
-            SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> WithJava.run(executor, HashCode.class, null));
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                assertThatExceptionOfType(NullPointerException.class)
+                    .isThrownBy(() -> WithJava.run(taskFactory, HashCode.class, null));
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -52,9 +66,13 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
     @Test
     void testHashForWrappedInteger() {
         sandbox(ctx -> {
-            SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, HashCode.class, 1234);
-            assertThat(output.getResult()).isEqualTo(Integer.hashCode(1234));
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Integer result = WithJava.run(taskFactory, HashCode.class, 1234);
+                assertThat(result).isEqualTo(Integer.hashCode(1234));
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -62,9 +80,13 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
     @Test
     void testHashForWrappedString() {
         sandbox(ctx -> {
-            SandboxExecutor<Object, Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Integer> output = WithJava.run(executor, HashCode.class, "Burble");
-            assertThat(output.getResult()).isEqualTo("Burble".hashCode());
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Integer result = WithJava.run(taskFactory, HashCode.class, "Burble");
+                assertThat(result).isEqualTo("Burble".hashCode());
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

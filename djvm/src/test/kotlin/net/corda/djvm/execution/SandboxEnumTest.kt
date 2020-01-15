@@ -11,40 +11,40 @@ import java.util.function.Function
 class SandboxEnumTest : TestBase(KOTLIN) {
     @Test
     fun `test enum inside sandbox`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val result = classLoader.typedTaskFor<Int, Array<String>, TransformEnum>(taskFactory)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val result = taskFactory.create(TransformEnum::class.java)
             .apply(0)
         assertThat(result).isEqualTo(arrayOf("ONE", "TWO", "THREE"))
     }
 
     @Test
     fun `return enum from sandbox`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val result = classLoader.typedTaskFor<String, ExampleEnum, FetchEnum>(taskFactory)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val result = taskFactory.create(FetchEnum::class.java)
             .apply("THREE")
         assertThat(result).isEqualTo(ExampleEnum.THREE)
     }
 
     @Test
     fun `test we can identify class as Enum`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val result = classLoader.typedTaskFor<ExampleEnum, Boolean, AssertEnum>(taskFactory)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val result = taskFactory.create(AssertEnum::class.java)
             .apply(ExampleEnum.THREE)
         assertThat(result).isTrue()
     }
 
     @Test
     fun `test we can create EnumMap`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val result = classLoader.typedTaskFor<ExampleEnum, Int, UseEnumMap>(taskFactory)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val result = taskFactory.create(UseEnumMap::class.java)
             .apply(ExampleEnum.TWO)
         assertThat(result).isEqualTo(1)
     }
 
     @Test
     fun `test we can create EnumSet`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val result = classLoader.typedTaskFor<ExampleEnum, Boolean, UseEnumSet>(taskFactory)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val result = taskFactory.create(UseEnumSet::class.java)
             .apply(ExampleEnum.ONE)
         assertThat(result).isTrue()
     }

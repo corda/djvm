@@ -18,8 +18,8 @@ import java.util.function.Function
 class NewInstanceFailureTest : TestBase(KOTLIN) {
     @Test
     fun `new instance permission failure`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val newInstance = classLoader.typedTaskFor(taskFactory, FailingNewInstance::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val newInstance = taskFactory.create(FailingNewInstance::class.java)
         val t = assertThrows<RuntimeException> { newInstance.apply(HasProtectedConstructor::class.java.name) }
         assertThat(t)
             .hasCauseExactlyInstanceOf(IllegalAccessException::class.java)
@@ -30,8 +30,8 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
 
     @Test
     fun `constructor new instance permission failure`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val newInstance = classLoader.typedTaskFor(taskFactory, FailingConstructorNewInstance::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val newInstance = taskFactory.create(FailingConstructorNewInstance::class.java)
         val t = assertThrows<RuntimeException> { newInstance.apply(HasProtectedConstructor::class.java.name) }
         assertThat(t)
             .hasCauseExactlyInstanceOf(IllegalAccessException::class.java)
@@ -42,8 +42,8 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
 
     @Test
     fun `new instance constructor failure`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val newInstance = classLoader.typedTaskFor(taskFactory, FailingNewInstance::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val newInstance = taskFactory.create(FailingNewInstance::class.java)
         val t = assertThrows<RuntimeException> { newInstance.apply(HasBrokenConstructor::class.java.name) }
         assertThat(t)
             .hasCauseExactlyInstanceOf(ArithmeticException::class.java)
@@ -52,8 +52,8 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
 
     @Test
     fun `constructor new instance constructor failure`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val newInstance = classLoader.typedTaskFor(taskFactory, FailingConstructorNewInstance::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val newInstance = taskFactory.create(FailingConstructorNewInstance::class.java)
         val t = assertThrows<RuntimeException> { newInstance.apply(HasBrokenConstructor::class.java.name) }
         assertThat(t)
             .hasCauseExactlyInstanceOf(ArithmeticException::class.java)
@@ -62,8 +62,8 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
 
     @Test
     fun `new instance instantiate failure`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val newInstance = classLoader.typedTaskFor(taskFactory, FailingNewInstance::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val newInstance = taskFactory.create(FailingNewInstance::class.java)
         val t = assertThrows<RuntimeException> { newInstance.apply(ImpossibleInstance::class.java.name) }
         assertThat(t)
             .hasCauseExactlyInstanceOf(InstantiationException::class.java)
@@ -72,8 +72,8 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
 
     @Test
     fun `constructor new instance instantiate failure`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val newInstance = classLoader.typedTaskFor(taskFactory, FailingConstructorNewInstance::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val newInstance = taskFactory.create(FailingConstructorNewInstance::class.java)
         val t = assertThrows<RuntimeException> { newInstance.apply(ImpossibleInstance::class.java.name) }
         assertThat(t)
             .hasCauseExactlyInstanceOf(InstantiationException::class.java)
@@ -82,8 +82,8 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
 
     @Test
     fun `new instance user failure`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val newInstance = classLoader.typedTaskFor(taskFactory, FailingNewInstance::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val newInstance = taskFactory.create(FailingNewInstance::class.java)
         val t = assertThrows<Exception> { newInstance.apply(HasUserExceptionConstructor::class.java.name) }
         assertThat(t)
             .hasCauseExactlyInstanceOf(Exception::class.java)
@@ -92,8 +92,8 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
 
     @Test
     fun `constructor new instance user failure`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val newInstance = classLoader.typedTaskFor(taskFactory, FailingConstructorNewInstance::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val newInstance = taskFactory.create(FailingConstructorNewInstance::class.java)
         val t = assertThrows<Exception> { newInstance.apply(HasUserExceptionConstructor::class.java.name) }
         assertThat(t)
             .hasCauseExactlyInstanceOf(Exception::class.java)
@@ -102,8 +102,8 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
 
     @Test
     fun `throwing invocation target exception`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val newInstance = classLoader.typedTaskFor(taskFactory, ConstructNewInstance::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val newInstance = taskFactory.create(ConstructNewInstance::class.java)
         val t = assertThrows<InvocationTargetException> { newInstance.apply(HasUserExceptionConstructor::class.java.name) }
         assertThat(t.cause)
                 .isExactlyInstanceOf(Exception::class.java)
@@ -112,8 +112,8 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
 
     @Test
     fun `throwing exception in initializer`() = sandbox {
-        val taskFactory = classLoader.createTaskFactory()
-        val newInstance = classLoader.typedTaskFor(taskFactory, ConstructNewInstance::class.java)
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val newInstance = taskFactory.create(ConstructNewInstance::class.java)
         val t = assertThrows<ExceptionInInitializerError> { newInstance.apply(HasBrokenInitializer::class.java.name) }
         assertThat(t.cause)
             .isExactlyInstanceOf(RuntimeException::class.java)
