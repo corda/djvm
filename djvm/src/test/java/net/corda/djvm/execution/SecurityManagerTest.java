@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
@@ -18,12 +19,16 @@ class SecurityManagerTest extends TestBase {
     @Test
     void testReplacingSecurityManager() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            RuntimeException ex = assertThrows(RuntimeException.class, () -> WithJava.run(executor, ReplacingSecurityManager.class, ""));
-            assertThat(ex)
-                .isExactlyInstanceOf(RuntimeException.class)
-                .hasMessage("sandbox.java.security.AccessControlException -> access denied")
-                .hasNoCause();
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                RuntimeException ex = assertThrows(RuntimeException.class, () -> WithJava.run(taskFactory, ReplacingSecurityManager.class, ""));
+                assertThat(ex)
+                    .isExactlyInstanceOf(RuntimeException.class)
+                    .hasMessage("sandbox.java.security.AccessControlException -> access denied")
+                    .hasNoCause();
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

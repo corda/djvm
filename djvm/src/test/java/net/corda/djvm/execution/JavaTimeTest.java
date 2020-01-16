@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import org.junit.jupiter.api.Test;
 
 import java.time.*;
@@ -25,13 +26,13 @@ class JavaTimeTest extends TestBase {
         Instant instant = Instant.now();
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super Instant, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super Instant, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(instant);
                 assertThat(toStringResult).isEqualTo(instant.toString());
 
-                Function<? super Instant, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super Instant, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(instant);
                 assertThat(identityResult).isEqualTo(instant);
                 assertThat(identityResult).isNotSameAs(instant);
@@ -47,13 +48,13 @@ class JavaTimeTest extends TestBase {
         Duration duration = Duration.ofHours(2);
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super Duration, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super Duration, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(duration);
                 assertThat(toStringResult).isEqualTo(duration.toString());
 
-                Function<? super Duration, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super Duration, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(duration);
                 assertThat(identityResult).isEqualTo(duration);
                 assertThat(identityResult).isNotSameAs(duration);
@@ -69,13 +70,13 @@ class JavaTimeTest extends TestBase {
         LocalDate localDate = LocalDate.now();
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super LocalDate, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super LocalDate, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(localDate);
                 assertThat(toStringResult).isEqualTo(localDate.toString());
 
-                Function<? super LocalDate, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super LocalDate, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(localDate);
                 assertThat(identityResult).isEqualTo(localDate);
                 assertThat(identityResult).isNotSameAs(localDate);
@@ -91,13 +92,13 @@ class JavaTimeTest extends TestBase {
         LocalTime localTime = LocalTime.now();
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super LocalTime, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super LocalTime, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(localTime);
                 assertThat(toStringResult).isEqualTo(localTime.toString());
 
-                Function<? super LocalTime, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super LocalTime, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(localTime);
                 assertThat(identityResult).isEqualTo(localTime);
                 assertThat(identityResult).isNotSameAs(localTime);
@@ -113,13 +114,13 @@ class JavaTimeTest extends TestBase {
         LocalDateTime localDateTime = LocalDateTime.now();
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super LocalDateTime, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super LocalDateTime, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(localDateTime);
                 assertThat(toStringResult).isEqualTo(localDateTime.toString());
 
-                Function<? super LocalDateTime, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super LocalDateTime, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(localDateTime);
                 assertThat(identityResult).isEqualTo(localDateTime);
                 assertThat(identityResult).isNotSameAs(localDateTime);
@@ -135,13 +136,13 @@ class JavaTimeTest extends TestBase {
         MonthDay monthDay = MonthDay.now();
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super MonthDay, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super MonthDay, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(monthDay);
                 assertThat(toStringResult).isEqualTo(monthDay.toString());
 
-                Function<? super MonthDay, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super MonthDay, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(monthDay);
                 assertThat(identityResult).isEqualTo(monthDay);
                 assertThat(identityResult).isNotSameAs(monthDay);
@@ -157,13 +158,13 @@ class JavaTimeTest extends TestBase {
         OffsetDateTime offsetDateTime = OffsetDateTime.now();
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super OffsetDateTime, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super OffsetDateTime, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(offsetDateTime);
                 assertThat(toStringResult).isEqualTo(offsetDateTime.toString());
 
-                Function<? super OffsetDateTime, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super OffsetDateTime, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(offsetDateTime);
                 assertThat(identityResult).isEqualTo(offsetDateTime);
                 assertThat(identityResult).isNotSameAs(offsetDateTime);
@@ -179,13 +180,13 @@ class JavaTimeTest extends TestBase {
         OffsetTime offsetTime = OffsetTime.now();
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super OffsetTime, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super OffsetTime, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(offsetTime);
                 assertThat(toStringResult).isEqualTo(offsetTime.toString());
 
-                Function<? super OffsetTime, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super OffsetTime, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(offsetTime);
                 assertThat(identityResult).isEqualTo(offsetTime);
                 assertThat(identityResult).isNotSameAs(offsetTime);
@@ -201,13 +202,13 @@ class JavaTimeTest extends TestBase {
         Period period = Period.of(1, 2, 3);
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super Period, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super Period, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(period);
                 assertThat(toStringResult).isEqualTo(period.toString());
 
-                Function<? super Period, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super Period, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(period);
                 assertThat(identityResult).isEqualTo(period);
                 assertThat(identityResult).isNotSameAs(period);
@@ -223,13 +224,13 @@ class JavaTimeTest extends TestBase {
         Year year = Year.now();
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super Year, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super Year, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(year);
                 assertThat(toStringResult).isEqualTo(year.toString());
 
-                Function<? super Year, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super Year, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(year);
                 assertThat(identityResult).isEqualTo(year);
                 assertThat(identityResult).isNotSameAs(year);
@@ -245,13 +246,13 @@ class JavaTimeTest extends TestBase {
         YearMonth yearMonth = YearMonth.now();
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super YearMonth, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super YearMonth, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(yearMonth);
                 assertThat(toStringResult).isEqualTo(yearMonth.toString());
 
-                Function<? super YearMonth, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super YearMonth, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(yearMonth);
                 assertThat(identityResult).isEqualTo(yearMonth);
                 assertThat(identityResult).isNotSameAs(yearMonth);
@@ -267,13 +268,13 @@ class JavaTimeTest extends TestBase {
         ZonedDateTime zonedDateTime = ZonedDateTime.now();
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super ZonedDateTime, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super ZonedDateTime, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(zonedDateTime);
                 assertThat(toStringResult).isEqualTo(zonedDateTime.toString());
 
-                Function<? super ZonedDateTime, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super ZonedDateTime, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(zonedDateTime);
                 assertThat(identityResult).isEqualTo(zonedDateTime);
                 assertThat(identityResult).isNotSameAs(zonedDateTime);
@@ -289,13 +290,13 @@ class JavaTimeTest extends TestBase {
         ZoneOffset zoneOffset = ZoneOffset.ofHours(7);
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
 
-                Function<? super ZoneOffset, String> stringTask = typedTaskFor(ctx.getClassLoader(), taskFactory, TemporalToString.class);
+                Function<? super ZoneOffset, String> stringTask = taskFactory.create(TemporalToString.class);
                 String toStringResult = stringTask.apply(zoneOffset);
                 assertThat(toStringResult).isEqualTo(zoneOffset.toString());
 
-                Function<? super ZoneOffset, ?> identityTask = typedTaskFor(ctx.getClassLoader(), taskFactory, IdentityTransformation.class);
+                Function<? super ZoneOffset, ?> identityTask = taskFactory.create(IdentityTransformation.class);
                 Object identityResult = identityTask.apply(zoneOffset);
                 assertThat(identityResult).isEqualTo(zoneOffset);
                 assertThat(identityResult).isSameAs(zoneOffset);
@@ -310,8 +311,8 @@ class JavaTimeTest extends TestBase {
     void testAllZoneIDs() {
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
-                Function<?, String[]> allZoneIDs = typedTaskFor(ctx.getClassLoader(), taskFactory, AllZoneIDs.class);
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Function<?, String[]> allZoneIDs = taskFactory.create(AllZoneIDs.class);
                 String[] zoneIDs = allZoneIDs.apply(null);
                 assertThat(zoneIDs).hasSize(600);
             } catch (Exception e) {
@@ -325,8 +326,8 @@ class JavaTimeTest extends TestBase {
     void testDefaultZoneID() {
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
-                Function<?, String> defaultZoneIdTask = typedTaskFor(ctx.getClassLoader(), taskFactory, DefaultZoneId.class);
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Function<?, String> defaultZoneIdTask = taskFactory.create(DefaultZoneId.class);
                 String defaultZoneID = defaultZoneIdTask.apply(null);
                 assertThat(defaultZoneID).isEqualTo("UTC");
             } catch (Exception e) {
@@ -340,8 +341,8 @@ class JavaTimeTest extends TestBase {
     void testDefaultTimeZone() {
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
-                Function<?, String> defaultTimeZoneTask = typedTaskFor(ctx.getClassLoader(), taskFactory, DefaultTimeZone.class);
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Function<?, String> defaultTimeZoneTask = taskFactory.create(DefaultTimeZone.class);
                 String defaultTimeZone = defaultTimeZoneTask.apply(null);
                 assertThat(defaultTimeZone).isEqualTo("Coordinated Universal Time");
             } catch (Exception e) {
@@ -357,8 +358,8 @@ class JavaTimeTest extends TestBase {
 
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
-                Function<Date, String> showDate = typedTaskFor(ctx.getClassLoader(), taskFactory, ShowDate.class);
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Function<Date, String> showDate = taskFactory.create(ShowDate.class);
                 String result = showDate.apply(now);
                 assertThat(result).isEqualTo(now.toString());
             } catch (Exception e) {
@@ -375,8 +376,8 @@ class JavaTimeTest extends TestBase {
 
         sandbox(ctx -> {
             try {
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = ctx.getClassLoader().createTaskFactory();
-                Function<Date, Date> addToDate = typedTaskFor(ctx.getClassLoader(), taskFactory, AddToDate.class);
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Function<Date, Date> addToDate = taskFactory.create(AddToDate.class);
                 Date result = addToDate.apply(now);
                 assertNotSame(later, result);
                 assertEquals(later, result);

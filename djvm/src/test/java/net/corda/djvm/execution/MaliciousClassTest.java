@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoadingException;
 import net.corda.djvm.rules.RuleViolationError;
@@ -22,10 +23,14 @@ class MaliciousClassTest extends TestBase {
     @Test
     void testImplementingToDJVMString() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable ex = assertThrows(SandboxClassLoadingException.class, () -> WithJava.run(executor, EvilToString.class, ""));
-            assertThat(ex)
-                .hasMessageContaining("Class is not allowed to implement toDJVMString()");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable ex = assertThrows(SandboxClassLoadingException.class, () -> WithJava.run(taskFactory, EvilToString.class, ""));
+                assertThat(ex)
+                    .hasMessageContaining("Class is not allowed to implement toDJVMString()");
+            } catch(Exception e){
+                fail(e);
+            }
             return null;
         });
     }
@@ -45,10 +50,14 @@ class MaliciousClassTest extends TestBase {
     @Test
     void testImplementingFromDJVM() {
         sandbox(ctx -> {
-            SandboxExecutor<Object, Object> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable ex = assertThrows(SandboxClassLoadingException.class, () -> WithJava.run(executor, EvilFromDJVM.class, null));
-            assertThat(ex)
-                .hasMessageContaining("Class is not allowed to implement fromDJVM()");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable ex = assertThrows(SandboxClassLoadingException.class, () -> WithJava.run(taskFactory, EvilFromDJVM.class, null));
+                assertThat(ex)
+                    .hasMessageContaining("Class is not allowed to implement fromDJVM()");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -68,10 +77,14 @@ class MaliciousClassTest extends TestBase {
     @Test
     void testPassingClassIntoSandboxIsForbidden() {
         sandbox(ctx -> {
-            SandboxExecutor<Class<?>, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(executor, EvilClass.class, String.class));
-            assertThat(ex)
-                .hasMessageContaining("Cannot sandbox class java.lang.String");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(taskFactory, EvilClass.class, String.class));
+                assertThat(ex)
+                    .hasMessageContaining("Cannot sandbox class java.lang.String");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -87,10 +100,14 @@ class MaliciousClassTest extends TestBase {
     void testPassingConstructorIntoSandboxIsForbidden() throws NoSuchMethodException {
         Constructor<?> constructor = getClass().getDeclaredConstructor();
         sandbox(ctx -> {
-            SandboxExecutor<Constructor<?>, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(executor, EvilConstructor.class, constructor));
-            assertThat(ex)
-                .hasMessageContaining("Cannot sandbox " + constructor);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(taskFactory, EvilConstructor.class, constructor));
+                assertThat(ex)
+                    .hasMessageContaining("Cannot sandbox " + constructor);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -106,10 +123,14 @@ class MaliciousClassTest extends TestBase {
     void testPassingClassLoaderIntoSandboxIsForbidden() {
         ClassLoader classLoader = getClass().getClassLoader();
         sandbox(ctx -> {
-            SandboxExecutor<ClassLoader, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(executor, EvilClassLoader.class, classLoader));
-            assertThat(ex)
-                .hasMessageContaining("Cannot sandbox a ClassLoader");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(taskFactory, EvilClassLoader.class, classLoader));
+                assertThat(ex)
+                    .hasMessageContaining("Cannot sandbox a ClassLoader");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -124,16 +145,20 @@ class MaliciousClassTest extends TestBase {
     @Test
     void testCannotInvokeSandboxMethodsExplicitly() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable ex = assertThrows(SandboxClassLoadingException.class,
-                               () -> WithJava.run(executor, SelfSandboxing.class, "Victory is mine!"));
-            assertThat(ex)
-                .isExactlyInstanceOf(SandboxClassLoadingException.class)
-                .hasMessageContaining(Type.getInternalName(SelfSandboxing.class))
-                .hasMessageContaining("Access to sandbox.java.lang.String.toDJVM(String) is forbidden.")
-                .hasMessageContaining("Access to sandbox.java.lang.String.fromDJVM(String) is forbidden.")
-                .hasMessageContaining("Casting to sandbox.java.lang.String is forbidden.")
-                .hasNoCause();
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable ex = assertThrows(SandboxClassLoadingException.class,
+                        () -> WithJava.run(taskFactory, SelfSandboxing.class, "Victory is mine!"));
+                assertThat(ex)
+                    .isExactlyInstanceOf(SandboxClassLoadingException.class)
+                    .hasMessageContaining(Type.getInternalName(SelfSandboxing.class))
+                    .hasMessageContaining("Access to sandbox.java.lang.String.toDJVM(String) is forbidden.")
+                    .hasMessageContaining("Access to sandbox.java.lang.String.fromDJVM(String) is forbidden.")
+                    .hasMessageContaining("Casting to sandbox.java.lang.String is forbidden.")
+                    .hasNoCause();
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

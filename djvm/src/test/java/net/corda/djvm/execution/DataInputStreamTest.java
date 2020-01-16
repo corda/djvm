@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +10,7 @@ import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class DataInputStreamTest extends TestBase {
     private static final String MESSAGE = "Hello World!";
@@ -32,14 +34,18 @@ class DataInputStreamTest extends TestBase {
         InputStream input = new ByteArrayInputStream(baos.toByteArray());
 
         sandbox(ctx -> {
-            SandboxExecutor<InputStream, Object[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Object[]> success = WithJava.run(executor, DataStreamer.class, input);
-            assertThat(success.getResult()).isEqualTo(new Object[]{
-                BIG_NUMBER,
-                NUMBER,
-                MESSAGE,
-                BIG_FRACTION
-            });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Object[] result = WithJava.run(taskFactory, DataStreamer.class, input);
+                assertThat(result).isEqualTo(new Object[]{
+                    BIG_NUMBER,
+                    NUMBER,
+                    MESSAGE,
+                    BIG_FRACTION
+                });
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

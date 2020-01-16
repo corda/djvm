@@ -58,12 +58,13 @@ class BasicInputOutputTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                Function<? super String, ?> importTask = classLoader.createForImport(new DoMagic());
+                Function<? super String, ?> importTask = classLoader.createForImport(
+                    new DoMagic().andThen(classLoader.createBasicInput())
+                );
+                Object result = importTask.apply(MESSAGE);
 
-                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = classLoader.createRawTaskFactory();
-                Function<? super String, ?> rawTask = taskFactory.apply(importTask);
-
-                assertEquals(new DoMagic().apply(MESSAGE), rawTask.apply(MESSAGE));
+                assertEquals(new DoMagic().apply(MESSAGE), result.toString());
+                assertEquals("sandbox.java.lang.String", result.getClass().getName());
             } catch (Exception e) {
                 fail(e);
             }

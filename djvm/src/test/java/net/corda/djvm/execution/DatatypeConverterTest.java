@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +10,7 @@ import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class DatatypeConverterTest extends TestBase {
     private static final byte[] BINARY = new byte[]{ 0x1f, 0x2e, 0x3d, 0x4c, 0x5b, 0x6a, 0x70 };
@@ -21,9 +23,13 @@ class DatatypeConverterTest extends TestBase {
     @Test
     void testHexToBinary() {
         sandbox(ctx -> {
-            SandboxExecutor<String, byte[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<byte[]> success = WithJava.run(executor, HexToBytes.class, TEXT);
-            assertThat(success.getResult()).isEqualTo(BINARY);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                byte[] result = WithJava.run(taskFactory, HexToBytes.class, TEXT);
+                assertThat(result).isEqualTo(BINARY);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -38,9 +44,13 @@ class DatatypeConverterTest extends TestBase {
     @Test
     void testBinaryToHex() {
         sandbox(ctx -> {
-            SandboxExecutor<byte[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String> success = WithJava.run(executor, BytesToHex.class, BINARY);
-            assertThat(success.getResult()).isEqualTo(TEXT);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, BytesToHex.class, BINARY);
+                assertThat(result).isEqualTo(TEXT);
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

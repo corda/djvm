@@ -2,6 +2,7 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.DummyJar;
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class JarInputStreamTest extends TestBase {
     private static final int DATA_SIZE = 512;
@@ -63,17 +65,21 @@ class JarInputStreamTest extends TestBase {
             input = new ByteArrayInputStream(baos.toByteArray());
         }
         sandbox(ctx -> {
-            SandboxExecutor<InputStream, String[]> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String[]> success = WithJava.run(executor, JarStreamer.class, input);
-            assertNotNull(success.getResult());
-            assertThat(success.getResult())
-                .isEqualTo(new String[] {
-                    "Manifest-Version: 1.0\r\n\r\n",
-                    DummyJar.directoryOf(getClass()).getName(),
-                    DummyJar.getResourceName(getClass()),
-                    "binary.dat",
-                    "comment.txt"
-                });
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String[] result = WithJava.run(taskFactory, JarStreamer.class, input);
+                assertNotNull(result);
+                assertThat(result)
+                    .isEqualTo(new String[]{
+                        "Manifest-Version: 1.0\r\n\r\n",
+                        DummyJar.directoryOf(getClass()).getName(),
+                        DummyJar.getResourceName(getClass()),
+                        "binary.dat",
+                        "comment.txt"
+                    });
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

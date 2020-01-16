@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
@@ -18,9 +19,13 @@ class SandboxCloneableTest extends TestBase {
     @Test
     void testCloningInsideSandbox() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String> success = WithJava.run(executor, CloningMachine.class, "Jango Fett");
-            assertThat(success.getResult()).isEqualTo("Jango Fett");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, CloningMachine.class, "Jango Fett");
+                assertThat(result).isEqualTo("Jango Fett");
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
@@ -57,12 +62,16 @@ class SandboxCloneableTest extends TestBase {
     @Test
     void testFailedCloningInsideSandbox() {
         sandbox(ctx -> {
-            SandboxExecutor<String, String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            Throwable throwable = assertThrows(RuntimeException.class, () -> WithJava.run(executor, ForceProjector.class, "Obi Wan"));
-            assertThat(throwable)
-                .isExactlyInstanceOf(RuntimeException.class)
-                .hasCauseExactlyInstanceOf(CloneNotSupportedException.class)
-                .hasMessage("sandbox." + Jedi.class.getTypeName());
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Throwable throwable = assertThrows(RuntimeException.class, () -> WithJava.run(taskFactory, ForceProjector.class, "Obi Wan"));
+                assertThat(throwable)
+                    .isExactlyInstanceOf(RuntimeException.class)
+                    .hasCauseExactlyInstanceOf(CloneNotSupportedException.class)
+                    .hasMessage("sandbox." + Jedi.class.getTypeName());
+            } catch(Exception e) {
+                fail(e);
+            }
             return null;
         });
     }

@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
+import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class SandboxConcurrentHashMapTest extends TestBase {
     SandboxConcurrentHashMapTest() {
@@ -21,9 +23,13 @@ class SandboxConcurrentHashMapTest extends TestBase {
     void testJoiningIterableInsideSandbox() {
         String[] inputs = new String[]{ "one", "One", "ONE" };
         sandbox(ctx -> {
-            SandboxExecutor<String[], String> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<String> success = WithJava.run(executor, CreateMap.class, inputs);
-            assertThat(success.getResult()).isEqualTo("[one has 3]");
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, CreateMap.class, inputs);
+                assertThat(result).isEqualTo("[one has 3]");
+            } catch(Exception e){
+                fail(e);
+            }
             return null;
         });
     }
@@ -69,9 +75,13 @@ class SandboxConcurrentHashMapTest extends TestBase {
     void testStreamOfKeys() {
         Integer[] inputs = new Integer[]{ 1, 2, 3 };
         sandbox(ctx -> {
-            SandboxExecutor<Integer[], Integer> executor = new DeterministicSandboxExecutor<>(ctx.getConfiguration());
-            ExecutionSummaryWithResult<Integer> success = WithJava.run(executor, KeyStreamMap.class, inputs);
-            assertThat(success.getResult()).isEqualTo(6);
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Integer result = WithJava.run(taskFactory, KeyStreamMap.class, inputs);
+                assertThat(result).isEqualTo(6);
+            } catch (Exception e) {
+                fail(e);
+            }
             return null;
         });
     }
