@@ -1,8 +1,11 @@
 @file:JvmName("TaskTypes")
 package sandbox
 
+import sandbox.java.lang.checkCatch
 import sandbox.java.lang.escapeSandbox
 import sandbox.java.lang.sandbox
+import sandbox.java.lang.toRuleViolationError
+import sandbox.java.lang.toRuntimeException
 import sandbox.java.lang.unsandbox
 import java.util.Collections.unmodifiableSet
 
@@ -19,8 +22,7 @@ private val taskClasses = unmodifiableSet(setOf(
     "Task",
     "RawTask",
     "BasicInput",
-    "BasicOutput",
-    "ImportTask"
+    "BasicOutput"
 ))
 
 private fun isTaskClass(className: String): Boolean {
@@ -88,10 +90,17 @@ class BasicOutput : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
 @Suppress("unused")
 class ImportTask(private val function: Function<Any?, Any?>) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
-     * This allows [function] to be executed both
-     * inside and outside the sandbox.
+     * This allows [function] to be executed inside the sandbox.
+     * !!! USE WITH EXTREME CARE !!!
      */
     override fun apply(input: Any?): Any? {
-        return function.apply(input)
+        return try {
+            function.apply(input)
+        } catch (e: Exception) {
+            throw e.toRuntimeException()
+        } catch (t: Throwable) {
+            checkCatch(t)
+            throw t.toRuleViolationError()
+        }
     }
 }

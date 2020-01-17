@@ -266,10 +266,10 @@ class SandboxClassLoader private constructor(
         InvocationTargetException::class,
         NoSuchMethodException::class
     )
-    fun <T> createForImport(task: Function<in T?, out Any?>): Function<in T?, out Any?> {
+    fun <T> createForImport(task: Function<in T, out Any?>): Function<in T, out Any?> {
         val taskClass = loadClass("sandbox.ImportTask")
         @Suppress("unchecked_cast")
-        return taskClass.getDeclaredConstructor(Function::class.java).newInstance(task) as Function<in T?, out Any?>
+        return taskClass.getDeclaredConstructor(Function::class.java).newInstance(task) as Function<in T, out Any?>
     }
 
     /**

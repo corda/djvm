@@ -46,7 +46,7 @@ object DisallowCatchingBlacklistedExceptions : Emitter {
             exceptionHandlers.add(instruction.handler)
         } else if (instruction is CodeLabel && instruction.label in exceptionHandlers) {
             duplicate()
-            invokeInstrumenter("checkCatch", "(Ljava/lang/Throwable;)V")
+            invokeStatic(DJVM_NAME, "checkCatch", "(Ljava/lang/Throwable;)V")
         }
     }
 

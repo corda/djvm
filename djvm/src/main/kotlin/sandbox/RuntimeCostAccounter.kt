@@ -30,15 +30,6 @@ private val allocationCosts = mapOf(
 )
 
 /**
- * Re-throw exception if it is of type [ThreadDeath] or [VirtualMachineError].
- */
-fun checkCatch(exception: Throwable) {
-    when (exception) {
-        is ThreadDeath, is VirtualMachineError -> throw exception
-    }
-}
-
-/**
  * Record a jump operation.
  */
 fun recordJump() = runtimeCosts.jumpCost.increment()
