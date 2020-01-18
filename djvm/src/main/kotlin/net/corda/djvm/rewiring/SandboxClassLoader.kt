@@ -21,7 +21,8 @@ import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.net.URL
-import java.util.*
+import java.util.Enumeration
+import java.util.LinkedList
 import java.util.concurrent.ConcurrentMap
 import java.util.function.Function
 
@@ -252,20 +253,6 @@ class SandboxClassLoader private constructor(
                 }
             }
         }
-    }
-
-    @Deprecated("Replaced by createSandboxFunction")
-    @Throws(
-        ClassNotFoundException::class,
-        InstantiationException::class,
-        InvocationTargetException::class
-    )
-    fun createTaskFor(
-        taskFactory: Function<in Any, out Function<in Any?, out Any?>>,
-        taskClass: Class<out Function<*, *>>
-    ): Function<in Any?, out Any?> {
-        val task = toSandboxClass(taskClass).getDeclaredConstructor().newInstance()
-        return taskFactory.apply(task)
     }
 
     /**
