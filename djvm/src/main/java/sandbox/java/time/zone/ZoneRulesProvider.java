@@ -2,7 +2,6 @@ package sandbox.java.time.zone;
 
 import sandbox.java.io.DataInputStream;
 import sandbox.java.lang.DJVM;
-import sandbox.java.lang.String;
 import sandbox.java.lang.Throwable;
 import sandbox.java.security.AccessController;
 import sandbox.java.security.PrivilegedAction;
@@ -28,7 +27,7 @@ public abstract class ZoneRulesProvider extends sandbox.java.lang.Object {
                     loaded.clear();
                 } catch (Exception ex) {
                     Throwable t = DJVM.doCatch(ex);
-                    throw (RuntimeException) DJVM.fromDJVM(new ZoneRulesException(String.toDJVM("Unable to load TZDB time-zone rules"), t));
+                    throw (RuntimeException) DJVM.fromDJVM(new ZoneRulesException(DJVM.intern("Unable to load TZDB time-zone rules"), t));
                 }
                 return null;
             }

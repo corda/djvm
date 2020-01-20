@@ -295,7 +295,7 @@ class EmitterModule(
 
     /**
      * This determines which [sandbox.java.lang.Throwable] type we must up-cast
-     * the return value of [sandbox.java.lang.DJVM.catch] to.
+     * the return value of [sandbox.java.lang.doCatch] to.
      */
     fun commonThrowableClassOf(classNames: Iterable<String>): String {
         val classIterator = classNames.iterator()

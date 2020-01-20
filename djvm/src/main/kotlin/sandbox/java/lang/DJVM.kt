@@ -78,12 +78,34 @@ fun Any.sandbox(): Any {
     }
 }
 
+fun kotlin.Throwable.toRuleViolationError(): RuleViolationError {
+    return if (this is RuleViolationError) {
+        this
+    } else {
+        RuleViolationError("${this::class.java.name} -> $message").also { t ->
+            t.stackTrace = stackTrace
+        }
+    }
+}
+
+/**
+ * Replace this [Throwable] with an instance of [RuntimeException] that
+ * has the same stack trace. Primarily used by [sandbox.ImportTask] to
+ * ensure that the DJVM can always handle an exception thrown from
+ * outside the sandbox.
+ */
+fun kotlin.Throwable.toRuntimeException(): RuntimeException {
+    return RuntimeException("${this::class.java.name} -> $message", cause?.toRuntimeException()).also { t ->
+        t.stackTrace = stackTrace
+    }
+}
+
 fun kotlin.Throwable.escapeSandbox(): kotlin.Throwable {
     val sandboxed = (this as? DJVMException)?.throwable ?: sandboxedExceptions.remove(this)
     return sandboxed?.escapeSandbox() ?: safeCopy()
 }
 
-fun Throwable.escapeSandbox(): kotlin.Throwable {
+private fun Throwable.escapeSandbox(): kotlin.Throwable {
     val sandboxedName = javaClass.name
     return try {
         val escaping = if (Type.getInternalName(javaClass) in JVM_EXCEPTIONS) {
@@ -119,7 +141,7 @@ fun Throwable.escapeSandbox(): kotlin.Throwable {
             }
         }
     } catch (e: Exception) {
-        RuleViolationError("${e::class.java.name} -> ${e.message}").sanitise(1)
+        e.toRuleViolationError()
     }
 }
 
@@ -446,8 +468,19 @@ fun fromDJVM(t: Throwable?): kotlin.Throwable {
                     .newInstance(t) as kotlin.Throwable
             }
         } catch (e: Exception) {
-            RuleViolationError("${e::class.java.name} -> ${e.message}").sanitise(1)
+            e.toRuleViolationError()
         }
+    }
+}
+
+/**
+ * Re-throw exception if it is of type [ThreadDeath] or [VirtualMachineError].
+ * The [DisallowCatchingBlacklistedExceptions] emitter causes this function
+ * to be invoked at the start of matching exception handlers.
+ */
+fun checkCatch(exception: kotlin.Throwable) {
+    when (exception) {
+        is ThreadDeath, is VirtualMachineError -> throw exception
     }
 }
 
