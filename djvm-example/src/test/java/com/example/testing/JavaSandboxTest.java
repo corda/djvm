@@ -24,7 +24,6 @@ class JavaSandboxTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -41,7 +40,6 @@ class JavaSandboxTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 }

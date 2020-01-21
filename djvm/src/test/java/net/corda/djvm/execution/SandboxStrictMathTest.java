@@ -34,7 +34,6 @@ class SandboxStrictMathTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -63,7 +62,6 @@ class SandboxStrictMathTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -93,7 +91,6 @@ class SandboxStrictMathTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -119,7 +116,6 @@ class SandboxStrictMathTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -150,7 +146,6 @@ class SandboxStrictMathTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -178,7 +173,6 @@ class SandboxStrictMathTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -213,7 +207,6 @@ class SandboxStrictMathTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -242,7 +235,6 @@ class SandboxStrictMathTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -267,7 +259,6 @@ class SandboxStrictMathTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -295,7 +286,6 @@ class SandboxStrictMathTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

@@ -41,7 +41,6 @@ class SandboxStringTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -63,7 +62,6 @@ class SandboxStringTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -84,7 +82,6 @@ class SandboxStringTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -115,7 +112,6 @@ class SandboxStringTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
    }
 
@@ -141,7 +137,6 @@ class SandboxStringTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -172,7 +167,6 @@ class SandboxStringTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -194,7 +188,6 @@ class SandboxStringTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -216,7 +209,6 @@ class SandboxStringTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -240,7 +232,6 @@ class SandboxStringTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -262,7 +253,6 @@ class SandboxStringTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

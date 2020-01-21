@@ -80,7 +80,6 @@ class JarInputStreamTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

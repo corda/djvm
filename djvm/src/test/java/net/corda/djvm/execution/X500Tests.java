@@ -29,7 +29,6 @@ class X500Tests extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -52,7 +51,6 @@ class X500Tests extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -73,7 +71,6 @@ class X500Tests extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

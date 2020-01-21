@@ -74,20 +74,36 @@ abstract class TestBase(type: SandboxType) {
         JAVA -> TESTING_LIBRARIES.filter { isDirectory(it) }
     }
 
-    fun sandbox(action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(WARNING, emptySet(), emptySet(), null, action)
+    inline fun sandbox(crossinline action: SandboxRuntimeContext.() -> Unit) {
+        sandbox(Consumer { ctx -> action(ctx) })
     }
 
-    fun sandbox(externalCache: ExternalCache, action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(WARNING, emptySet(), emptySet(), externalCache, action)
+    fun sandbox(action: Consumer<SandboxRuntimeContext>) {
+        sandbox(WARNING, emptySet(), emptySet(), null, action)
     }
 
-    fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, null, action)
+    inline fun sandbox(externalCache: ExternalCache, crossinline action: SandboxRuntimeContext.() -> Unit) {
+        sandbox(externalCache, Consumer { ctx -> action(ctx)}) 
     }
 
-    fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit) {
-        return sandbox(WARNING, visibleAnnotations, emptySet(), null, action)
+    fun sandbox(externalCache: ExternalCache, action: Consumer<SandboxRuntimeContext>) {
+        sandbox(WARNING, emptySet(), emptySet(), externalCache, action)
+    }
+
+    inline fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, crossinline action: SandboxRuntimeContext.() -> Unit) {
+        sandbox(visibleAnnotations, sandboxOnlyAnnotations, Consumer { ctx -> action(ctx) })
+    }
+
+    fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, action: Consumer<SandboxRuntimeContext>) {
+        sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, null, action)
+    }
+
+    inline fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, crossinline action: SandboxRuntimeContext.() -> Unit) {
+        sandbox(visibleAnnotations, Consumer { ctx -> action(ctx) })
+    }
+    
+    fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: Consumer<SandboxRuntimeContext>) {
+        sandbox(WARNING, visibleAnnotations, emptySet(), null, action)
     }
 
     fun sandbox(
@@ -95,7 +111,7 @@ abstract class TestBase(type: SandboxType) {
         visibleAnnotations: Set<Class<out Annotation>>,
         sandboxOnlyAnnotations: Set<String>,
         externalCache: ExternalCache?,
-        action: SandboxRuntimeContext.() -> Unit
+        action: Consumer<SandboxRuntimeContext>
     ) {
         var thrownException: Throwable? = null
         thread(start = false, name = "DJVM-${javaClass.name}-${threadId.getAndIncrement()}") {
@@ -105,9 +121,7 @@ abstract class TestBase(type: SandboxType) {
                     it.setSandboxOnlyAnnotations(sandboxOnlyAnnotations)
                     it.setVisibleAnnotations(visibleAnnotations)
                     it.setExternalCache(externalCache)
-                })).use(Consumer { ctx ->
-                    ctx.action()
-                })
+                })).use(action)
             }
         }.apply {
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->

@@ -40,7 +40,6 @@ class AnnotatedJavaClassTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -55,7 +54,6 @@ class AnnotatedJavaClassTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -74,7 +72,6 @@ class AnnotatedJavaClassTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -94,7 +91,6 @@ class AnnotatedJavaClassTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -116,7 +112,6 @@ class AnnotatedJavaClassTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

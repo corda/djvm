@@ -31,7 +31,6 @@ class SandboxEnumJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -53,7 +52,6 @@ class SandboxEnumJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -73,7 +71,6 @@ class SandboxEnumJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -94,7 +91,6 @@ class SandboxEnumJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -117,7 +113,6 @@ class SandboxEnumJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -138,7 +133,6 @@ class SandboxEnumJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -161,7 +155,6 @@ class SandboxEnumJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

@@ -30,7 +30,6 @@ class SandboxConcurrentHashMapTest extends TestBase {
             } catch(Exception e){
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -82,7 +81,6 @@ class SandboxConcurrentHashMapTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

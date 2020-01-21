@@ -29,7 +29,6 @@ class BasicInputOutputTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -48,7 +47,6 @@ class BasicInputOutputTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 }

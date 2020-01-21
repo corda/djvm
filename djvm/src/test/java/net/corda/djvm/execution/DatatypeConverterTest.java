@@ -30,7 +30,6 @@ class DatatypeConverterTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -51,7 +50,6 @@ class DatatypeConverterTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
