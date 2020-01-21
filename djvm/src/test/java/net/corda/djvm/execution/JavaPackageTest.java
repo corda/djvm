@@ -27,7 +27,6 @@ class JavaPackageTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -49,7 +48,6 @@ class JavaPackageTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

@@ -33,7 +33,6 @@ class Base64Test extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -54,7 +53,6 @@ class Base64Test extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

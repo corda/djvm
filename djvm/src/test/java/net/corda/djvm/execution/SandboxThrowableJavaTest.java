@@ -36,7 +36,6 @@ class SandboxThrowableJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -58,7 +57,6 @@ class SandboxThrowableJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -109,7 +107,6 @@ class SandboxThrowableJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -135,7 +132,6 @@ class SandboxThrowableJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -158,7 +154,6 @@ class SandboxThrowableJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -182,7 +177,6 @@ class SandboxThrowableJavaTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

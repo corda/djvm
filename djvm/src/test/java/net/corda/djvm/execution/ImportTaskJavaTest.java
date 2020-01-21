@@ -33,7 +33,6 @@ class ImportTaskJavaTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -59,7 +58,6 @@ class ImportTaskJavaTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -83,7 +81,6 @@ class ImportTaskJavaTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -109,7 +106,6 @@ class ImportTaskJavaTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

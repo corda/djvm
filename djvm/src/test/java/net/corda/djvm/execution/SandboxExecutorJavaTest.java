@@ -35,7 +35,6 @@ class SandboxExecutorJavaTest extends TestBase {
             } catch (Throwable t) {
                 fail(t);
             }
-            return null;
         });
     }
 

@@ -31,7 +31,6 @@ class MaliciousClassTest extends TestBase {
             } catch(Exception e){
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -58,7 +57,6 @@ class MaliciousClassTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -85,7 +83,6 @@ class MaliciousClassTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -108,7 +105,6 @@ class MaliciousClassTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -131,7 +127,6 @@ class MaliciousClassTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -159,7 +154,6 @@ class MaliciousClassTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

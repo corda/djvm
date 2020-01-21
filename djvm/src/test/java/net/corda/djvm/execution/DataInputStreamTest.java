@@ -46,7 +46,6 @@ class DataInputStreamTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

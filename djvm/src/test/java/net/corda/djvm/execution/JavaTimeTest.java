@@ -39,7 +39,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -61,7 +60,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -83,7 +81,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -105,7 +102,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -127,7 +123,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -149,7 +144,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -171,7 +165,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -193,7 +186,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -215,7 +207,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -237,7 +228,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -259,7 +249,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -281,7 +270,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -303,7 +291,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -318,7 +305,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -333,7 +319,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -348,7 +333,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -365,7 +349,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -384,7 +367,6 @@ class JavaTimeTest extends TestBase {
             } catch (Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 

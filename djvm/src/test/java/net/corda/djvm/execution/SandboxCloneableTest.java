@@ -26,7 +26,6 @@ class SandboxCloneableTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
@@ -72,7 +71,6 @@ class SandboxCloneableTest extends TestBase {
             } catch(Exception e) {
                 fail(e);
             }
-            return null;
         });
     }
 
