@@ -1,4 +1,5 @@
 @file:JvmName("TaskTypes")
+@file:Suppress("unused")
 package sandbox
 
 import sandbox.java.lang.checkCatch
@@ -10,8 +11,10 @@ import sandbox.java.lang.unsandbox
 import java.util.Collections.unmodifiableSet
 
 import java.util.function.Function
+import java.util.function.Predicate
 
 typealias SandboxFunction<INPUT, OUTPUT> = sandbox.java.util.function.Function<INPUT, OUTPUT>
+typealias SandboxPredicate<INPUT> = sandbox.java.util.function.Predicate<INPUT>
 
 fun isEntryPoint(elt: StackTraceElement): Boolean {
     return elt.methodName == "apply" && isTaskClass(elt.className)
@@ -22,7 +25,8 @@ private val taskClasses = unmodifiableSet(setOf(
     "Task",
     "RawTask",
     "BasicInput",
-    "BasicOutput"
+    "BasicOutput",
+    "PredicateTask"
 ))
 
 private fun isTaskClass(className: String): Boolean {
@@ -48,7 +52,6 @@ class Task(private val function: SandboxFunction<in Any?, out Any?>?) : SandboxF
     }
 }
 
-@Suppress("unused")
 class RawTask(private val function: SandboxFunction<Any?, Any?>?) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
      * This function runs inside the sandbox, and performs NO marshalling
@@ -63,7 +66,6 @@ class RawTask(private val function: SandboxFunction<Any?, Any?>?) : SandboxFunct
     }
 }
 
-@Suppress("unused")
 class BasicInput : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
      * This function runs inside the sandbox and
@@ -75,7 +77,6 @@ class BasicInput : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     }
 }
 
-@Suppress("unused")
 class BasicOutput : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
      * This function runs inside the sandbox and
@@ -87,7 +88,6 @@ class BasicOutput : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     }
 }
 
-@Suppress("unused")
 class ImportTask(private val function: Function<Any?, Any?>) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
      * This allows [function] to be executed inside the sandbox.
@@ -101,6 +101,20 @@ class ImportTask(private val function: Function<Any?, Any?>) : SandboxFunction<A
         } catch (t: Throwable) {
             checkCatch(t)
             throw t.toRuleViolationError()
+        }
+    }
+}
+
+class PredicateTask(private val predicate: SandboxPredicate<Any?>) : SandboxPredicate<Any?>, Predicate<Any?> {
+    /**
+     * This predicate runs inside the sandbox, and performs NO marshalling
+     * of the input object. This must be done by the caller.
+     */
+    override fun test(input: Any?): Boolean {
+        return try {
+            predicate.test(input)
+        } catch (t: Throwable) {
+            throw t.escapeSandbox()
         }
     }
 }

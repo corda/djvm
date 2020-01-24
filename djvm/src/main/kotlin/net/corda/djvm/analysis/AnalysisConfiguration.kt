@@ -252,6 +252,7 @@ class AnalysisConfiguration private constructor(
             "sandbox/BasicInput",
             "sandbox/BasicOutput",
             "sandbox/ImportTask",
+            "sandbox/PredicateTask",
             "sandbox/RawTask",
             "sandbox/Task",
             "sandbox/TaskTypes",
