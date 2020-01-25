@@ -8,6 +8,7 @@ import net.corda.djvm.validation.RuleContext
 /**
  * Representation of a rule.
  */
+@FunctionalInterface
 interface Rule {
 
     /**
