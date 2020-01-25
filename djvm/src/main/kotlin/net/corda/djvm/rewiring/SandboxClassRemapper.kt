@@ -83,9 +83,9 @@ class SandboxClassRemapper(
     }
 
     /**
-     * Do not attempt to remap references to methods and fields on templated classes.
-     * For example, the methods on [sandbox.RuntimeCostAccounter] really DO use
-     * [java.lang.String] rather than [sandbox.java.lang.String].
+     * Do not attempt to remap references to methods and fields on template classes.
+     * For example, [sandbox.recordAllocation] and [sandbox.recordArrayAllocation]
+     * really DO use [java.lang.String] rather than [sandbox.java.lang.String].
      */
     private inner class MethodRemapperWithTemplating(private val nonMethodMapper: MethodVisitor, remapper: MethodVisitor)
         : MethodVisitor(API_VERSION, remapper) {

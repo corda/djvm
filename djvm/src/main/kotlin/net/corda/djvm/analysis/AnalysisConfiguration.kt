@@ -184,6 +184,7 @@ class AnalysisConfiguration private constructor(
          * annotation and the transformed one.
          */
         private val STITCHED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
+            "Lsandbox/java/lang/FunctionalInterface;",
             "Lsandbox/kotlin/Metadata;"
         ))
 
@@ -192,6 +193,7 @@ class AnalysisConfiguration private constructor(
          * "safe" to preserve inside the sandbox.
          */
         private val ALLOWED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
+            "Ljava/lang/FunctionalInterface;",
             KOTLIN_METADATA
         ))
 
