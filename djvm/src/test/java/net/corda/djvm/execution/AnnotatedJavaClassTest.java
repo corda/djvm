@@ -123,6 +123,25 @@ class AnnotatedJavaClassTest extends TestBase {
         }
     }
 
+    @Test
+    void testFunctionalInterfaceIsPreserved() {
+        sandbox(ctx -> {
+            try {
+                Class<?> sandboxFunction = ctx.getClassLoader().toSandboxClass(Function.class);
+                Annotation[] sandboxAnnotations = sandboxFunction.getAnnotations();
+                List<String> names = Arrays.stream(sandboxAnnotations)
+                    .map(ann -> ann.annotationType().getName())
+                    .collect(toList());
+                assertThat(names).containsExactlyInAnyOrder(
+                    "sandbox.java.lang.FunctionalInterface",
+                    "java.lang.FunctionalInterface"
+                );
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
     @SuppressWarnings("WeakerAccess")
     @JavaAnnotation("Hello Java!")
     static class UserJavaData {}
