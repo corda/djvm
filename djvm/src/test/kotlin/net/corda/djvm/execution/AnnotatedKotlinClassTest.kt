@@ -1,6 +1,7 @@
 package net.corda.djvm.execution
 
 import net.corda.djvm.KotlinAnnotation
+import net.corda.djvm.KotlinLabel
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.TypedTaskFactory
@@ -134,19 +135,19 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
             ann.annotationClass.qualifiedName
         }
         assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
-                "sandbox.net.corda.djvm.KotlinAnnotation",
-                "net.corda.djvm.KotlinAnnotation",
-                "sandbox.kotlin.Metadata"
+            "sandbox.net.corda.djvm.KotlinAnnotation",
+            "net.corda.djvm.KotlinAnnotation",
+            "sandbox.kotlin.Metadata"
         )
 
         val javaAnnotations = sandboxClass.annotations.map { ann ->
             ann.annotationClass.qualifiedName
         }
         assertThat(javaAnnotations).containsExactlyInAnyOrder(
-                "sandbox.net.corda.djvm.KotlinAnnotation",
-                "net.corda.djvm.KotlinAnnotation",
-                "sandbox.kotlin.Metadata",
-                "kotlin.Metadata"
+            "sandbox.net.corda.djvm.KotlinAnnotation",
+            "net.corda.djvm.KotlinAnnotation",
+            "sandbox.kotlin.Metadata",
+            "kotlin.Metadata"
         )
     }
 
@@ -159,9 +160,12 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
             ann.annotationClass.qualifiedName
         }
         assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
+            "java.lang.annotation.Inherited",
+            "kotlin.annotation.MustBeDocumented",
             "kotlin.annotation.Retention",
             "kotlin.annotation.Target",
-            "sandbox.kotlin.Metadata"
+            "sandbox.kotlin.Metadata",
+            "sandbox.kotlin.annotation.MustBeDocumented"
         )
 
         val javaAnnotations = sandboxAnnotation.annotations.map { ann ->
@@ -170,8 +174,71 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
         assertThat(javaAnnotations).containsExactlyInAnyOrder(
             "kotlin.annotation.Retention",
             "kotlin.annotation.Target",
-            "sandbox.kotlin.Metadata",
+            "kotlin.annotation.MustBeDocumented",
             "kotlin.Metadata",
+            "sandbox.kotlin.annotation.MustBeDocumented",
+            "sandbox.kotlin.Metadata",
+            "java.lang.annotation.Documented",
+            "java.lang.annotation.Inherited",
+            "java.lang.annotation.Retention",
+            "java.lang.annotation.Target"
+        )
+    }
+
+    @Test
+    fun `test single repeatable annotation from outside sandbox`() = sandbox(
+        visibleAnnotations = setOf(KotlinLabel::class.java)
+    ) {
+        assertThat(UserKotlinLabel::class.findAnnotation<KotlinLabel>()).isNotNull
+
+        val sandboxClass = loadClass<UserKotlinLabel>().type
+        val annotations = sandboxClass.kotlin.annotations.groupByTo(LinkedHashMap()) { ann ->
+            ann.annotationClass.qualifiedName?.startsWith("sandbox.")
+        }
+
+        val sandboxAnnotations = annotations[true] ?: fail("No sandbox annotations found")
+        assertEquals(2, sandboxAnnotations.size)
+        val kotlinLabel = sandboxAnnotations.map(Annotation::toString)
+            .find { it.matches("^\\Q@sandbox.net.corda.djvm.KotlinLabel(name=\\E\"?ZERO\"?\\)\$".toRegex()) }
+        assertNotNull(kotlinLabel, "@KotlinLabel annotation missing")
+
+        val kotlinAnnotations = annotations[false] ?: fail("No Kotlin annotations found")
+        assertEquals(1, kotlinAnnotations.size)
+        assertThat(kotlinAnnotations[0].toString())
+            .matches("^\\Q@net.corda.djvm.KotlinLabel(name=\\E\"?ZERO\"?\\)$")
+    }
+
+    @Test
+    fun `test reflection can fetch repeatable`() = sandbox {
+        @Suppress("unchecked_cast")
+        val sandboxAnnotation = loadClass<KotlinLabel>().type as Class<out Annotation>
+
+        val kotlinAnnotations = sandboxAnnotation.kotlin.annotations.map { ann ->
+            ann.annotationClass.qualifiedName
+        }
+        assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
+            "kotlin.annotation.Repeatable",
+            "kotlin.annotation.MustBeDocumented",
+            "kotlin.annotation.Retention",
+            "kotlin.annotation.Target",
+            "sandbox.kotlin.Metadata",
+            "sandbox.kotlin.annotation.Repeatable",
+            "sandbox.kotlin.annotation.MustBeDocumented"
+        )
+
+        val javaAnnotations = sandboxAnnotation.annotations.map { ann ->
+            ann.annotationClass.qualifiedName
+        }
+        assertThat(javaAnnotations).containsExactlyInAnyOrder(
+            "kotlin.annotation.Retention",
+            "kotlin.annotation.Target",
+            "kotlin.annotation.MustBeDocumented",
+            "kotlin.annotation.Repeatable",
+            "kotlin.Metadata",
+            "sandbox.kotlin.annotation.MustBeDocumented",
+            "sandbox.kotlin.annotation.Repeatable",
+            "sandbox.kotlin.Metadata",
+            "java.lang.annotation.Documented",
             "java.lang.annotation.Retention",
             "java.lang.annotation.Target"
         )
@@ -187,3 +254,6 @@ class UserKotlinData(val message: String, val number: Int?, val bigNumber: Long)
 
     override fun toString(): String = "UserData: message='$message', number=$number, bigNumber=$bigNumber"
 }
+
+@KotlinLabel("ZERO")
+class UserKotlinLabel
