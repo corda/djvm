@@ -103,6 +103,7 @@ open class Whitelist private constructor(
             "^java/lang/Class(\\..*)?\$".toRegex(),
             "^java/lang/ClassLoader(\\..*)?\$".toRegex(),
             "^java/lang/Cloneable\$".toRegex(),
+            "^java/lang/FunctionalInterface\$".toRegex(),
             "^java/lang/Object(\\..*)?\$".toRegex(),
             "^java/lang/StrictMath\\.(?!random:).*\$".toRegex(),
             "^java/lang/Void\$".toRegex(),

@@ -10,9 +10,7 @@ import java.util.function.Supplier
 
 /**
  * Visits a simple annotation while accumulating the names, types
- * and values of its fields. Does NOT support fields which are
- * themselves annotations because none of the annotations that it
- * needs to stitch have any such fields.
+ * and values of its fields.
  *
  * When the source annotation has been completely visited, this
  * visitor invokes its [complete] callback.
@@ -58,6 +56,13 @@ abstract class AnnotationAccumulator(api: Int, av: AnnotationVisitor) : Annotati
         }
     }
 
+    final override fun visitAnnotation(name: String?, descriptor: String): AnnotationVisitor? {
+        val annotation = super.visitAnnotation(name, descriptor) ?: return null
+        return NestedAnnotation(api, annotation, name, descriptor).apply {
+            entries.add(this)
+        }
+    }
+
     fun accept(transform: Function<String, String>, visitor: Supplier<AnnotationVisitor?>) {
         visitor.get()?.run {
             for (entry in entries) {
@@ -79,7 +84,6 @@ private class AnnotationArray(
     av: AnnotationVisitor,
     override val name: String
 ) : AnnotationAccumulator(api, av), AnnotationElement {
-
     override fun accept(av: AnnotationVisitor, transform: Function<String, String>) {
         accept(transform, Supplier { av.visitArray(name) })
     }
@@ -87,9 +91,8 @@ private class AnnotationArray(
 
 private class AnnotationValue(
     override val name: String?,
-    val value: Any?
+    private val value: Any?
 ) : AnnotationElement {
-
     override fun accept(av: AnnotationVisitor, transform: Function<String, String>) {
         av.visit(name, value)
     }
@@ -97,11 +100,21 @@ private class AnnotationValue(
 
 private class AnnotationEnum(
     override val name: String?,
-    val descriptor: String,
-    val value: String
+    private val descriptor: String,
+    private val value: String
 ) : AnnotationElement {
-
     override fun accept(av: AnnotationVisitor, transform: Function<String, String>) {
         av.visitEnum(name, transform.apply(descriptor), value)
+    }
+}
+
+private class NestedAnnotation(
+    api: Int,
+    av: AnnotationVisitor,
+    override val name: String?,
+    private val descriptor: String
+) : AnnotationAccumulator(api, av), AnnotationElement {
+    override fun accept(av: AnnotationVisitor, transform: Function<String, String>) {
+        accept(transform, Supplier { av.visitAnnotation(name, transform.apply(descriptor)) })
     }
 }
