@@ -44,7 +44,7 @@ class AnalysisContext private constructor(
             return AnalysisContext(
                     MessageCollection(configuration.minimumSeverityLevel, configuration.prefixFilters),
                     ClassHierarchy(configuration.classModule, configuration.memberModule),
-                    ReferenceMap(configuration.classModule)
+                    ReferenceMap()
             )
         }
 

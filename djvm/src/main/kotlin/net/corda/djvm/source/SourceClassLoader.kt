@@ -337,7 +337,9 @@ private fun resolvePaths(paths: List<Path>): Array<URL> {
         when {
             !Files.exists(it) -> throw FileNotFoundException("File not found; $it")
             Files.isDirectory(it) -> {
-                listOf(it.toURL()) + Files.list(it).filter(::isJarFile).map { jar -> jar.toURL() }.toList()
+                listOf(it.toURL()) + Files.list(it).use { files ->
+                    files.filter(::isJarFile).map(Path::toURL).toList()
+                }
             }
             Files.isReadable(it) && isJarFile(it) -> listOf(it.toURL())
             else -> throw IllegalArgumentException("Expected JAR or class file, but found $it")
@@ -353,9 +355,9 @@ private fun expandPath(path: Path): Path {
     return path
 }
 
-private fun isJarFile(path: Path) = path.toString().endsWith(".jar", true)
+private fun isJarFile(path: Path): Boolean = path.toString().endsWith(".jar", true)
 
-private fun Path.toURL(): URL = this.toUri().toURL()
+private fun Path.toURL(): URL = toUri().toURL()
 
 private val homeDirectory: Path
     get() = Paths.get(System.getProperty("user.home"))

@@ -323,15 +323,18 @@ class SandboxClassLoader private constructor(
      */
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
-        synchronized (getClassLoadingLock(name)) {
+        synchronized(getClassLoadingLock(name)) {
             var clazz = findLoadedClass(name)
             if (clazz == null) {
                 val source = ClassSource.fromClassName(name)
                 val isSandboxClass = analysisConfiguration.isSandboxClass(source.internalClassName)
 
-                if (!isSandboxClass || parent is SandboxClassLoader) {
+                // We ALWAYS have a parent classloader, because a sandbox
+                // classloader MUST ultimately delegate to the DJVM itself.
+                val parentClassLoader = parent
+                if (!isSandboxClass || parentClassLoader is SandboxClassLoader) {
                     try {
-                        clazz = super.loadClass(name, false)
+                        clazz = parentClassLoader.loadClass(name)
                     } catch (_: ClassNotFoundException) {
                     }
                 }
@@ -366,19 +369,19 @@ class SandboxClassLoader private constructor(
              * its wrapper exception. And loading the owner should then also create
              * the wrapper class automatically.
              */
-            findLoadedClass(source.qualifiedClassName) ?: run {
-                val exceptionOwner = ClassSource.fromClassName(getDJVMExceptionOwner(source.qualifiedClassName))
-                if (!analysisConfiguration.isJvmException(exceptionOwner.internalClassName)) {
-                    /**
-                     * JVM Exceptions belong to the parent classloader, and so will never
-                     * be found inside a child classloader. Which means we must not try to
-                     * create a duplicate inside any child classloaders either. Hence we
-                     * re-invoke [loadClass] which will delegate back to the parent.
-                     */
-                    loadClass(exceptionOwner.qualifiedClassName, false)
-                }
-                findLoadedClass(source.qualifiedClassName)
-            } ?: throw ClassNotFoundException(source.qualifiedClassName)
+            val exceptionOwner = ClassSource.fromClassName(getDJVMExceptionOwner(source.qualifiedClassName))
+            if (!analysisConfiguration.isJvmException(exceptionOwner.internalClassName)) {
+                /**
+                 * We must not create a duplicate synthetic wrapper inside any child
+                 * classloader. Hence we re-invoke [loadClass] which will delegate
+                 * back to the parent.
+                 *
+                 * JVM Exceptions belong to the bootstrap classloader, and so will
+                 * never be found inside a child classloader.
+                 */
+                loadClass(exceptionOwner.qualifiedClassName, false)
+            }
+            findLoadedClass(source.qualifiedClassName) ?: throw ClassNotFoundException(source.qualifiedClassName)
         } else {
             loadClassAndBytes(source, context).also { clazz ->
                 /**
@@ -386,7 +389,7 @@ class SandboxClassLoader private constructor(
                  * If we have, we may also need to synthesise a throwable wrapper for it.
                  */
                 if (throwableClass.isAssignableFrom(clazz) && !analysisConfiguration.isJvmException(source.internalClassName)) {
-                    logger.debug("Generating synthetic throwable for ${source.qualifiedClassName}")
+                    logger.debug("Generating synthetic throwable for {}", source.qualifiedClassName)
                     loadWrapperFor(clazz)
                 }
             }
