@@ -6,9 +6,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 /**
  * Map from member references to all discovered call-sites / field accesses for each reference.
  */
-class ReferenceMap(
-        private val classModule: ClassModule
-) : Iterable<EntityReference> {
+class ReferenceMap : Iterable<EntityReference> {
 
     private val queueOfReferences = ConcurrentLinkedQueue<EntityReference>()
 
