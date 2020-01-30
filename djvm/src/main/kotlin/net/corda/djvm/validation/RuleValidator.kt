@@ -10,7 +10,7 @@ import net.corda.djvm.rules.ClassRule
 import net.corda.djvm.rules.InstructionRule
 import net.corda.djvm.rules.MemberRule
 import net.corda.djvm.rules.Rule
-import net.corda.djvm.utilities.Processor
+import net.corda.djvm.utilities.processEntriesOfType
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
@@ -37,7 +37,7 @@ class RuleValidator(
     override fun visitClass(clazz: ClassRepresentation): ClassRepresentation {
         if (shouldClassBeProcessed(clazz.name)) {
             val context = RuleContext(currentAnalysisContext())
-            Processor.processEntriesOfType<ClassRule>(rules, analysisContext.messages, Consumer {
+            processEntriesOfType<ClassRule>(rules, analysisContext.messages, Consumer {
                 it.validate(context, clazz)
             })
         }
@@ -50,7 +50,7 @@ class RuleValidator(
     override fun visitMethod(clazz: ClassRepresentation, method: Member): Member {
         if (shouldClassBeProcessed(clazz.name) && shouldMemberBeProcessed(method.reference)) {
             val context = RuleContext(currentAnalysisContext())
-            Processor.processEntriesOfType<MemberRule>(rules, analysisContext.messages, Consumer {
+            processEntriesOfType<MemberRule>(rules, analysisContext.messages, Consumer {
                 it.validate(context, method)
             })
         }
@@ -63,7 +63,7 @@ class RuleValidator(
     override fun visitField(clazz: ClassRepresentation, field: Member): Member {
         if (shouldClassBeProcessed(clazz.name) && shouldMemberBeProcessed(field.reference)) {
             val context = RuleContext(currentAnalysisContext())
-            Processor.processEntriesOfType<MemberRule>(rules, analysisContext.messages, Consumer {
+            processEntriesOfType<MemberRule>(rules, analysisContext.messages, Consumer {
                 it.validate(context, field)
             })
         }
@@ -76,7 +76,7 @@ class RuleValidator(
     override fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {
         if (shouldClassBeProcessed(method.className) && shouldMemberBeProcessed(method.reference)) {
             val context = RuleContext(currentAnalysisContext())
-            Processor.processEntriesOfType<InstructionRule>(rules, analysisContext.messages, Consumer {
+            processEntriesOfType<InstructionRule>(rules, analysisContext.messages, Consumer {
                 it.validate(context, instruction)
             })
         }

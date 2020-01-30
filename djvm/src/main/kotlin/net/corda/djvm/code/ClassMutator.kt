@@ -6,8 +6,8 @@ import net.corda.djvm.code.instructions.MethodEntry
 import net.corda.djvm.references.ClassRepresentation
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
-import net.corda.djvm.utilities.Processor
 import net.corda.djvm.utilities.loggerFor
+import net.corda.djvm.utilities.processEntriesOfType
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes.*
 import java.util.function.Consumer
@@ -61,7 +61,7 @@ class ClassMutator(
      */
     override fun visitClass(clazz: ClassRepresentation): ClassRepresentation {
         var resultingClass = clazz
-        Processor.processEntriesOfType<ClassDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
+        processEntriesOfType<ClassDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
             resultingClass = it.define(currentAnalysisContext(), resultingClass)
         })
         if (clazz != resultingClass) {
@@ -100,7 +100,7 @@ class ClassMutator(
      */
     override fun visitMethod(clazz: ClassRepresentation, method: Member): Member {
         var resultingMethod = method
-        Processor.processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
+        processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
             resultingMethod = it.define(currentAnalysisContext(), resultingMethod)
         })
         if (method != resultingMethod) {
@@ -116,7 +116,7 @@ class ClassMutator(
      */
     override fun visitField(clazz: ClassRepresentation, field: Member): Member {
         var resultingField = field
-        Processor.processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
+        processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
             resultingField = it.define(currentAnalysisContext(), resultingField)
         })
         if (field != resultingField) {
@@ -133,7 +133,7 @@ class ClassMutator(
      */
     override fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {
         val context = EmitterContext(currentAnalysisContext(), configuration, emitter)
-        Processor.processEntriesOfType<Emitter>(emitters, analysisContext.messages, Consumer {
+        processEntriesOfType<Emitter>(emitters, analysisContext.messages, Consumer {
             it.emit(context, instruction)
         })
         if (!emitter.emitDefaultInstruction || emitter.hasEmittedCustomCode) {
