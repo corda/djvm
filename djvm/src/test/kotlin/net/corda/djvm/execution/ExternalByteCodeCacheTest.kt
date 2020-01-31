@@ -18,7 +18,7 @@ class ExternalByteCodeCacheTest : TestBase(KOTLIN) {
     fun testSubsequentSandboxesWithCaching() {
         // Ensure that the shared parent configuration's internal
         // cache does not already contain the Function class.
-        flushParentCache()
+        flushInternalCache()
 
         val externalCache = ConcurrentHashMap<ByteCodeKey, ByteCode>()
         sandbox(externalCache) {
@@ -83,7 +83,7 @@ class ExternalByteCodeCacheTest : TestBase(KOTLIN) {
     fun testInternalCacheTakesPrecedenceOverExternalCache() {
         // Ensure that the shared parent configuration's internal
         // cache does not already contain the Function class.
-        flushParentCache()
+        flushInternalCache()
 
         val externalCache = ConcurrentHashMap<ByteCodeKey, ByteCode>()
         sandbox(externalCache) {

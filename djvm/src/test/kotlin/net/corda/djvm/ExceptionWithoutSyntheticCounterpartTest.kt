@@ -15,7 +15,7 @@ import org.junit.jupiter.params.provider.ValueSource
  * This list is representative rather than exhaustive.
  */
 class ExceptionWithoutSyntheticCounterpartTest : TestBase(KOTLIN) {
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] => {0}")
     @ValueSource(strings = [
         "sandbox.java.lang.Throwable",
         "sandbox.java.lang.Exception",
@@ -30,6 +30,9 @@ class ExceptionWithoutSyntheticCounterpartTest : TestBase(KOTLIN) {
         val syntheticName = "$exceptionName\$1DJVM"
         val ex = assertThrows<ClassNotFoundException> { classLoader.loadClass(syntheticName) }
         assertThat(ex).hasMessageContaining(syntheticName)
+        assertDoesNotThrow { classLoader.loadClass(exceptionName) }
+
+        // Check we can reload this class, to prove it has already been loaded correctly!
         assertDoesNotThrow { classLoader.loadClass(exceptionName) }
     }
 }
