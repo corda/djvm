@@ -19,6 +19,7 @@ class KotlinMetadataVisitor(
     private val remapper: Remapper
 ) : AnnotationVisitor(api, av) {
     companion object {
+        @JvmField
         val INTERNAL_NAME = "L([^.;\\[]++)+;".toRegex()
     }
 

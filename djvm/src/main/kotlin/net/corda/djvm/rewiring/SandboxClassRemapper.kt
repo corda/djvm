@@ -16,6 +16,7 @@ class SandboxClassRemapper(
     private val configuration: AnalysisConfiguration
 ) : ClassRemapper(nonClassMapper, remapper) {
     companion object {
+        @JvmField
         val RETURNS_STRING = "\\)\\[*Ljava/lang/String;\$".toRegex()
     }
 

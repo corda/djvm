@@ -121,7 +121,7 @@ artifactory {
     }
 }
 
-task generateApi(type: GenerateApi) {
+tasks.register('generateApi', GenerateApi) {
     baseName = 'api-djvm'
 }
 
