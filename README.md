@@ -130,7 +130,7 @@ fun SandboxConfiguration.createFor(
 where:
 - `analysisConfguration` is an instance of `AnalysisConfiguration`
 - `profile` is an `ExecutionProfile` containing the maximum number of throws, jumps and method invocations
-etc that a sandbox can create using this configuration can perform before throwing `ThresholdViolationError`.
+etc that a sandbox created using this configuration can perform before throwing `ThresholdViolationError`.
 A `null` profile disables this completely by not instrumenting the byte-code.
 - `externalCache` is an optional implementation of `ConcurrentMap<ByteCodekey,ByteCode>` provided by
 the caller. This is useful for sharing sandbox byte-code across multiple `SandboxConfiguration` instances,
@@ -326,7 +326,7 @@ although they are limited to handling only the following types:
     - `java.time.Year`
     - `java.time.ZonedDateTime`
     - `java.time.ZoneId`
-- Implementors on `java.io.InputStream`, which are mapped to an internal implementation
+- Implementors of `java.io.InputStream`, which are mapped to an internal implementation
 of `sandbox.java.io.InputStream` only.
 
 Note that we do not need to map primitive types such as `int`, `long` and `boolean`.
@@ -392,7 +392,7 @@ It is also worth noting that while the `sandboxFunction` factory requires that
 `SimpleTask` has a no-argument constructor, `rawTaskFactory` only requires
 that its input implements `sandbox.java.util.function.Function`. The
 `sandboxFunction` factory is just a convenience to handle what is considered
-to be the most common case.
+to be the most common use-case.
 
 ### Linking an external function into the sandbox.
 
