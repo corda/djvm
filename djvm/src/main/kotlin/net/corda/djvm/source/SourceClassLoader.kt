@@ -33,6 +33,7 @@ import kotlin.streams.toList
 interface Source : AutoCloseable {
     fun findResource(name: String): URL?
     fun findResources(name: String): Enumeration<URL>
+    fun getURLs(): Array<URL>
 }
 
 /**
@@ -44,9 +45,7 @@ interface ApiSource : Source
  * This is the contract that the source of the user's own code must satisfy.
  * It will almost certainly be a [ClassLoader] of some description.
  */
-interface UserSource : Source {
-    fun getURLs(): Array<URL>
-}
+interface UserSource : Source
 
 /**
  * Class loader to manage an optional JAR of replacement Java APIs.
@@ -70,6 +69,10 @@ class BootstrapClassLoader(bootstrapJar: Path)
  * except that it doesn't inherit from [URLClassLoader] either.
  */
 object EmptyApi : ClassLoader(null), ApiSource {
+    private val empty = arrayOf<URL>()
+    override fun getURLs(): Array<URL> {
+        return empty
+    }
     override fun findResource(name: String): URL? {
         return super.findResource(name)
     }
@@ -121,7 +124,7 @@ class SourceClassLoader(
     fun getURLs(): Array<URL> = userSource.getURLs()
 
     fun getAllURLs(): Set<URL> {
-        val urls = mutableSetOf(*getURLs())
+        val urls = getURLs().mapTo(LinkedHashSet()) { it }
         var next = parent as? SourceClassLoader
         while (next != null) {
             Collections.addAll<URL>(urls, *next.getURLs())

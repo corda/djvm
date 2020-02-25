@@ -28,11 +28,10 @@ package net.corda.djvm.source;
 public interface Source extends AutoCloseable {
     URL findResource(String name);
     Enumeration<URL> findResources(String name);
-}
-
-public interface UserSource extends Source {
     URL[] getURLs();
 }
+
+public interface UserSource extends Source {}
 ```
 
 This will most likely be a descendant of `URLClassLoader` such as the DJVM's `UserPathSource` class:
