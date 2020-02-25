@@ -12,6 +12,7 @@ import net.corda.djvm.code.asResourcePath
 import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.references.ClassReference
 import net.corda.djvm.source.ClassSource
+import net.corda.djvm.source.CodeLocation
 import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
@@ -20,7 +21,9 @@ import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
+import java.net.MalformedURLException
 import java.net.URL
+import java.security.SecureClassLoader
 import java.util.Enumeration
 import java.util.LinkedList
 import java.util.concurrent.ConcurrentMap
@@ -49,7 +52,7 @@ class SandboxClassLoader private constructor(
     private val externalCache: ExternalCache?,
     throwableClass: Class<*>?,
     parent: ClassLoader?
-) : ClassLoader(parent ?: SandboxClassLoader::class.java.classLoader), AutoCloseable {
+) : SecureClassLoader(parent ?: SandboxClassLoader::class.java.classLoader), AutoCloseable {
 
     /**
      * Set of classes that should be left untouched due to whitelisting.
@@ -60,6 +63,8 @@ class SandboxClassLoader private constructor(
      * Cache of loaded byte-code.
      */
     private val loadedByteCode = mutableMapOf<String, ByteCode>()
+    private val codeLocations: MutableMap<String, CodeLocation>
+                    = supportingClassLoader.codeLocations.associateByTo(LinkedHashMap(), CodeLocation::location)
 
     /**
      * Update the common bytecode cache with the classes we have generated.
@@ -418,18 +423,19 @@ class SandboxClassLoader private constructor(
                 val resourceName = sourceName.asResourcePath + ".class"
                 val resource = supportingClassLoader.getResource(resourceName)
                         ?: throw ClassNotFoundException("Class file not found: $resourceName")
+                val codeLocation = getCodeLocation(resource)
 
                 if (externalCaching && externalCache != null) {
                     val externalKey = ByteCodeKey(
                         request.qualifiedClassName,
-                        resource.toLocation().intern()
+                        codeLocation.location
                     )
 
                     externalCache.getOrPut(externalKey) {
-                        generateByteCode(request.qualifiedClassName, resource, context)
+                        generateByteCode(request.qualifiedClassName, resource, codeLocation, context)
                     }
                 } else {
-                    generateByteCode(request.qualifiedClassName, resource, context)
+                    generateByteCode(request.qualifiedClassName, resource, codeLocation, context)
                 }
             }
         }
@@ -456,10 +462,41 @@ class SandboxClassLoader private constructor(
         return clazz
     }
 
+    private fun getCodeLocation(resource: URL): CodeLocation {
+        val location = resource.toLocation()
+        return (codeLocations[location] ?: findDirectoryMatch(location)) ?: run {
+            /*
+             * This is an unlikely event in practice, but the
+             * DJVM's own unit tests trigger it when loading
+             * the template sandbox classes, e.g. Object.class.
+             */
+            val sourceUrl = try {
+                URL(location)
+            } catch (e: MalformedURLException) {
+                throw SecurityException(e.message, e)
+            }
+            val codeLocation = CodeLocation(sourceUrl, location)
+            codeLocations[codeLocation.location] = codeLocation
+            codeLocation
+        }
+    }
+
+    private tailrec fun findDirectoryMatch(location: String): CodeLocation? {
+        if (!location.endsWith('/')) {
+            return null
+        }
+        var idx = location.length - 2
+        while (idx >= 0 && location[idx] != '/') {
+            --idx
+        }
+        val path = location.substring(0, idx + 1)
+        return codeLocations[path] ?: findDirectoryMatch(path)
+    }
+
     /**
      * Generates the byte-code for [qualifiedClassName] using byte-code from [resource].
      */
-    private fun generateByteCode(qualifiedClassName: String, resource: URL, context: AnalysisContext): ByteCode {
+    private fun generateByteCode(qualifiedClassName: String, resource: URL, codeLocation: CodeLocation, context: AnalysisContext): ByteCode {
         val reader = try {
             resource.openStream().use(::ClassReader)
         } catch (e: IOException) {
@@ -480,7 +517,7 @@ class SandboxClassLoader private constructor(
         }
 
         // Transform the class definition and byte code in accordance with provided rules.
-        return rewriter.rewrite(reader, context)
+        return rewriter.rewrite(reader, codeLocation.codeSource, context)
     }
 
     private fun defineClass(name: String, byteCode: ByteCode): Class<*> {
@@ -495,12 +532,21 @@ class SandboxClassLoader private constructor(
                 definePackage(packageName, null, null, null, null, null, null, null)
             }
         }
-        return defineClass(name, byteCode.bytes, 0, byteCode.bytes.size)
+        return defineClass(name, byteCode.bytes, 0, byteCode.bytes.size, byteCode.source)
     }
 
     private fun loadUnmodifiedByteCode(internalClassName: String): ByteCode {
-        return ByteCode((getSystemResourceAsStream("$internalClassName.class")
-            ?: throw ClassNotFoundException(internalClassName)).use { it.readBytes() }, false)
+        val resource = getSystemResource("$internalClassName.class") ?: throw ClassNotFoundException(internalClassName)
+        val byteStream = try {
+            resource.openStream()
+        } catch (_: IOException) {
+            throw ClassNotFoundException(internalClassName)
+        }
+        return ByteCode(
+            bytes = byteStream.use { it.readBytes() },
+            source = getCodeLocation(resource).codeSource,
+            isModified = false
+        )
     }
 
     /**
@@ -570,7 +616,7 @@ class SandboxClassLoader private constructor(
 
     companion object {
         private val logger = loggerFor<SandboxClassLoader>()
-        private val UNMODIFIED = ByteCode(ByteArray(0), false)
+        private val UNMODIFIED = ByteCode(ByteArray(0), null, false)
 
         private fun URL.toLocation(): String {
             val fullPath = toString()

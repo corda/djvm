@@ -79,6 +79,7 @@ abstract class TestBase(type: SandboxType) {
         @BeforeAll
         @JvmStatic
         fun setupRootClassLoader() {
+            System.setSecurityManager(SecurityManager())
             bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
             val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
@@ -95,6 +96,7 @@ abstract class TestBase(type: SandboxType) {
         @JvmStatic
         fun destroyRootContext() {
             bootstrapClassLoader.close()
+            System.setSecurityManager(null)
         }
     }
 

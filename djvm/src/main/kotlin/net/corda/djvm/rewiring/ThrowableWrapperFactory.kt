@@ -24,7 +24,7 @@ class ThrowableWrapperFactory(
                 ThrowableWrapperFactory(className, superName).accept(this)
                 toByteArray()
             }
-            return ByteCode(bytecode, true)
+            return ByteCode(bytecode, null, true)
         }
     }
 

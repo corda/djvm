@@ -15,6 +15,7 @@ import org.objectweb.asm.*
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
 import org.objectweb.asm.Opcodes.ACC_ABSTRACT
+import java.security.CodeSource
 import java.util.function.Consumer
 import java.util.function.Function
 
@@ -35,9 +36,10 @@ open class ClassRewriter(
      * Process class and allow user to rewrite parts/all of its content through provided hooks.
      *
      * @param reader The reader providing the byte code for the desired class.
+     * @param codeSource The code-base for the source class.
      * @param context The context in which the class is being analyzed and processed.
      */
-    fun rewrite(reader: ClassReader, context: AnalysisContext): ByteCode {
+    fun rewrite(reader: ClassReader, codeSource: CodeSource, context: AnalysisContext): ByteCode {
         logger.debug("Rewriting class {}...", reader.className)
         val writer = SandboxClassWriter(reader, classLoader, analysisConfig, options = COMPUTE_FRAMES)
         val classRemapper = SandboxClassRemapper(
@@ -52,7 +54,7 @@ open class ClassRewriter(
             configuration.emitters
         )
         visitor.analyze(reader, context, options = SKIP_FRAMES)
-        return ByteCode(writer.toByteArray(), visitor.hasBeenModified)
+        return ByteCode(writer.toByteArray(), codeSource, visitor.hasBeenModified)
     }
 
     private companion object {

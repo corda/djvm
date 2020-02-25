@@ -152,6 +152,9 @@ tasks.withType(Test) {
     systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 
+    // A security policy that allows known code-bases to do anything.
+    systemProperty 'java.security.policy', '=permissive.policy'
+
     // Disable JIT compilation of sandbox.* classes because they are discarded after use.
     // https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
     jvmArgs '-XX:CompileCommand=quiet', '-XX:CompileCommand=exclude,sandbox/*.*'

@@ -1,0 +1,19 @@
+grant codeBase "file:${{java.ext.dirs}}/*" {
+    permission java.security.AllPermission;
+};
+
+grant codeBase "file:${user.home}/.m2/repository/-" {
+    permission java.security.AllPermission;
+};
+
+grant codeBase "file:${user.home}/.gradle/caches/-" {
+    permission java.security.AllPermission;
+};
+
+grant codeBase "file:${user.home}/.gradle/wrapper/dists/-" {
+    permission java.security.AllPermission;
+};
+
+grant codeBase "file:${user.dir}/build/-" {
+    permission java.security.AllPermission;
+};

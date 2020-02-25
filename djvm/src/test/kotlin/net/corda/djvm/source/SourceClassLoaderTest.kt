@@ -243,7 +243,7 @@ class SourceClassLoaderTest {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
             val parentLoader = SourceClassLoader(classResolver, parentSource, apiSource)
             val urlsForParent = parentLoader.getAllURLs()
-            assertEquals(1, urlsForParent.size)
+            assertEquals(2, urlsForParent.size)
             assertThat(urlsForParent).containsExactly(*parentLoader.getURLs())
 
             UserPathSource(arrayOf(ExampleAction::class.java.protectionDomain.codeSource.location)).use { childSource ->
@@ -254,7 +254,7 @@ class SourceClassLoaderTest {
                     parentLoader
                 )
                 val urlsForChild = childLoader.getAllURLs()
-                assertEquals(2, urlsForChild.size)
+                assertEquals(3, urlsForChild.size)
                 assertThat(urlsForChild).containsExactlyInAnyOrder(
                     *parentLoader.getURLs() + childLoader.getURLs()
                 )
