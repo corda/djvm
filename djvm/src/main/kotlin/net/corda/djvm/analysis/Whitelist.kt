@@ -119,16 +119,19 @@ open class Whitelist private constructor(
         /**
          * Empty whitelist.
          */
+        @JvmField
         val EMPTY: Whitelist = Whitelist(null, emptySet(), emptySet())
 
         /**
          * The minimum set of classes that needs to be whitelisted from standard Java libraries.
          */
+        @JvmField
         val MINIMAL: Whitelist = Whitelist(Whitelist(null, minimumSet, emptySet()), minimumSet, emptySet())
 
         /**
          * Whitelist everything.
          */
+        @JvmField
         val EVERYTHING: Whitelist = Whitelist(
                 Whitelist(null, everythingRegex, emptySet()),
                 everythingRegex,
