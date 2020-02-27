@@ -419,14 +419,13 @@ class SandboxClassLoader private constructor(
                 val resource = supportingClassLoader.getResource(resourceName)
                         ?: throw ClassNotFoundException("Class file not found: $resourceName")
 
-                if (externalCaching) {
+                if (externalCaching && externalCache != null) {
                     val externalKey = ByteCodeKey(
                         request.qualifiedClassName,
-                        resource.toString().substringBefore("!/")
+                        resource.toLocation().intern()
                     )
 
-                    // The externalCache cannot be null if enableCaching is true.
-                    externalCache!!.getOrPut(externalKey) {
+                    externalCache.getOrPut(externalKey) {
                         generateByteCode(request.qualifiedClassName, resource, context)
                     }
                 } else {
@@ -572,6 +571,15 @@ class SandboxClassLoader private constructor(
     companion object {
         private val logger = loggerFor<SandboxClassLoader>()
         private val UNMODIFIED = ByteCode(ByteArray(0), false)
+
+        private fun URL.toLocation(): String {
+            val fullPath = toString()
+            return when {
+                fullPath.startsWith("jar:") -> fullPath.substring(4, fullPath.indexOf("!/"))
+                fullPath.endsWith(".class") -> fullPath.substring(0, fullPath.lastIndexOf('/') + 1)
+                else -> fullPath
+            }
+        }
 
         /**
          * Factory function to create a [SandboxClassLoader].
