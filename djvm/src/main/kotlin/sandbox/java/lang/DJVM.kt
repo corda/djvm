@@ -8,6 +8,7 @@ import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMException
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
 import net.corda.djvm.rules.implementation.*
+import net.corda.djvm.utilities.doPrivileged
 import org.objectweb.asm.Opcodes.ACC_ENUM
 import org.objectweb.asm.Type
 import sandbox.isEntryPoint
@@ -17,6 +18,9 @@ import sandbox.java.util.*
 import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Modifier.*
+import java.security.PrivilegedAction
+import java.security.PrivilegedExceptionAction
 
 private const val SANDBOX_PREFIX = "sandbox."
 private val OBJECT_ARRAY = "^(\\[++L)([^;]++);\$".toRegex()
@@ -114,26 +118,24 @@ private fun Throwable.escapeSandbox(): kotlin.Throwable {
             // We map these exceptions to their equivalent JVM classes.
             when {
                 this is sandbox.java.lang.reflect.InvocationTargetException ->
-                    InvocationTargetException::class.java.getDeclaredConstructor(kotlin.Throwable::class.java, kotlin.String::class.java)
+                    doPrivileged(GetConstructorAction(InvocationTargetException::class.java, kotlin.Throwable::class.java, kotlin.String::class.java))
                         .newInstance(escapingCause, escapingMessage)
                 this is ExceptionInInitializerError && escapingCause != null ->
-                    java.lang.ExceptionInInitializerError::class.java.getDeclaredConstructor(kotlin.Throwable::class.java)
+                    doPrivileged(GetConstructorAction(java.lang.ExceptionInInitializerError::class.java, kotlin.Throwable::class.java))
                         .newInstance(escapingCause)
                 else -> {
                     @Suppress("unchecked_cast")
                     val escapingType = loadBootstrapClass(sandboxedName.fromSandboxPackage()) as Class<out kotlin.Throwable>
                     try {
-                        escapingType.getDeclaredConstructor(kotlin.String::class.java, kotlin.Throwable::class.java)
+                        doPrivileged(GetConstructorAction(escapingType, kotlin.String::class.java, kotlin.Throwable::class.java))
                             .newInstance(escapingMessage, escapingCause)
                     } catch (_: NoSuchMethodException) {
                         try {
-                            escapingType.getDeclaredConstructor(kotlin.String::class.java)
+                            doPrivileged(GetConstructorAction(escapingType, kotlin.String::class.java))
                                 .newInstance(escapingMessage)
                         } catch (_: NoSuchMethodException) {
-                            with(escapingType.getDeclaredConstructor()) {
-                                isAccessible = true
-                                newInstance()
-                            }
+                            doPrivileged(GetConstructorAction(escapingType))
+                                .newInstance()
                         }.apply {
                             escapingCause?.run(::initCause)
                         }
@@ -229,7 +231,7 @@ fun fail(message: kotlin.String): Error {
  * might belong to a shared parent classloader.
  */
 @Throws(ClassNotFoundException::class)
-internal fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(name.toSandboxPackage())
+private fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(name.toSandboxPackage())
 
 @Throws(ClassNotFoundException::class)
 internal fun Class<*>.fromDJVMType(): Class<*> = loadSandboxClass(name.fromSandboxPackage())
@@ -296,7 +298,6 @@ internal fun enumConstantDirectory(clazz: Class<out Enum<*>>): sandbox.java.util
     return allEnumDirectories.get(clazz) ?: createEnumDirectory(clazz)
 }
 
-@Suppress("unchecked_cast")
 internal fun getEnumConstantsShared(clazz: Class<out Enum<*>>): Array<out Enum<*>>? {
     return if (isEnum(clazz)) {
         allEnums.get(clazz) ?: createEnum(clazz)
@@ -305,12 +306,8 @@ internal fun getEnumConstantsShared(clazz: Class<out Enum<*>>): Array<out Enum<*
     }
 }
 
-@Suppress("unchecked_cast")
 private fun createEnum(clazz: Class<out Enum<*>>): Array<out Enum<*>>? {
-    return clazz.getMethod("values").let { method ->
-        method.isAccessible = true
-        method.invoke(null) as? Array<out Enum<*>>
-    }?.apply { allEnums.put(clazz, this) }
+    return doPrivileged(CreateEnumAction(clazz))?.apply { allEnums.put(clazz, this) }
 }
 
 private fun createEnumDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Map<String, out Enum<*>> {
@@ -358,14 +355,19 @@ val nativeOrder: ByteOrder = when (java.nio.ByteOrder.nativeOrder()) {
 
 /**
  * Replacement function for [ClassLoader.getSystemClassLoader].
+ * This does not enforce "access control" checks.
  */
 val systemClassLoader: ClassLoader = SandboxRuntimeContext.instance.classLoader
 
 /**
  * Filter function for [Class.getClassLoader].
  */
-@Suppress("unused_parameter")
 fun getClassLoader(type: Class<*>): ClassLoader {
+    /*
+     * Trigger the correct "access control" checks for this class.
+     */
+    type.classLoader
+
     /**
      * We expect [Class.getClassLoader] to return one of the following:
      * - [net.corda.djvm.rewiring.SandboxClassLoader] for sandbox classes
@@ -388,7 +390,7 @@ fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
  * Return a buffered [DataInputStream] for a system resource.
  */
 fun loadSystemResource(name: kotlin.String): DataInputStream {
-    val input = getSystemResourceAsStream(name) ?: throw InternalError("Missing $name")
+    val input = doPrivileged(GetSystemResourceAction(name)) ?: throw InternalError("Missing $name")
     return DataInputStream(BufferedInputStream(input))
 }
 
@@ -486,8 +488,8 @@ fun fromDJVM(t: Throwable?): kotlin.Throwable {
                 throwable
             } else {
                 // Whereas the sandbox creates a synthetic throwable wrapper for these.
-                loadSandboxClass(getDJVMException(sandboxClass.name))
-                    .getDeclaredConstructor(sandboxThrowable)
+                val wrapperClass = loadSandboxClass(getDJVMException(sandboxClass.name))
+                doPrivileged(GetConstructorAction(wrapperClass, sandboxThrowable))
                     .newInstance(t) as kotlin.Throwable
             }
         } catch (e: Exception) {
@@ -564,7 +566,7 @@ private fun Class<*>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
     val cause = t.cause?.toDJVMThrowable()
     val message = String.toDJVM(t.message)
     return try {
-        getDeclaredConstructor(String::class.java, Throwable::class.java)
+        doPrivileged(GetConstructorAction(this, String::class.java, Throwable::class.java))
             .newInstance(message, cause) as Throwable
     } catch (_ : NoSuchMethodException) {
         when {
@@ -573,22 +575,18 @@ private fun Class<*>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
              * which don't allow their underlying cause to be reset.
              */
             t is InvocationTargetException ->
-                getDeclaredConstructor(Throwable::class.java, String::class.java)
+                doPrivileged(GetConstructorAction(this, Throwable::class.java, String::class.java))
                     .newInstance(cause, message) as Throwable
             t is java.lang.ExceptionInInitializerError && cause != null ->
-                getDeclaredConstructor(Throwable::class.java)
+                doPrivileged(GetConstructorAction(this, Throwable::class.java))
                     .newInstance(cause) as Throwable
             else -> {
                 (try {
-                    with(getDeclaredConstructor(String::class.java)) {
-                        isAccessible = true
-                        newInstance(message)
-                    }
+                    doPrivileged(GetConstructorAction(this, String::class.java))
+                        .newInstance(message)
                 } catch (_: NoSuchMethodException) {
-                    with(getDeclaredConstructor()) {
-                        isAccessible = true
-                        newInstance()
-                    }
+                    doPrivileged(GetConstructorAction(this))
+                        .newInstance()
                 } as Throwable).apply {
                     cause?.run(::initCause)
                 }
@@ -606,7 +604,7 @@ private fun Class<*>.createJavaThrowable(t: Throwable): kotlin.Throwable {
     val cause = t.cause?.fromDJVM()
     val message = String.fromDJVM(t.message)
     return try {
-        getDeclaredConstructor(kotlin.String::class.java, kotlin.Throwable::class.java)
+        doPrivileged(GetConstructorAction(this, kotlin.String::class.java, kotlin.Throwable::class.java))
             .newInstance(message, cause) as kotlin.Throwable
     } catch (_ : NoSuchMethodException) {
         when {
@@ -615,22 +613,18 @@ private fun Class<*>.createJavaThrowable(t: Throwable): kotlin.Throwable {
              * which don't allow their underlying cause to be reset.
              */
             t is sandbox.java.lang.reflect.InvocationTargetException ->
-                getDeclaredConstructor(kotlin.Throwable::class.java, kotlin.String::class.java)
+                doPrivileged(GetConstructorAction(this, kotlin.Throwable::class.java, kotlin.String::class.java))
                     .newInstance(cause, message) as kotlin.Throwable
             t is ExceptionInInitializerError && cause != null ->
-                getDeclaredConstructor(kotlin.Throwable::class.java)
+                doPrivileged(GetConstructorAction(this, kotlin.Throwable::class.java))
                     .newInstance(cause) as kotlin.Throwable
             else -> {
                 (try {
-                    with(getDeclaredConstructor(kotlin.String::class.java)) {
-                        isAccessible = true
-                        newInstance(message)
-                    }
+                    doPrivileged(GetConstructorAction(this, kotlin.String::class.java))
+                        .newInstance(message)
                 } catch (_: NoSuchMethodException) {
-                    with(getDeclaredConstructor()) {
-                        isAccessible = true
-                        newInstance()
-                    }
+                    doPrivileged(GetConstructorAction(this))
+                        .newInstance()
                 } as kotlin.Throwable).apply {
                     cause?.run(::initCause)
                 }
@@ -714,7 +708,7 @@ private fun loadResourceBundle(control: ResourceBundle.Control, key: DJVMResourc
     val bundle = try {
         val bundleClass = systemClassLoader.loadClass(toSandbox(bundleName.toString()))
         if (ResourceBundle::class.java.isAssignableFrom(bundleClass)) {
-            (bundleClass.getDeclaredConstructor().newInstance() as ResourceBundle).also {
+            (doPrivileged(GetConstructorAction(bundleClass)).newInstance() as ResourceBundle).also {
                 it.init(key.baseName, key.locale)
             }
         } else {
@@ -735,4 +729,39 @@ private object DJVMNoResource : ResourceBundle() {
     override fun handleGetObject(key: String?): Any? = null
     override fun getKeys(): Enumeration<String>? = null
     override fun toDJVMString(): String = intern("NON-EXISTENT BUNDLE")
+}
+
+private class GetConstructorAction<T>(
+    private val clazz: Class<T>,
+    private vararg val argTypes: Class<*>
+) : PrivilegedExceptionAction<Constructor<T>> {
+    private fun isAccessible(modifiers: Int): kotlin.Boolean {
+        return isPublic(modifiers) || (!isPrivate(modifiers) && clazz.`package`.name == "sandbox.java.lang")
+    }
+
+    override fun run(): Constructor<T> {
+        return clazz.getDeclaredConstructor(*argTypes).apply {
+            if (!isAccessible(modifiers)) {
+                isAccessible = true
+            }
+        }
+    }
+}
+
+private class CreateEnumAction(
+    private val clazz: Class<out Enum<*>>
+) : PrivilegedExceptionAction<Array<out Enum<*>>?> {
+    override fun run(): Array<out Enum<*>>? {
+        @Suppress("unchecked_cast")
+        return clazz.getMethod("values").let { method ->
+            method.isAccessible = true
+            method.invoke(null) as? Array<out Enum<*>>
+        }
+    }
+}
+
+private class GetSystemResourceAction(private val name: kotlin.String) : PrivilegedAction<InputStream?> {
+    override fun run(): InputStream? {
+        return getSystemResourceAsStream(name)
+    }
 }
