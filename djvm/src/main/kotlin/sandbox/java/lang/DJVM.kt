@@ -355,10 +355,7 @@ fun getClassLoader(type: Class<*>): ClassLoader {
  * Replacement function for [ClassLoader.getSystemResourceAsStream].
  */
 fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
-    // Read system resources from the classloader that contains the Java APIs.
-    // I'd prefer to use this class's own classloader really, except that Kotlin
-    // cannot provide me with the .class for this "file".
-    return InputStream.toDJVM(sandboxThrowable.classLoader.getResourceAsStream(name))
+    return InputStream.toDJVM(systemClassLoader.getResourceAsStream(name))
 }
 
 /**
