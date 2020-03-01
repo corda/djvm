@@ -7,7 +7,7 @@ import java.security.PrivilegedAction;
 public final class DJVM {
     private static final Method createZonedDateTime = AccessController.doPrivileged(new InitAction());
 
-    private static class InitAction implements PrivilegedAction<Method> {
+    private static final class InitAction implements PrivilegedAction<Method> {
         @Override
         public Method run() {
             try {

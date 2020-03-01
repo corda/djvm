@@ -4,15 +4,10 @@ import net.corda.djvm.TypedTaskFactory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static com.example.testing.SandboxType.JAVA;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaCurrencyTest extends TestBase {
-    JavaCurrencyTest() {
-        super(JAVA);
-    }
-
     @ParameterizedTest
     @CsvSource({
         "GBP,British Pound Sterling,GBP,2",

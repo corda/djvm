@@ -14,7 +14,6 @@ import net.corda.djvm.references.ClassReference
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.CodeLocation
 import net.corda.djvm.source.SourceClassLoader
-import net.corda.djvm.utilities.doPrivileged
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
 import org.objectweb.asm.ClassReader
@@ -24,6 +23,9 @@ import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.net.MalformedURLException
 import java.net.URL
+import java.security.AccessController.doPrivileged
+import java.security.PrivilegedAction
+import java.security.PrivilegedActionException
 import java.security.PrivilegedExceptionAction
 import java.security.SecureClassLoader
 import java.util.Enumeration
@@ -72,6 +74,9 @@ class SandboxClassLoader private constructor(
      * Update the common bytecode cache with the classes we have generated.
      */
     override fun close() {
+        System.getSecurityManager()?.apply {
+            checkPermission(RuntimePermission("closeClassLoader"))
+        }
         (parent as? SandboxClassLoader)?.close()
         byteCodeCache.update(loadedByteCode)
     }
@@ -423,7 +428,7 @@ class SandboxClassLoader private constructor(
             byteCodeCache[request.qualifiedClassName] ?: run {
                 // Load the source byte code for the specified class.
                 val resourceName = sourceName.asResourcePath + ".class"
-                val resource = doPrivileged(PrivilegedExceptionAction { supportingClassLoader.getResource(resourceName) })
+                val resource = doPrivileged(PrivilegedAction { supportingClassLoader.getResource(resourceName) })
                         ?: throw ClassNotFoundException("Class file not found: $resourceName")
                 val codeLocation = getCodeLocation(resource)
 
@@ -499,29 +504,33 @@ class SandboxClassLoader private constructor(
      * Generates the byte-code for [qualifiedClassName] using byte-code from [resource].
      */
     private fun generateByteCode(qualifiedClassName: String, resource: URL, codeLocation: CodeLocation, context: AnalysisContext): ByteCode {
-        return doPrivileged(PrivilegedExceptionAction {
-            val reader = try {
-                resource.openStream().use(::ClassReader)
-            } catch (e: IOException) {
-                throw ClassNotFoundException("Error reading source byte-code for $qualifiedClassName: ${e.message}")
-            }
+        return try {
+            doPrivileged(PrivilegedExceptionAction {
+                val reader = try {
+                    resource.openStream().use(::ClassReader)
+                } catch (e: IOException) {
+                    throw ClassNotFoundException("Error reading source byte-code for $qualifiedClassName: ${e.message}")
+                }
 
-            // Analyse the class if not matching the whitelist.
-            if (!analysisConfiguration.whitelist.matches(reader.className)) {
-                logger.trace("Class {} does not match with the whitelist", qualifiedClassName)
-                logger.trace("Analyzing class {}...", qualifiedClassName)
-                analyzer.analyze(reader, context, SKIP_FRAMES)
-            }
+                // Analyse the class if not matching the whitelist.
+                if (!analysisConfiguration.whitelist.matches(reader.className)) {
+                    logger.trace("Class {} does not match with the whitelist", qualifiedClassName)
+                    logger.trace("Analyzing class {}...", qualifiedClassName)
+                    analyzer.analyze(reader, context, SKIP_FRAMES)
+                }
 
-            // Check if any errors were found during analysis.
-            if (context.messages.errorCount > 0) {
-                logger.debug("Errors detected after analyzing class {}", qualifiedClassName)
-                throw SandboxClassLoadingException("Analysis failed for $qualifiedClassName", context)
-            }
+                // Check if any errors were found during analysis.
+                if (context.messages.errorCount > 0) {
+                    logger.debug("Errors detected after analyzing class {}", qualifiedClassName)
+                    throw SandboxClassLoadingException("Analysis failed for $qualifiedClassName", context)
+                }
 
-            // Transform the class definition and byte code in accordance with provided rules.
-            rewriter.rewrite(reader, codeLocation.codeSource, context)
-        })
+                // Transform the class definition and byte code in accordance with provided rules.
+                rewriter.rewrite(reader, codeLocation.codeSource, context)
+            })
+        } catch (e: PrivilegedActionException) {
+            throw e.exception
+        }
     }
 
     private fun defineClass(name: String, byteCode: ByteCode): Class<*> {
@@ -540,20 +549,24 @@ class SandboxClassLoader private constructor(
     }
 
     private fun loadUnmodifiedByteCode(internalClassName: String): ByteCode {
-        return doPrivileged(PrivilegedExceptionAction {
-            val resource = getSystemResource("$internalClassName.class")
-                ?: throw ClassNotFoundException(internalClassName)
-            val byteStream = try {
-                resource.openStream()
-            } catch (_: IOException) {
-                throw ClassNotFoundException(internalClassName)
-            }
-            ByteCode(
-                bytes = byteStream.use { it.readBytes() },
-                source = getCodeLocation(resource).codeSource,
-                isModified = false
-            )
-        })
+        return try {
+            doPrivileged(PrivilegedExceptionAction {
+                val resource = getSystemResource("$internalClassName.class")
+                    ?: throw ClassNotFoundException(internalClassName)
+                val byteStream = try {
+                    resource.openStream()
+                } catch (_: IOException) {
+                    throw ClassNotFoundException(internalClassName)
+                }
+                ByteCode(
+                    bytes = byteStream.use { it.readBytes() },
+                    source = getCodeLocation(resource).codeSource,
+                    isModified = false
+                )
+            })
+        } catch (e: PrivilegedActionException) {
+            throw e.exception
+        }
     }
 
     /**

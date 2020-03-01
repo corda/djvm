@@ -4,6 +4,7 @@ package net.corda.djvm.analysis
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.sandboxed
 import net.corda.djvm.code.CONSTRUCTOR_NAME
 import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.FROM_DJVM
 import net.corda.djvm.references.Member
 import org.objectweb.asm.Opcodes.*
 

@@ -22,6 +22,7 @@ const val THROWABLE_NAME = "java/lang/Throwable"
 const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"
 const val CLASS_CONSTRUCTOR_NAME = "<clinit>"
 const val CONSTRUCTOR_NAME = "<init>"
+const val FROM_DJVM = "fromDJVM"
 
 /**
  * The type name of the [sandbox.java.lang.DJVM] class which contains the

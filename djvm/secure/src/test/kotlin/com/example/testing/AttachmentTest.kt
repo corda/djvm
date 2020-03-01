@@ -1,6 +1,5 @@
 package com.example.testing
 
-import com.example.testing.SandboxType.KOTLIN
 import net.corda.core.contracts.Attachment
 import net.corda.core.crypto.SecureHash
 import net.corda.core.identity.Party
@@ -17,7 +16,7 @@ import java.security.PublicKey
 import java.util.function.Function
 
 @ExtendWith(LocalSerialization::class)
-class AttachmentTest : TestBase(KOTLIN) {
+class AttachmentTest : TestBase() {
     companion object {
         const val SECRET_MESSAGE = "Very Secret Message!!!"
     }

@@ -5,15 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
 
-import static com.example.testing.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaTimeZoneTest extends TestBase {
-    JavaTimeZoneTest() {
-        super(JAVA);
-    }
-
     @Test
     void testAllZoneIDs() {
         sandbox(ctx -> {

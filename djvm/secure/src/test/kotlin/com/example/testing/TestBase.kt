@@ -1,7 +1,5 @@
 package com.example.testing
 
-import com.example.testing.SandboxType.JAVA
-import com.example.testing.SandboxType.KOTLIN
 import net.corda.core.serialization.ConstructorForDeserialization
 import net.corda.core.serialization.CordaSerializable
 import net.corda.core.serialization.DeprecatedConstructorForDeserialization
@@ -19,7 +17,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.fail
 import java.io.File
 import java.nio.file.Files.exists
-import java.nio.file.Files.isDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicInteger
@@ -27,7 +24,7 @@ import java.util.function.Consumer
 import kotlin.concurrent.thread
 
 @Suppress("unused")
-abstract class TestBase(type: SandboxType) {
+abstract class TestBase {
     companion object {
         private val threadId = AtomicInteger(0)
 
@@ -71,11 +68,6 @@ abstract class TestBase(type: SandboxType) {
         }
     }
 
-    val classPaths: List<Path> = when(type) {
-        KOTLIN -> TESTING_LIBRARIES
-        JAVA -> TESTING_LIBRARIES.filter { isDirectory(it) }
-    }
-
     inline fun sandbox(crossinline action: SandboxRuntimeContext.() -> Unit) {
         sandbox(Consumer { ctx -> action(ctx) })
     }
@@ -117,7 +109,7 @@ abstract class TestBase(type: SandboxType) {
     ) {
         var thrownException: Throwable? = null
         thread(start = false, name = "DJVM-${javaClass.name}-${threadId.getAndIncrement()}") {
-            UserPathSource(classPaths).use { userSource ->
+            UserPathSource(TESTING_LIBRARIES).use { userSource ->
                 SandboxRuntimeContext(parentConfiguration.createChild(userSource, Consumer {
                     it.setMinimumSeverityLevel(minimumSeverityLevel)
                     it.setSandboxOnlyAnnotations(sandboxOnlyAnnotations)

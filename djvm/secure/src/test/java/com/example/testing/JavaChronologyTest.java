@@ -3,15 +3,10 @@ package com.example.testing;
 import net.corda.djvm.TypedTaskFactory;
 import org.junit.jupiter.api.Test;
 
-import static com.example.testing.SandboxType.JAVA;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaChronologyTest extends TestBase {
-    JavaChronologyTest() {
-        super(JAVA);
-    }
-
     @Test
     void testChronologyNames() {
         sandbox(ctx -> {

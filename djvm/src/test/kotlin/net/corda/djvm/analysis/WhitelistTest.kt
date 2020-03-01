@@ -87,4 +87,15 @@ class WhitelistTest : TestBase(KOTLIN) {
         assertThat(whitelist.matches("java/lang/annotation/AnnotationTypeMismatchException")).isFalse()
         assertThat(whitelist.matches("java/lang/annotation/IncompleteAnnotationException")).isFalse()
     }
+
+    @Test
+    fun `test access controller`() {
+        val whitelist = Whitelist.MINIMAL
+        assertThat(whitelist.matches("java/security/AccessController")).isFalse()
+        assertThat(whitelist.matches("java/security/AccessController.doPrivileged:(Ljava/security/PrivilegedAction;)Ljava/lang/Object;")).isTrue()
+        assertThat(whitelist.matches("java/security/AccessController.doPrivileged:(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object;")).isTrue()
+        assertThat(whitelist.matches("java/security/AccessController.doPrivilegedWithCombiner:(Ljava/security/PrivilegedAction;)Ljava/lang/Object;")).isTrue()
+        assertThat(whitelist.matches("java/security/AccessController.doPrivilegedWithCombiner:(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object;")).isTrue()
+        assertThat(whitelist.matches("java/security/AccessController.doPrivileged:(Ljava/security/PrivilegedAction;Ljava/security/AccessContext;)Ljava/lang/Object;")).isFalse()
+    }
 }

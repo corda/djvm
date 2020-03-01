@@ -1,6 +1,5 @@
 package com.example.testing
 
-import com.example.testing.SandboxType.KOTLIN
 import net.corda.core.crypto.Crypto
 import net.corda.core.crypto.SignatureScheme
 import net.corda.core.serialization.internal._contextSerializationEnv
@@ -17,7 +16,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource
 import java.util.stream.Stream
 
 @ExtendWith(LocalSerialization::class)
-class CryptoTest : TestBase(KOTLIN) {
+class CryptoTest : TestBase() {
     companion object {
         const val IMPORTANT_MESSAGE = "Very Important Message! Trust Me!"
     }

@@ -3,14 +3,13 @@ package net.corda.djvm.analysis
 
 import net.corda.djvm.CordaInternal
 import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.FROM_DJVM
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
 import org.objectweb.asm.Opcodes.ACC_BRIDGE
 import org.objectweb.asm.Opcodes.ACC_FINAL
 import org.objectweb.asm.Opcodes.ACC_PROTECTED
 import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
-
-const val FROM_DJVM = "fromDJVM"
 
 @CordaInternal
 open class MethodBuilder(

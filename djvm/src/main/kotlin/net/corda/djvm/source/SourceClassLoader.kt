@@ -12,7 +12,6 @@ import net.corda.djvm.code.asResourcePath
 import net.corda.djvm.messages.Message
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.rewiring.SandboxClassLoadingException
-import net.corda.djvm.utilities.doPrivileged
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
@@ -24,6 +23,8 @@ import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.security.AccessController.doPrivileged
+import java.security.PrivilegedActionException
 import java.security.PrivilegedExceptionAction
 import java.util.*
 import java.util.Collections.emptyEnumeration
@@ -193,9 +194,13 @@ class SourceClassLoader(
 
     @Throws(ClassNotFoundException::class)
     fun loadClassHeader(name: String): ClassHeader {
-        return doPrivileged(PrivilegedExceptionAction {
-            loadClassHeader(name, name.asResourcePath)
-        })
+        return try {
+            doPrivileged(PrivilegedExceptionAction {
+                loadClassHeader(name, name.asResourcePath)
+            })
+        } catch (e: PrivilegedActionException) {
+            throw e.exception
+        }
     }
 
     private fun loadClassHeader(name: String, internalName: String): ClassHeader {

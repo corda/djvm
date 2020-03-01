@@ -121,7 +121,7 @@ public final class String extends Object implements Comparable<String>, CharSequ
             try {
                 // This is (presumably) an optimisation for memory usage.
                 newValue = (java.lang.String) SHARED.newInstance(value, share);
-            } catch (Exception e) {
+            } catch (java.lang.Exception e) {
                 newValue = new java.lang.String(value);
             }
             this.value = newValue;
