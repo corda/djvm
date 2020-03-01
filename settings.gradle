@@ -19,4 +19,5 @@ rootProject.name = "deterministic-jvm-sandbox"
 
 include 'djvm'
 include 'djvm:cli'
+include 'djvm:secure'
 include 'djvm:bootstrap'

@@ -1,0 +1,79 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+repositories {
+    maven {
+        url "$artifactory_contextUrl/corda-dev"
+    }
+    maven {
+        url "$artifactory_contextUrl/corda-dependencies"
+    }
+}
+
+configurations {
+    jdkRt
+    sandboxTesting
+
+    all {
+        resolutionStrategy {
+            dependencySubstitution {
+                substitute module('net.corda.djvm:corda-djvm') with project(':djvm:bootstrap')
+            }
+        }
+    }
+
+    // This is for the latest deterministic Corda SNAPSHOT artifacts...
+    [ compileClasspath, runtimeClasspath ].forEach { cfg ->
+        cfg.resolutionStrategy {
+            // Always check the repository for a newer SNAPSHOT.
+            cacheChangingModulesFor 0, 'seconds'
+
+            dependencySubstitution {
+                substitute module('net.corda:corda-core') with module("net.corda:corda-core-deterministic:$corda_version")
+                substitute module('net.corda:corda-serialization') with module("net.corda:corda-serialization-deterministic:$corda_version")
+            }
+        }
+    }
+
+    [ testCompileClasspath, testRuntimeClasspath ].forEach { cfg ->
+        cfg.resolutionStrategy {
+            // Always check the repository for a newer SNAPSHOT.
+            cacheChangingModulesFor 0, 'seconds'
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation "net.corda:corda-core:$corda_version"
+    implementation "net.corda:corda-serialization:$corda_version"
+
+    testImplementation project(path: ':djvm', configuration: 'shadow')
+    testImplementation "net.corda:corda-serialization-djvm:$corda_version"
+    testRuntimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"
+    jdkRt "net.corda:deterministic-rt:$deterministic_rt_version"
+
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
+    testImplementation "org.assertj:assertj-core:$assertj_version"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+
+    sandboxTesting sourceSets.getByName('main').runtimeClasspath
+    sandboxTesting "net.corda:corda-deserializers-djvm:$corda_version"
+    sandboxTesting "org.slf4j:slf4j-nop:$slf4j_version"
+}
+
+tasks.named('jar', Jar) {
+    enabled = false
+}
+
+tasks.withType(Test) {
+    systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
+    systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
+
+    // A security policy that grants no privileges to user code.
+    systemProperty 'java.security.policy', '=targeted.policy'
+}
