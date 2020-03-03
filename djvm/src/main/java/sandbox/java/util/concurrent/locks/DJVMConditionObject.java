@@ -3,9 +3,8 @@ package sandbox.java.util.concurrent.locks;
 import sandbox.java.util.Date;
 import sandbox.java.util.concurrent.TimeUnit;
 
-class DJVMConditionObject extends sandbox.java.lang.Object implements Condition {
-    DJVMConditionObject() {
-    }
+final class DJVMConditionObject extends sandbox.java.lang.Object implements Condition {
+    DJVMConditionObject() {}
 
     @Override
     public void await() {

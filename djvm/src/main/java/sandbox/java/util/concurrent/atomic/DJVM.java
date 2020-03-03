@@ -7,8 +7,7 @@ import sandbox.java.util.concurrent.atomic.AtomicReferenceFieldUpdater.AtomicRef
 
 @SuppressWarnings("unused")
 public final class DJVM {
-    private DJVM() {
-    }
+    private DJVM() {}
 
     @NotNull
     public static <T,V> AtomicReferenceFieldUpdater<T,V> toDJVM(java.util.concurrent.atomic.AtomicReferenceFieldUpdater<T,V> ref) {
