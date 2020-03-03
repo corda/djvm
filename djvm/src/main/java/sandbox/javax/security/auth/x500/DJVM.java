@@ -4,8 +4,7 @@ import sandbox.sun.security.x509.X500Name;
 
 @SuppressWarnings("unused")
 public final class DJVM {
-    private DJVM() {
-    }
+    private DJVM() {}
 
     public static X500Principal create(X500Name name) {
         return new X500Principal(name);

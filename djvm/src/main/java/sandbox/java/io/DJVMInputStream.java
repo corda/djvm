@@ -5,7 +5,7 @@ import java.io.IOException;
 /**
  * Create an instance of {@link InputStream} by wrapping {@link java.io.InputStream}.
  */
-class DJVMInputStream extends InputStream {
+final class DJVMInputStream extends InputStream {
     private final java.io.InputStream input;
 
     DJVMInputStream(java.io.InputStream input) {
