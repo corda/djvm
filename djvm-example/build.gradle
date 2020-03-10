@@ -32,7 +32,9 @@ configurations {
 
     all {
         resolutionStrategy {
-            force "net.corda.djvm:corda-djvm:$djvm_version"
+            dependencySubstitution {
+                substitute module('net.corda.djvm:corda-djvm') with module("net.corda.djvm:corda-djvm:$djvm_version")
+            }
         }
     }
 
