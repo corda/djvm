@@ -4,6 +4,9 @@ package net.corda.djvm.rewiring
 import net.corda.djvm.execution.SandboxRuntimeException
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
+import java.security.AccessController.doPrivileged
+import java.security.PrivilegedActionException
+import java.security.PrivilegedExceptionAction
 import java.util.function.Function
 import java.util.function.Predicate
 
@@ -18,14 +21,20 @@ import java.util.function.Predicate
 )
 fun SandboxClassLoader.createRawPredicateFactory(): Function<in Any, out Predicate<in Any?>> {
     val taskClass = loadClass("sandbox.PredicateTask")
-    @Suppress("unchecked_cast")
-    val constructor = taskClass.getDeclaredConstructor(loadClass("sandbox.java.util.function.Predicate"))
-            as Constructor<out Predicate<in Any?>>
+    val predicateClass = loadClass("sandbox.java.util.function.Predicate")
+    val constructor = try {
+        doPrivileged(PrivilegedExceptionAction {
+            @Suppress("unchecked_cast")
+            taskClass.getDeclaredConstructor(predicateClass) as Constructor<out Predicate<in Any?>>
+        })
+    } catch (e: PrivilegedActionException) {
+        throw e.exception
+    }
     return Function { userPredicate ->
         try {
             constructor.newInstance(userPredicate)
         } catch (ex: Throwable) {
-            val target = (ex as? InvocationTargetException)?.targetException ?: ex
+            val target = (ex as? InvocationTargetException)?.cause ?: ex
             throw when (target) {
                 is RuntimeException, is Error -> target
                 else -> SandboxRuntimeException(target.message, target)
@@ -44,9 +53,13 @@ fun SandboxClassLoader.createRawPredicateFactory(): Function<in Any, out Predica
 fun SandboxClassLoader.createSandboxPredicate(): Function<Class<out Predicate<*>>, out Any> {
     return Function { predicateClass ->
         try {
-            toSandboxClass(predicateClass).getDeclaredConstructor().newInstance()
+            val sandboxClass = toSandboxClass(predicateClass)
+            doPrivileged(PrivilegedExceptionAction { sandboxClass.getDeclaredConstructor() }).newInstance()
         } catch (ex: Throwable) {
-            val target = (ex as? InvocationTargetException)?.targetException ?: ex
+            val target = when(ex) {
+                is PrivilegedActionException, is InvocationTargetException -> ex.cause ?: ex
+                else -> ex
+            }
             throw when (target) {
                 is RuntimeException, is Error -> target
                 else -> SandboxRuntimeException(target.message, target)

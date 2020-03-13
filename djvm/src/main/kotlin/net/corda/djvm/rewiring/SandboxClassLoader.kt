@@ -159,7 +159,11 @@ class SandboxClassLoader private constructor(
     private fun createBasicTask(taskName: String): Function<in Any?, out Any?> {
         val taskClass = loadClass(taskName)
         @Suppress("unchecked_cast")
-        val task = taskClass.getDeclaredConstructor().newInstance() as Function<in Any?, out Any?>
+        val task = try {
+            doPrivileged(PrivilegedExceptionAction { taskClass.getDeclaredConstructor() })
+        } catch (e: PrivilegedActionException) {
+            throw e.exception
+        }.newInstance() as Function<in Any?, out Any?>
         return Function { value ->
             try {
                 task.apply(value)
@@ -230,14 +234,20 @@ class SandboxClassLoader private constructor(
     )
     private fun createTaskFactory(taskName: String): Function<in Any, out Function<in Any?, out Any?>> {
         val taskClass = loadClass(taskName)
-        @Suppress("unchecked_cast")
-        val constructor = taskClass.getDeclaredConstructor(loadClass("sandbox.java.util.function.Function"))
-                as Constructor<out Function<in Any?, out Any?>>
+        val functionClass = loadClass("sandbox.java.util.function.Function")
+        val constructor = try {
+            doPrivileged(PrivilegedExceptionAction {
+                @Suppress("unchecked_cast")
+                taskClass.getDeclaredConstructor(functionClass) as Constructor<out Function<in Any?, out Any?>>
+            })
+        } catch (e: PrivilegedActionException) {
+            throw e.exception
+        }
         return Function { userTask ->
             try {
                 constructor.newInstance(userTask)
             } catch (ex: Throwable) {
-                val target = (ex as? InvocationTargetException)?.targetException ?: ex
+                val target = (ex as? InvocationTargetException)?.cause ?: ex
                 throw when (target) {
                     is RuntimeException, is Error -> target
                     else -> SandboxRuntimeException(target.message, target)
@@ -256,9 +266,13 @@ class SandboxClassLoader private constructor(
     fun createSandboxFunction(): Function<Class<out Function<*, *>>, out Any> {
         return Function { taskClass ->
             try {
-                toSandboxClass(taskClass).getDeclaredConstructor().newInstance()
+                val sandboxClass = toSandboxClass(taskClass)
+                doPrivileged(PrivilegedExceptionAction { sandboxClass.getDeclaredConstructor() }).newInstance()
             } catch (ex: Throwable) {
-                val target = (ex as? InvocationTargetException)?.targetException ?: ex
+                val target = when(ex) {
+                    is PrivilegedActionException, is InvocationTargetException -> ex.cause ?: ex
+                    else -> ex
+                }
                 throw when (target) {
                     is RuntimeException, is Error -> target
                     else -> SandboxRuntimeException(target.message, target)
@@ -281,7 +295,11 @@ class SandboxClassLoader private constructor(
     fun <T> createForImport(task: Function<in T, out Any?>): Function<in T, out Any?> {
         val taskClass = loadClass("sandbox.ImportTask")
         @Suppress("unchecked_cast")
-        return taskClass.getDeclaredConstructor(Function::class.java).newInstance(task) as Function<in T, out Any?>
+        return try {
+            doPrivileged(PrivilegedExceptionAction { taskClass.getDeclaredConstructor(Function::class.java) })
+        } catch (e: PrivilegedActionException) {
+            throw e.exception
+        }.newInstance(task) as Function<in T, out Any?>
     }
 
     /**

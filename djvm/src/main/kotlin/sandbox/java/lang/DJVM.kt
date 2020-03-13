@@ -64,9 +64,9 @@ fun Any.sandbox(): Any {
         is java.time.Year -> sandbox.java.time.Year.of(value)
         is java.time.YearMonth -> sandbox.java.time.YearMonth.of(year, monthValue)
         is java.time.ZonedDateTime -> sandbox.java.time.ZonedDateTime.createDJVM(
-                toLocalDateTime().toDJVM(),
-                offset.toDJVM() as sandbox.java.time.ZoneOffset,
-                zone.toDJVM()
+            toLocalDateTime().toDJVM(),
+            offset.toDJVM() as sandbox.java.time.ZoneOffset,
+            zone.toDJVM()
         )
         is java.time.ZoneId -> sandbox.java.time.ZoneId.of(String.toDJVM(id))
         is Array<*> -> toDJVMArray()
@@ -244,7 +244,7 @@ private fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(name.toSandboxPac
 internal fun Class<*>.fromDJVMType(): Class<*> = loadSandboxClass(name.fromSandboxPackage())
 
 private fun loadSandboxClass(name: kotlin.String): Class<*> = Class.forName(name, false, systemClassLoader)
-private fun loadBootstrapClass(name: kotlin.String): Class<*> = Class.forName(name, true, null)
+private fun loadBootstrapClass(name: kotlin.String): Class<*> = doPrivileged(LoadBootstrapClassAction(name))
 
 private fun kotlin.String.toSandboxPackage(): kotlin.String {
     return if (startsWith(SANDBOX_PREFIX)) {
@@ -796,5 +796,12 @@ private class CreateEnumAction(
 private class LoadSystemResourceAction(private val name: kotlin.String) : PrivilegedAction<DataInputStream?> {
     override fun run(): DataInputStream? {
         return loadSystemResource(name)
+    }
+}
+
+private class LoadBootstrapClassAction(private val name: kotlin.String) : PrivilegedExceptionAction<Class<*>> {
+    @Throws(ClassNotFoundException::class)
+    override fun run(): Class<*> {
+        return Class.forName(name, false, null)
     }
 }

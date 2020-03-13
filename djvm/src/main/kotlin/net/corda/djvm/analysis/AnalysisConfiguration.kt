@@ -274,6 +274,7 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/DJVMResourceKey",
             "sandbox/java/lang/DJVMThrowableWrapper",
             "sandbox/java/lang/GetConstructorAction",
+            "sandbox/java/lang/LoadBootstrapClassAction",
             "sandbox/java/lang/LoadSystemResourceAction",
             "sandbox/java/lang/String\$InitAction",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
