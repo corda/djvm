@@ -30,6 +30,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -47,6 +48,7 @@ import kotlin.concurrent.thread
 import kotlin.reflect.jvm.jvmName
 
 @Suppress("unused")
+@ExtendWith(SecurityManagement::class)
 abstract class TestBase(type: SandboxType) {
     companion object {
         private val threadId = AtomicInteger(0)
@@ -79,7 +81,6 @@ abstract class TestBase(type: SandboxType) {
         @BeforeAll
         @JvmStatic
         fun setupRootClassLoader() {
-            System.setSecurityManager(SecurityManager())
             bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
             val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
@@ -96,7 +97,6 @@ abstract class TestBase(type: SandboxType) {
         @JvmStatic
         fun destroyRootContext() {
             bootstrapClassLoader.close()
-            System.setSecurityManager(null)
         }
     }
 

@@ -14,6 +14,7 @@ import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import java.io.File
 import java.nio.file.Files.exists
@@ -24,6 +25,7 @@ import java.util.function.Consumer
 import kotlin.concurrent.thread
 
 @Suppress("unused")
+@ExtendWith(SecurityManagement::class)
 abstract class TestBase {
     companion object {
         private val threadId = AtomicInteger(0)
@@ -42,7 +44,6 @@ abstract class TestBase {
         @BeforeAll
         @JvmStatic
         fun setupClassLoader() {
-            System.setSecurityManager(SecurityManager())
             bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
             val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
@@ -64,7 +65,6 @@ abstract class TestBase {
         @JvmStatic
         fun destroyRootContext() {
             bootstrapSource.close()
-            System.setSecurityManager(null)
         }
     }
 
