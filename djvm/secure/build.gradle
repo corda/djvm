@@ -70,10 +70,15 @@ tasks.named('jar', Jar) {
     enabled = false
 }
 
+def securityPolicy = file('targeted.policy')
+
 tasks.withType(Test) {
     systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 
     // A security policy that grants no privileges to user code.
-    systemProperty 'java.security.policy', '=targeted.policy'
+    systemProperty 'java.security.policy', "=${securityPolicy.toURI()}"
+    systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir.toURI().path
+    systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI().path
+    systemProperty 'test.project.dir', projectDir.toURI().path
 }

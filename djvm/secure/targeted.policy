@@ -8,34 +8,34 @@ grant codeBase "file:${user.home}/.m2/repository/-" {
 };
 
 // Local Gradle cache.
-grant codeBase "file:${user.home}/.gradle/caches/-" {
+grant codeBase "file:${test.gradle.user.home}/caches/-" {
     permission java.security.AllPermission;
 };
 
 // Gradle.
-grant codeBase "file:${user.home}/.gradle/wrapper/dists/-" {
+grant codeBase "file:${test.gradle.home}/lib/-" {
     permission java.security.AllPermission;
 };
 
 // The DJVM library.
-grant codeBase "file:${user.dir}/../build/libs/*" {
+grant codeBase "file:${test.project.dir}/../build/libs/*" {
     permission java.security.AllPermission;
 };
 
 // Java test classes (outside the sandbox).
-grant codeBase "file:${user.dir}/build/classes/java/test/-" {
+grant codeBase "file:${test.project.dir}/build/classes/java/test/-" {
     permission java.security.AllPermission;
 };
 
 // Kotlin test classes (outside the sandbox).
-grant codeBase "file:${user.dir}/build/classes/kotlin/test/-" {
+grant codeBase "file:${test.project.dir}/build/classes/kotlin/test/-" {
     permission java.security.AllPermission;
 };
 
 // Java classes within the sandbox.
-grant codeBase "file:${user.dir}/build/classes/java/main/-" {
+grant codeBase "file:${test.project.dir}/build/classes/java/main/-" {
 };
 
 // Kotlin classes within the sandbox.
-grant codeBase "file:${user.dir}/build/classes/kotlin/main/-" {
+grant codeBase "file:${test.project.dir}/build/classes/kotlin/main/-" {
 };
