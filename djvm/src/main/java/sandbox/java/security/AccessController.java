@@ -13,6 +13,9 @@ public final class AccessController extends sandbox.java.lang.Object {
      * This method should NEVER be invoked because we're supposed
      * to redirect all calls to the actual JVM method instead.
      * {@link java.security.AccessController#doPrivileged(java.security.PrivilegedAction)}
+     * @param <T> Generic return type.
+     * @param action The action to perform with elevated privileges.
+     * @return T The result of the privileged action.
      */
     public static <T> T doPrivileged(@NotNull PrivilegedAction<T> action) {
         throw new RuleViolationError(FORBIDDEN_METHOD);
@@ -22,6 +25,11 @@ public final class AccessController extends sandbox.java.lang.Object {
      * This method should NEVER be invoked because we're supposed
      * to redirect all calls to the actual JVM method instead.
      * {@link java.security.AccessController#doPrivileged(java.security.PrivilegedExceptionAction)}
+     * @param <T> Generic return type.
+     * @param action The action to perform with elevated privileges.
+     * @return T The result of the privileged action.
+     * @throws java.security.PrivilegedActionException Wraps any checked
+     * exception that the privileged action may throw.
      */
     public static <T> T doPrivileged(@NotNull PrivilegedExceptionAction<T> action) throws java.security.PrivilegedActionException {
         throw new RuleViolationError(FORBIDDEN_METHOD);
