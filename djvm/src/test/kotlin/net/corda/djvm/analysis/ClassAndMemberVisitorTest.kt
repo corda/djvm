@@ -31,14 +31,14 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
 
         visitor.analyze<TestClass>(context)
         assertThat(classesVisited)
-                .hasSize(1)
-                .hasClass<TestClass>()
+            .hasSize(1)
+            .hasClass<TestClass>()
 
         visitor.analyze<AnotherTestClass>(context)
         assertThat(classesVisited)
-                .hasSize(2)
-                .hasClass<TestClass>()
-                .hasClass<AnotherTestClass>()
+            .hasSize(2)
+            .hasClass<TestClass>()
+            .hasClass<AnotherTestClass>()
     }
 
     private class TestClass
@@ -56,10 +56,10 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
         }
         visitor.analyze<TestClassWithFields>(context)
         assertThat(membersVisited)
-                .hasSize(3)
-                .hasMember("one", "Z")
-                .hasMember("two", "Ljava/lang/String;")
-                .hasMember("three", "I")
+            .hasSize(3)
+            .hasMember("one", "Z")
+            .hasMember("two", "Ljava/lang/String;")
+            .hasMember("three", "I")
     }
 
     private class TestClassWithFields {
@@ -86,10 +86,10 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
         }
         visitor.analyze<TestClassWithMethods>(context)
         assertThat(membersVisited)
-                .hasSize(3)
-                .hasMember("<init>", "()V")
-                .hasMember("foo", "()Ljava/lang/String;")
-                .hasMember("bar", "()I")
+            .hasSize(3)
+            .hasMember("<init>", "()V")
+            .hasMember("foo", "()Ljava/lang/String;")
+            .hasMember("bar", "()I")
     }
 
     private class TestClassWithMethods {
@@ -110,9 +110,9 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
         }
         visitor.analyze<TestClassWithAnnotations>(context)
         assertThat(annotations)
-                .hasSize(2)
-                .contains("Lkotlin/Metadata;")
-                .contains("Lnet/corda/djvm/annotations/NonDeterministic;")
+            .hasSize(2)
+            .contains("Lkotlin/Metadata;")
+            .contains("Lnet/corda/djvm/annotations/NonDeterministic;")
     }
 
     @NonDeterministic
@@ -140,9 +140,9 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
         }
         visitor.analyze<TestClassWithMemberAnnotations>(context)
         assertThat(annotations)
-                .hasSize(2)
-                .contains("field\$annotations:Lnet/corda/djvm/annotations/NonDeterministic;")
-                .contains("method:Lnet/corda/djvm/annotations/NonDeterministic;")
+            .hasSize(2)
+            .contains("field\$annotations:Lnet/corda/djvm/annotations/NonDeterministic;")
+            .contains("method:Lnet/corda/djvm/annotations/NonDeterministic;")
     }
 
     private class TestClassWithMemberAnnotations {
@@ -167,9 +167,9 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
         visitor.analyze<TestClass>(context)
         val expectedSource = ".*ClassAndMemberVisitorTest.kt"
         assertThat(sources)
-                .hasSize(1)
-                .`as`("HasSource($expectedSource)")
-                .anySatisfy { assertThat(it).containsPattern(expectedSource) }
+            .hasSize(1)
+            .`as`("HasSource($expectedSource)")
+            .anySatisfy { assertThat(it).containsPattern(expectedSource) }
     }
 
     @Test
@@ -194,28 +194,28 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
         }
         visitor.analyze<TestClassWithCode>(context)
         assertThat(instructions)
-                .isNotEmpty
-                .hasInstruction<TypeInstruction>(
-                        "foo", "sandbox/java/lang/Object"
-                ) {
-                    assertThat(it.typeName).isEqualTo("sandbox/java/lang/Object")
-                }
-                .hasInstruction<MemberAccessInstruction>(
-                        "foo", "sandbox/java/lang/Object:<init>:()V"
-                ) {
-                    assertThat(it.className).isEqualTo("sandbox/java/lang/Object")
-                    assertThat(it.memberName).isEqualTo("<init>")
-                    assertThat(it.descriptor).isEqualTo("()V")
-                }
-                .hasInstruction<MemberAccessInstruction>(
-                        "foo", "sandbox/java/lang/Object:hashCode()I"
-                ) {
-                    assertThat(it.className).isEqualTo("sandbox/java/lang/Object")
-                    assertThat(it.memberName).isEqualTo("hashCode")
-                    assertThat(it.descriptor).isEqualTo("()I")
-                }
-                .hasInstruction<TryFinallyBlock>("bar", "TryFinallyBlock")
-                .hasInstruction<MemberAccessInstruction>("bar", "MemberAccessInstruction")
+            .isNotEmpty
+            .hasInstruction<TypeInstruction>(
+                    "foo", "sandbox/java/lang/Object"
+            ) {
+                assertThat(it.typeName).isEqualTo("sandbox/java/lang/Object")
+            }
+            .hasInstruction<MemberAccessInstruction>(
+                    "foo", "sandbox/java/lang/Object:<init>:()V"
+            ) {
+                assertThat(it.className).isEqualTo("sandbox/java/lang/Object")
+                assertThat(it.memberName).isEqualTo("<init>")
+                assertThat(it.descriptor).isEqualTo("()V")
+            }
+            .hasInstruction<MemberAccessInstruction>(
+                    "foo", "sandbox/java/lang/Object:hashCode()I"
+            ) {
+                assertThat(it.className).isEqualTo("sandbox/java/lang/Object")
+                assertThat(it.memberName).isEqualTo("hashCode")
+                assertThat(it.descriptor).isEqualTo("()I")
+            }
+            .hasInstruction<TryFinallyBlock>("bar", "TryFinallyBlock")
+            .hasInstruction<MemberAccessInstruction>("bar", "MemberAccessInstruction")
     }
 
     private class TestClassWithCode {
