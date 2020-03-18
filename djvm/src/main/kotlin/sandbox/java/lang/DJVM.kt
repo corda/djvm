@@ -244,7 +244,7 @@ private fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(name.toSandboxPac
 internal fun Class<*>.fromDJVMType(): Class<*> = loadSandboxClass(name.fromSandboxPackage())
 
 private fun loadSandboxClass(name: kotlin.String): Class<*> = Class.forName(name, false, systemClassLoader)
-private fun loadBootstrapClass(name: kotlin.String): Class<*> = doPrivileged(LoadBootstrapClassAction(name))
+private fun loadBootstrapClass(name: kotlin.String): Class<*> = doPrivileged(DJVMBootstrapClassAction(name))
 
 private fun kotlin.String.toSandboxPackage(): kotlin.String {
     return if (startsWith(SANDBOX_PREFIX)) {
@@ -314,7 +314,7 @@ internal fun getEnumConstantsShared(clazz: Class<out Enum<*>>): Array<out Enum<*
 }
 
 private fun createEnum(clazz: Class<out Enum<*>>): Array<out Enum<*>>? {
-    return doPrivileged(CreateEnumAction(clazz))?.apply { allEnums.put(clazz, this) }
+    return doPrivileged(DJVMEnumAction(clazz))?.apply { allEnums.put(clazz, this) }
 }
 
 private fun createEnumDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Map<String, out Enum<*>> {
@@ -410,7 +410,7 @@ fun loadSystemResource(name: kotlin.String): DataInputStream {
 @Throws(IOException::class)
 fun getCalendarProperties(): Properties {
     return Properties().apply {
-        load(AccessController.doPrivileged(LoadSystemResourceAction("calendars.properties")))
+        load(AccessController.doPrivileged(DJVMSystemResourceAction("calendars.properties")))
     }
 }
 
@@ -454,10 +454,10 @@ fun toSandbox(className: kotlin.String): kotlin.String {
 private val bannedClasses = setOf(
     "^java\\.lang\\.DJVM(.*)?\$".toRegex(),
     "^net\\.corda\\.djvm\\..*\$".toRegex(),
-    "^javax?\\..*\\.DJVM\$".toRegex(),
+    "^javax?\\..*\\.DJVM(\\$.++)?\$".toRegex(),
     "^java\\.io\\.DJVM[^.]++\$".toRegex(),
-    "^java\\.security\\.DJVM[^.]++\$".toRegex(),
     "^java\\.util\\.concurrent\\.locks\\.DJVM[^.]++\$".toRegex(),
+    "^java\\.lang\\.String\\\$InitAction\$".toRegex(),
     "^[^.]++\$".toRegex()
 )
 
@@ -760,7 +760,7 @@ private fun <T> doPrivileged(action: PrivilegedExceptionAction<T>): T {
     }
 }
 
-private class GetConstructorAction<T>(
+private class DJVMConstructorAction<T>(
     private val clazz: Class<T>,
     private val argTypes: Array<out Class<*>>
 ) : PrivilegedExceptionAction<Constructor<T>> {
@@ -768,6 +768,7 @@ private class GetConstructorAction<T>(
         return isPublic(modifiers) || (!isPrivate(modifiers) && clazz.`package`.name == "sandbox.java.lang")
     }
 
+    @Throws(kotlin.Exception::class)
     override fun run(): Constructor<T> {
         return clazz.getDeclaredConstructor(*argTypes).apply {
             if (!isAccessible(modifiers)) {
@@ -778,28 +779,29 @@ private class GetConstructorAction<T>(
 }
 
 private fun <T> Class<T>.getPrivilegedConstructor(vararg args: Class<*>): Constructor<T> {
-    return doPrivileged(GetConstructorAction(this, args))
+    return doPrivileged(DJVMConstructorAction(this, args))
 }
 
-private class CreateEnumAction(
+private class DJVMEnumAction(
     private val clazz: Class<out Enum<*>>
 ) : PrivilegedExceptionAction<Array<out Enum<*>>?> {
+    @Throws(kotlin.Exception::class)
     override fun run(): Array<out Enum<*>>? {
         @Suppress("unchecked_cast")
-        return clazz.getMethod("values").let { method ->
-            method.isAccessible = true
-            method.invoke(null) as? Array<out Enum<*>>
+        return clazz.getMethod("values").run {
+            isAccessible = true
+            invoke(null) as? Array<out Enum<*>>
         }
     }
 }
 
-private class LoadSystemResourceAction(private val name: kotlin.String) : PrivilegedAction<DataInputStream?> {
+private class DJVMSystemResourceAction(private val name: kotlin.String) : PrivilegedAction<DataInputStream?> {
     override fun run(): DataInputStream? {
         return loadSystemResource(name)
     }
 }
 
-private class LoadBootstrapClassAction(private val name: kotlin.String) : PrivilegedExceptionAction<Class<*>> {
+private class DJVMBootstrapClassAction(private val name: kotlin.String) : PrivilegedExceptionAction<Class<*>> {
     @Throws(ClassNotFoundException::class)
     override fun run(): Class<*> {
         return Class.forName(name, false, null)
