@@ -28,7 +28,7 @@ fun SandboxClassLoader.createRawPredicateFactory(): Function<in Any, out Predica
             taskClass.getDeclaredConstructor(predicateClass) as Constructor<out Predicate<in Any?>>
         })
     } catch (e: PrivilegedActionException) {
-        throw e.exception
+        throw e.cause ?: e
     }
     return Function { userPredicate ->
         try {

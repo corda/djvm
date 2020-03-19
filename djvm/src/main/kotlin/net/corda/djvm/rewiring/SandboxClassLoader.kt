@@ -162,7 +162,7 @@ class SandboxClassLoader private constructor(
         val task = try {
             doPrivileged(PrivilegedExceptionAction { taskClass.getDeclaredConstructor() })
         } catch (e: PrivilegedActionException) {
-            throw e.exception
+            throw e.cause ?: e
         }.newInstance() as Function<in Any?, out Any?>
         return Function { value ->
             try {
@@ -241,7 +241,7 @@ class SandboxClassLoader private constructor(
                 taskClass.getDeclaredConstructor(functionClass) as Constructor<out Function<in Any?, out Any?>>
             })
         } catch (e: PrivilegedActionException) {
-            throw e.exception
+            throw e.cause ?: e
         }
         return Function { userTask ->
             try {
@@ -298,7 +298,7 @@ class SandboxClassLoader private constructor(
         return try {
             doPrivileged(PrivilegedExceptionAction { taskClass.getDeclaredConstructor(Function::class.java) })
         } catch (e: PrivilegedActionException) {
-            throw e.exception
+            throw e.cause ?: e
         }.newInstance(task) as Function<in T, out Any?>
     }
 
@@ -547,7 +547,7 @@ class SandboxClassLoader private constructor(
                 rewriter.rewrite(reader, codeLocation.codeSource, context)
             })
         } catch (e: PrivilegedActionException) {
-            throw e.exception
+            throw e.cause ?: e
         }
     }
 
@@ -583,7 +583,7 @@ class SandboxClassLoader private constructor(
                 )
             })
         } catch (e: PrivilegedActionException) {
-            throw e.exception
+            throw e.cause ?: e
         }
     }
 

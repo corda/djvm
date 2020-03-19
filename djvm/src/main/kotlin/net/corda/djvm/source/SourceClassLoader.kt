@@ -199,7 +199,7 @@ class SourceClassLoader(
                 loadClassHeader(name, name.asResourcePath)
             })
         } catch (e: PrivilegedActionException) {
-            throw e.exception
+            throw e.cause ?: e
         }
     }
 

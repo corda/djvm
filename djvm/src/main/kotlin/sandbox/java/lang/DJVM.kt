@@ -756,7 +756,7 @@ private fun <T> doPrivileged(action: PrivilegedExceptionAction<T>): T {
     return try {
         AccessController.doPrivileged(action)
     } catch (e: PrivilegedActionException) {
-        throw e.exception
+        throw e.cause ?: e
     }
 }
 
