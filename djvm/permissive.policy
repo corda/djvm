@@ -6,14 +6,14 @@ grant codeBase "file:${user.home}/.m2/repository/-" {
     permission java.security.AllPermission;
 };
 
-grant codeBase "file:${test.gradle.user.home}/caches/-" {
+grant codeBase "${test.gradle.user.home}/caches/-" {
     permission java.security.AllPermission;
 };
 
-grant codeBase "file:${test.gradle.home}/lib/-" {
+grant codeBase "${test.gradle.home}/lib/-" {
     permission java.security.AllPermission;
 };
 
-grant codeBase "file:${test.project.dir}/build/-" {
+grant codeBase "${test.project.uri}/build/-" {
     permission java.security.AllPermission;
 };

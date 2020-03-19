@@ -160,9 +160,9 @@ tasks.withType(Test) {
 
     // A security policy that allows known code-bases to do anything.
     systemProperty 'java.security.policy', "=${securityPolicy.toURI()}"
-    systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir.toURI().path
-    systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI().path
-    systemProperty 'test.project.dir', projectDir.toURI().path
+    systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir.toURI()
+    systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI()
+    systemProperty 'test.project.uri', projectDir.toURI()
 
     // Disable JIT compilation of sandbox.* classes because they are discarded after use.
     // https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
