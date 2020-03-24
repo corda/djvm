@@ -23,8 +23,12 @@ import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.security.AccessController.doPrivileged
+import java.security.PrivilegedActionException
+import java.security.PrivilegedExceptionAction
 import java.util.*
 import java.util.Collections.emptyEnumeration
+import java.util.Collections.unmodifiableSet
 import kotlin.streams.toList
 
 /**
@@ -121,7 +125,7 @@ class SourceClassLoader(
     constructor(classResolver: ClassResolver, userSource: UserSource)
         : this(classResolver, userSource, null, null)
 
-    fun getURLs(): Array<URL> = userSource.getURLs()
+    fun getURLs(): Array<URL> = userSource.getURLs() + (bootstrap?.getURLs() ?: emptyArray())
 
     fun getAllURLs(): Set<URL> {
         val urls = getURLs().mapTo(LinkedHashSet()) { it }
@@ -132,6 +136,14 @@ class SourceClassLoader(
         }
         return urls
     }
+
+    /**
+     * Immutable set of [CodeLocation] objects describing
+     * our source classes' code-bases.
+     */
+    val codeLocations: Set<CodeLocation> = unmodifiableSet(
+        getURLs().mapTo(LinkedHashSet(), ::CodeLocation)
+    )
 
     /**
      * Open a [ClassReader] for the provided class name.
@@ -182,7 +194,13 @@ class SourceClassLoader(
 
     @Throws(ClassNotFoundException::class)
     fun loadClassHeader(name: String): ClassHeader {
-        return loadClassHeader(name, name.asResourcePath)
+        return try {
+            doPrivileged(PrivilegedExceptionAction {
+                loadClassHeader(name, name.asResourcePath)
+            })
+        } catch (e: PrivilegedActionException) {
+            throw e.cause ?: e
+        }
     }
 
     private fun loadClassHeader(name: String, internalName: String): ClassHeader {

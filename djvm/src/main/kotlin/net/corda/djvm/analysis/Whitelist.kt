@@ -113,6 +113,7 @@ open class Whitelist private constructor(
             "^java/lang/reflect/Constructor(\\..*)?\$".toRegex(),
             "^java/io/Closeable(\\..*)?\$".toRegex(),
             "^java/io/Serializable\$".toRegex(),
+            "^java/security/AccessController\\.doPrivileged(WithCombiner)?:\\(Ljava/security/Privileged(Exception)?Action;\\).*\$".toRegex(),
             "^java/util/concurrent/atomic/Atomic(Integer|Long|Reference)FieldUpdater\\.newUpdater:.*\$".toRegex()
         )
 

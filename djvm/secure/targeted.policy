@@ -1,0 +1,41 @@
+grant codeBase "file:${{java.ext.dirs}}/*" {
+    permission java.security.AllPermission;
+};
+
+// Local Maven repository.
+grant codeBase "file:${user.home}/.m2/repository/-" {
+    permission java.security.AllPermission;
+};
+
+// Local Gradle cache.
+grant codeBase "${test.gradle.user.home}/caches/-" {
+    permission java.security.AllPermission;
+};
+
+// Gradle.
+grant codeBase "${test.gradle.home}/lib/-" {
+    permission java.security.AllPermission;
+};
+
+// The DJVM library.
+grant codeBase "${test.project.uri}/../build/libs/*" {
+    permission java.security.AllPermission;
+};
+
+// Java test classes (outside the sandbox).
+grant codeBase "${test.project.uri}/build/classes/java/test/-" {
+    permission java.security.AllPermission;
+};
+
+// Kotlin test classes (outside the sandbox).
+grant codeBase "${test.project.uri}/build/classes/kotlin/test/-" {
+    permission java.security.AllPermission;
+};
+
+// Java classes within the sandbox.
+grant codeBase "${test.project.uri}/build/classes/java/main/-" {
+};
+
+// Kotlin classes within the sandbox.
+grant codeBase "${test.project.uri}/build/classes/kotlin/main/-" {
+};

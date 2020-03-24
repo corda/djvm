@@ -272,8 +272,17 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/DJVMNoResource",
             "sandbox/java/lang/DJVMResourceKey",
             "sandbox/java/lang/DJVMThrowableWrapper",
+            "sandbox/java/lang/DJVMBootstrapClassAction",
+            "sandbox/java/lang/DJVMConstructorAction",
+            "sandbox/java/lang/DJVMEnumAction",
+            "sandbox/java/lang/DJVMSystemResourceAction",
+            "sandbox/java/lang/String\$InitAction",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
+            "sandbox/java/security/DJVM",
+            "sandbox/java/security/DJVM\$PrivilegedExceptionTask",
+            "sandbox/java/security/DJVM\$PrivilegedTask",
             "sandbox/java/time/DJVM",
+            "sandbox/java/time/DJVM\$InitAction",
             "sandbox/java/time/zone/ZoneRulesProvider\$1",
             "sandbox/java/util/Currency\$1",
             "sandbox/java/util/concurrent/ConcurrentHashMap\$BaseEnumerator",
@@ -351,7 +360,8 @@ class AnalysisConfiguration private constructor(
             java.lang.UnsupportedOperationException::class.java,
             java.lang.VerifyError::class.java,
             java.lang.VirtualMachineError::class.java,
-            java.lang.reflect.InvocationTargetException::class.java
+            java.lang.reflect.InvocationTargetException::class.java,
+            java.security.PrivilegedActionException::class.java
         ).sandboxed() + setOf(
             // Mentioned here to prevent the DJVM from generating a synthetic wrapper.
             "sandbox/java/lang/DJVMThrowableWrapper"

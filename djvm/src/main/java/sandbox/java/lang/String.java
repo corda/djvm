@@ -9,6 +9,8 @@ import sandbox.java.util.Locale;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 @SuppressWarnings("unused")
 public final class String extends Object implements Comparable<String>, CharSequence, Serializable {
@@ -24,17 +26,20 @@ public final class String extends Object implements Comparable<String>, CharSequ
     private static final String TRUE = new String("true").intern();
     private static final String FALSE = new String("false").intern();
 
-    private static final Constructor SHARED;
+    private static final Constructor SHARED = AccessController.doPrivileged(new InitAction());
 
-    static {
-        Constructor ctor;
-        try {
-            ctor = java.lang.String.class.getDeclaredConstructor(char[].class, java.lang.Boolean.TYPE);
-            ctor.setAccessible(true);
-        } catch (NoSuchMethodException e) {
-            ctor = null;
+    private static class InitAction implements PrivilegedAction<Constructor> {
+        @Override
+        public Constructor run() {
+            Constructor ctor;
+            try {
+                ctor = java.lang.String.class.getDeclaredConstructor(char[].class, java.lang.Boolean.TYPE);
+                ctor.setAccessible(true);
+            } catch (NoSuchMethodException e) {
+                ctor = null;
+            }
+            return ctor;
         }
-        SHARED = ctor;
     }
 
     private final java.lang.String value;
@@ -116,7 +121,7 @@ public final class String extends Object implements Comparable<String>, CharSequ
             try {
                 // This is (presumably) an optimisation for memory usage.
                 newValue = (java.lang.String) SHARED.newInstance(value, share);
-            } catch (Exception e) {
+            } catch (java.lang.Exception e) {
                 newValue = new java.lang.String(value);
             }
             this.value = newValue;

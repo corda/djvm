@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.lang.reflect.InvocationTargetException
+import java.security.PrivilegedActionException
 import java.util.function.Function
 
 /**
@@ -83,6 +84,21 @@ class JVMExceptionTest : TestBase(KOTLIN) {
             .hasMessage(MESSAGE)
         assertThat(ex.cause)
             .hasMessage("sandbox.net.corda.djvm.MyCustomException -> Boo!")
+            .hasNoCause()
+    }
+
+    @Test
+    fun testPrivilegedActionException() = sandbox {
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val throwMeTask = taskFactory.create(ThrowMeTask::class.java)
+        val ex = assertThrows<PrivilegedActionException> {
+            throwMeTask.apply(PrivilegedActionException(MyCustomException(MESSAGE)))
+        }
+        assertThat(ex)
+            .hasCauseExactlyInstanceOf(Exception::class.java)
+            .hasMessage(null)
+        assertThat(ex.cause)
+            .hasMessage("sandbox.net.corda.djvm.MyCustomException -> Hello World!")
             .hasNoCause()
     }
 

@@ -3,6 +3,8 @@ package net.corda.djvm
 import net.corda.djvm.costing.RuntimeCostSummary
 import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.rewiring.SandboxClassLoader
+import java.security.AccessController.doPrivileged
+import java.security.PrivilegedAction
 import java.util.function.Consumer
 
 /**
@@ -15,7 +17,9 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
     /**
      * The class loader to use inside the sandbox.
      */
-    val classLoader: SandboxClassLoader = SandboxClassLoader.createFor(configuration)
+    val classLoader: SandboxClassLoader = doPrivileged(PrivilegedAction {
+        SandboxClassLoader.createFor(configuration)
+    })
 
     /**
      * A summary of the currently accumulated runtime costs (for, e.g., memory allocations, invocations, etc.).
@@ -40,13 +44,12 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
      * Run a set of actions within the provided sandbox context.
      */
     fun use(action: Consumer<SandboxRuntimeContext>) {
-        classLoader.use {
-            instance = this
-            try {
-                action.accept(this)
-            } finally {
-                threadLocalContext.remove()
-            }
+        instance = this
+        try {
+            action.accept(this)
+        } finally {
+            threadLocalContext.remove()
+            doPrivileged(PrivilegedAction { classLoader.close() })
         }
     }
 
