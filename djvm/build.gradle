@@ -7,6 +7,7 @@ plugins {
     id 'net.corda.plugins.api-scanner'
     id 'com.jfrog.artifactory'
     id 'com.jfrog.bintray'
+    id 'java-library'
     id 'idea'
 }
 

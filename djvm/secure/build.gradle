@@ -13,7 +13,7 @@ repositories {
         }
     }
     maven {
-        url "$artifactory_contextUrl/corda-dependencies"
+        url "$artifactory_contextUrl/corda"
         content {
             includeGroup 'net.corda'
             includeModule 'co.paralleluniverse', 'quasar-core'

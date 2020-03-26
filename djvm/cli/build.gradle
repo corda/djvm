@@ -25,7 +25,9 @@ dependencies {
     implementation project(path: ':djvm', configuration: 'shadow')
 }
 
-jar.enabled = false
+tasks.named('jar', Jar) {
+    enabled = false
+}
 
 shadowJar {
     archiveBaseName = djvmName
