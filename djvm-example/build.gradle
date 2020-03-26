@@ -15,13 +15,17 @@ version '1.0-SNAPSHOT'
 
 repositories {
     maven {
-        url "$artifactory_contextUrl/corda-dev"
-    }
-    maven {
-        url "$artifactory_contextUrl/corda-dependencies"
+        url "$artifactory_contextUrl/corda"
+        content {
+            includeGroupByRegex 'net.corda(\\..*)?'
+            includeModule 'co.paralleluniverse', 'quasar-core'
+        }
     }
     maven {
         url "$artifactory_contextUrl/corda-lib"
+        content {
+            includeGroup 'com.r3.corda.lib.tokens'
+        }
     }
     mavenCentral()
 }
