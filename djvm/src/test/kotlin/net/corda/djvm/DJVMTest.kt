@@ -96,19 +96,34 @@ class DJVMTest : TestBase(KOTLIN) {
     @Test
     fun testSandboxingArrays() = sandbox {
         with(DJVM(classLoader)) {
-            val result = sandbox(arrayOf(1, 10L, "Hello World", '?', false, 1234.56))
-            assertThat(result).isEqualTo(
-                arrayOf(intOf(1), longOf(10), stringOf("Hello World"), charOf('?'), booleanOf(false), doubleOf(1234.56)))
+            val result = sandbox(arrayOf(1, 10L, "Hello World", '?', false, 1234.56, null))
+            assertThat(result).isEqualTo(arrayOf(
+                intOf(1),
+                longOf(10),
+                stringOf("Hello World"),
+                charOf('?'),
+                booleanOf(false),
+                doubleOf(1234.56),
+                null
+            ))
         }
     }
 
     @Test
     fun testUnsandboxingObjectArray() = sandbox {
         val result = with(DJVM(classLoader)) {
-            unsandbox(arrayOf(intOf(1), longOf(10L), stringOf("Hello World"), charOf('?'), booleanOf(false), doubleOf(1234.56)))
+            unsandbox(arrayOf(
+                intOf(1),
+                longOf(10L),
+                stringOf("Hello World"),
+                charOf('?'),
+                booleanOf(false),
+                doubleOf(1234.56),
+                null
+            ))
         }
         assertThat(result)
-            .isEqualTo(arrayOf(1, 10L, "Hello World", '?', false, 1234.56))
+            .isEqualTo(arrayOf(1, 10L, "Hello World", '?', false, 1234.56, null))
     }
 
     @Test

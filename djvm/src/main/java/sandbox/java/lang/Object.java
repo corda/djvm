@@ -44,7 +44,7 @@ public class Object {
     private static java.lang.Object unwrap(java.lang.Object arg) {
         if (arg instanceof Object) {
             return ((Object) arg).fromDJVM();
-        } else if (java.lang.Object[].class.isAssignableFrom(arg.getClass())) {
+        } else if (arg != null && java.lang.Object[].class.isAssignableFrom(arg.getClass())) {
             return fromDJVM((java.lang.Object[]) arg);
         } else {
             return arg;
