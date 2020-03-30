@@ -5,8 +5,8 @@ import net.corda.djvm.TypedTaskFactory
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor
-import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMExceptionOwner
-import net.corda.djvm.analysis.ExceptionResolver.Companion.isDJVMException
+import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSyntheticOwner
+import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
 import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.code.asResourcePath
 import net.corda.djvm.execution.SandboxRuntimeException
@@ -394,16 +394,20 @@ class SandboxClassLoader private constructor(
      * synthetic wrapper class belonging to an exception that we haven't loaded yet?
      * Either way, we need to load the sandboxed exception first so that we know what
      * the synthetic wrapper's super-class needs to be.
+     *
+     * The same logic also applies to annotation classes because these must extend
+     * [java.lang.annotation.Annotation] in order to annotate anything. So we create
+     * synthetic annotations to store the values in the byte-code, and translate
+     * them to "annotation-like" equivalent interfaces inside the sandbox.
      */
     private fun loadSandboxClass(source: ClassSource, context: AnalysisContext): Class<*> {
-        return if (isDJVMException(source.internalClassName)) {
+        return if (isDJVMSynthetic(source.internalClassName)) {
             /**
-             * We need to load a DJVMException's owner class before we can create
-             * its wrapper exception. And loading the owner should then also create
-             * the wrapper class automatically.
+             * We need to load the owner class before we can create its synthetic friend class.
+             * And loading the owner should then also create the synthetic class automatically.
              */
-            val exceptionOwner = ClassSource.fromClassName(getDJVMExceptionOwner(source.qualifiedClassName))
-            if (!analysisConfiguration.isJvmException(exceptionOwner.internalClassName)) {
+            val syntheticOwner = ClassSource.fromClassName(getDJVMSyntheticOwner(source.qualifiedClassName))
+            if (!analysisConfiguration.isJvmException(syntheticOwner.internalClassName)) {
                 /**
                  * We must not create a duplicate synthetic wrapper inside any child
                  * classloader. Hence we re-invoke [loadClass] which will delegate
@@ -412,7 +416,7 @@ class SandboxClassLoader private constructor(
                  * JVM Exceptions belong to the bootstrap classloader, and so will
                  * never be found inside a child classloader.
                  */
-                loadClass(exceptionOwner.qualifiedClassName, false)
+                loadClass(syntheticOwner.qualifiedClassName, false)
             }
             findLoadedClass(source.qualifiedClassName) ?: throw ClassNotFoundException(source.qualifiedClassName)
         } else {
@@ -595,10 +599,10 @@ class SandboxClassLoader private constructor(
      * exists for this exception, and create it if it doesn't.
      */
     private fun loadWrapperFor(throwable: Class<*>): Class<*> {
-        val className = analysisConfiguration.exceptionResolver.getThrowableName(throwable)
+        val className = analysisConfiguration.syntheticResolver.getThrowableName(throwable)
         val loadableClassName = className.asPackagePath
         return findLoadedClass(loadableClassName) ?: run {
-            val superName = analysisConfiguration.exceptionResolver.getThrowableSuperName(throwable)
+            val superName = analysisConfiguration.syntheticResolver.getThrowableSuperName(throwable)
             val byteCode = ThrowableWrapperFactory.toByteCode(className, superName)
             loadedByteCode[loadableClassName] = byteCode
             defineClass(loadableClassName, byteCode)

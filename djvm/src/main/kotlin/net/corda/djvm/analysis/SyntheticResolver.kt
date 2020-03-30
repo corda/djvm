@@ -2,20 +2,20 @@ package net.corda.djvm.analysis
 
 import org.objectweb.asm.Type
 
-class ExceptionResolver(
+class SyntheticResolver(
     private val jvmExceptionClasses: Set<String>,
     private val sandboxPrefix: String
 ) {
     companion object {
-        private const val DJVM_EXCEPTION_NAME = "\$1DJVM"
+        private const val DJVM_SYNTHETIC_NAME = "\$1DJVM"
 
-        fun isDJVMException(className: String): Boolean = className.endsWith(DJVM_EXCEPTION_NAME)
-        fun getDJVMException(className: String): String = className + DJVM_EXCEPTION_NAME
-        fun getDJVMExceptionOwner(className: String): String = className.dropLast(DJVM_EXCEPTION_NAME.length)
+        fun isDJVMSynthetic(className: String): Boolean = className.endsWith(DJVM_SYNTHETIC_NAME)
+        fun getDJVMSynthetic(className: String): String = className + DJVM_SYNTHETIC_NAME
+        fun getDJVMSyntheticOwner(className: String): String = className.dropLast(DJVM_SYNTHETIC_NAME.length)
     }
 
     fun getThrowableName(clazz: Class<*>): String {
-        return getDJVMException(Type.getInternalName(clazz))
+        return getDJVMSynthetic(Type.getInternalName(clazz))
     }
 
     fun getThrowableSuperName(clazz: Class<*>): String {
@@ -26,7 +26,7 @@ class ExceptionResolver(
         return if (className in jvmExceptionClasses) {
             className.unsandboxed
         } else {
-            getDJVMException(className)
+            getDJVMSynthetic(className)
         }
     }
 

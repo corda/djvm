@@ -56,7 +56,7 @@ import kotlin.collections.LinkedHashSet
  * @property minimumSeverityLevel The minimum severity level to log and report.
  * @property supportingClassLoader ClassLoader providing the classes to run inside the sandbox.
  * @property classResolver Functionality used to resolve the qualified name and relevant information about a class.
- * @property exceptionResolver Resolves the internal names of synthetic exception classes.
+ * @property syntheticResolver Resolves the internal names of synthetic "friend" classes.
  * @property analyzeAnnotations Analyze annotations despite not being explicitly referenced.
  * @property prefixFilters Only record messages where the originating class name matches one of the provided prefixes.
  * If none are provided, all messages will be reported.
@@ -72,7 +72,7 @@ class AnalysisConfiguration private constructor(
     val minimumSeverityLevel: Severity,
     val supportingClassLoader: SourceClassLoader,
     val classResolver: ClassResolver,
-    val exceptionResolver: ExceptionResolver,
+    val syntheticResolver: SyntheticResolver,
     val analyzeAnnotations: Boolean,
     val prefixFilters: List<String>,
     val classModule: ClassModule,
@@ -106,7 +106,7 @@ class AnalysisConfiguration private constructor(
     fun toSandboxClassName(header: ClassHeader): String {
         val sandboxName = classResolver.resolve(header.internalName)
         return if (header.isThrowable) {
-            exceptionResolver.getThrowableOwnerName(sandboxName)
+            syntheticResolver.getThrowableOwnerName(sandboxName)
         } else {
             sandboxName
         }
@@ -152,7 +152,7 @@ class AnalysisConfiguration private constructor(
                 allowedAnnotations = allowedAnnotations.merge(visibleAnnotations),
                 stitchedAnnotations = stitchedAnnotations.merge(visibleAnnotations),
                 classResolver = classResolver,
-                exceptionResolver = exceptionResolver,
+                syntheticResolver = syntheticResolver,
                 minimumSeverityLevel = minimumSeverityLevel,
                 analyzeAnnotations = analyzeAnnotations,
                 prefixFilters = prefixFilters,
@@ -748,7 +748,7 @@ class AnalysisConfiguration private constructor(
                 minimumSeverityLevel = minimumSeverityLevel,
                 supportingClassLoader = SourceClassLoader(classResolver, userSource, bootstrapSource),
                 classResolver = classResolver,
-                exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, SANDBOX_PREFIX),
+                syntheticResolver = SyntheticResolver(JVM_EXCEPTIONS, SANDBOX_PREFIX),
                 analyzeAnnotations = analyzeAnnotations,
                 prefixFilters = prefixFilters,
                 classModule = classModule,

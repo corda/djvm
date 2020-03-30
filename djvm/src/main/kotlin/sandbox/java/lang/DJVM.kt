@@ -4,7 +4,7 @@ package sandbox.java.lang
 
 import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_EXCEPTIONS
-import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMException
+import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSynthetic
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
 import net.corda.djvm.rules.implementation.*
@@ -157,7 +157,7 @@ private fun Throwable.escapeSandbox(): kotlin.Throwable {
             }
         } else {
             val escapingMessage = "$sandboxedName -> $message"
-            val sourceType = loadSandboxClass(getDJVMException(sandboxedName))
+            val sourceType = loadSandboxClass(getDJVMSynthetic(sandboxedName))
             when {
                 RuntimeException::class.java.isAssignableFrom(sourceType) -> RuntimeException(escapingMessage)
                 kotlin.Exception::class.java.isAssignableFrom(sourceType) -> kotlin.Exception(escapingMessage)
@@ -523,7 +523,7 @@ fun fromDJVM(t: Throwable?): kotlin.Throwable {
                 throwable
             } else {
                 // Whereas the sandbox creates a synthetic throwable wrapper for these.
-                val wrapperClass = loadSandboxClass(getDJVMException(sandboxClass.name))
+                val wrapperClass = loadSandboxClass(getDJVMSynthetic(sandboxClass.name))
                 wrapperClass.getPrivilegedConstructor(sandboxThrowable)
                     .newInstance(t) as kotlin.Throwable
             }

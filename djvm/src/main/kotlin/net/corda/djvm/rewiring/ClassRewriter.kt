@@ -143,7 +143,7 @@ open class ClassRewriter(
      */
     private inner class ClassExceptionRemapper(parent: ClassVisitor) : ClassVisitor(API_VERSION, parent) {
         override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-            val mappedExceptions = exceptions?.map(analysisConfig.exceptionResolver::getThrowableOwnerName)?.toTypedArray()
+            val mappedExceptions = exceptions?.map(analysisConfig.syntheticResolver::getThrowableOwnerName)?.toTypedArray()
             return super.visitMethod(access, name, descriptor, signature, mappedExceptions)?.let {
                 MethodExceptionRemapper(it)
             }
@@ -155,7 +155,7 @@ open class ClassRewriter(
      */
     private inner class MethodExceptionRemapper(parent: MethodVisitor) : MethodVisitor(API_VERSION, parent) {
         override fun visitTryCatchBlock(start: Label, end: Label, handler: Label, exceptionType: String?) {
-            val mappedExceptionType = exceptionType?.let(analysisConfig.exceptionResolver::getThrowableOwnerName)
+            val mappedExceptionType = exceptionType?.let(analysisConfig.syntheticResolver::getThrowableOwnerName)
             super.visitTryCatchBlock(start, end, handler, mappedExceptionType)
         }
     }

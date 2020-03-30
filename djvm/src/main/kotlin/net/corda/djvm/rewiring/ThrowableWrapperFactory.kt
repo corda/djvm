@@ -1,6 +1,6 @@
 package net.corda.djvm.rewiring
 
-import net.corda.djvm.analysis.ExceptionResolver.Companion.isDJVMException
+import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
 import net.corda.djvm.code.CONSTRUCTOR_NAME
 import net.corda.djvm.code.DJVM_EXCEPTION_NAME
 import org.objectweb.asm.ClassWriter
@@ -34,7 +34,7 @@ class ThrowableWrapperFactory(
      * either directly or indirectly.
      */
     fun accept(writer: ClassWriter) = with(writer) {
-        if (isDJVMException(superName)) {
+        if (isDJVMSynthetic(superName)) {
             childClass()
         } else {
             baseClass()
