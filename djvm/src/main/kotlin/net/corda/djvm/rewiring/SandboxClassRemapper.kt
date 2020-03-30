@@ -9,12 +9,14 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ACC_ANNOTATION
 import org.objectweb.asm.commons.ClassRemapper
+import java.util.function.Consumer
+import java.util.function.Function
 
 class SandboxClassRemapper(
-    private val nonClassMapper: ClassVisitor,
+    classNonMapper: ClassVisitor,
     remapper: SandboxRemapper,
     private val configuration: AnalysisConfiguration
-) : ClassRemapper(nonClassMapper, remapper) {
+) : ClassRemapper(classNonMapper, remapper) {
     companion object {
         @JvmField
         val RETURNS_STRING = "\\)\\[*Ljava/lang/String;\$".toRegex()
@@ -38,17 +40,25 @@ class SandboxClassRemapper(
 
     override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
         return if (configuration.isUnmappedAnnotation(descriptor)) {
-            nonClassMapper.visitAnnotation(descriptor, visible)
+            cv.visitAnnotation(descriptor, visible)
         } else if (configuration.isMappedAnnotation(descriptor)) {
             super.visitAnnotation(descriptor, visible)?.let {
+                val av = if (visible && descriptor in configuration.stitchedAnnotations) {
+                    AnnotationStitcher(api, it, descriptor, Consumer { ann ->
+                        ann.accept(cv, Function.identity())
+                    })
+                } else {
+                    it
+                }
+
                 /**
                  * Remap all of the descriptors within Kotlin's [Metadata] annotation.
                  * THIS ASSUMES THAT WE WILL NEVER WHITELIST KOTLIN CLASSES!!
                  */
                 if (descriptor == KOTLIN_METADATA) {
-                    KotlinMetadataVisitor(api, it, remapper)
+                    KotlinMetadataVisitor(api, av, remapper)
                 } else {
-                    it
+                    av
                 }
             }
         } else {
@@ -73,7 +83,7 @@ class SandboxClassRemapper(
      */
     override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
         return if (isAnnotationClass && RETURNS_STRING.containsMatchIn(descriptor)) {
-            nonClassMapper.visitMethod(access, name, descriptor, signature, exceptions)
+            cv.visitMethod(access, name, descriptor, signature, exceptions)
         } else {
             super.visitMethod(access, name, descriptor, signature, exceptions)
         }
@@ -88,14 +98,29 @@ class SandboxClassRemapper(
      * For example, [sandbox.recordAllocation] and [sandbox.recordArrayAllocation]
      * really DO use [java.lang.String] rather than [sandbox.java.lang.String].
      */
-    private inner class MethodRemapperWithTemplating(private val nonMethodMapper: MethodVisitor, remapper: MethodVisitor)
+    private inner class MethodRemapperWithTemplating(private val methodNonMapper: MethodVisitor, remapper: MethodVisitor)
         : MethodVisitor(API_VERSION, remapper) {
 
         private fun mapperFor(element: Element): MethodVisitor {
             return if (configuration.isTemplateClass(element.className) || isUnmapped(element)) {
-                nonMethodMapper
+                methodNonMapper
             } else {
                 mv
+            }
+        }
+
+        /**
+         * Methods may have annotations that could need stitching, so ensure we visit these too.
+         */
+        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+            return super.visitAnnotation(descriptor, visible)?.let {
+                if (visible && descriptor in configuration.stitchedAnnotations) {
+                    AnnotationStitcher(api, it, descriptor, Consumer { ann ->
+                        ann.accept(methodNonMapper, Function.identity())
+                    })
+                } else {
+                    it
+                }
             }
         }
 

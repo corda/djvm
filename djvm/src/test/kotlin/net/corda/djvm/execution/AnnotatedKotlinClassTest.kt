@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.fail
 import java.util.function.Function
+import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
 
@@ -186,6 +187,20 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     }
 
     @Test
+    fun `test reflection can fetch all stitched method annotations`() = sandbox(
+        visibleAnnotations = setOf(KotlinAnnotation::class.java)
+    ) {
+        val sandboxClass = loadClass<UserKotlinData>().type
+        val sandboxFunction = sandboxClass.kotlin.declaredFunctions.single { it.name == "holdAnnotation" }
+        val kotlinAnnotations = sandboxFunction.annotations.map { ann ->
+            ann.annotationClass.qualifiedName
+        }
+        assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
+            "sandbox.net.corda.djvm.KotlinAnnotation", "net.corda.djvm.KotlinAnnotation"
+        )
+    }
+
+    @Test
     fun `test single repeatable annotation from outside sandbox`() = sandbox(
         visibleAnnotations = setOf(KotlinLabel::class.java)
     ) {
@@ -251,6 +266,9 @@ class UserKotlinData(val message: String, val number: Int?, val bigNumber: Long)
     constructor(message: String, number: Int) : this(message, number, 0)
     constructor(message: String, bigNumber: Long) : this(message, 0, bigNumber)
     constructor(message: String) : this(message, null, 0)
+
+    @KotlinAnnotation
+    fun holdAnnotation() {}
 
     override fun toString(): String = "UserData: message='$message', number=$number, bigNumber=$bigNumber"
 }

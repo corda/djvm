@@ -150,7 +150,7 @@ class AnalysisConfiguration private constructor(
                 whitelist = whitelist,
                 sandboxAnnotations = unmodifiable(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern) + sandboxAnnotations),
                 allowedAnnotations = allowedAnnotations.merge(visibleAnnotations),
-                stitchedAnnotations = stitchedAnnotations.mergeSandboxed(visibleAnnotations),
+                stitchedAnnotations = stitchedAnnotations.merge(visibleAnnotations),
                 classResolver = classResolver,
                 exceptionResolver = exceptionResolver,
                 minimumSeverityLevel = minimumSeverityLevel,
@@ -184,9 +184,9 @@ class AnalysisConfiguration private constructor(
          * annotation and the transformed one.
          */
         private val STITCHED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
-            "Lsandbox/kotlin/annotation/MustBeDocumented;",
-            "Lsandbox/kotlin/annotation/Repeatable;",
-            "Lsandbox/kotlin/Metadata;"
+            "Lkotlin/annotation/MustBeDocumented;",
+            "Lkotlin/annotation/Repeatable;",
+            "Lkotlin/Metadata;"
         ))
 
         /**
@@ -649,12 +649,7 @@ class AnalysisConfiguration private constructor(
         fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
         fun Set<Class<*>>.sandboxed(): Set<String> = mapTo(LinkedHashSet(), Companion::sandboxed)
 
-        private fun toSandboxDescriptor(clazz: Class<*>): String = "L$SANDBOX_PREFIX${Type.getInternalName(clazz)};".intern()
         private fun toDescriptor(clazz: Class<*>): String = "L${Type.getInternalName(clazz)};".intern()
-
-        private fun Set<String>.mergeSandboxed(extra: Collection<Class<out Annotation>>): Set<String> {
-            return merge(extra, ::toSandboxDescriptor)
-        }
 
         private fun Set<String>.merge(extra: Collection<Class<out Annotation>>): Set<String> {
             return merge(extra, ::toDescriptor)
@@ -749,7 +744,7 @@ class AnalysisConfiguration private constructor(
                 whitelist = actualWhitelist,
                 sandboxAnnotations = unmodifiable<Pattern>(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern)),
                 allowedAnnotations = ALLOWED_ANNOTATIONS.merge(visibleAnnotations),
-                stitchedAnnotations = STITCHED_ANNOTATIONS.mergeSandboxed(visibleAnnotations),
+                stitchedAnnotations = STITCHED_ANNOTATIONS.merge(visibleAnnotations),
                 minimumSeverityLevel = minimumSeverityLevel,
                 supportingClassLoader = SourceClassLoader(classResolver, userSource, bootstrapSource),
                 classResolver = classResolver,

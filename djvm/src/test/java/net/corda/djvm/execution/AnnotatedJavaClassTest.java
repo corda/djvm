@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,25 @@ class AnnotatedJavaClassTest extends TestBase {
                 String result = WithJava.run(taskFactory, ReadJavaAnnotation.class, null);
                 assertThat(result)
                     .matches("^\\Q@sandbox.net.corda.djvm.JavaAnnotation(value=\\E\"?Hello Java!\"?\\)$");
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    void testMethodAnnotationOutsideSandbox() {
+        sandbox(singleton(JavaAnnotation.class), ctx -> {
+            try {
+                Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
+                Method sandboxMethod = sandboxClass.getDeclaredMethod("doNothing");
+                Annotation[] annotations = sandboxMethod.getAnnotations();
+                List<String> names = Arrays.stream(annotations)
+                    .map(ann -> ann.annotationType().getName())
+                    .collect(toList());
+                assertThat(names).containsExactlyInAnyOrder(
+                    "sandbox.net.corda.djvm.JavaAnnotation", "net.corda.djvm.JavaAnnotation"
+                );
             } catch (Exception e) {
                 fail(e);
             }
@@ -232,9 +252,12 @@ class AnnotatedJavaClassTest extends TestBase {
         return annotation.annotationType().getName().startsWith("sandbox.");
     }
 
-    @SuppressWarnings("WeakerAccess")
     @JavaAnnotation("Hello Java!")
-    static class UserJavaData {}
+    static class UserJavaData {
+        @SuppressWarnings("unused")
+        @JavaAnnotation("Hello Java Method!")
+        void doNothing() {}
+    }
 
     @SuppressWarnings("WeakerAccess")
     @JavaLabel(name = "ZERO")

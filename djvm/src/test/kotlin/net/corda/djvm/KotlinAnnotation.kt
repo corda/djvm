@@ -2,10 +2,10 @@ package net.corda.djvm
 
 import java.lang.annotation.Inherited
 import kotlin.annotation.AnnotationRetention.RUNTIME
-import kotlin.annotation.AnnotationTarget.CLASS
+import kotlin.annotation.AnnotationTarget.*
 
+@Target(CLASS, FUNCTION, PROPERTY, FIELD)
 @Retention(RUNTIME)
-@Target(CLASS)
 @MustBeDocumented
 @Inherited
 annotation class KotlinAnnotation(
