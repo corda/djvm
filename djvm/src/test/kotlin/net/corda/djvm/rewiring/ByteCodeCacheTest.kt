@@ -32,7 +32,6 @@ class ByteCodeCacheTest {
     private fun createAnalysisConfiguration() = AnalysisConfiguration.createRoot(
         userSource = UserPathSource(emptyList()),
         whitelist = Whitelist.EMPTY,
-        visibleAnnotations = emptySet(),
-        sandboxOnlyAnnotations = emptySet()
+        visibleAnnotations = emptySet()
     )
 }

@@ -4,6 +4,7 @@ import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.code.ClassMutator
+import net.corda.djvm.code.DJVM_SYNTHETIC
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.emptyAsNull
 import net.corda.djvm.references.Member
@@ -22,12 +23,13 @@ import java.security.CodeSource
  * @property configuration The configuration of the sandbox.
  * @property classLoader The class loader used to load the source classes that are to be rewritten.
  */
-open class ClassRewriter(
-        private val configuration: SandboxConfiguration,
-        private val classLoader: SourceClassLoader
+class ClassRewriter(
+    private val configuration: SandboxConfiguration,
+    private val classLoader: SourceClassLoader
 ) {
     private val analysisConfig = configuration.analysisConfiguration
-    private val remapper = SandboxRemapper(analysisConfig.classResolver, analysisConfig.whitelist)
+    private val remapper = with(analysisConfig) { SandboxRemapper(classResolver, whitelist) }
+    private val syntheticRemapper = SyntheticRemapper(analysisConfig)
 
     /**
      * Process class and allow user to rewrite parts/all of its content through provided hooks.
@@ -44,14 +46,21 @@ open class ClassRewriter(
             remapper,
             analysisConfig
         )
-        val visitor = ClassMutator(
+        val mutator = ClassMutator(
             classRemapper,
             analysisConfig,
             configuration.definitionProviders,
             configuration.emitters
         )
-        visitor.analyze(reader, context, options = SKIP_FRAMES)
-        return ByteCode(writer.toByteArray(), codeSource, visitor.hasBeenModified)
+        mutator.analyze(reader, context, options = SKIP_FRAMES)
+        return ByteCode(writer.toByteArray(), codeSource, mutator.flags)
+    }
+
+    fun generateAnnotation(reader: ClassReader, codeSource: CodeSource?): ByteCode {
+        val writer = SandboxClassWriter(reader, classLoader, analysisConfig, options = COMPUTE_FRAMES)
+        val annotationFactory = SyntheticAnnotationFactory(writer, syntheticRemapper, analysisConfig)
+        reader.accept(annotationFactory, SKIP_FRAMES)
+        return ByteCode(writer.toByteArray(), codeSource, DJVM_SYNTHETIC)
     }
 
     private companion object {
@@ -143,7 +152,7 @@ open class ClassRewriter(
      */
     private inner class ClassExceptionRemapper(parent: ClassVisitor) : ClassVisitor(API_VERSION, parent) {
         override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-            val mappedExceptions = exceptions?.map(analysisConfig.syntheticResolver::getThrowableOwnerName)?.toTypedArray()
+            val mappedExceptions = exceptions?.map(analysisConfig.syntheticResolver::getRealThrowableName)?.toTypedArray()
             return super.visitMethod(access, name, descriptor, signature, mappedExceptions)?.let {
                 MethodExceptionRemapper(it)
             }
@@ -155,7 +164,7 @@ open class ClassRewriter(
      */
     private inner class MethodExceptionRemapper(parent: MethodVisitor) : MethodVisitor(API_VERSION, parent) {
         override fun visitTryCatchBlock(start: Label, end: Label, handler: Label, exceptionType: String?) {
-            val mappedExceptionType = exceptionType?.let(analysisConfig.syntheticResolver::getThrowableOwnerName)
+            val mappedExceptionType = exceptionType?.let(analysisConfig.syntheticResolver::getRealThrowableName)
             super.visitTryCatchBlock(start, end, handler, mappedExceptionType)
         }
     }

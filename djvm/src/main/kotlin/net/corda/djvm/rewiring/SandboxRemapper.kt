@@ -15,9 +15,9 @@ import java.util.Collections.unmodifiableSet
  * @property classResolver Functionality for resolving the class name of a sandboxed or sandboxable class.
  * @property whitelist Identifies the Java APIs which are not mapped into the sandbox namespace.
  */
-open class SandboxRemapper(
-        private val classResolver: ClassResolver,
-        private val whitelist: Whitelist
+class SandboxRemapper(
+    private val classResolver: ClassResolver,
+    private val whitelist: Whitelist
 ) : Remapper() {
     private val mapped = unmodifiableSet(setOf(CLASS_NAME, OBJECT_NAME))
 
@@ -32,7 +32,7 @@ open class SandboxRemapper(
      * The underlying mapping function for type names.
      */
     override fun map(typename: String): String {
-        return rewriteTypeName(super.map(typename))
+        return rewriteTypeName(typename)
     }
 
     /**
@@ -83,13 +83,11 @@ open class SandboxRemapper(
     /**
      * Function for rewriting a descriptor.
      */
-    protected open fun rewriteDescriptor(descriptor: String) =
-            classResolver.resolveDescriptor(descriptor)
+    private fun rewriteDescriptor(descriptor: String) = classResolver.resolveDescriptor(descriptor)
 
     /**
      * Function for rewriting a type name.
      */
-    protected open fun rewriteTypeName(name: String) =
-            classResolver.resolve(name)
+    private fun rewriteTypeName(name: String) = classResolver.resolve(name)
 
 }

@@ -1,11 +1,13 @@
 package net.corda.djvm.source
 
+import net.corda.djvm.code.ENUM_NAME
 import net.corda.djvm.code.THROWABLE_NAME
 import org.objectweb.asm.Opcodes.*
 
 /**
  * A "cut to the bone" replacement for [Class] so that we can compute
  * two classes' common superclass without actually loading them.
+ * It also allows us to recognise [Enum] and [Annotation] types.
  */
 class ClassHeader(
     val classLoader: SourceClassLoader,
@@ -55,6 +57,11 @@ class ClassHeader(
     val isInterface: Boolean get() = (flags and ACC_INTERFACE) != 0
 
     val isThrowable: Boolean get() = internalName == THROWABLE_NAME || (superclass != null && superclass.isThrowable)
+
+    val isAnnotation: Boolean get() = (flags and ACC_ANNOTATION) != 0
+
+    val isEnum: Boolean
+        get() = (flags and ACC_ENUM) != 0 && (superclass != null) && (superclass.internalName == ENUM_NAME)
 
     override fun toString(): String = name
 }

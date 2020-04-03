@@ -181,7 +181,6 @@ abstract class TestBase(type: SandboxType) {
     fun customSandbox(
         vararg options: Any,
         visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
-        sandboxOnlyAnnotations: Set<String> = emptySet(),
         minimumSeverityLevel: Severity = WARNING,
         enableTracing: Boolean = true,
         externalCache: ExternalCache? = null,
@@ -216,7 +215,6 @@ abstract class TestBase(type: SandboxType) {
                     userSource = userSource,
                     whitelist = whitelist,
                     visibleAnnotations = visibleAnnotations,
-                    sandboxOnlyAnnotations = sandboxOnlyAnnotations,
                     minimumSeverityLevel = minimumSeverityLevel,
                     bootstrapSource = bootstrapClassLoader
                 )
@@ -247,15 +245,7 @@ abstract class TestBase(type: SandboxType) {
     }
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: Consumer<SandboxRuntimeContext>) {
-        sandbox(WARNING, visibleAnnotations, emptySet(), null, action)
-    }
-
-    inline fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, crossinline action: SandboxRuntimeContext.() -> Unit) {
-        sandbox(visibleAnnotations, sandboxOnlyAnnotations, Consumer { ctx -> action(ctx) })
-    }
-
-    fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, sandboxOnlyAnnotations: Set<String>, action: Consumer<SandboxRuntimeContext>) {
-        sandbox(WARNING, visibleAnnotations, sandboxOnlyAnnotations, null, action)
+        sandbox(WARNING, visibleAnnotations, null, action)
     }
 
     inline fun sandbox(externalCache: ExternalCache, crossinline action: SandboxRuntimeContext.() -> Unit) {
@@ -263,7 +253,7 @@ abstract class TestBase(type: SandboxType) {
     }
 
     fun sandbox(externalCache: ExternalCache, action: Consumer<SandboxRuntimeContext>) {
-        sandbox(WARNING, emptySet(), emptySet(), externalCache, action)
+        sandbox(WARNING, emptySet(), externalCache, action)
     }
 
     inline fun sandbox(crossinline action: SandboxRuntimeContext.() -> Unit) {
@@ -271,13 +261,12 @@ abstract class TestBase(type: SandboxType) {
     }
 
     fun sandbox(action: Consumer<SandboxRuntimeContext>) {
-        sandbox(WARNING, emptySet(), emptySet(), null, action)
+        sandbox(WARNING, emptySet(), null, action)
     }
 
     fun sandbox(
         minimumSeverityLevel: Severity,
         visibleAnnotations: Set<Class<out Annotation>>,
-        sandboxOnlyAnnotations: Set<String>,
         externalCache: ExternalCache?,
         action: Consumer<SandboxRuntimeContext>
     ) {
@@ -289,7 +278,6 @@ abstract class TestBase(type: SandboxType) {
             UserPathSource(classPaths).use { userSource ->
                 SandboxRuntimeContext(parentConfiguration.createChild(userSource, Consumer {
                     it.setMinimumSeverityLevel(minimumSeverityLevel)
-                    it.setSandboxOnlyAnnotations(sandboxOnlyAnnotations)
                     it.setVisibleAnnotations(visibleAnnotations)
                     it.setExternalCache(externalCache)
                 })).use(testAction)

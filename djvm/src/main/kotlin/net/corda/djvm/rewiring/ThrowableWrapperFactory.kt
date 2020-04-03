@@ -3,6 +3,7 @@ package net.corda.djvm.rewiring
 import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
 import net.corda.djvm.code.CONSTRUCTOR_NAME
 import net.corda.djvm.code.DJVM_EXCEPTION_NAME
+import net.corda.djvm.code.DJVM_SYNTHETIC
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes.*
 
@@ -24,7 +25,7 @@ class ThrowableWrapperFactory(
                 ThrowableWrapperFactory(className, superName).accept(this)
                 toByteArray()
             }
-            return ByteCode(bytecode, null, true)
+            return ByteCode(bytecode, null, DJVM_SYNTHETIC)
         }
     }
 

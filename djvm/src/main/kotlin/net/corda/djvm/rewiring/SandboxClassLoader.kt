@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException
 import java.net.MalformedURLException
 import java.net.URL
 import java.security.AccessController.doPrivileged
+import java.security.CodeSource
 import java.security.PrivilegedAction
 import java.security.PrivilegedActionException
 import java.security.PrivilegedExceptionAction
@@ -55,6 +56,7 @@ class SandboxClassLoader private constructor(
     private val byteCodeCache: ByteCodeCache,
     private val externalCache: ExternalCache?,
     throwableClass: Class<*>?,
+    annotationClass: Class<*>?,
     parent: ClassLoader?
 ) : SecureClassLoader(parent ?: SandboxClassLoader::class.java.classLoader), AutoCloseable {
 
@@ -71,7 +73,7 @@ class SandboxClassLoader private constructor(
                     = supportingClassLoader.codeLocations.associateByTo(LinkedHashMap(), CodeLocation::location)
 
     /**
-     * Update the common bytecode cache with the classes we have generated.
+     * Update the common byte-code cache with the classes we have generated.
      */
     override fun close() {
         System.getSecurityManager()?.apply {
@@ -89,6 +91,14 @@ class SandboxClassLoader private constructor(
         loadClassAndBytes(ClassSource.fromClassName("sandbox.java.lang.Object"), context)
         loadClassAndBytes(ClassSource.fromClassName("sandbox.java.lang.StackTraceElement"), context)
         loadClassAndBytes(ClassSource.fromClassName("sandbox.java.lang.Throwable"), context)
+    }
+
+    /**
+     * We also need to load the base sandbox Annotation interface up front,
+     * so that we can identify sandboxed annotation classes.
+     */
+    private val annotationClass: Class<*> = annotationClass ?: run {
+        loadClassAndBytes(ClassSource.fromClassName("sandbox.java.lang.annotation.Annotation"), context)
     }
 
     /**
@@ -116,6 +126,7 @@ class SandboxClassLoader private constructor(
         byteCodeCache,
         externalCache,
         throwableClass,
+        annotationClass,
         parent
     )
 
@@ -407,7 +418,7 @@ class SandboxClassLoader private constructor(
              * And loading the owner should then also create the synthetic class automatically.
              */
             val syntheticOwner = ClassSource.fromClassName(getDJVMSyntheticOwner(source.qualifiedClassName))
-            if (!analysisConfiguration.isJvmException(syntheticOwner.internalClassName)) {
+            if (analysisConfiguration.hasDJVMSynthetic(syntheticOwner.internalClassName)) {
                 /**
                  * We must not create a duplicate synthetic wrapper inside any child
                  * classloader. Hence we re-invoke [loadClass] which will delegate
@@ -421,13 +432,26 @@ class SandboxClassLoader private constructor(
             findLoadedClass(source.qualifiedClassName) ?: throw ClassNotFoundException(source.qualifiedClassName)
         } else {
             loadClassAndBytes(source, context).also { clazz ->
-                /**
-                 * Check whether we've just loaded a sandboxed throwable class.
-                 * If we have, we may also need to synthesise a throwable wrapper for it.
-                 */
-                if (throwableClass.isAssignableFrom(clazz) && !analysisConfiguration.isJvmException(source.internalClassName)) {
-                    logger.debug("Generating synthetic throwable for {}", source.qualifiedClassName)
-                    loadWrapperFor(clazz)
+                when {
+                    /**
+                     * Check whether we've just loaded a sandboxed throwable class.
+                     * If we have, we may also need to synthesise a throwable wrapper for it.
+                     */
+                    throwableClass.isAssignableFrom(clazz) ->
+                        if (!analysisConfiguration.isJvmException(source.internalClassName)) {
+                            logger.debug("Generating synthetic throwable for {}", source.qualifiedClassName)
+                            loadWrapperFor(clazz)
+                        }
+
+                    /**
+                     * Check whether we've just loaded a sandboxed annotation class.
+                     * This may also be accompanied by a synthetic friend class.
+                     */
+                    clazz.isAnnotation && annotationClass.isAssignableFrom(clazz) ->
+                        if (!analysisConfiguration.isJvmAnnotation(source.internalClassName)) {
+                            logger.debug("Loading synthetic annotation for {}", source.qualifiedClassName)
+                            loadAnnotationFor(clazz)
+                        }
                 }
             }
         }
@@ -551,7 +575,13 @@ class SandboxClassLoader private constructor(
                 }
 
                 // Transform the class definition and byte code in accordance with provided rules.
-                rewriter.rewrite(reader, codeLocation.codeSource, context)
+                rewriter.rewrite(reader, codeLocation.codeSource, context).also {
+                    if (it.isAnnotation) {
+                        logger.debug("Generating synthetic annotation for {}", qualifiedClassName)
+                        val annotationName = analysisConfiguration.syntheticResolver.getRealAnnotationName(qualifiedClassName)
+                        loadedByteCode[annotationName] = rewriter.generateAnnotation(reader, it.source)
+                    }
+                }
             })
         } catch (e: PrivilegedActionException) {
             throw e.cause ?: e
@@ -585,8 +615,7 @@ class SandboxClassLoader private constructor(
                 }
                 ByteCode(
                     bytes = byteStream.use { it.readBytes() },
-                    source = getCodeLocation(resource).codeSource,
-                    isModified = false
+                    source = getCodeLocation(resource).codeSource
                 )
             })
         } catch (e: PrivilegedActionException) {
@@ -607,6 +636,52 @@ class SandboxClassLoader private constructor(
             loadedByteCode[loadableClassName] = byteCode
             defineClass(loadableClassName, byteCode)
         }
+    }
+
+    private fun loadAnnotationFor(annotation: Class<*>): Class<*> {
+        val className = analysisConfiguration.syntheticResolver.getAnnotationName(annotation)
+        val loadableClassName = className.asPackagePath
+        return findLoadedClass(loadableClassName) ?: run {
+            var byteCode = loadedByteCode[loadableClassName]
+            if (byteCode != null) {
+                /**
+                 * The class does not exist yet, but we've still found its
+                 * byte-code in the cache. We must therefore have just
+                 * generated this byte-code, and so we should also include
+                 * it in the external cache, assuming there is one.
+                 */
+                val codeSource = byteCode.source
+                if (codeSource != null && externalCaching && externalCache != null) {
+                    val externalKey = createExternalKey(loadableClassName, codeSource)
+                    externalCache.putIfAbsent(externalKey, byteCode)
+                }
+            } else {
+                /**
+                 * No class and no byte-code either! But we still managed to
+                 * create this synthetic class's owner somehow, which means
+                 * that class's byte-code must exist in either the internal
+                 * or the external cache. And the byte-code we need should
+                 * therefore be cached alongside it.
+                 */
+                byteCode = byteCodeCache[loadableClassName] ?: run {
+                    val ownerByteCode = loadedByteCode[annotation.name]
+                        ?: throw SandboxClassLoadingException(className, context)
+                    val codeSource = ownerByteCode.source
+                    if (codeSource != null && externalCaching && externalCache != null) {
+                        val externalKey = createExternalKey(loadableClassName, codeSource)
+                        externalCache[externalKey]
+                    } else {
+                        null
+                    }
+                } ?: throw ClassNotFoundException(className)
+                loadedByteCode[loadableClassName] = byteCode
+            }
+            defineClass(loadableClassName, byteCode)
+        }
+    }
+
+    private fun createExternalKey(className: String, codeSource: CodeSource): ByteCodeKey {
+        return ByteCodeKey(className, codeSource.location.toString().intern())
     }
 
     /**
@@ -661,7 +736,7 @@ class SandboxClassLoader private constructor(
 
     companion object {
         private val logger = loggerFor<SandboxClassLoader>()
-        private val UNMODIFIED = ByteCode(ByteArray(0), null, false)
+        private val UNMODIFIED = ByteCode(ByteArray(0), null)
 
         private fun URL.toLocation(): String {
             val fullPath = toString()
@@ -699,6 +774,7 @@ class SandboxClassLoader private constructor(
                 byteCodeCache = byteCodeCache ?: ByteCodeCache(parentClassLoader?.byteCodeCache),
                 externalCache = configuration.externalCache,
                 throwableClass = parentClassLoader?.throwableClass,
+                annotationClass = parentClassLoader?.annotationClass,
                 parent = parentClassLoader
             )
         }

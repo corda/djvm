@@ -20,6 +20,7 @@ const val EMIT_AFTER_INVOKE: Int = EMIT_DEFAULT + 2
 const val CLASS_NAME = "java/lang/Class"
 const val OBJECT_NAME = "java/lang/Object"
 const val THROWABLE_NAME = "java/lang/Throwable"
+const val ENUM_NAME = "java/lang/Enum"
 const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"
 const val CLASS_CONSTRUCTOR_NAME = "<clinit>"
 const val CONSTRUCTOR_NAME = "<init>"
@@ -42,6 +43,10 @@ const val RUNTIME_ACCOUNTER_NAME: String = "sandbox/RuntimeCostAccounter"
  * load our template class into the Application classloader.
  */
 const val DJVM_EXCEPTION_NAME: String = "sandbox/java/lang/DJVMException"
+
+const val DJVM_MODIFIED = 1
+const val DJVM_ANNOTATION = 2
+const val DJVM_SYNTHETIC = 2
 
 val ruleViolationError: String = Type.getInternalName(RuleViolationError::class.java)
 val thresholdViolationError: String = Type.getInternalName(ThresholdViolationError::class.java)

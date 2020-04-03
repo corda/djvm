@@ -22,7 +22,7 @@ import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
  * in the new class. This means that neither the maximum stack size nor the stack frames will be computed for these
  * methods. Note that [COMPUTE_FRAMES] implies [COMPUTE_MAXS].
  */
-open class SandboxClassWriter(
+class SandboxClassWriter(
         classReader: ClassReader,
         private val cloader: SourceClassLoader,
         private val configuration: AnalysisConfiguration,

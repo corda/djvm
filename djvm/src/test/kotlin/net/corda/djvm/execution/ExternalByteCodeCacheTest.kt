@@ -73,7 +73,7 @@ class ExternalByteCodeCacheTest : TestBase(KOTLIN) {
 
         // Replace the entry inside the external cache with nonsense.
         val key = externalCache.keys.first()
-        externalCache[key] = ByteCode(byteArrayOf(), null, false)
+        externalCache[key] = ByteCode(byteArrayOf(), null)
 
         // We cannot create a class without any byte-code!
         val ex = assertThrows<ClassFormatError> {
@@ -98,7 +98,7 @@ class ExternalByteCodeCacheTest : TestBase(KOTLIN) {
 
         // Replace the entry inside the external cache with nonsense.
         val key = externalCache.keys.first()
-        externalCache[key] = ByteCode(byteArrayOf(), null, false)
+        externalCache[key] = ByteCode(byteArrayOf(), null)
 
         sandbox(externalCache) {
             classLoader.toSandboxClass(ExternalTask::class.java)

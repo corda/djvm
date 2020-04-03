@@ -173,11 +173,12 @@ class SourceClassLoader(
     }
 
     /**
-     * Load the class header with the specified binary name.
+     * Load the underlying [ClassHeader] for the sandbox class
+     * with the specified binary name.
      */
     @Throws(ClassNotFoundException::class)
     fun loadSourceHeader(name: String): ClassHeader {
-        logger.trace("Loading source class {}...", name)
+        logger.trace("Loading source class for {}...", name)
         // We need the name of the equivalent class outside of the sandbox.
         // This class is expected to belong to the application classloader.
         val originalName = classResolver.toSourceNormalized(name).let { n ->
@@ -192,6 +193,10 @@ class SourceClassLoader(
         return loadClassHeader(originalName)
     }
 
+    /**
+     * Load the [ClassHeader] for the source class
+     * with the specified binary name.
+     */
     @Throws(ClassNotFoundException::class)
     fun loadClassHeader(name: String): ClassHeader {
         return try {

@@ -32,12 +32,14 @@ class ClassResolver(
      */
     fun resolve(name: String): String {
         return when {
-            name.startsWith('[') && name.endsWith(';') -> {
-                complexArrayTypeRegex.replace(name) {
-                    "${it.groupValues[1]}L${resolveName(it.groupValues[2])};"
+            name.startsWith('[') ->
+                if (name.endsWith(';') ) {
+                    complexArrayTypeRegex.replace(name) {
+                        "${it.groupValues[1]}L${resolveName(it.groupValues[2])};"
+                    }
+                } else {
+                    name
                 }
-            }
-            name.startsWith('[') && !name.endsWith(';') -> name
             else -> resolveName(name)
         }
     }
