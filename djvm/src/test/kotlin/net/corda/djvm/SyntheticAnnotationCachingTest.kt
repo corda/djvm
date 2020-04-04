@@ -10,27 +10,26 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import java.util.concurrent.ConcurrentHashMap
 
-class SyntheticExceptionCachingTest : TestBase(KOTLIN) {
+class SyntheticAnnotationCachingTest : TestBase(KOTLIN) {
     @ParameterizedTest(name = "[{index}] = {0}")
     @ValueSource(strings = [
-        "sandbox.java.security.NoSuchAlgorithmException",
-        "sandbox.net.corda.djvm.execution.MyExampleException"
+        "sandbox.java.lang.annotation.Retention",
+        "sandbox.net.corda.djvm.KotlinAnnotation"
     ])
-    fun testSyntheticExceptionIsRecreatedWithExternalCache(exceptionName: String) {
+    fun testSyntheticAnnotationIsRecreatedWithExternalCache(annotationName: String) {
         val externalCache = ConcurrentHashMap<ByteCodeKey, ByteCode>()
-        val syntheticClassName = "$exceptionName\$1DJVM"
+        val syntheticClassName = "$annotationName\$1DJVM"
 
         sandbox(externalCache) {
             assertThat(classLoader.parent).isInstanceOf(SandboxClassLoader::class.java)
-            classLoader.loadClass(syntheticClassName).asSubclass(Throwable::class.java)
+            classLoader.loadClass(syntheticClassName).asSubclass(Annotation::class.java)
         }
 
         // Check that the byte-code has also been cached correctly.
-        // The synthetic exception class is cheap to create and so is not cached.
+        // The synthetic annotation class is expensive to create and so is also cached.
         val classNames = externalCache.keys.mapTo(LinkedHashSet(), ByteCodeKey::className)
         assertThat(classNames)
-            .doesNotContain(syntheticClassName)
-            .contains(exceptionName)
+            .contains(syntheticClassName, annotationName)
 
         sandbox(externalCache) {
             assertThat(classLoader.parent).isInstanceOf(SandboxClassLoader::class.java)
@@ -39,12 +38,12 @@ class SyntheticExceptionCachingTest : TestBase(KOTLIN) {
             // will force us to consult the external cache.
             flushInternalCache()
 
-            assertDoesNotThrow { classLoader.loadClass(syntheticClassName).asSubclass(Throwable::class.java) }
-            assertDoesNotThrow { classLoader.loadClass(exceptionName) }
+            assertDoesNotThrow { classLoader.loadClass(syntheticClassName).asSubclass(Annotation::class.java) }
+            assertDoesNotThrow { classLoader.loadClass(annotationName) }
 
             // Check we can reload these classes, to prove they were loaded correctly!
-            assertDoesNotThrow { classLoader.loadClass(syntheticClassName).asSubclass(Throwable::class.java) }
-            assertDoesNotThrow { classLoader.loadClass(exceptionName) }
+            assertDoesNotThrow { classLoader.loadClass(syntheticClassName).asSubclass(Annotation::class.java) }
+            assertDoesNotThrow { classLoader.loadClass(annotationName) }
         }
     }
 }

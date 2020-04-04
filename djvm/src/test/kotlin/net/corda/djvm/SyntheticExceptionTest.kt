@@ -23,10 +23,10 @@ class SyntheticExceptionTest : TestBase(KOTLIN) {
         flushInternalCache()
 
         val syntheticClassName = "$PARENT_CLASSLOADER_EXCEPTION\$1DJVM"
-        val syntheticClass = classLoader.loadClass(syntheticClassName)
+        val syntheticClass = classLoader.loadClass(syntheticClassName).asSubclass(Throwable::class.java)
         val exceptionClass = classLoader.loadClass(PARENT_CLASSLOADER_EXCEPTION)
         assertThat(syntheticClass.classLoader).isSameAs(exceptionClass.classLoader)
-        assertThat(syntheticClass.classLoader).isNotSameAs(classLoader)
+        assertThat(syntheticClass.classLoader).isSameAs(classLoader.parent)
 
         // Check we can reload this class, to prove it has already been loaded correctly!
         assertDoesNotThrow { classLoader.loadClass(syntheticClassName) }
@@ -38,7 +38,7 @@ class SyntheticExceptionTest : TestBase(KOTLIN) {
         flushInternalCache()
 
         val syntheticClassName = "$CHILD_CLASSLOADER_EXCEPTION\$1DJVM"
-        val syntheticClass = classLoader.loadClass(syntheticClassName)
+        val syntheticClass = classLoader.loadClass(syntheticClassName).asSubclass(Throwable::class.java)
         val exceptionClass = classLoader.loadClass(CHILD_CLASSLOADER_EXCEPTION)
         assertThat(syntheticClass.classLoader).isSameAs(exceptionClass.classLoader)
         assertThat(syntheticClass.classLoader).isSameAs(classLoader)
