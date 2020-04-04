@@ -50,6 +50,45 @@ class AnnotatedJavaClassTest extends TestBase {
         });
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void testSandboxAnnotationWithEnumValue() {
+        sandbox(ctx -> {
+            try {
+                Class<? extends Annotation> sandboxClass
+                    = (Class<? extends Annotation>) loadClass(ctx, "sandbox.net.corda.djvm.JavaAnnotation$1DJVM").getType();
+                Class<? extends Annotation> sandboxAnnotation
+                    = (Class<? extends Annotation>) loadClass(ctx, "sandbox.java.lang.annotation.Retention$1DJVM").getType();
+                Annotation annotationValue = sandboxClass.getAnnotation(sandboxAnnotation);
+                assertThat(annotationValue).isNotNull();
+                assertThat(annotationValue.toString())
+                    .matches("^\\Q@sandbox.java.lang.annotation.Retention$1DJVM(value=\\E\"?RUNTIME\"?\\)$");
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testSandboxAnnotationWithEnumArrayValue() {
+        sandbox(ctx -> {
+            try {
+                Class<? extends Annotation> sandboxClass
+                    = (Class<? extends Annotation>) loadClass(ctx, "sandbox.net.corda.djvm.JavaAnnotation$1DJVM").getType();
+                Class<? extends Annotation> sandboxAnnotation
+                    = (Class<? extends Annotation>) loadClass(ctx, "sandbox.java.lang.annotation.Target$1DJVM").getType();
+                Method valueMethod = sandboxAnnotation.getMethod("value");
+                Annotation annotationValue = sandboxClass.getAnnotation(sandboxAnnotation);
+                assertThat(annotationValue).isNotNull();
+                String[] policy = (String[]) valueMethod.invoke(annotationValue);
+                assertThat(policy).containsExactlyInAnyOrder("TYPE", "METHOD", "FIELD");
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
     @Disabled
     @Test
     void testAnnotationInsideSandbox() {
