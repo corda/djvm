@@ -104,6 +104,7 @@ shadowJar {
     exclude 'sandbox/java/lang/StringBuffer.class'
     exclude 'sandbox/java/lang/StringBuilder.class'
     exclude 'sandbox/java/lang/Thread.class'
+    exclude 'sandbox/java/lang/annotation/**'
     exclude 'sandbox/java/lang/ref/ReferenceQueue.class'
     exclude 'sandbox/java/lang/reflect/**'
     exclude 'sandbox/java/nio/Buffer.class'

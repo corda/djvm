@@ -94,7 +94,7 @@ class SandboxClassLoader private constructor(
     }
 
     /**
-     * We also need to load the base sandbox Annotation interface up front,
+     * We also need to load [sandbox.java.lang.annotation.Annotation] up front,
      * so that we can identify sandboxed annotation classes.
      */
     private val annotationClass: Class<*> = annotationClass ?: run {
