@@ -13,7 +13,15 @@ import org.objectweb.asm.Type
 import sandbox.isEntryPoint
 import sandbox.java.io.*
 import sandbox.java.nio.ByteOrder
-import sandbox.java.util.*
+import sandbox.java.util.Collections.unmodifiableMap
+import sandbox.java.util.Date
+import sandbox.java.util.Enumeration
+import sandbox.java.util.LinkedHashMap
+import sandbox.java.util.Locale
+import sandbox.java.util.MissingResourceException
+import sandbox.java.util.Properties
+import sandbox.java.util.ResourceBundle
+import sandbox.java.util.UUID
 import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
@@ -323,7 +331,7 @@ private fun createEnumDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Ma
     for (entry in universe) {
         directory.put(entry.name(), entry)
     }
-    allEnumDirectories.put(clazz, directory)
+    allEnumDirectories.put(clazz, unmodifiableMap(directory))
     return directory
 }
 
