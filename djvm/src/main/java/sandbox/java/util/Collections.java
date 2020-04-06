@@ -11,4 +11,8 @@ public class Collections extends sandbox.java.lang.Object {
     public static <T> Iterator<T> emptyIterator() {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED);
     }
+
+    public static <K, V> Map<K, V> unmodifiableMap(Map<K, V> map) {
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED);
+    }
 }
