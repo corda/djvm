@@ -241,24 +241,24 @@ fun fail(message: kotlin.String): Error {
 }
 
 /**
- * Use [Class.forName] so that we can also fetch classes for arrays of primitive types.
- * Also use the sandbox's classloader explicitly here, because this invoking class
- * might belong to a shared parent classloader.
+ * Use [Class.forName] so that we can also fetch classes for array types.
+ * Also use the sandbox's classloader explicitly here, because this invoking
+ * class might belong to a shared parent classloader.
  */
-@Throws(ClassNotFoundException::class)
-private fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(name.toSandboxPackage())
-
-@Throws(ClassNotFoundException::class)
-internal fun Class<*>.fromDJVMType(): Class<*> = loadSandboxClass(name.fromSandboxPackage())
-
 private fun loadSandboxClass(name: kotlin.String): Class<*> = Class.forName(name, false, systemClassLoader)
 private fun loadBootstrapClass(name: kotlin.String): Class<*> = doPrivileged(DJVMBootstrapClassAction(name))
 
-private fun kotlin.String.toSandboxPackage(): kotlin.String {
-    return if (startsWith(SANDBOX_PREFIX)) {
-        this
+@Throws(ClassNotFoundException::class)
+private fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(systemClassLoader.resolveName(name))
+
+@Throws(ClassNotFoundException::class)
+internal fun Class<*>.fromDJVMType(): Class<*> {
+    return if (isArray) {
+        val componentName = name
+        val idx = componentName.indexOf('L') + 1
+        loadSandboxClass(componentName.substring(0, idx) + componentName.drop(idx).fromSandboxPackage())
     } else {
-        SANDBOX_PREFIX + this
+        loadSandboxClass(name.fromSandboxPackage())
     }
 }
 
@@ -272,19 +272,10 @@ private fun kotlin.String.fromSandboxPackage(): kotlin.String {
 
 private fun Array<*>.toDJVMArray(): Array<*> {
     @Suppress("unchecked_cast")
-    return (java.lang.reflect.Array.newInstance(javaClass.componentType.toDJVMComponentType(), size) as Array<Any?>).also {
+    return (java.lang.reflect.Array.newInstance(javaClass.componentType.toDJVMType(), size) as Array<Any?>).also {
         for ((i, item) in withIndex()) {
             it[i] = item?.sandbox()
         }
-    }
-}
-
-private fun Class<*>.toDJVMComponentType(): Class<*> {
-    return if (isArray || isAssignableFrom(java.io.Serializable::class.java) || isAssignableFrom(Cloneable::class.java)) {
-        // Serializable, Cloneable and array types don't have sandbox.* equivalents.
-        this
-    } else {
-        toDJVMType()
     }
 }
 
