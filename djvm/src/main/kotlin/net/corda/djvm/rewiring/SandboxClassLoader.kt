@@ -326,8 +326,7 @@ class SandboxClassLoader private constructor(
     }
 
     private fun loadClassForSandbox(className: String): Class<*> {
-        val sandboxName = analysisConfiguration.classResolver.resolveNormalized(className)
-        return loadClass(sandboxName)
+        return loadClass(resolveName(className))
     }
 
     @Throws(ClassNotFoundException::class)
@@ -342,6 +341,10 @@ class SandboxClassLoader private constructor(
 
     @Throws(ClassNotFoundException::class)
     fun toSandboxClass(className: String): Class<*> = loadClassForSandbox(className)
+
+    fun resolveName(className: String): String {
+        return analysisConfiguration.classResolver.resolveNormalized(className)
+    }
 
     /**
      * Load the class with the specified binary name.
