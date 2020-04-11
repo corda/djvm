@@ -9,12 +9,21 @@ import sandbox.java.lang.String;
  */
 @SuppressWarnings("unused")
 public interface Annotation {
-    @NotNull
-    String toDJVMString();
-
     @Override
     @NotNull
     java.lang.String toString();
 
+    @NotNull
+    String toDJVMString();
+
     Class<? extends Annotation> annotationType();
+
+    /**
+     * This function will be stitched here at runtime.
+     * @return Either the underlying annotation proxy created
+     * by the JVM, or null if implemented from user code.
+     */
+    default java.lang.annotation.Annotation jvmAnnotation() {
+        return null;
+    }
 }

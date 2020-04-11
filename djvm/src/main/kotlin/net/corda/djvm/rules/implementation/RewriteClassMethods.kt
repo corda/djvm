@@ -11,21 +11,31 @@ import java.util.Collections.unmodifiableSet
 
 /**
  * The enum-related methods on [Class] all require that enums use [java.lang.Enum]
- * as their super class. So replace their all invocations with ones to equivalent
+ * as their super class. So replace all their invocations with ones to equivalent
  * methods on the DJVM class that require [sandbox.java.lang.Enum] instead.
  *
- * The [java.security.ProtectionDomain] object is also untransformable into sandbox
- * objects.
+ * An annotation must implement [java.lang.annotation.Annotation] and have no other
+ * interfaces. This means that the JVM cannot accept anything that implements
+ * [sandbox.java.lang.annotation.Annotation] as an annotation! We must therefore
+ * redirect the annotation-related methods on [Class] so that the DJVM can perform
+ * some mappings.
  */
 object RewriteClassMethods : Emitter {
     private val mappedNames = unmodifiableSet(setOf(
         "enumConstantDirectory",
+        "getAnnotation",
+        "getAnnotations",
+        "getAnnotationsByType",
         "getCanonicalName",
         "getClassLoader",
+        "getDeclaredAnnotation",
+        "getDeclaredAnnotations",
+        "getDeclaredAnnotationsByType",
         "getEnumConstants",
         "getName",
         "getSimpleName",
         "getTypeName",
+        "isAnnotationPresent",
         "isEnum",
         "toGenericString",
         "toString"
@@ -35,12 +45,14 @@ object RewriteClassMethods : Emitter {
         if (instruction is MemberAccessInstruction && instruction.className == CLASS_NAME) {
             when (instruction.operation) {
                 INVOKEVIRTUAL ->
-                    if (instruction.memberName in mappedNames && instruction.descriptor.startsWith("()")) {
+                    if (instruction.memberName in mappedNames){
+                        val descriptor = instruction.descriptor
+                        val returnTypeIdx = descriptor.indexOf(')') + 1
+                        val newReturnType = context.resolveDescriptor(descriptor.substring(returnTypeIdx))
                         invokeStatic(
                             owner = DJVM_NAME,
                             name = instruction.memberName,
-                            descriptor = "(Ljava/lang/Class;)"
-                                + context.resolveDescriptor(instruction.descriptor.drop("()".length))
+                            descriptor = "(L$CLASS_NAME;${descriptor.substring(1, returnTypeIdx)}$newReturnType"
                         )
                         preventDefault()
                     }

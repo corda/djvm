@@ -28,11 +28,11 @@ class SyntheticResolver(
         return getRealThrowableName(Type.getInternalName(clazz.superclass))
     }
 
-    fun getRealThrowableName(className: String): String {
-        return if (className in jvmExceptionClasses) {
-            className.unsandboxed
+    fun getRealThrowableName(internalName: String): String {
+        return if (internalName in jvmExceptionClasses) {
+            internalName.unsandboxed
         } else {
-            getDJVMSynthetic(className)
+            getDJVMSynthetic(internalName)
         }
     }
 
@@ -40,11 +40,11 @@ class SyntheticResolver(
         return getRealAnnotationName(Type.getInternalName(clazz))
     }
 
-    fun getRealAnnotationName(className: String): String {
-        return if (className in jvmAnnotationClasses) {
-            className.unsandboxed
+    fun getRealAnnotationName(internalName: String): String {
+        return if (internalName in jvmAnnotationClasses) {
+            internalName.unsandboxed
         } else {
-            getDJVMSynthetic(className)
+            getDJVMSynthetic(internalName)
         }
     }
 

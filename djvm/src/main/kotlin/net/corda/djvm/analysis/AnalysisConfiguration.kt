@@ -171,13 +171,6 @@ class AnalysisConfiguration private constructor(
          * annotation and the transformed one.
          */
         private val STITCHED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
-            "Ljava/lang/annotation/Repeatable;",
-            "Ljava/lang/annotation/Retention;",
-            "Ljava/lang/annotation/Target;",
-            "Lkotlin/annotation/MustBeDocumented;",
-            "Lkotlin/annotation/Repeatable;",
-            "Lkotlin/annotation/Retention;",
-            "Lkotlin/annotation/Target;",
             KOTLIN_METADATA
         ))
 
@@ -225,14 +218,17 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/io/DJVMInputStream",
             "sandbox/java/lang/Character\$Cache",
             DJVM_NAME,
-            DJVM_EXCEPTION_NAME,
-            "sandbox/java/lang/DJVMNoResource",
-            "sandbox/java/lang/DJVMResourceKey",
-            "sandbox/java/lang/DJVMThrowableWrapper",
+            "sandbox/java/lang/DJVMAnnotationAction",
+            "sandbox/java/lang/DJVMAnnotationHandler",
+            "sandbox/java/lang/DJVMAnnotationHandler\$MethodValue",
             "sandbox/java/lang/DJVMBootstrapClassAction",
             "sandbox/java/lang/DJVMConstructorAction",
             "sandbox/java/lang/DJVMEnumAction",
+            DJVM_EXCEPTION_NAME,
+            "sandbox/java/lang/DJVMNoResource",
+            "sandbox/java/lang/DJVMResourceKey",
             "sandbox/java/lang/DJVMSystemResourceAction",
+            "sandbox/java/lang/DJVMThrowableWrapper",
             "sandbox/java/lang/String\$InitAction",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
             "sandbox/java/security/DJVM",
@@ -267,7 +263,9 @@ class AnalysisConfiguration private constructor(
          * be transformed.
          */
         private val JVM_ANNOTATION_DESC: Set<String>
-        private val JVM_ANNOTATIONS: Set<String>
+
+        @JvmField
+        val JVM_ANNOTATIONS: Set<String>
 
         init {
             val simpleAnnotations = setOf(
@@ -418,6 +416,7 @@ class AnalysisConfiguration private constructor(
          * trying to invoke [sun.misc.Unsafe] and other assorted native methods.
          */
         private val STITCHED_CLASSES: Map<String, List<Member>> = unmodifiable((
+            generateJavaAnnotationMethods() +
             generateJavaCalendarMethods() +
             generateJavaTimeMethods() +
             generateJavaResourceBundleMethods() +

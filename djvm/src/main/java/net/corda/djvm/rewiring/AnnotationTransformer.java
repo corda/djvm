@@ -19,18 +19,31 @@ class AnnotationTransformer extends AnnotationVisitor {
         this.configuration = configuration;
     }
 
-    private String getRealAnnotationDescriptor(String descriptor) {
-        return configuration.isJvmAnnotationDesc(descriptor)
-                ? descriptor : getDJVMSyntheticDescriptor(descriptor);
+    @NotNull
+    private String mapToSandbox(String descriptor) {
+        return configuration.getClassResolver().resolveDescriptor(descriptor);
     }
 
-    private Type getRealAnnotationDescriptor(@NotNull Type type) {
-        return Type.getType(getRealAnnotationDescriptor(type.getDescriptor()));
+    private String getRealAnnotationDescriptor(String descriptor) {
+        return configuration.isJvmAnnotationDesc(descriptor)
+            ? descriptor : getDJVMSyntheticDescriptor(mapToSandbox(descriptor));
+    }
+
+    private String getSandboxAnnotationDescriptor(String descriptor) {
+        return configuration.isJvmAnnotationDesc(descriptor)
+            ? descriptor : mapToSandbox(descriptor);
+    }
+
+    private Type getSandboxAnnotationDescriptor(@NotNull Type type) {
+        return Type.getType(getSandboxAnnotationDescriptor(type.getDescriptor()));
     }
 
     @Override
     public void visit(String name, Object value) {
-        super.visit(name, (value instanceof Type) ? getRealAnnotationDescriptor((Type) value) : value);
+        /*
+         * Handles primitive values, strings and class descriptors.
+         */
+        super.visit(name, (value instanceof Type) ? getSandboxAnnotationDescriptor((Type) value) : value);
     }
 
     @Override

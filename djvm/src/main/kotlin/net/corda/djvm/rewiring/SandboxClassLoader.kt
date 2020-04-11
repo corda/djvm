@@ -5,6 +5,7 @@ import net.corda.djvm.TypedTaskFactory
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor
+import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSynthetic
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSyntheticOwner
 import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
 import net.corda.djvm.code.asPackagePath
@@ -357,6 +358,19 @@ class SandboxClassLoader private constructor(
         return analysisConfiguration.classResolver.resolveNormalized(className)
     }
 
+    fun resolveAnnotationName(className: String): String? {
+        return if (isDJVMSynthetic(className)) {
+            getDJVMSyntheticOwner(className)
+        } else {
+            val sandboxName = analysisConfiguration.classResolver.resolve(className.asResourcePath)
+            if (analysisConfiguration.isJvmAnnotation(sandboxName)) {
+                sandboxName.asPackagePath
+            } else {
+                null
+            }
+        }
+    }
+
     /**
      * Load the class with the specified binary name.
      *
@@ -488,10 +502,10 @@ class SandboxClassLoader private constructor(
                     )
 
                     externalCache.getOrPut(externalKey) {
-                        generateByteCode(request.qualifiedClassName, resource, codeLocation, context)
+                        generateByteCode(request, resource, codeLocation, context)
                     }
                 } else {
-                    generateByteCode(request.qualifiedClassName, resource, codeLocation, context)
+                    generateByteCode(request, resource, codeLocation, context)
                 }
             }
         }
@@ -550,9 +564,10 @@ class SandboxClassLoader private constructor(
     }
 
     /**
-     * Generates the byte-code for [qualifiedClassName] using byte-code from [resource].
+     * Generates the byte-code for [source] using byte-code from [resource].
      */
-    private fun generateByteCode(qualifiedClassName: String, resource: URL, codeLocation: CodeLocation, context: AnalysisContext): ByteCode {
+    private fun generateByteCode(source: ClassSource, resource: URL, codeLocation: CodeLocation, context: AnalysisContext): ByteCode {
+        val qualifiedClassName = source.qualifiedClassName
         return try {
             doPrivileged(PrivilegedExceptionAction {
                 val reader = try {
@@ -576,9 +591,9 @@ class SandboxClassLoader private constructor(
 
                 // Transform the class definition and byte code in accordance with provided rules.
                 rewriter.rewrite(reader, codeLocation.codeSource, context).also {
-                    if (it.isAnnotation) {
+                    if (it.isAnnotation && !analysisConfiguration.isJvmAnnotation(source.internalClassName)) {
                         logger.debug("Generating synthetic annotation for {}", qualifiedClassName)
-                        val annotationName = analysisConfiguration.syntheticResolver.getRealAnnotationName(qualifiedClassName)
+                        val annotationName = getDJVMSynthetic(qualifiedClassName)
                         loadedByteCode[annotationName] = rewriter.generateAnnotation(reader, it.source)
                     }
                 }

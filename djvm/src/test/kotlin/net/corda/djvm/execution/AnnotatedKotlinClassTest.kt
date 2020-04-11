@@ -4,16 +4,13 @@ import net.corda.djvm.KotlinAnnotation
 import net.corda.djvm.KotlinLabel
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
-import net.corda.djvm.TypedTaskFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.fail
-import java.util.function.Function
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.functions
 import kotlin.reflect.full.primaryConstructor
@@ -62,21 +59,6 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
             ?.call(targetValue) as? Array<String>
             ?: fail("@Target\$1DJVM has no allowed targets!")
         assertThat(targets).containsExactlyInAnyOrder("CLASS", "FUNCTION", "PROPERTY", "FIELD")
-    }
-
-    @Disabled("This test needs java.lang.Class.getEnclosingMethod() inside the sandbox.")
-    @Test
-    fun testAnnotationInsideSandbox() = sandbox {
-        val taskFactory: TypedTaskFactory = classLoader.createTypedTaskFactory()
-        val result = taskFactory.create(ReadAnnotation::class.java).apply(null)
-        assertThat(result)
-            .matches("^\\Q@sandbox.net.corda.djvm.KotlinAnnotation$1DJVM(value=\\E\"?Hello Kotlin!\"?\\)\$")
-    }
-
-    class ReadAnnotation : Function<Any?, String> {
-        override fun apply(t: Any?): String {
-            return UserKotlinData::class.findAnnotation<KotlinAnnotation>().toString()
-        }
     }
 
     @Test
@@ -184,29 +166,23 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
         }
         assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
             "java.lang.annotation.Inherited",
+            "java.lang.annotation.Retention",
+            "java.lang.annotation.Documented",
+            "java.lang.annotation.Target",
             "kotlin.annotation.MustBeDocumented",
-            "kotlin.annotation.Retention",
-            "kotlin.annotation.Target",
             "sandbox.kotlin.Metadata\$1DJVM",
             "sandbox.kotlin.annotation.Retention\$1DJVM",
-            "sandbox.kotlin.annotation.Target\$1DJVM",
-            "sandbox.java.lang.annotation.Retention\$1DJVM",
-            "sandbox.java.lang.annotation.Target\$1DJVM"
+            "sandbox.kotlin.annotation.Target\$1DJVM"
         )
 
         val javaAnnotations = sandboxAnnotation.annotations.map { ann ->
             ann.annotationClass.qualifiedName
         }
         assertThat(javaAnnotations).containsExactlyInAnyOrder(
-            "kotlin.annotation.Retention",
-            "kotlin.annotation.Target",
             "kotlin.annotation.MustBeDocumented",
-            "kotlin.Metadata",
             "sandbox.kotlin.Metadata\$1DJVM",
             "sandbox.kotlin.annotation.Retention\$1DJVM",
             "sandbox.kotlin.annotation.Target\$1DJVM",
-            "sandbox.java.lang.annotation.Retention\$1DJVM",
-            "sandbox.java.lang.annotation.Target\$1DJVM",
             "java.lang.annotation.Documented",
             "java.lang.annotation.Inherited",
             "java.lang.annotation.Retention",
@@ -260,10 +236,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
             ann.annotationClass.qualifiedName
         }
         assertThat(kotlinAnnotations).containsExactlyInAnyOrder(
-            "kotlin.annotation.Repeatable",
             "kotlin.annotation.MustBeDocumented",
-            "kotlin.annotation.Retention",
-            "kotlin.annotation.Target",
             "sandbox.kotlin.Metadata\$1DJVM",
             "sandbox.kotlin.annotation.Retention\$1DJVM",
             "sandbox.kotlin.annotation.Target\$1DJVM",
@@ -276,10 +249,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
             ann.annotationClass.qualifiedName
         }
         assertThat(javaAnnotations).containsExactlyInAnyOrder(
-            "kotlin.annotation.Retention",
-            "kotlin.annotation.Target",
             "kotlin.annotation.MustBeDocumented",
-            "kotlin.annotation.Repeatable",
             "kotlin.Metadata",
             "sandbox.kotlin.annotation.Retention\$1DJVM",
             "sandbox.kotlin.annotation.Target\$1DJVM",
@@ -287,9 +257,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
             "sandbox.java.lang.annotation.Target\$1DJVM",
             "sandbox.kotlin.annotation.Repeatable\$1DJVM",
             "sandbox.kotlin.Metadata\$1DJVM",
-            "java.lang.annotation.Documented",
-            "java.lang.annotation.Retention",
-            "java.lang.annotation.Target"
+            "java.lang.annotation.Documented"
         )
     }
 }
