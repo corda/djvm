@@ -8,6 +8,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import static java.security.AccessController.doPrivileged;
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
@@ -63,11 +65,13 @@ final class DJVMAnnotationHandler implements InvocationHandler {
         @NotNull
         java.lang.Object getValueFor(
             java.lang.annotation.Annotation underlying,
-            Class<? extends Annotation> annotationType
+            final Class<? extends Annotation> annotationType
         ) throws java.lang.Throwable {
+            PrivilegedExceptionAction<Method> declaredMethod = () -> annotationType.getDeclaredMethod(method.getName());
+
             // We know that these annotation methods have no parameters.
             return (value == null)
-                ? getValueFor(underlying, annotationType.getDeclaredMethod(method.getName()))
+                ? getValueFor(underlying, doPrivileged(declaredMethod))
                 : value;
         }
 
@@ -168,6 +172,8 @@ final class DJVMAnnotationHandler implements InvocationHandler {
             java.lang.String strValue = value instanceof java.lang.Object[] ?
                     format((java.lang.Object[]) value) : value.toString();
             return method.getKey() + '=' + strValue;
+        } catch (java.security.PrivilegedActionException e) {
+            throw DJVM.toRuleViolationError(e.getCause());
         } catch (java.lang.Throwable t) {
             throw DJVM.toRuleViolationError(t);
         }
