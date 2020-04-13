@@ -25,6 +25,7 @@ import sandbox.java.util.Properties
 import sandbox.java.util.ResourceBundle
 import sandbox.java.util.UUID
 import java.io.IOException
+import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier.*
@@ -791,33 +792,33 @@ private object DJVMNoResource : ResourceBundle() {
 /**
  * Annotation handling.
  */
-fun isAnnotationPresent(clazz: Class<*>, annotationClass: Class<out Annotation>): kotlin.Boolean {
-    return clazz.isAnnotationPresent(annotationClass.toRealAnnotationType())
+fun isAnnotationPresent(annotated: AnnotatedElement, annotationClass: Class<out Annotation>): kotlin.Boolean {
+    return annotated.isAnnotationPresent(annotationClass.toRealAnnotationType())
 }
 
-fun <T: Annotation> getAnnotation(clazz: Class<*>, annotationClass: Class<T>): T? {
-    return annotationClass.createDJVMAnnotation(clazz.getAnnotation(annotationClass.toRealAnnotationType()))
+fun <T: Annotation> getAnnotation(annotated: AnnotatedElement, annotationClass: Class<T>): T? {
+    return annotationClass.createDJVMAnnotation(annotated.getAnnotation(annotationClass.toRealAnnotationType()))
 }
 
-fun getAnnotations(clazz: Class<*>): Array<out Annotation> {
-    return clazz.annotations.toDJVMAnnotations()
+fun getAnnotations(annotated: AnnotatedElement): Array<out Annotation> {
+    return annotated.annotations.toDJVMAnnotations()
 }
 
-fun <T: Annotation> getAnnotationsByType(clazz: Class<*>, annotationType: Class<T>): Array<T> {
-    return doPrivileged(DJVMAnnotationByTypeAction(clazz, annotationType.toRealAnnotationType()))
+fun <T: Annotation> getAnnotationsByType(annotated: AnnotatedElement, annotationType: Class<T>): Array<T> {
+    return doPrivileged(DJVMAnnotationByTypeAction(annotated, annotationType.toRealAnnotationType()))
         .toDJVMAnnotations(annotationType)
 }
 
-fun <T: Annotation> getDeclaredAnnotation(clazz: Class<*>, annotationClass: Class<T>): T? {
-    return annotationClass.createDJVMAnnotation(clazz.getDeclaredAnnotation(annotationClass.toRealAnnotationType()))
+fun <T: Annotation> getDeclaredAnnotation(annotated: AnnotatedElement, annotationClass: Class<T>): T? {
+    return annotationClass.createDJVMAnnotation(annotated.getDeclaredAnnotation(annotationClass.toRealAnnotationType()))
 }
 
-fun getDeclaredAnnotations(clazz: Class<*>): Array<out Annotation> {
-    return clazz.declaredAnnotations.toDJVMAnnotations()
+fun getDeclaredAnnotations(annotated: AnnotatedElement): Array<out Annotation> {
+    return annotated.declaredAnnotations.toDJVMAnnotations()
 }
 
-fun <T: Annotation> getDeclaredAnnotationsByType(clazz: Class<*>, annotationType: Class<T>): Array<T> {
-    return doPrivileged(DJVMDeclaredAnnotationByTypeAction(clazz, annotationType.toRealAnnotationType()))
+fun <T: Annotation> getDeclaredAnnotationsByType(annotated: AnnotatedElement, annotationType: Class<T>): Array<T> {
+    return doPrivileged(DJVMDeclaredAnnotationByTypeAction(annotated, annotationType.toRealAnnotationType()))
         .toDJVMAnnotations(annotationType)
 }
 
@@ -941,19 +942,19 @@ private class DJVMAnnotationAction<T: Annotation>(
 }
 
 private class DJVMAnnotationByTypeAction(
-    private val clazz: Class<*>,
+    private val annotated: AnnotatedElement,
     private val annotationType: Class<out kotlin.Annotation>
 ) : PrivilegedExceptionAction<Array<out kotlin.Annotation>> {
     override fun run(): Array<out kotlin.Annotation> {
-        return clazz.getAnnotationsByType(annotationType)
+        return annotated.getAnnotationsByType(annotationType)
     }
 }
 
 private class DJVMDeclaredAnnotationByTypeAction(
-    private val clazz: Class<*>,
+    private val annotated: AnnotatedElement,
     private val annotationType: Class<out kotlin.Annotation>
 ) : PrivilegedExceptionAction<Array<out kotlin.Annotation>> {
     override fun run(): Array<out kotlin.Annotation> {
-        return clazz.getDeclaredAnnotationsByType(annotationType)
+        return annotated.getDeclaredAnnotationsByType(annotationType)
     }
 }

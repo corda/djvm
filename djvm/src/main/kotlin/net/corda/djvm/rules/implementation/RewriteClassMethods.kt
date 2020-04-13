@@ -1,5 +1,6 @@
 package net.corda.djvm.rules.implementation
 
+import net.corda.djvm.code.ANNOTATED_ELEMENT_NAME
 import net.corda.djvm.code.CLASS_NAME
 import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.Emitter
@@ -7,7 +8,7 @@ import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import org.objectweb.asm.Opcodes.*
-import java.util.Collections.unmodifiableSet
+import java.util.Collections.unmodifiableMap
 
 /**
  * The enum-related methods on [Class] all require that enums use [java.lang.Enum]
@@ -21,40 +22,45 @@ import java.util.Collections.unmodifiableSet
  * some mappings.
  */
 object RewriteClassMethods : Emitter {
-    private val mappedNames = unmodifiableSet(setOf(
-        "enumConstantDirectory",
-        "getAnnotation",
-        "getAnnotations",
-        "getAnnotationsByType",
-        "getCanonicalName",
-        "getClassLoader",
-        "getDeclaredAnnotation",
-        "getDeclaredAnnotations",
-        "getDeclaredAnnotationsByType",
-        "getEnumConstants",
-        "getName",
-        "getSimpleName",
-        "getTypeName",
-        "isAnnotationPresent",
-        "isEnum",
-        "toGenericString",
-        "toString"
+    private const val NO_ARG = "()"
+    private const val CLASS_ARG = "(Ljava/lang/Class;)"
+
+    private val mappedNames: Map<String, Array<String>> = unmodifiableMap(mapOf(
+        "enumConstantDirectory" to arrayOf(NO_ARG, CLASS_NAME),
+        "getAnnotation" to arrayOf(CLASS_ARG, ANNOTATED_ELEMENT_NAME),
+        "getAnnotations" to arrayOf(NO_ARG, ANNOTATED_ELEMENT_NAME),
+        "getAnnotationsByType" to arrayOf(CLASS_ARG, ANNOTATED_ELEMENT_NAME),
+        "getCanonicalName" to arrayOf(NO_ARG, CLASS_NAME),
+        "getClassLoader" to arrayOf(NO_ARG, CLASS_NAME),
+        "getDeclaredAnnotation" to arrayOf(CLASS_ARG, ANNOTATED_ELEMENT_NAME),
+        "getDeclaredAnnotations" to arrayOf(NO_ARG, ANNOTATED_ELEMENT_NAME),
+        "getDeclaredAnnotationsByType" to arrayOf(CLASS_ARG, ANNOTATED_ELEMENT_NAME),
+        "getEnumConstants" to arrayOf(NO_ARG, CLASS_NAME),
+        "getName" to arrayOf(NO_ARG, CLASS_NAME),
+        "getSimpleName" to arrayOf(NO_ARG, CLASS_NAME),
+        "getTypeName" to arrayOf(NO_ARG, CLASS_NAME),
+        "isAnnotationPresent" to arrayOf(CLASS_ARG, ANNOTATED_ELEMENT_NAME),
+        "isEnum" to arrayOf(NO_ARG, CLASS_NAME),
+        "toGenericString" to arrayOf(NO_ARG, CLASS_NAME),
+        "toString" to arrayOf(NO_ARG, CLASS_NAME)
     ))
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && instruction.className == CLASS_NAME) {
             when (instruction.operation) {
                 INVOKEVIRTUAL ->
-                    if (instruction.memberName in mappedNames){
+                    mappedNames[instruction.memberName]?.also { mapping ->
                         val descriptor = instruction.descriptor
-                        val returnTypeIdx = descriptor.indexOf(')') + 1
-                        val newReturnType = context.resolveDescriptor(descriptor.substring(returnTypeIdx))
-                        invokeStatic(
-                            owner = DJVM_NAME,
-                            name = instruction.memberName,
-                            descriptor = "(L$CLASS_NAME;${descriptor.substring(1, returnTypeIdx)}$newReturnType"
-                        )
-                        preventDefault()
+                        if (descriptor.startsWith(mapping[0])) {
+                            val returnTypeIdx = descriptor.indexOf(')') + 1
+                            val newReturnType = context.resolveDescriptor(descriptor.substring(returnTypeIdx))
+                            invokeStatic(
+                                owner = DJVM_NAME,
+                                name = instruction.memberName,
+                                descriptor = "(L${mapping[1]};${descriptor.substring(1, returnTypeIdx)}$newReturnType"
+                            )
+                            preventDefault()
+                        }
                     }
 
                 INVOKESTATIC ->
