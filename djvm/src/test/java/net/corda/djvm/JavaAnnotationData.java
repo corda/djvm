@@ -14,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Inherited
 public @interface JavaAnnotationData {
-    String stringData() default "";
+    String stringData() default "<none>";
     String[] stringsData() default {};
     double doubleData() default 0.0;
     double[] doublesData() default {};
@@ -24,6 +24,8 @@ public @interface JavaAnnotationData {
     long[] longsData() default {};
     int intData() default 0;
     int[] intsData() default {};
+    short shortData() default 0;
+    short[] shortsData() default {};
     boolean flag() default false;
     boolean[] flags() default {};
     char charData() default '?';

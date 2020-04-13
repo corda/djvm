@@ -26,6 +26,6 @@ class ScalaSandboxTest : TestBase(KOTLIN) {
             taskFactory.create(BadScalaTask::class.java).apply("Secret Message!".toByteArray())
         }
         assertThat(ex)
-            .hasMessageContaining("Disallowed reference to reflection API; java.lang.invoke.MethodHandleImpl\$1.run()")
+            .hasMessageContaining("Disallowed reference to API; java.lang.invoke.MethodHandleImpl\$1.run()")
     }
 }

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 
@@ -33,6 +34,7 @@ class AnnotationProxyJavaTest extends TestBase {
     private static final float FLOAT_DATA = 555.555f;
     private static final long LONG_DATA = 12345678L;
     private static final int INTEGER_DATA = 123456;
+    private static final short SHORT_DATA = 2222;
     private static final char CHAR_DATA = '\u03C0';
     private static final byte BYTE_DATA = 0x7f;
 
@@ -319,6 +321,7 @@ class AnnotationProxyJavaTest extends TestBase {
                     STRING_DATA,
                     LONG_DATA,
                     INTEGER_DATA,
+                    SHORT_DATA,
                     DOUBLE_DATA,
                     FLOAT_DATA,
                     CHAR_DATA,
@@ -340,6 +343,7 @@ class AnnotationProxyJavaTest extends TestBase {
                 annotation.stringData(),
                 annotation.longData(),
                 annotation.intData(),
+                annotation.shortData(),
                 annotation.doubleData(),
                 annotation.floatData(),
                 annotation.charData(),
@@ -356,7 +360,9 @@ class AnnotationProxyJavaTest extends TestBase {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 Object[] result = WithJava.run(taskFactory, ReadJavaAnnotationDefaultData.class, null);
-                assertThat(result).containsExactly("", 0L, 0, 0.0, 0.0f, '?', (byte)0, Label.UGLY, false);
+                assertThat(result).containsExactly(
+                    "<none>", 0L, 0, (short) 0, 0.0, 0.0f, '?', (byte)0, Label.UGLY, false
+                );
             } catch (Exception e) {
                 fail(e);
             }
@@ -371,6 +377,7 @@ class AnnotationProxyJavaTest extends TestBase {
                 annotation.stringData(),
                 annotation.longData(),
                 annotation.intData(),
+                annotation.shortData(),
                 annotation.doubleData(),
                 annotation.floatData(),
                 annotation.charData(),
@@ -445,6 +452,80 @@ class AnnotationProxyJavaTest extends TestBase {
         }
     }
 
+    @Test
+    void testAnnotationMethodDefaultValue() {
+        sandbox(ctx -> {
+            try {
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                DJVM djvm = new DJVM(classLoader);
+
+                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = classLoader.createRawTaskFactory();
+                Function<? super Object, ?> getMethodDefaultValues = taskFactory.compose(classLoader.createSandboxFunction())
+                    .apply(GetMethodDefaultValues.class);
+                Object result = getMethodDefaultValues.apply(null);
+                assertThat(result).isInstanceOf(Object[].class);
+
+                Object[] defaultValues = (Object[]) result;
+                assertThat(defaultValues).containsExactly(
+                    djvm.sandbox(Label.UGLY),
+                    djvm.longOf(0),
+                    djvm.intOf(0),
+                    djvm.shortOf(0),
+                    djvm.byteOf(0),
+                    djvm.booleanOf(false),
+                    djvm.charOf('?'),
+                    djvm.stringOf("<none>"),
+                    djvm.doubleOf(0.0d),
+                    djvm.floatOf(0.0f)
+                );
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetMethodDefaultValues implements Function<String, Object[]> {
+        @Override
+        public Object[] apply(String unused) {
+            Method stringData;
+            Method longData;
+            Method intData;
+            Method shortData;
+            Method byteData;
+            Method flagData;
+            Method charData;
+            Method doubleData;
+            Method floatData;
+            Method label;
+            try {
+                label = JavaAnnotationData.class.getMethod("label");
+                longData = JavaAnnotationData.class.getMethod("longData");
+                intData = JavaAnnotationData.class.getMethod("intData");
+                shortData = JavaAnnotationData.class.getMethod("shortData");
+                byteData = JavaAnnotationData.class.getMethod("byteData");
+                flagData = JavaAnnotationData.class.getMethod("flag");
+                charData = JavaAnnotationData.class.getMethod("charData");
+                stringData = JavaAnnotationData.class.getMethod("stringData");
+                doubleData = JavaAnnotationData.class.getMethod("doubleData");
+                floatData = JavaAnnotationData.class.getMethod("floatData");
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
+            return new Object[]{
+                label.getDefaultValue(),
+                longData.getDefaultValue(),
+                intData.getDefaultValue(),
+                shortData.getDefaultValue(),
+                byteData.getDefaultValue(),
+                flagData.getDefaultValue(),
+                charData.getDefaultValue(),
+                stringData.getDefaultValue(),
+                doubleData.getDefaultValue(),
+                floatData.getDefaultValue()
+            };
+        }
+    }
+
     @SuppressWarnings("WeakerAccess")
     @JavaAnnotation(MESSAGE)
     static class Data1 {}
@@ -458,6 +539,7 @@ class AnnotationProxyJavaTest extends TestBase {
         stringData = STRING_DATA,
         longData = LONG_DATA,
         intData = INTEGER_DATA,
+        shortData = SHORT_DATA,
         doubleData = DOUBLE_DATA,
         floatData = FLOAT_DATA,
         charData = CHAR_DATA,

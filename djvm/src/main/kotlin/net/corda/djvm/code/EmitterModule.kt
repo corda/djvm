@@ -226,6 +226,16 @@ class EmitterModule(
     }
 
     /**
+     * Emit instructions to rearrange the stack as follows:
+     *     [W1] -> [W2]
+     *     [W2]    [W1]
+     */
+    fun swapTopTwoWords() {
+        methodVisitor.visitInsn(DUP_X1)
+        methodVisitor.visitInsn(POP)
+    }
+
+    /**
      * Emit a sequence of instructions for instantiating and throwing an exception based on the provided message.
      */
     fun <T : Throwable> throwException(exceptionType: Class<T>, message: String) {

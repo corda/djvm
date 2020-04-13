@@ -8,7 +8,7 @@ public enum Untrusted {
 
     private long evilTime;
 
-    private Untrusted() {
+    Untrusted() {
         evilTime = System.currentTimeMillis();
     }
 

@@ -8,7 +8,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -16,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import static java.security.AccessController.doPrivileged;
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
@@ -48,6 +46,38 @@ final class DJVMAnnotationHandler implements InvocationHandler {
     }
 
     /**
+     * Applies the appropriate "boxing" to an annotation method value
+     * so that it can be returned from {@link Method#getDefaultValue}.
+     */
+    @Nullable
+    static java.lang.Object getDefaultValue(
+        @NotNull Class<?> resultType,
+        @NotNull java.lang.Object jvmResult
+    ) {
+        java.lang.Object result = MethodValue.toDJVM(resultType, jvmResult);
+        if (result != null && resultType.isPrimitive()) {
+            if (resultType == Integer.TYPE) {
+                result = Integer.valueOf((java.lang.Integer) result);
+            } else if (resultType == Long.TYPE) {
+                result = Long.valueOf((java.lang.Long) result);
+            } else if (resultType == Short.TYPE) {
+                result = Short.valueOf((java.lang.Short) result);
+            } else if (resultType == Byte.TYPE) {
+                result = Byte.valueOf((java.lang.Byte) result);
+            } else if (resultType == Character.TYPE) {
+                result = Character.valueOf((java.lang.Character) result);
+            } else if (resultType == Boolean.TYPE) {
+                result = Boolean.valueOf((java.lang.Boolean) result);
+            } else if (resultType == Double.TYPE) {
+                result = Double.valueOf((java.lang.Double) result);
+            } else if (resultType == Float.TYPE) {
+                result = Float.valueOf((java.lang.Float) result);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Caches the values of each annotation method so that we
      * only need to compute them once. This also guarantees
      * that each invocation always returns the same object.
@@ -67,11 +97,10 @@ final class DJVMAnnotationHandler implements InvocationHandler {
             java.lang.annotation.Annotation underlying,
             final Class<? extends Annotation> annotationType
         ) throws java.lang.Throwable {
-            PrivilegedExceptionAction<Method> declaredMethod = () -> annotationType.getDeclaredMethod(method.getName());
-
-            // We know that these annotation methods have no parameters.
+            // We know that these annotation methods have no parameters,
+            // and that all interface methods must be public.
             return (value == null)
-                ? getValueFor(underlying, doPrivileged(declaredMethod))
+                ? getValueFor(underlying, annotationType.getMethod(method.getName()))
                 : value;
         }
 
@@ -98,7 +127,7 @@ final class DJVMAnnotationHandler implements InvocationHandler {
 
         @SuppressWarnings({"unchecked", "RedundantTypeArguments"})
         @Nullable
-        private static java.lang.Object toDJVM(@NotNull Class<?> resultType, java.lang.Object jvmResult) {
+        static java.lang.Object toDJVM(@NotNull Class<?> resultType, java.lang.Object jvmResult) {
             if (resultType.isPrimitive() || resultType == Class.class) {
                 // Primitive types and classes don't need sandboxing.
                 return jvmResult;
@@ -172,8 +201,6 @@ final class DJVMAnnotationHandler implements InvocationHandler {
             java.lang.String strValue = value instanceof java.lang.Object[] ?
                     format((java.lang.Object[]) value) : value.toString();
             return method.getKey() + '=' + strValue;
-        } catch (java.security.PrivilegedActionException e) {
-            throw DJVM.toRuleViolationError(e.getCause());
         } catch (java.lang.Throwable t) {
             throw DJVM.toRuleViolationError(t);
         }

@@ -11,7 +11,7 @@ import java.util.function.Function
 import kotlin.reflect.full.findAnnotation
 
 class AnnotationProxyKotlinTest : TestBase(KOTLIN)  {
-    @Disabled("This test needs java.lang.Class.getEnclosingMethod() inside the sandbox.")
+    @Disabled("This test needs Kotlin's BuiltInsLoader inside the sandbox, i.e. META-INF/services/")
     @Test
     fun testAnnotationInsideSandbox() = sandbox {
         val taskFactory: TypedTaskFactory = classLoader.createTypedTaskFactory()

@@ -10,6 +10,15 @@ import org.objectweb.asm.Opcodes.*
  */
 object DisallowNonDeterministicMethods : Emitter {
 
+    private val ALLOWED_GETTERS = setOf(
+        "getConstructor",
+        "getConstructors",
+        "getEnclosingConstructor",
+        "getMethod",
+        "getMethods",
+        "getEnclosingMethod"
+    )
+    private val HAS_CLASS_REFLECTION = "^.*\\)\\[?Ljava/lang/reflect/(Method|Field|Constructor);\$".toRegex()
     private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
     private val REFLECTING_CLASSES = setOf(
@@ -97,8 +106,13 @@ object DisallowNonDeterministicMethods : Emitter {
     private class Enforcer(private val instruction: MemberAccessInstruction) {
         private val isClassLoader: Boolean = instruction.className == "java/lang/ClassLoader"
         private val isClass: Boolean = instruction.className == CLASS_NAME
-        private val hasClassReflection: Boolean = isClass && instruction.descriptor.contains("Ljava/lang/reflect/")
         private val isLoadClass: Boolean = instruction.memberName == "loadClass"
+
+        private val hasClassReflection: Boolean get() = isClass
+            && (instruction.descriptor.matches(HAS_CLASS_REFLECTION) && instruction.memberName !in ALLOWED_GETTERS)
+
+        private val isNewInstance: Boolean get() = instruction.className == "java/lang/reflect/Constructor"
+            && instruction.memberName == "newInstance"
 
         fun runFor(className: String): Choice = when {
             isClassLoader && instruction.memberName == CONSTRUCTOR_NAME -> if (instruction.descriptor == "()V") {
@@ -114,13 +128,15 @@ object DisallowNonDeterministicMethods : Emitter {
 
             className == "java/security/Provider\$Service" -> allowLoadClass()
 
+            isNewInstance -> forbidNewInstance(className)
+
             // Forbid reflection otherwise.
-            hasClassReflection -> forbidReflection(className)
+            hasClassReflection -> Choice.FORBID
 
             else -> allowLoadClass()
         }
 
-        private fun forbidReflection(className: String): Choice = when(className) {
+        private fun forbidNewInstance(className: String): Choice = when(className) {
             in REFLECTING_CLASSES -> Choice.PASS
             else -> Choice.FORBID
         }

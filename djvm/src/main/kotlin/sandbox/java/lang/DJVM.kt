@@ -6,6 +6,7 @@ import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_ANNOTATIONS
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_EXCEPTIONS
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSynthetic
+import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
 import net.corda.djvm.rules.implementation.*
@@ -27,7 +28,10 @@ import sandbox.java.util.UUID
 import java.io.IOException
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Constructor
+import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Member
+import java.lang.reflect.Method
 import java.lang.reflect.Modifier.*
 import java.lang.reflect.Proxy
 import java.security.AccessController
@@ -51,7 +55,7 @@ fun Any.unsandbox(): Any {
 @Throws(ClassNotFoundException::class)
 fun Any.sandbox(): Any {
     @Suppress("RemoveRedundantQualifierName")
-    return when (this) {
+    return when(this) {
         is kotlin.String -> String.toDJVM(this)
         is kotlin.Char -> Character.toDJVM(this)
         is kotlin.Long -> Long.toDJVM(this)
@@ -84,6 +88,17 @@ fun Any.sandbox(): Any {
         )
         is java.time.ZoneId -> sandbox.java.time.ZoneId.of(String.toDJVM(id))
         is Array<*> -> toDJVMArray()
+        is Member ->
+            if (declaringClass.isForSandbox) {
+                when(this) {
+                    is Constructor<*> -> sandbox.java.lang.reflect.DJVM.toDJVM(this)
+                    is Method -> sandbox.java.lang.reflect.DJVM.toDJVM(this)
+                    is Field -> sandbox.java.lang.reflect.DJVM.toDJVM(this)
+                    else -> fail("Cannot sandbox $this")
+                }
+            } else {
+                fail("Cannot sandbox $this")
+            }
 
         /**
          * [Class] and [Constructor] are white-listed inside the sandbox,
@@ -93,12 +108,24 @@ fun Any.sandbox(): Any {
          * Objects which implement [kotlin.Annotation] are almost certainly
          * dynamic proxies, so keep them out of the sandbox too!
          */
-        is Class<*>, is Constructor<*>, is kotlin.Annotation -> fail("Cannot sandbox $this")
+        is Class<*>, is kotlin.Annotation -> fail("Cannot sandbox $this")
         is ClassLoader -> fail("Cannot sandbox a ClassLoader")
 
         // Default behaviour...
         else -> this
     }
+}
+
+private val Class<*>.isForSandbox: kotlin.Boolean get() {
+    val cl = classLoader
+    var current: ClassLoader = systemClassLoader
+    do {
+        if (current === cl) {
+            return true
+        }
+        current = current.parent
+    } while (current is SandboxClassLoader)
+    return false
 }
 
 fun kotlin.Throwable.toRuleViolationError(): RuleViolationError {
@@ -349,7 +376,7 @@ private fun kotlin.Enum<*>.toDJVMEnum(): Enum<*> {
 fun isEnum(clazz: Class<*>): kotlin.Boolean
         = (clazz.modifiers and ACC_ENUM != 0) && (clazz.superclass == sandbox.java.lang.Enum::class.java)
 
-fun getEnumConstants(clazz: Class<out Enum<*>>): Array<out Enum<*>>? {
+fun getEnumConstants(clazz: Class<out Enum<*>>): Array<*>? {
     return getEnumConstantsShared(clazz)?.clone()
 }
 
@@ -481,8 +508,8 @@ fun toSandbox(className: kotlin.String): kotlin.String {
 
     val matchName = className.removePrefix(SANDBOX_PREFIX)
     val (actualName, sandboxName) = OBJECT_ARRAY.matchEntire(matchName)?.let {
-        Pair(it.groupValues[2], it.groupValues[1] + SANDBOX_PREFIX + it.groupValues[2] + ';')
-    } ?: Pair(matchName, SANDBOX_PREFIX + matchName)
+        it.groupValues[2] to it.groupValues[1] + SANDBOX_PREFIX + it.groupValues[2] + ';'
+    } ?: matchName to SANDBOX_PREFIX + matchName
 
     if (bannedClasses.any { it.matches(actualName) }) {
         throw ClassNotFoundException(className).sanitise(1)
@@ -820,6 +847,16 @@ fun getDeclaredAnnotations(annotated: AnnotatedElement): Array<out Annotation> {
 fun <T: Annotation> getDeclaredAnnotationsByType(annotated: AnnotatedElement, annotationType: Class<T>): Array<T> {
     return doPrivileged(DJVMDeclaredAnnotationByTypeAction(annotated, annotationType.toRealAnnotationType()))
         .toDJVMAnnotations(annotationType)
+}
+
+fun getDefaultValue(method: Method): Any? {
+    @Suppress("unchecked_cast")
+    val realMethod = (method.declaringClass as Class<out Annotation>)
+        .toRealAnnotationType()
+        .getMethod(method.name)
+    return realMethod.defaultValue?.let { value ->
+        DJVMAnnotationHandler.getDefaultValue(method.returnType, value)
+    }
 }
 
 /**

@@ -629,6 +629,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         "java.lang.DJVMSystemResourceAction",
         "java.lang.DJVMThrowableWrapper",
         "java.lang.String\$InitAction",
+        "java.lang.reflect.DJVM",
         "java.time.DJVM",
         "java.time.DJVM\$InitAction",
         "java.security.DJVM",

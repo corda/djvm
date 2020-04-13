@@ -16,10 +16,10 @@ import net.corda.djvm.references.MemberModule
  * @property configuration The configuration to used for the analysis.
  * @property emitterModule A module providing code generation functionality that can be used from within an emitter.
  */
-open class EmitterContext(
-        private val analysisContext: AnalysisRuntimeContext,
-        private val configuration: AnalysisConfiguration,
-        val emitterModule: EmitterModule
+class EmitterContext(
+    private val analysisContext: AnalysisRuntimeContext,
+    private val configuration: AnalysisConfiguration,
+    val emitterModule: EmitterModule
 ) {
 
     /**

@@ -108,7 +108,6 @@ open class Whitelist private constructor(
             "^java/lang/Void\$".toRegex(),
             "^java/lang/invoke/LambdaMetafactory\$".toRegex(),
             "^java/lang/reflect/Array(\\..*)?\$".toRegex(),
-            "^java/lang/reflect/Constructor(\\..*)?\$".toRegex(),
             "^java/io/Closeable(\\..*)?\$".toRegex(),
             "^java/io/Serializable\$".toRegex(),
             "^java/security/AccessController\\.doPrivileged(WithCombiner)?:\\(Ljava/security/Privileged(Exception)?Action;\\).*\$".toRegex(),

@@ -82,4 +82,21 @@ class JavaAnnotationsTest extends TestBase {
             }
         });
     }
+
+    @Test
+    void testDeclaredMethodAnnotations() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Function<?, String[]> getAnnotations = taskFactory.create(GetJavaMethodAnnotations.class);
+                String[] annotations = getAnnotations.apply(null);
+                assertThat(annotations).containsExactly(
+                    "@sandbox.com.example.testing.JavaAnnotation(value=ONE)",
+                    "@sandbox.com.example.testing.JavaTag(value=Madness)"
+                );
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
 }

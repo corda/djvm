@@ -27,14 +27,27 @@ object ArgumentUnwrapper : Emitter {
 
             if (hasStringArgument(instruction)) {
                 unwrapString()
-            } else if (instruction.className == CLASS_NAME && instruction.descriptor.startsWith("(Ljava/lang/String;ZLjava/lang/ClassLoader;)")) {
-                /**
-                 * [kotlin.jvm.internal.Intrinsics.checkHasClass] invokes [Class.forName], so I'm
-                 * adding support for both of this function's variants. For now.
-                 */
-                raiseThirdWordToTop()
-                unwrapString()
-                sinkTopToThirdWord()
+            } else if (instruction.className == CLASS_NAME) {
+                val descriptor = instruction.descriptor
+                when {
+                    descriptor.startsWith("(Ljava/lang/String;ZLjava/lang/ClassLoader;)") -> {
+                        /**
+                         * [kotlin.jvm.internal.Intrinsics.checkHasClass] invokes [Class.forName],
+                         * so I'm adding support for both of this function's variants. For now.
+                         */
+                        raiseThirdWordToTop()
+                        unwrapString()
+                        sinkTopToThirdWord()
+                    }
+                    descriptor.startsWith("(Ljava/lang/String;[Ljava/lang/Class;)") -> {
+                        /**
+                         * Support for [Class.getMethod] and [Class.getDeclaredMethod].
+                         */
+                        swapTopTwoWords()
+                        unwrapString()
+                        swapTopTwoWords()
+                    }
+                }
             } else if (instruction.className == "java/security/AccessController") {
                 val descriptor = instruction.descriptor
                 when {

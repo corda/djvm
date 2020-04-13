@@ -94,7 +94,7 @@ class MaliciousClassTest extends TestBase {
     }
 
     @Test
-    void testPassingConstructorIntoSandboxIsForbidden() throws NoSuchMethodException {
+    void testPassingForeignConstructorIntoSandboxIsForbidden() throws NoSuchMethodException {
         Constructor<?> constructor = getClass().getDeclaredConstructor();
         sandbox(ctx -> {
             try {
