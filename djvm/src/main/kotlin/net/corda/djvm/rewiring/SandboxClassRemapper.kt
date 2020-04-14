@@ -7,7 +7,10 @@ import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSyntheticDescr
 import net.corda.djvm.references.MemberInformation
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.TypePath
 import org.objectweb.asm.commons.ClassRemapper
 import java.util.function.Consumer
 import java.util.function.Function
@@ -54,8 +57,17 @@ class SandboxClassRemapper(
         }
     }
 
+    /**
+     * Drop these annotations because we aren't handling them - yet?
+     */
+    override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
+
     override fun createMethodRemapper(mv: MethodVisitor): MethodVisitor {
         return MethodRemapperWithTemplating(mv, super.createMethodRemapper(mv))
+    }
+
+    override fun createFieldRemapper(fv: FieldVisitor): FieldVisitor {
+        return FieldRemapper(super.createFieldRemapper(fv))
     }
 
     /**
@@ -115,6 +127,31 @@ class SandboxClassRemapper(
             val field = Element(owner, name, descriptor)
             return mapperFor(field).visitFieldInsn(opcode, owner, name, descriptor)
         }
+
+        /**
+         * Drop these annotations because we aren't handling them - yet?
+         */
+        override fun visitParameterAnnotation(parameter: Int, descriptor: String, visible: Boolean): AnnotationVisitor? = null
+        override fun visitInsnAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
+        override fun visitLocalVariableAnnotation(
+            typeRef: Int,
+            typePath: TypePath?,
+            start: Array<out Label>?,
+            end: Array<out Label>?,
+            index: IntArray?,
+            descriptor: String,
+            visible: Boolean
+        ): AnnotationVisitor? = null
+        override fun visitTryCatchAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
+        override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
+    }
+
+    /**
+     * Drop any annotations from fields because we cannot access them - yet?
+     */
+    private inner class FieldRemapper(remapper: FieldVisitor) : FieldVisitor(api, remapper) {
+        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? = null
+        override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
     }
 
     private fun isUnmapped(element: Element): Boolean = configuration.whitelist.matches(element.reference)

@@ -389,6 +389,91 @@ class AnnotationProxyJavaTest extends TestBase {
     }
 
     @Test
+    void testReadAnnotationArrayData() {
+        sandbox(ctx -> {
+            try {
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                DJVM djvm = new DJVM(classLoader);
+
+                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = classLoader.createRawTaskFactory();
+                Function<? super Object, ?> getArrayData = taskFactory.compose(classLoader.createSandboxFunction())
+                    .apply(ReadJavaAnnotationArrayData.class);
+                Class<?> sandboxClass = classLoader.toSandboxClass(UserJavaArrayData.class);
+                Object result = getArrayData.apply(sandboxClass);
+                assertThat(result).isInstanceOf(Object[].class);
+
+                Object[] arrayValues = (Object[]) result;
+                assertThat(arrayValues).containsExactly(
+                    djvm.sandbox(new String[] { STRING_DATA }),
+                    new long[] { LONG_DATA },
+                    new int[] { INTEGER_DATA },
+                    new short[] { SHORT_DATA },
+                    new double[] { DOUBLE_DATA },
+                    new float[] { FLOAT_DATA },
+                    new char[] { CHAR_DATA },
+                    new byte[] { BYTE_DATA },
+                    djvm.sandbox(new Label[] { Label.GOOD }),
+                    new boolean[] { true }
+                );
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    void testReadAnnotationArrayDefaultData() {
+        sandbox(ctx -> {
+            try {
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                DJVM djvm = new DJVM(classLoader);
+
+                Function<? super Object, ? extends Function<? super Object, ?>> taskFactory = classLoader.createRawTaskFactory();
+                Function<? super Object, ?> getArrayDefaultData = taskFactory.compose(classLoader.createSandboxFunction())
+                    .apply(ReadJavaAnnotationArrayData.class);
+                Class<?> sandboxClass = classLoader.toSandboxClass(UserJavaDefaultData.class);
+                Object result = getArrayDefaultData.apply(sandboxClass);
+                assertThat(result).isInstanceOf(Object[].class);
+
+                Object[] arrayValues = (Object[]) result;
+                assertThat(arrayValues).containsExactly(
+                    djvm.sandbox(new String[] { "<none>" }),
+                    new long[] { 0 },
+                    new int[] { 0 },
+                    new short[] { 0 },
+                    new double[] { 0.0d },
+                    new float[] { 0.0f },
+                    new char[] { '?' },
+                    new byte[] { 0 },
+                    djvm.sandbox(new Label[] { Label.UGLY }),
+                    new boolean[] { false }
+                );
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class ReadJavaAnnotationArrayData implements Function<Class<?>, Object[]> {
+        @Override
+        public Object[] apply(Class<?> annotationType) {
+            JavaAnnotationData annotation = annotationType.getAnnotation(JavaAnnotationData.class);
+            return annotation == null ? null : new Object[]{
+                annotation.stringsData(),
+                annotation.longsData(),
+                annotation.intsData(),
+                annotation.shortsData(),
+                annotation.doublesData(),
+                annotation.floatsData(),
+                annotation.charsData(),
+                annotation.bytesData(),
+                annotation.labels(),
+                annotation.flags()
+            };
+        }
+    }
+
+    @Test
     void testAnnotationWithClassData() {
         sandbox(ctx -> {
             try {
@@ -549,6 +634,21 @@ class AnnotationProxyJavaTest extends TestBase {
     )
     @JavaAnnotation("Hello Java!")
     static class UserJavaData {}
+
+    @SuppressWarnings("WeakerAccess")
+    @JavaAnnotationData(
+        stringsData = STRING_DATA,
+        longsData = LONG_DATA,
+        intsData = INTEGER_DATA,
+        shortsData = SHORT_DATA,
+        doublesData = DOUBLE_DATA,
+        floatsData = FLOAT_DATA,
+        charsData = CHAR_DATA,
+        bytesData = BYTE_DATA,
+        labels = Label.GOOD,
+        flags = true
+    )
+    static class UserJavaArrayData {}
 
     @SuppressWarnings("WeakerAccess")
     @JavaAnnotationData

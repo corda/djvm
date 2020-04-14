@@ -6,6 +6,7 @@ import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Type
+import org.objectweb.asm.TypePath
 import java.lang.annotation.ElementType
 
 class SyntheticAnnotationFactory(
@@ -49,6 +50,11 @@ class SyntheticAnnotationFactory(
         }
     }
 
+    /**
+     * Drop these annotations because we aren't handling them - yet?
+     */
+    override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
+
     override fun visitMethod(
         access: Int,
         name: String,
@@ -79,6 +85,11 @@ class SyntheticAnnotationFactory(
         override fun visitAnnotationDefault(): AnnotationVisitor? {
             return AnnotationTransformer(api, super.visitAnnotationDefault(), configuration)
         }
+
+        /**
+         * Drop these annotations because we aren't handling them - yet?
+         */
+        override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
     }
 
     /**

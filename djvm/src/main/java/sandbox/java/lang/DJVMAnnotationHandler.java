@@ -128,7 +128,7 @@ final class DJVMAnnotationHandler implements InvocationHandler {
         @SuppressWarnings({"unchecked", "RedundantTypeArguments"})
         @Nullable
         static java.lang.Object toDJVM(@NotNull Class<?> resultType, java.lang.Object jvmResult) {
-            if (resultType.isPrimitive() || resultType == Class.class) {
+            if (isNativeType(resultType)) {
                 // Primitive types and classes don't need sandboxing.
                 return jvmResult;
             } else if (resultType == String.class) {
@@ -159,6 +159,12 @@ final class DJVMAnnotationHandler implements InvocationHandler {
                 target[i] = toDJVM(componentType, source[i]);
             }
             return target;
+        }
+
+        private static boolean isNativeType(Class<?> type) {
+            return (type == Class.class)
+                || type.isPrimitive()
+                || (type.isArray() && type.getComponentType().isPrimitive());
         }
     }
 
