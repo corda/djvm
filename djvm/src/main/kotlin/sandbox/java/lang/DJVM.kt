@@ -27,6 +27,7 @@ import sandbox.java.util.ResourceBundle
 import sandbox.java.util.UUID
 import java.io.IOException
 import java.lang.reflect.AnnotatedElement
+import java.lang.reflect.Array.newInstance
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
@@ -311,7 +312,7 @@ private fun kotlin.String.fromSandboxPackage(): kotlin.String {
 
 private fun Array<*>.toDJVMArray(): Array<*> {
     @Suppress("unchecked_cast")
-    return (java.lang.reflect.Array.newInstance(javaClass.componentType.toDJVMType(), size) as Array<Any?>).also {
+    return (newInstance(javaClass.componentType.toDJVMType(), size) as Array<Any?>).also {
         for ((i, item) in withIndex()) {
             it[i] = item?.sandbox()
         }
@@ -859,13 +860,23 @@ fun getDefaultValue(method: Method): Any? {
     }
 }
 
+fun getParameterAnnotations(method: Method): Array<Array<out Annotation>> {
+    val parameterAnnotations = method.parameterAnnotations
+    @Suppress("unchecked_cast")
+    return (newInstance(Array<out Annotation>::class.java, parameterAnnotations.size) as Array<Array<out Annotation>>).also {
+        for ((i, item) in parameterAnnotations.withIndex()) {
+            it[i] = item.toDJVMAnnotations()
+        }
+    }
+}
+
 /**
  * Worker functions to convert [java.lang.annotation.Annotation]
  * into [sandbox.java.lang.annotation.Annotation].
  */
 private fun <T: Annotation> Array<out kotlin.Annotation>.toDJVMAnnotations(annotationType: Class<T>): Array<T> {
     @Suppress("unchecked_cast")
-    return (java.lang.reflect.Array.newInstance(annotationType, size) as Array<T>).also {
+    return (newInstance(annotationType, size) as Array<T>).also {
         for ((i, item) in withIndex()) {
             it[i] = annotationType.createDJVMAnnotation(item)
         }

@@ -1,6 +1,7 @@
 package sandbox.java.lang.reflect;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sandbox.java.lang.String;
 import sandbox.java.lang.annotation.Annotation;
 
@@ -110,8 +111,15 @@ public final class Method extends Executable {
         return method.getExceptionTypes();
     }
 
+    @Nullable
     public java.lang.Object getDefaultValue() {
         return sandbox.java.lang.DJVM.getDefaultValue(method);
+    }
+
+    @NotNull
+    @Override
+    public Annotation[][] getParameterAnnotations() {
+        return sandbox.java.lang.DJVM.getParameterAnnotations(method);
     }
 
     @Override
@@ -131,11 +139,6 @@ public final class Method extends Executable {
     @Override
     public Type[] getGenericExceptionTypes() {
         throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getGenericExceptionTypes()");
-    }
-
-    @Override
-    public Annotation[][] getParameterAnnotations() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getParameterAnnotations()");
     }
 
     @Override
