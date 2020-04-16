@@ -109,6 +109,7 @@ shadowJar {
     exclude 'sandbox/java/lang/reflect/Annotated*.class'
     exclude 'sandbox/java/lang/reflect/GenericDeclaration.class'
     exclude 'sandbox/java/lang/reflect/InvocationTargetException.class'
+    exclude 'sandbox/java/lang/reflect/Member.class'
     exclude 'sandbox/java/lang/reflect/*Type*.class'
     exclude 'sandbox/java/nio/Buffer.class'
     exclude 'sandbox/java/nio/ByteBuffer.class'

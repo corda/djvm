@@ -4,16 +4,18 @@ import net.corda.djvm.JavaAnnotation;
 import net.corda.djvm.JavaAnnotationClassData;
 import net.corda.djvm.JavaAnnotationData;
 import net.corda.djvm.JavaAnnotationImpl;
+import net.corda.djvm.JavaInvisible;
 import net.corda.djvm.JavaLabel;
 import net.corda.djvm.JavaLabels;
 import net.corda.djvm.JavaNestedAnnotations;
 import net.corda.djvm.JavaUntrustworthy;
-import net.corda.djvm.Label;
+import net.corda.djvm.Cowboy;
 import net.corda.djvm.TestBase;
 import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoader;
 import net.corda.djvm.rules.RuleViolationError;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Annotation;
@@ -85,6 +87,7 @@ class AnnotationProxyJavaTest extends TestBase {
     }
 
     public static class ReadInheritedAnnotations implements Function<String, String[][]> {
+        @NotNull
         private String[]toClassNames(Annotation[] annotations) {
             return Arrays.stream(annotations)
                 .map(Annotation::toString)
@@ -96,6 +99,49 @@ class AnnotationProxyJavaTest extends TestBase {
             String[] declaredAnnotations = toClassNames(InheritingJavaData.class.getDeclaredAnnotations());
             String[] allAnnotations = toClassNames(InheritingJavaData.class.getAnnotations());
             return new String[][]{ declaredAnnotations, allAnnotations };
+        }
+    }
+
+    @Test
+    void testInvisibleAnnotationNotReturned() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, GetInvisibleAnnotation.class, null);
+                assertThat(result).isNull();
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetInvisibleAnnotation implements Function<String, String> {
+        @SuppressWarnings("ReflectionForUnavailableAnnotation")
+        @Override
+        public String apply(String unused) {
+            JavaInvisible annotation = UserJavaData.class.getAnnotation(JavaInvisible.class);
+            return annotation == null ? null : annotation.toString();
+        }
+    }
+
+    @Test
+    void testInvisibleDeclaredAnnotationNotReturned() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, GetInvisibleDeclaredAnnotation.class, null);
+                assertThat(result).isNull();
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetInvisibleDeclaredAnnotation implements Function<String, String> {
+        @Override
+        public String apply(String unused) {
+            JavaInvisible annotation = UserJavaData.class.getDeclaredAnnotation(JavaInvisible.class);
+            return annotation == null ? null : annotation.toString();
         }
     }
 
@@ -265,11 +311,11 @@ class AnnotationProxyJavaTest extends TestBase {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 String result = WithJava.run(taskFactory, GetRepeatedAnnotationsToString.class, null);
                 assertThat(result).isEqualTo(
-                    "@sandbox.net.corda.djvm.JavaLabels(value=" +
-                        "[@sandbox.net.corda.djvm.JavaLabel(name=HERE)" +
-                        ",@sandbox.net.corda.djvm.JavaLabel(name=THERE)" +
-                        ",@sandbox.net.corda.djvm.JavaLabel(name=EVERYWHERE)]" +
-                    ')'
+                    "@sandbox.net.corda.djvm.JavaLabels(value=[" +
+                        "@sandbox.net.corda.djvm.JavaLabel(name=HERE)," +
+                        "@sandbox.net.corda.djvm.JavaLabel(name=THERE)," +
+                        "@sandbox.net.corda.djvm.JavaLabel(name=EVERYWHERE)" +
+                    "])"
                 );
             } catch (Exception e) {
                 fail(e);
@@ -326,7 +372,7 @@ class AnnotationProxyJavaTest extends TestBase {
                     FLOAT_DATA,
                     CHAR_DATA,
                     BYTE_DATA,
-                    Label.GOOD,
+                    Cowboy.GOOD,
                     true
                 );
             } catch (Exception e) {
@@ -348,7 +394,7 @@ class AnnotationProxyJavaTest extends TestBase {
                 annotation.floatData(),
                 annotation.charData(),
                 annotation.byteData(),
-                annotation.label(),
+                annotation.cowboy(),
                 annotation.flag()
             };
         }
@@ -361,7 +407,7 @@ class AnnotationProxyJavaTest extends TestBase {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 Object[] result = WithJava.run(taskFactory, ReadJavaAnnotationDefaultData.class, null);
                 assertThat(result).containsExactly(
-                    "<none>", 0L, 0, (short) 0, 0.0, 0.0f, '?', (byte)0, Label.UGLY, false
+                    "<none>", 0L, 0, (short) 0, 0.0, 0.0f, '?', (byte)0, Cowboy.UGLY, false
                 );
             } catch (Exception e) {
                 fail(e);
@@ -382,7 +428,7 @@ class AnnotationProxyJavaTest extends TestBase {
                 annotation.floatData(),
                 annotation.charData(),
                 annotation.byteData(),
-                annotation.label(),
+                annotation.cowboy(),
                 annotation.flag()
             };
         }
@@ -412,7 +458,7 @@ class AnnotationProxyJavaTest extends TestBase {
                     new float[] { FLOAT_DATA },
                     new char[] { CHAR_DATA },
                     new byte[] { BYTE_DATA },
-                    djvm.sandbox(new Label[] { Label.GOOD }),
+                    djvm.sandbox(new Cowboy[] { Cowboy.GOOD }),
                     new boolean[] { true }
                 );
             } catch (Exception e) {
@@ -445,7 +491,7 @@ class AnnotationProxyJavaTest extends TestBase {
                     new float[] { 0.0f },
                     new char[] { '?' },
                     new byte[] { 0 },
-                    djvm.sandbox(new Label[] { Label.UGLY }),
+                    djvm.sandbox(new Cowboy[] { Cowboy.UGLY }),
                     new boolean[] { false }
                 );
             } catch (Exception e) {
@@ -467,7 +513,7 @@ class AnnotationProxyJavaTest extends TestBase {
                 annotation.floatsData(),
                 annotation.charsData(),
                 annotation.bytesData(),
-                annotation.labels(),
+                annotation.cowboys(),
                 annotation.flags()
             };
         }
@@ -552,7 +598,7 @@ class AnnotationProxyJavaTest extends TestBase {
 
                 Object[] defaultValues = (Object[]) result;
                 assertThat(defaultValues).containsExactly(
-                    djvm.sandbox(Label.UGLY),
+                    djvm.sandbox(Cowboy.UGLY),
                     djvm.longOf(0),
                     djvm.intOf(0),
                     djvm.shortOf(0),
@@ -581,9 +627,9 @@ class AnnotationProxyJavaTest extends TestBase {
             Method charData;
             Method doubleData;
             Method floatData;
-            Method label;
+            Method cowboy;
             try {
-                label = JavaAnnotationData.class.getMethod("label");
+                cowboy = JavaAnnotationData.class.getMethod("cowboy");
                 longData = JavaAnnotationData.class.getMethod("longData");
                 intData = JavaAnnotationData.class.getMethod("intData");
                 shortData = JavaAnnotationData.class.getMethod("shortData");
@@ -597,7 +643,7 @@ class AnnotationProxyJavaTest extends TestBase {
                 throw new RuntimeException(e.getMessage(), e);
             }
             return new Object[]{
-                label.getDefaultValue(),
+                cowboy.getDefaultValue(),
                 longData.getDefaultValue(),
                 intData.getDefaultValue(),
                 shortData.getDefaultValue(),
@@ -629,10 +675,11 @@ class AnnotationProxyJavaTest extends TestBase {
         floatData = FLOAT_DATA,
         charData = CHAR_DATA,
         byteData = BYTE_DATA,
-        label = Label.GOOD,
+        cowboy = Cowboy.GOOD,
         flag = true
     )
     @JavaAnnotation("Hello Java!")
+    @JavaInvisible
     static class UserJavaData {}
 
     @SuppressWarnings("WeakerAccess")
@@ -645,14 +692,16 @@ class AnnotationProxyJavaTest extends TestBase {
         floatsData = FLOAT_DATA,
         charsData = CHAR_DATA,
         bytesData = BYTE_DATA,
-        labels = Label.GOOD,
+        cowboys = Cowboy.GOOD,
         flags = true
     )
+    @JavaInvisible
     static class UserJavaArrayData {}
 
     @SuppressWarnings("WeakerAccess")
     @JavaAnnotationData
     @JavaAnnotation
+    @JavaInvisible
     static class UserJavaDefaultData {}
 
     @SuppressWarnings("WeakerAccess")
@@ -667,6 +716,7 @@ class AnnotationProxyJavaTest extends TestBase {
         collectionClass = LinkedHashSet.class,
         anyOldClass = Object.class
     )
+    @JavaInvisible
     static class UserClassData {}
 
     @SuppressWarnings("WeakerAccess")
@@ -678,6 +728,7 @@ class AnnotationProxyJavaTest extends TestBase {
             @JavaAnnotation("THREE")
         }
     )
+    @JavaInvisible
     static class UserNestedAnnotations {}
 
     @SuppressWarnings("WeakerAccess")

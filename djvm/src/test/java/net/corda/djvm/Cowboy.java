@@ -1,5 +1,5 @@
 package net.corda.djvm;
 
-public enum Label {
+public enum Cowboy {
     GOOD, BAD, UGLY;
 }

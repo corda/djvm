@@ -1,6 +1,7 @@
 package sandbox.java.lang.reflect;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sandbox.java.lang.String;
 import sandbox.java.lang.Throwable;
 import sandbox.java.lang.annotation.Annotation;
@@ -19,6 +20,11 @@ public final class Constructor<T> extends Executable {
         this.name = String.toDJVM(constructor.getName());
         this.stringValue = String.toDJVM(constructor.toString());
         this.genericString = String.toDJVM(constructor.toGenericString());
+    }
+
+    @Override
+    java.lang.reflect.Constructor getRoot() {
+        return constructor;
     }
 
     @Override
@@ -78,20 +84,15 @@ public final class Constructor<T> extends Executable {
         return constructor.getParameterTypes();
     }
 
-    @NotNull
-    @Override
-    public Parameter[] getParameters() {
-        java.lang.reflect.Parameter[] source = constructor.getParameters();
-        Parameter[] parameters = new Parameter[source.length];
-        for (int i = 0; i < source.length; ++i) {
-            parameters[i] = new Parameter(source[i], this);
-        }
-        return parameters;
-    }
-
     @Override
     public int getParameterCount() {
         return constructor.getParameterCount();
+    }
+
+    @Override
+    @NotNull
+    public Annotation[][] getParameterAnnotations() {
+        return sandbox.java.lang.DJVM.getParameterAnnotations(constructor);
     }
 
     @Override
@@ -112,11 +113,6 @@ public final class Constructor<T> extends Executable {
     @Override
     public Type[] getGenericExceptionTypes() {
         throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getGenericExceptionTypes()");
-    }
-
-    @Override
-    public Annotation[][] getParameterAnnotations() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getParameterAnnotations()");
     }
 
     @Override
@@ -145,35 +141,37 @@ public final class Constructor<T> extends Executable {
     }
 
     @Override
+    @Nullable
     public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
         return sandbox.java.lang.DJVM.getAnnotation(constructor, annotationType);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public Annotation[] getAnnotations() {
         return sandbox.java.lang.DJVM.getAnnotations(constructor);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public Annotation[] getDeclaredAnnotations() {
         return sandbox.java.lang.DJVM.getDeclaredAnnotations(constructor);
     }
 
     @Override
+    @Nullable
     public <A extends Annotation> A getDeclaredAnnotation(Class<A> annotationType) {
         return sandbox.java.lang.DJVM.getDeclaredAnnotation(constructor, annotationType);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public <A extends Annotation> A[] getAnnotationsByType(Class<A> annotationType) {
         return sandbox.java.lang.DJVM.getAnnotationsByType(constructor, annotationType);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public <A extends Annotation> A[] getDeclaredAnnotationsByType(Class<A> annotationType) {
         return sandbox.java.lang.DJVM.getDeclaredAnnotationsByType(constructor, annotationType);
     }

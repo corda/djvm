@@ -28,7 +28,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * @interface sandbox.JavaAnnotationClassData$1DJVM {
  *     Class<?> annotationClass() default sandbox.JavaAnnotationClassData.class;
  *     Class<?> throwableClass() default sandbox.IOException.class;
- *     Class<?> enumClass() default sandbox.Label.class;
+ *     Class<?> enumClass() default sandbox.Cowboy.class;
  *     Class<?> collectionClass() default sandbox.List.class;
  *     Class<?> anyOldClass() default Class.class;
  * }
@@ -41,7 +41,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface JavaAnnotationClassData {
     Class<? extends Annotation> annotationClass() default JavaAnnotationClassData.class;
     Class<? extends Throwable> throwableClass() default IOException.class;
-    Class<? extends Enum<?>> enumClass() default Label.class;
+    Class<? extends Enum<?>> enumClass() default Cowboy.class;
     Class<? extends Collection> collectionClass() default List.class;
     Class<?> anyOldClass() default Class.class;
 }

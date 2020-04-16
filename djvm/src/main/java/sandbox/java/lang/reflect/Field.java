@@ -160,14 +160,14 @@ public final class Field extends AccessibleObject implements Member {
         return sandbox.java.lang.DJVM.getAnnotation(field, annotationClass);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public Annotation[] getAnnotations() {
         return sandbox.java.lang.DJVM.getAnnotations(field);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public Annotation[] getDeclaredAnnotations() {
         return sandbox.java.lang.DJVM.getDeclaredAnnotations(field);
     }
@@ -177,14 +177,14 @@ public final class Field extends AccessibleObject implements Member {
         return sandbox.java.lang.DJVM.getDeclaredAnnotation(field, annotationClass);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
         return sandbox.java.lang.DJVM.getAnnotationsByType(field, annotationClass);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationType) {
         return sandbox.java.lang.DJVM.getDeclaredAnnotationsByType(field, annotationType);
     }

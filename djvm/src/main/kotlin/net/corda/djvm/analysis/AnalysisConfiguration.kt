@@ -219,12 +219,12 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/Character\$Cache",
             DJVM_NAME,
             "sandbox/java/lang/DJVMAnnotationAction",
-            "sandbox/java/lang/DJVMAnnotationByTypeAction",
+            "sandbox/java/lang/DJVMAnnotationsByTypeAction",
             "sandbox/java/lang/DJVMAnnotationHandler",
             "sandbox/java/lang/DJVMAnnotationHandler\$MethodValue",
             "sandbox/java/lang/DJVMBootstrapClassAction",
             "sandbox/java/lang/DJVMConstructorAction",
-            "sandbox/java/lang/DJVMDeclaredAnnotationByTypeAction",
+            "sandbox/java/lang/DJVMDeclaredAnnotationsByTypeAction",
             "sandbox/java/lang/DJVMEnumAction",
             DJVM_EXCEPTION_NAME,
             "sandbox/java/lang/DJVMNoResource",
@@ -278,6 +278,13 @@ class AnalysisConfiguration private constructor(
 
         init {
             val simpleAnnotations = setOf(
+                /**
+                 * These annotations only target "Types", such as
+                 * interfaces or annotations. We would need to modify
+                 * [net.corda.djvm.rewiring.SandboxClassRemapper]
+                 * if any annotation here could also be applied to
+                 * methods, method parameters or to fields.
+                 */
                 java.lang.FunctionalInterface::class.java,
                 java.lang.annotation.Documented::class.java,
                 java.lang.annotation.Inherited::class.java,

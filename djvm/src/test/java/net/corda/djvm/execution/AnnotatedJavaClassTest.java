@@ -14,10 +14,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.partitioningBy;
+import static net.corda.djvm.AnnotationUtils.getNamesOf;
+import static net.corda.djvm.AnnotationUtils.toStrings;
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,8 +59,8 @@ class AnnotatedJavaClassTest extends TestBase {
         sandbox(ctx -> {
             try {
                 Class<?> sandboxClass = loadClass(ctx, InheritingJavaData.class.getName()).getType();
-                List<String> declaredAnnotations = toStrings(sandboxClass.getDeclaredAnnotations());
-                List<String> annotations = toStrings(sandboxClass.getAnnotations());
+                List<String> declaredAnnotations = toStrings(sandboxClass.getDeclaredAnnotations()).collect(toList());
+                Stream<String> annotations = toStrings(sandboxClass.getAnnotations());
                 assertThat(annotations)
                     .hasSizeGreaterThan(declaredAnnotations.size())
                     .containsAll(declaredAnnotations);
@@ -99,7 +102,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 Annotation annotationValue = sandboxClass.getAnnotation(sandboxAnnotation);
                 assertThat(annotationValue).isNotNull();
                 String[] policy = (String[]) valueMethod.invoke(annotationValue);
-                assertThat(policy).containsExactlyInAnyOrder("TYPE", "METHOD", "FIELD");
+                assertThat(policy).containsExactlyInAnyOrder("TYPE", "CONSTRUCTOR", "METHOD", "FIELD");
             } catch (Exception e) {
                 fail(e);
             }
@@ -113,7 +116,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
                 Method sandboxMethod = sandboxClass.getDeclaredMethod("doNothing");
                 Annotation[] annotations = sandboxMethod.getAnnotations();
-                List<String> names = getNamesOf(annotations);
+                Stream<String> names = getNamesOf(annotations);
                 assertThat(names).containsExactlyInAnyOrder(
                     "sandbox.net.corda.djvm.JavaAnnotation$1DJVM", "net.corda.djvm.JavaAnnotation"
                 );
@@ -129,7 +132,7 @@ class AnnotatedJavaClassTest extends TestBase {
             try {
                 Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
                 Annotation[] annotations = sandboxClass.getAnnotations();
-                List<String> names = getNamesOf(annotations);
+                Stream<String> names = getNamesOf(annotations);
                 assertThat(names).containsExactlyInAnyOrder(
                     "sandbox.net.corda.djvm.JavaAnnotation$1DJVM"
                 );
@@ -145,7 +148,7 @@ class AnnotatedJavaClassTest extends TestBase {
             try {
                 Class<?> sandboxClass = loadClass(ctx, UserJavaData.class.getName()).getType();
                 Annotation[] annotations = sandboxClass.getAnnotations();
-                List<String> names = getNamesOf(annotations);
+                Stream<String> names = getNamesOf(annotations);
                 assertThat(names).containsExactlyInAnyOrder(
                     "sandbox.net.corda.djvm.JavaAnnotation$1DJVM",
                     "net.corda.djvm.JavaAnnotation"
@@ -164,7 +167,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 Class<? extends Annotation> sandboxAnnotation
                     = (Class<? extends Annotation>) loadClass(ctx, JavaAnnotation.class.getName()).getType();
                 Annotation[] annotations = sandboxAnnotation.getAnnotations();
-                List<String> names = getNamesOf(annotations);
+                Stream<String> names = getNamesOf(annotations);
                 assertThat(names).containsExactlyInAnyOrder(
                     "sandbox.java.lang.annotation.Retention$1DJVM",
                     "sandbox.java.lang.annotation.Target$1DJVM",
@@ -183,7 +186,7 @@ class AnnotatedJavaClassTest extends TestBase {
             try {
                 Class<?> sandboxFunction = loadClass(ctx, Function.class.getName()).getType();
                 Annotation[] sandboxAnnotations = sandboxFunction.getAnnotations();
-                List<String> names = getNamesOf(sandboxAnnotations);
+                Stream<String> names = getNamesOf(sandboxAnnotations);
                 assertThat(names).containsExactlyInAnyOrder(
                     "java.lang.FunctionalInterface"
                 );
@@ -257,7 +260,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 Class<? extends Annotation> sandboxAnnotation
                     = (Class<? extends Annotation>) loadClass(ctx, JavaLabel.class.getName()).getType();
                 Annotation[] annotations = sandboxAnnotation.getAnnotations();
-                List<String> names = getNamesOf(annotations);
+                Stream<String> names = getNamesOf(annotations);
                 assertThat(names).containsExactlyInAnyOrder(
                     "sandbox.java.lang.annotation.Repeatable$1DJVM",
                     "sandbox.java.lang.annotation.Retention$1DJVM",
@@ -278,7 +281,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 Class<? extends Annotation> sandboxClass
                     = (Class<? extends Annotation>) loadClass(ctx, UserNestedAnnotations.class.getName()).getType();
                 Annotation[] annotations = sandboxClass.getAnnotations();
-                List<String> names = getNamesOf(annotations);
+                Stream<String> names = getNamesOf(annotations);
                 assertThat(names).containsExactly(
                     "sandbox.net.corda.djvm.JavaNestedAnnotations$1DJVM"
                 );
@@ -290,18 +293,6 @@ class AnnotatedJavaClassTest extends TestBase {
 
     static boolean isForSandbox(@NotNull Annotation annotation) {
         return annotation.annotationType().getName().startsWith("sandbox.");
-    }
-
-    static List<String> getNamesOf(Annotation[] annotations) {
-        return Arrays.stream(annotations)
-            .map(ann -> ann.annotationType().getName())
-            .collect(toList());
-    }
-
-    static List<String> toStrings(Annotation[] annotations) {
-        return Arrays.stream(annotations)
-            .map(Annotation::toString)
-            .collect(toList());
     }
 
     @JavaAnnotation("Hello Java!")

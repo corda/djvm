@@ -29,6 +29,7 @@ import java.io.IOException
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Array.newInstance
 import java.lang.reflect.Constructor
+import java.lang.reflect.Executable
 import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Member
@@ -820,12 +821,14 @@ private object DJVMNoResource : ResourceBundle() {
 /**
  * Annotation handling.
  */
-fun isAnnotationPresent(annotated: AnnotatedElement, annotationClass: Class<out Annotation>): kotlin.Boolean {
-    return annotated.isAnnotationPresent(annotationClass.toRealAnnotationType())
+fun isAnnotationPresent(annotated: AnnotatedElement, annotationType: Class<out Annotation>): kotlin.Boolean {
+    return annotated.isAnnotationPresent(annotationType.toRealAnnotationType())
 }
 
-fun <T: Annotation> getAnnotation(annotated: AnnotatedElement, annotationClass: Class<T>): T? {
-    return annotationClass.createDJVMAnnotation(annotated.getAnnotation(annotationClass.toRealAnnotationType()))
+fun <T: Annotation> getAnnotation(annotated: AnnotatedElement, annotationType: Class<T>): T? {
+    return annotated.getAnnotation(annotationType.toRealAnnotationType())?.let { ann ->
+        return annotationType.createDJVMAnnotation(ann)
+    }
 }
 
 fun getAnnotations(annotated: AnnotatedElement): Array<out Annotation> {
@@ -833,12 +836,14 @@ fun getAnnotations(annotated: AnnotatedElement): Array<out Annotation> {
 }
 
 fun <T: Annotation> getAnnotationsByType(annotated: AnnotatedElement, annotationType: Class<T>): Array<T> {
-    return doPrivileged(DJVMAnnotationByTypeAction(annotated, annotationType.toRealAnnotationType()))
+    return doPrivileged(DJVMAnnotationsByTypeAction(annotated, annotationType.toRealAnnotationType()))
         .toDJVMAnnotations(annotationType)
 }
 
-fun <T: Annotation> getDeclaredAnnotation(annotated: AnnotatedElement, annotationClass: Class<T>): T? {
-    return annotationClass.createDJVMAnnotation(annotated.getDeclaredAnnotation(annotationClass.toRealAnnotationType()))
+fun <T: Annotation> getDeclaredAnnotation(annotated: AnnotatedElement, annotationType: Class<T>): T? {
+    return annotated.getDeclaredAnnotation(annotationType.toRealAnnotationType())?.let { ann ->
+        annotationType.createDJVMAnnotation(ann)
+    }
 }
 
 fun getDeclaredAnnotations(annotated: AnnotatedElement): Array<out Annotation> {
@@ -846,7 +851,7 @@ fun getDeclaredAnnotations(annotated: AnnotatedElement): Array<out Annotation> {
 }
 
 fun <T: Annotation> getDeclaredAnnotationsByType(annotated: AnnotatedElement, annotationType: Class<T>): Array<T> {
-    return doPrivileged(DJVMDeclaredAnnotationByTypeAction(annotated, annotationType.toRealAnnotationType()))
+    return doPrivileged(DJVMDeclaredAnnotationsByTypeAction(annotated, annotationType.toRealAnnotationType()))
         .toDJVMAnnotations(annotationType)
 }
 
@@ -860,8 +865,8 @@ fun getDefaultValue(method: Method): Any? {
     }
 }
 
-fun getParameterAnnotations(method: Method): Array<Array<out Annotation>> {
-    val parameterAnnotations = method.parameterAnnotations
+fun getParameterAnnotations(executable: Executable): Array<Array<out Annotation>> {
+    val parameterAnnotations = executable.parameterAnnotations
     @Suppress("unchecked_cast")
     return (newInstance(Array<out Annotation>::class.java, parameterAnnotations.size) as Array<Array<out Annotation>>).also {
         for ((i, item) in parameterAnnotations.withIndex()) {
@@ -989,7 +994,7 @@ private class DJVMAnnotationAction<T: Annotation>(
     }
 }
 
-private class DJVMAnnotationByTypeAction(
+private class DJVMAnnotationsByTypeAction(
     private val annotated: AnnotatedElement,
     private val annotationType: Class<out kotlin.Annotation>
 ) : PrivilegedExceptionAction<Array<out kotlin.Annotation>> {
@@ -998,7 +1003,7 @@ private class DJVMAnnotationByTypeAction(
     }
 }
 
-private class DJVMDeclaredAnnotationByTypeAction(
+private class DJVMDeclaredAnnotationsByTypeAction(
     private val annotated: AnnotatedElement,
     private val annotationType: Class<out kotlin.Annotation>
 ) : PrivilegedExceptionAction<Array<out kotlin.Annotation>> {

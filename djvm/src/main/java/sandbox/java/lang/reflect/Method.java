@@ -22,6 +22,11 @@ public final class Method extends Executable {
     }
 
     @Override
+    java.lang.reflect.Method getRoot() {
+        return method;
+    }
+
+    @Override
     public boolean equals(java.lang.Object other) {
         if (this == other) {
             return true;
@@ -90,20 +95,15 @@ public final class Method extends Executable {
         return method.getParameterTypes();
     }
 
-    @NotNull
-    @Override
-    public Parameter[] getParameters() {
-        java.lang.reflect.Parameter[] source = method.getParameters();
-        Parameter[] parameters = new Parameter[source.length];
-        for (int i = 0; i < source.length; ++i) {
-            parameters[i] = new Parameter(source[i], this);
-        }
-        return parameters;
-    }
-
     @Override
     public int getParameterCount() {
         return method.getParameterCount();
+    }
+
+    @Override
+    @NotNull
+    public Annotation[][] getParameterAnnotations() {
+        return sandbox.java.lang.DJVM.getParameterAnnotations(method);
     }
 
     @Override
@@ -114,12 +114,6 @@ public final class Method extends Executable {
     @Nullable
     public java.lang.Object getDefaultValue() {
         return sandbox.java.lang.DJVM.getDefaultValue(method);
-    }
-
-    @NotNull
-    @Override
-    public Annotation[][] getParameterAnnotations() {
-        return sandbox.java.lang.DJVM.getParameterAnnotations(method);
     }
 
     @Override
@@ -160,14 +154,14 @@ public final class Method extends Executable {
         return sandbox.java.lang.DJVM.getAnnotation(method, annotationType);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public Annotation[] getAnnotations() {
         return sandbox.java.lang.DJVM.getAnnotations(method);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public Annotation[] getDeclaredAnnotations() {
         return sandbox.java.lang.DJVM.getDeclaredAnnotations(method);
     }
@@ -177,14 +171,14 @@ public final class Method extends Executable {
         return sandbox.java.lang.DJVM.getDeclaredAnnotation(method, annotationType);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationType) {
         return sandbox.java.lang.DJVM.getAnnotationsByType(method, annotationType);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationType) {
         return sandbox.java.lang.DJVM.getDeclaredAnnotationsByType(method, annotationType);
     }

@@ -94,14 +94,14 @@ public final class Parameter extends sandbox.java.lang.Object implements Annotat
         return sandbox.java.lang.DJVM.getAnnotation(parameter, annotationType);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public Annotation[] getAnnotations() {
         return sandbox.java.lang.DJVM.getAnnotations(parameter);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public Annotation[] getDeclaredAnnotations() {
         return sandbox.java.lang.DJVM.getDeclaredAnnotations(parameter);
     }
@@ -111,14 +111,14 @@ public final class Parameter extends sandbox.java.lang.Object implements Annotat
         return sandbox.java.lang.DJVM.getDeclaredAnnotation(parameter, annotationType);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationType) {
         return sandbox.java.lang.DJVM.getAnnotationsByType(parameter, annotationType);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationType) {
         return sandbox.java.lang.DJVM.getDeclaredAnnotationsByType(parameter, annotationType);
     }

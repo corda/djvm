@@ -32,6 +32,6 @@ public @interface JavaAnnotationData {
     char[] charsData() default { '?' };
     byte byteData() default 0;
     byte[] bytesData() default { 0 };
-    Label label() default Label.UGLY;
-    Label[] labels() default { Label.UGLY };
+    Cowboy cowboy() default Cowboy.UGLY;
+    Cowboy[] cowboys() default { Cowboy.UGLY };
 }
