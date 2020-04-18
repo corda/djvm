@@ -1,9 +1,9 @@
 package com.example.testing;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.function.Function;
+
+import static com.example.testing.AnnotationUtils.toStringArray;
 
 public class GetJavaMethodAnnotations implements Function<String, String[]> {
     @Override
@@ -14,9 +14,7 @@ public class GetJavaMethodAnnotations implements Function<String, String[]> {
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
-        return Arrays.stream(action.getDeclaredAnnotations())
-            .map(Annotation::toString)
-            .toArray(String[]::new);
+        return toStringArray(action.getDeclaredAnnotations());
     }
 }
 

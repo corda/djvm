@@ -1,16 +1,13 @@
 package com.example.testing;
 
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
 import java.util.function.Function;
+
+import static com.example.testing.AnnotationUtils.toStringArray;
 
 public class GetAllJavaAnnotations implements Function<String, String[]> {
     @Override
     public String[] apply(String unused) {
-        Annotation[] annotations = SimpleUserData.class.getAnnotations();
-        return Arrays.stream(annotations)
-            .map(Annotation::toString)
-            .toArray(String[]::new);
+        return toStringArray(SimpleUserData.class.getAnnotations());
     }
 }
 
