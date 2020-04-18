@@ -18,7 +18,6 @@ object DisallowNonDeterministicMethods : Emitter {
         "getMethods",
         "getEnclosingMethod"
     )
-    private val HAS_CLASS_REFLECTION = "^.*\\)\\[?Ljava/lang/reflect/(Method|Field|Constructor);\$".toRegex()
     private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
     private val REFLECTING_CLASSES = setOf(
@@ -109,7 +108,8 @@ object DisallowNonDeterministicMethods : Emitter {
         private val isLoadClass: Boolean = instruction.memberName == "loadClass"
 
         private val hasClassReflection: Boolean get() = isClass
-            && (instruction.descriptor.matches(HAS_CLASS_REFLECTION) && instruction.memberName !in ALLOWED_GETTERS)
+            && instruction.descriptor.contains("Ljava/lang/reflect/")
+            && instruction.memberName !in ALLOWED_GETTERS
 
         private val isNewInstance: Boolean get() = instruction.className == "java/lang/reflect/Constructor"
             && instruction.memberName == "newInstance"

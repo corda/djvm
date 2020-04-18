@@ -45,7 +45,7 @@ open class Whitelist private constructor(
                 seenNames.add(name)
                 true
             }
-            entries.any { it.matches(name) } -> {
+            entries.any { it matches name } -> {
                 seenNames.add(name)
                 true
             }

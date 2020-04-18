@@ -136,7 +136,7 @@ class ClassResolver(
      * Check if class is whitelisted.
      */
     private fun isWhitelistedClass(name: String): Boolean {
-        return whitelist.matches(name) || sandboxRegex.matches(name)
+        return whitelist.matches(name) || sandboxRegex matches name
     }
 
     private val sandboxRegex = "^$sandboxPrefix.*\$".toRegex()
