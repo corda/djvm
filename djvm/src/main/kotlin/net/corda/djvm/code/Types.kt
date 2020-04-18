@@ -46,8 +46,8 @@ const val RUNTIME_ACCOUNTER_NAME: String = "sandbox/RuntimeCostAccounter"
 const val DJVM_EXCEPTION_NAME: String = "sandbox/java/lang/DJVMException"
 
 const val DJVM_MODIFIED = 1
-const val DJVM_ANNOTATION = 2
 const val DJVM_SYNTHETIC = 2
+const val DJVM_ANNOTATION = 4
 
 val ruleViolationError: String = Type.getInternalName(RuleViolationError::class.java)
 val thresholdViolationError: String = Type.getInternalName(ThresholdViolationError::class.java)
