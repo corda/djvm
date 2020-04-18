@@ -21,6 +21,37 @@ class SafeJavaReflectionTest extends TestBase {
     }
 
     @Test
+    void testGetClasses() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String[] result = WithJava.run(taskFactory, GetClassClasses.class, null);
+                assertThat(result).containsExactlyInAnyOrder(
+                    "sandbox.net.corda.djvm.execution.GetClassClasses$NestedException"
+                );
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    void testGetDeclaredClasses() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                RuleViolationError ex = assertThrows(RuleViolationError.class,
+                    () -> WithJava.run(taskFactory, GetClassDeclaredClasses.class, null));
+                assertThat(ex)
+                    .hasMessage("Disallowed reference to API; java.lang.Class.getDeclaredClasses()")
+                    .hasNoCause();
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
     void testInvokingConstructor() {
         sandbox(ctx -> {
             try {

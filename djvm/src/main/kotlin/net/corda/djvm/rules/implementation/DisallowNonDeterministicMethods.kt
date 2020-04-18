@@ -18,6 +18,10 @@ object DisallowNonDeterministicMethods : Emitter {
         "getMethods",
         "getEnclosingMethod"
     )
+    private val FORBIDDEN_METHODS = setOf(
+        "getDeclaredClasses",
+        "getProtectionDomain"
+    )
     private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
     private val REFLECTING_CLASSES = setOf(
@@ -124,7 +128,7 @@ object DisallowNonDeterministicMethods : Emitter {
             isClassLoader && instruction.memberName == "getResources" -> Choice.EMPTY_RESOURCES
             isClassLoader && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
             isClass && instruction.memberName == "getPackage" -> Choice.GET_PACKAGE
-            isClass && instruction.memberName == "getProtectionDomain" -> Choice.FORBID
+            isClass && instruction.memberName in FORBIDDEN_METHODS -> Choice.FORBID
 
             className == "java/security/Provider\$Service" -> allowLoadClass()
 

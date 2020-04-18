@@ -1,6 +1,7 @@
 package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.code.CLASS_NAME
 import org.objectweb.asm.Type
 import org.objectweb.asm.commons.Remapper
 
@@ -24,7 +25,7 @@ class SyntheticRemapper(private val configuration: AnalysisConfiguration) : Rema
 
     override fun map(internalName: String): String {
         return when(internalName) {
-            "java/lang/String", "java/lang/Class" -> internalName
+            "java/lang/String", CLASS_NAME -> internalName
             else -> {
                 val header = configuration.getSourceHeader(internalName)
                 when {
