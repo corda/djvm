@@ -1,5 +1,6 @@
 package net.corda.djvm.code
 
+import net.corda.djvm.CordaInternal
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.references.MemberInformation
 import net.corda.djvm.references.MethodBody
@@ -14,9 +15,10 @@ import org.objectweb.asm.Type
  * @property methodVisitor The underlying visitor which controls all the byte code for the current method.
  * @property configuration
  */
+@CordaInternal
 class EmitterModule(
-        private val methodVisitor: MethodVisitor,
-        private val configuration: AnalysisConfiguration
+    private val methodVisitor: MethodVisitor,
+    private val configuration: AnalysisConfiguration
 ) {
     fun formatFor(member: MemberInformation): String = configuration.formatFor(member)
 

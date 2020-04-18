@@ -1,5 +1,6 @@
 package net.corda.djvm.validation
 
+import net.corda.djvm.CordaInternal
 import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.analysis.Whitelist
@@ -11,8 +12,9 @@ import net.corda.djvm.references.*
  * @property analysisContext The context in which a class and its members are analyzed.
  */
 @Suppress("unused")
-open class RuleContext(
-        private val analysisContext: AnalysisRuntimeContext
+@CordaInternal
+class RuleContext(
+    private val analysisContext: AnalysisRuntimeContext
 ) : ConstraintProvider(analysisContext) {
     fun formatFor(member: MemberInformation): String = analysisContext.configuration.formatFor(member)
 

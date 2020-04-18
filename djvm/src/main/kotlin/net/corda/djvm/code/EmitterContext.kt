@@ -1,5 +1,6 @@
 package net.corda.djvm.code
 
+import net.corda.djvm.CordaInternal
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.analysis.SourceLocation
@@ -16,6 +17,7 @@ import net.corda.djvm.references.MemberModule
  * @property configuration The configuration to used for the analysis.
  * @property emitterModule A module providing code generation functionality that can be used from within an emitter.
  */
+@CordaInternal
 class EmitterContext(
     private val analysisContext: AnalysisRuntimeContext,
     private val configuration: AnalysisConfiguration,

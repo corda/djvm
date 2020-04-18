@@ -1,11 +1,13 @@
 package net.corda.djvm.references
 
+import net.corda.djvm.CordaInternal
 import net.corda.djvm.analysis.SourceLocation
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * Map from member references to all discovered call-sites / field accesses for each reference.
  */
+@CordaInternal
 class ReferenceMap : Iterable<EntityReference> {
 
     private val queueOfReferences = ConcurrentLinkedQueue<EntityReference>()

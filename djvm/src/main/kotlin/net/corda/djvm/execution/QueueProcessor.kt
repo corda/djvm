@@ -1,5 +1,6 @@
 package net.corda.djvm.execution
 
+import net.corda.djvm.CordaInternal
 import net.corda.djvm.utilities.loggerFor
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.BiConsumer
@@ -7,9 +8,10 @@ import java.util.function.BiConsumer
 /**
  * Helper class for processing queued entities.
  */
+@CordaInternal
 class QueueProcessor<T>(
-        private val deduplicationKeyExtractor: (T) -> String,
-        vararg elements: T
+    private val deduplicationKeyExtractor: (T) -> String,
+    vararg elements: T
 ) {
 
     private val queue = ConcurrentLinkedQueue<T>(elements.toMutableList())

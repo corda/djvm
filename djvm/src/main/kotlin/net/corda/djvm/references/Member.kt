@@ -1,5 +1,6 @@
 package net.corda.djvm.references
 
+import net.corda.djvm.CordaInternal
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterModule
 
@@ -23,6 +24,7 @@ typealias MethodBody = (EmitterModule) -> Unit
  * @property body One or more handlers to replace the method body with new byte-code.
  * @property runtimeContext Local runtime "state" objects for each [Emitter].
  */
+@CordaInternal
 data class Member(
     override val access: Int,
     override val className: String,
