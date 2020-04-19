@@ -2,8 +2,12 @@ package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.Whitelist
+import net.corda.djvm.code.CLASS_NAME
+import net.corda.djvm.code.DJVM_NAME
+import net.corda.djvm.code.OBJECT_NAME
 import org.objectweb.asm.*
 import org.objectweb.asm.commons.Remapper
+import java.util.Collections.unmodifiableSet
 
 /**
  * Class name and descriptor re-mapper for use in a sandbox.
@@ -15,6 +19,7 @@ open class SandboxRemapper(
         private val classResolver: ClassResolver,
         private val whitelist: Whitelist
 ) : Remapper() {
+    private val mapped = unmodifiableSet(setOf(CLASS_NAME, OBJECT_NAME))
 
     /**
      * The underlying mapping function for descriptors.
@@ -31,13 +36,32 @@ open class SandboxRemapper(
     }
 
     /**
-     * Mapper for [Type] and [Handle] objects.
+     * Mapper for [Type] and [Handle] objects. The [Handle]
+     * objects can be parameters to lambda bootstrap methods.
      */
     override fun mapValue(obj: Any?): Any? {
         return if (obj is Handle && whitelist.matches(obj.owner)) {
-            obj
+            mapWhitelistHandle(obj)
         } else {
             super.mapValue(obj)
+        }
+    }
+
+    private fun mapWhitelistHandle(handle: Handle): Handle? {
+        return when(handle.tag) {
+            Opcodes.H_INVOKEVIRTUAL ->
+                if (handle.owner in mapped && handle.desc.startsWith("()")) {
+                    Handle(
+                        Opcodes.H_INVOKESTATIC,
+                        DJVM_NAME,
+                        handle.name,
+                        "(L${handle.owner};)" + rewriteDescriptor(handle.desc.drop("()".length)),
+                        false
+                    )
+                } else {
+                    handle
+                }
+            else -> handle
         }
     }
 

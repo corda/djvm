@@ -39,7 +39,8 @@ object RewriteClassMethods : Emitter {
                         invokeStatic(
                             owner = DJVM_NAME,
                             name = instruction.memberName,
-                            descriptor = "(Ljava/lang/Class;)" + context.resolveDescriptor(instruction.descriptor.drop(2))
+                            descriptor = "(Ljava/lang/Class;)"
+                                + context.resolveDescriptor(instruction.descriptor.drop("()".length))
                         )
                         preventDefault()
                     }

@@ -12,7 +12,7 @@ import org.objectweb.asm.Opcodes.INVOKESTATIC
 import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
 
 /**
- * These factory functions also need special handling:
+ * These factory functions need special handling:
  *   [java.util.concurrent.atomic.AtomicIntegerFieldUpdater.newUpdater]
  *   [java.util.concurrent.atomic.AtomicLongFieldUpdater.newUpdater]
  *   [java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater]

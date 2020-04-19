@@ -281,13 +281,29 @@ private fun Array<*>.toDJVMArray(): Array<*> {
 }
 
 /**
- * Replacement function for [java.lang.Object.toString].
+ * Replacement function for [java.lang.Object.toString], because some
+ * objects (i.e. arrays) cannot be replaced by [sandbox.java.lang.Object].
  */
-fun toString(obj: Any): String {
-    return if (obj is Object) {
-        obj.toDJVMString()
-    } else {
-        String.toDJVM(obj.toString())
+fun toString(obj: Any?): String {
+    return when {
+        obj is Object ->  obj.toDJVMString()
+        obj is Annotation -> String.toDJVM(obj.toString())
+        obj != null -> Object.toDJVMString(System.identityHashCode(obj))
+        else -> // Throw the same exception that the JVM would throw in this case.
+            throw NullPointerException().sanitise(1)
+    }
+}
+
+/**
+ * Replacement function for [java.lang.Object.hashCode], because some
+ * objects (i.e. arrays) cannot be replaced by [sandbox.java.lang.Object].
+ */
+fun hashCode(obj: Any?): Int {
+    return when {
+        obj is Object -> obj.hashCode()
+        obj != null -> System.identityHashCode(obj)
+        else -> // Throw the same exception that the JVM would throw in this case.
+            throw NullPointerException().sanitise(1)
     }
 }
 
@@ -350,19 +366,6 @@ private fun createEnumDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Ma
 
 private val allEnums: sandbox.java.util.Map<Class<out Enum<*>>, Array<out Enum<*>>> = LinkedHashMap()
 private val allEnumDirectories: sandbox.java.util.Map<Class<out Enum<*>>, sandbox.java.util.Map<String, out Enum<*>>> = LinkedHashMap()
-
-/**
- * Replacement function for Object.hashCode(), because some objects
- * (i.e. arrays) cannot be replaced by [sandbox.java.lang.Object].
- */
-fun hashCode(obj: Any?): Int {
-    return when {
-        obj is Object -> obj.hashCode()
-        obj != null -> System.identityHashCode(obj)
-        else -> // Throw the same exception that the JVM would throw in this case.
-            throw NullPointerException().sanitise(1)
-    }
-}
 
 /**
  * Ensure that all string constants refer to the same instance of [sandbox.java.lang.String].
