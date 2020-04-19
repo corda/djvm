@@ -45,6 +45,7 @@ fun Any.unsandbox(): Any {
 
 @Throws(ClassNotFoundException::class)
 fun Any.sandbox(): Any {
+    @Suppress("RemoveRedundantQualifierName")
     return when (this) {
         is kotlin.String -> String.toDJVM(this)
         is kotlin.Char -> Character.toDJVM(this)
@@ -278,6 +279,27 @@ private fun Array<*>.toDJVMArray(): Array<*> {
         }
     }
 }
+
+/**
+ * Replacement function for [java.lang.Object.toString].
+ */
+fun toString(obj: Any): String {
+    return if (obj is Object) {
+        obj.toDJVMString()
+    } else {
+        String.toDJVM(obj.toString())
+    }
+}
+
+/**
+ * Replacement functions for members of [java.lang.Class] that return [String].
+ */
+fun toString(clazz: Class<*>): String = String.toDJVM(clazz.toString())
+fun getName(clazz: Class<*>): String = String.toDJVM(clazz.name)
+fun getCanonicalName(clazz: Class<*>): String? = String.toDJVM(clazz.canonicalName)
+fun getSimpleName(clazz: Class<*>): String = String.toDJVM(clazz.simpleName)
+fun toGenericString(clazz: Class<*>): String = String.toDJVM(clazz.toGenericString())
+fun getTypeName(clazz: Class<*>): String = String.toDJVM(clazz.typeName)
 
 @Throws(ClassNotFoundException::class)
 internal fun Enum<*>.fromDJVMEnum(): kotlin.Enum<*> {

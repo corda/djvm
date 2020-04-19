@@ -96,7 +96,7 @@ object DisallowNonDeterministicMethods : Emitter {
 
     private class Enforcer(private val instruction: MemberAccessInstruction) {
         private val isClassLoader: Boolean = instruction.className == "java/lang/ClassLoader"
-        private val isClass: Boolean = instruction.className == "java/lang/Class"
+        private val isClass: Boolean = instruction.className == CLASS_NAME
         private val hasClassReflection: Boolean = isClass && instruction.descriptor.contains("Ljava/lang/reflect/")
         private val isLoadClass: Boolean = instruction.memberName == "loadClass"
 
@@ -110,6 +110,7 @@ object DisallowNonDeterministicMethods : Emitter {
             isClassLoader && instruction.memberName == "getResources" -> Choice.EMPTY_RESOURCES
             isClassLoader && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
             isClass && instruction.memberName == "getPackage" -> Choice.GET_PACKAGE
+            isClass && instruction.memberName == "getProtectionDomain" -> Choice.FORBID
 
             className == "java/security/Provider\$Service" -> allowLoadClass()
 

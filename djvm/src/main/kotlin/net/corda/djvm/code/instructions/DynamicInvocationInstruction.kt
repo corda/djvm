@@ -20,5 +20,5 @@ class DynamicInvocationInstruction(
     val memberName: String,
     val descriptor: String,
     val bootstrap: Handle,
-    var bootstrapArgs: Array<out Any?>
+    var bootstrapArgs: Array<Any>
 ) : Instruction(Opcodes.INVOKEDYNAMIC)
