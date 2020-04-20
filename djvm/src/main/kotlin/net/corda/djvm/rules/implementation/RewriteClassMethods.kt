@@ -1,11 +1,11 @@
 package net.corda.djvm.rules.implementation
 
-import net.corda.djvm.code.ANNOTATED_ELEMENT_NAME
 import net.corda.djvm.code.CLASS_NAME
 import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.SANDBOX_CLASS_NAME
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import org.objectweb.asm.Opcodes.*
 import java.util.Collections.unmodifiableMap
@@ -22,42 +22,44 @@ import java.util.Collections.unmodifiableMap
  * some mappings.
  */
 object RewriteClassMethods : Emitter {
-    private const val NO_ARG = "()"
+    private const val NO_ARGS = "()"
     private const val CLASS_ARG = "(Ljava/lang/Class;)"
 
-    private val mappedNames: Map<String, Array<String>> = unmodifiableMap(mapOf(
-        "enumConstantDirectory" to arrayOf(NO_ARG, CLASS_NAME),
-        "getAnnotation" to arrayOf(CLASS_ARG, ANNOTATED_ELEMENT_NAME),
-        "getAnnotations" to arrayOf(NO_ARG, ANNOTATED_ELEMENT_NAME),
-        "getAnnotationsByType" to arrayOf(CLASS_ARG, ANNOTATED_ELEMENT_NAME),
-        "getCanonicalName" to arrayOf(NO_ARG, CLASS_NAME),
-        "getClassLoader" to arrayOf(NO_ARG, CLASS_NAME),
-        "getDeclaredAnnotation" to arrayOf(CLASS_ARG, ANNOTATED_ELEMENT_NAME),
-        "getDeclaredAnnotations" to arrayOf(NO_ARG, ANNOTATED_ELEMENT_NAME),
-        "getDeclaredAnnotationsByType" to arrayOf(CLASS_ARG, ANNOTATED_ELEMENT_NAME),
-        "getEnumConstants" to arrayOf(NO_ARG, CLASS_NAME),
-        "getName" to arrayOf(NO_ARG, CLASS_NAME),
-        "getSimpleName" to arrayOf(NO_ARG, CLASS_NAME),
-        "getTypeName" to arrayOf(NO_ARG, CLASS_NAME),
-        "isAnnotationPresent" to arrayOf(CLASS_ARG, ANNOTATED_ELEMENT_NAME),
-        "isEnum" to arrayOf(NO_ARG, CLASS_NAME),
-        "toGenericString" to arrayOf(NO_ARG, CLASS_NAME),
-        "toString" to arrayOf(NO_ARG, CLASS_NAME)
+    private val mappedNames: Map<String, String> = unmodifiableMap(mapOf(
+        "enumConstantDirectory" to NO_ARGS,
+        "getAnnotation" to CLASS_ARG,
+        "getAnnotations" to NO_ARGS,
+        "getAnnotationsByType" to CLASS_ARG,
+        "getCanonicalName" to NO_ARGS,
+        "getClassLoader" to NO_ARGS,
+        "getDeclaredAnnotation" to CLASS_ARG,
+        "getDeclaredAnnotations" to NO_ARGS,
+        "getDeclaredAnnotationsByType" to CLASS_ARG,
+        "getEnumConstants" to NO_ARGS,
+        "getName" to NO_ARGS,
+        "getSimpleName" to NO_ARGS,
+        "getTypeName" to NO_ARGS,
+        "isAnnotationPresent" to CLASS_ARG,
+        "isEnum" to NO_ARGS,
+        "toGenericString" to NO_ARGS,
+        "toString" to NO_ARGS
     ))
+
+    private fun prependClassArgTo(descriptor: String): String {
+        return "(L$CLASS_NAME;${descriptor.substring(1)}"
+    }
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
         if (instruction is MemberAccessInstruction && instruction.className == CLASS_NAME) {
             when (instruction.operation) {
                 INVOKEVIRTUAL ->
-                    mappedNames[instruction.memberName]?.also { mapping ->
+                    mappedNames[instruction.memberName]?.also { argTypes ->
                         val descriptor = instruction.descriptor
-                        if (descriptor.startsWith(mapping[0])) {
-                            val returnTypeIdx = descriptor.indexOf(')') + 1
-                            val newReturnType = context.resolveDescriptor(descriptor.substring(returnTypeIdx))
+                        if (descriptor.startsWith(argTypes)) {
                             invokeStatic(
-                                owner = DJVM_NAME,
+                                owner = SANDBOX_CLASS_NAME,
                                 name = instruction.memberName,
-                                descriptor = "(L${mapping[1]};${descriptor.substring(1, returnTypeIdx)}$newReturnType"
+                                descriptor = prependClassArgTo(context.resolveDescriptor(descriptor))
                             )
                             preventDefault()
                         }

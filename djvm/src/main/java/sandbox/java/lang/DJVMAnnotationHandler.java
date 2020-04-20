@@ -133,7 +133,7 @@ final class DJVMAnnotationHandler implements InvocationHandler {
                 return jvmResult;
             } else if (resultType == String.class) {
                 return String.valueOf(jvmResult);
-            } else if (DJVM.isEnum(resultType)) {
+            } else if (DJVMClass.isEnum(resultType)) {
                 return Enum.valueOf(resultType.<Enum>asSubclass(Enum.class), String.valueOf(jvmResult));
             } else if (resultType.isAnnotation()) {
                 return DJVM.createDJVMAnnotation(

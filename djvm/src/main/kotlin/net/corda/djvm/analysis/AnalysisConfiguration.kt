@@ -6,6 +6,8 @@ import net.corda.djvm.code.DJVM_EXCEPTION_NAME
 import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
+import net.corda.djvm.code.SANDBOX_CLASS_NAME
+import net.corda.djvm.code.SANDBOX_OBJECT_NAME
 import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.formatting.MemberFormatter
 import net.corda.djvm.messages.Severity
@@ -204,8 +206,7 @@ class AnalysisConfiguration private constructor(
             java.util.concurrent.atomic.AtomicReference::class.java,
             java.util.concurrent.locks.ReentrantLock::class.java,
             java.util.zip.CRC32::class.java,
-            java.util.zip.Inflater::class.java,
-            Any::class.java
+            java.util.zip.Inflater::class.java
         ).sandboxed() + setOf(
             "sandbox/BasicInput",
             "sandbox/BasicOutput",
@@ -223,6 +224,7 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/DJVMAnnotationHandler",
             "sandbox/java/lang/DJVMAnnotationHandler\$MethodValue",
             "sandbox/java/lang/DJVMBootstrapClassAction",
+            SANDBOX_CLASS_NAME,
             "sandbox/java/lang/DJVMConstructorAction",
             "sandbox/java/lang/DJVMDeclaredAnnotationsByTypeAction",
             "sandbox/java/lang/DJVMEnumAction",
@@ -231,6 +233,7 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/DJVMResourceKey",
             "sandbox/java/lang/DJVMSystemResourceAction",
             "sandbox/java/lang/DJVMThrowableWrapper",
+            SANDBOX_OBJECT_NAME,
             "sandbox/java/lang/String\$InitAction",
             "sandbox/java/lang/reflect/AccessibleObject",
             "sandbox/java/lang/reflect/Constructor",

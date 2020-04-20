@@ -31,9 +31,8 @@ public final class DJVM {
     }
 
     @NotNull
-    public static <T> Constructor<T>[] toDJVM(@NotNull java.lang.reflect.Constructor<T>[] constructors) {
-        @SuppressWarnings("unchecked")
-        Constructor<T>[] result = (Constructor<T>[])java.lang.reflect.Array.newInstance(Constructor.class, constructors.length);
+    public static Constructor<?>[] toDJVM(@NotNull java.lang.reflect.Constructor<?>[] constructors) {
+        Constructor<?>[] result = (Constructor<?>[])java.lang.reflect.Array.newInstance(Constructor.class, constructors.length);
         for (int i = 0; i < constructors.length; ++i) {
             result[i] = toDJVM(constructors[i]);
         }

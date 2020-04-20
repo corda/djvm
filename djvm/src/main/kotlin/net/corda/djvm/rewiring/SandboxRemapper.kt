@@ -5,9 +5,9 @@ import net.corda.djvm.analysis.Whitelist
 import net.corda.djvm.code.CLASS_NAME
 import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.OBJECT_NAME
+import net.corda.djvm.code.SANDBOX_CLASS_NAME
 import org.objectweb.asm.*
 import org.objectweb.asm.commons.Remapper
-import java.util.Collections.unmodifiableSet
 
 /**
  * Class name and descriptor re-mapper for use in a sandbox.
@@ -19,7 +19,6 @@ class SandboxRemapper(
     private val classResolver: ClassResolver,
     private val whitelist: Whitelist
 ) : Remapper() {
-    private val mapped = unmodifiableSet(setOf(CLASS_NAME, OBJECT_NAME))
 
     /**
      * The underlying mapping function for descriptors.
@@ -48,21 +47,44 @@ class SandboxRemapper(
     }
 
     private fun mapWhitelistHandle(handle: Handle): Handle? {
+        val newDescriptor = rewriteDescriptor(handle.desc)
+        val owner = handle.owner
         return when(handle.tag) {
             Opcodes.H_INVOKEVIRTUAL ->
-                if (handle.owner in mapped && handle.desc.startsWith("()")) {
-                    Handle(
-                        Opcodes.H_INVOKESTATIC,
-                        DJVM_NAME,
-                        handle.name,
-                        "(L${handle.owner};)" + rewriteDescriptor(handle.desc.drop("()".length)),
-                        false
-                    )
-                } else {
-                    handle
+                when {
+                    /**
+                     * [java.lang.Class] is final, and so we know exactly
+                     * which class the method we're intercepting is for.
+                     */
+                    owner == CLASS_NAME && (newDescriptor != handle.desc) ->
+                        Handle(
+                            Opcodes.H_INVOKESTATIC,
+                            SANDBOX_CLASS_NAME,
+                            handle.name,
+                            prependArgType(owner, newDescriptor),
+                            false
+                        )
+
+                    /**
+                     * We are only intercepting [java.lang.Object.toString]
+                     * and [java.lang.Object.hashCode] here.
+                     */
+                    owner == OBJECT_NAME && newDescriptor.startsWith("()") ->
+                        Handle(
+                            Opcodes.H_INVOKESTATIC,
+                            DJVM_NAME,
+                            handle.name,
+                            prependArgType(owner, newDescriptor),
+                            false
+                        )
+                    else -> handle
                 }
             else -> handle
         }
+    }
+
+    private fun prependArgType(argType: String, descriptor: String): String {
+        return "(L$argType;${descriptor.substring(1)}"
     }
 
     /**

@@ -25,16 +25,17 @@ object ArgumentUnwrapper : Emitter {
         if (instruction is MemberAccessInstruction && context.whitelist.matches(instruction.reference)) {
             fun unwrapString() = invokeStatic("sandbox/java/lang/String", FROM_DJVM, "(Lsandbox/java/lang/String;)Ljava/lang/String;")
 
-            if (hasStringArgument(instruction)) {
-                unwrapString()
-            } else if (instruction.className == CLASS_NAME) {
+            if (instruction.className == CLASS_NAME) {
                 val descriptor = instruction.descriptor
                 when {
-                    descriptor.startsWith("(Ljava/lang/String;ZLjava/lang/ClassLoader;)") -> {
-                        /**
-                         * [kotlin.jvm.internal.Intrinsics.checkHasClass] invokes [Class.forName],
-                         * so I'm adding support for both of this function's variants. For now.
-                         */
+                    /**
+                     * [kotlin.jvm.internal.Intrinsics.checkHasClass] invokes [Class.forName],
+                     * so I'm adding support for both of this function's variants. For now.
+                     */
+                    descriptor == "(Ljava/lang/String;)Ljava/lang/Class;" -> {
+                        unwrapString()
+                    }
+                    descriptor == "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;" -> {
                         raiseThirdWordToTop()
                         unwrapString()
                         sinkTopToThirdWord()
@@ -42,12 +43,18 @@ object ArgumentUnwrapper : Emitter {
                     descriptor.startsWith("(Ljava/lang/String;[Ljava/lang/Class;)") -> {
                         /**
                          * Support for [Class.getMethod] and [Class.getDeclaredMethod].
+                         * These are "@CallerSensitive" and so I haven't wrapped them.
+                         * However, this wrapping seems to be to allow [SecurityManager]
+                         * to allow/deny access based on the caller's [ClassLoader], so
+                         * I MIGHT be able to ignore this restriction. Maybe.
                          */
                         swapTopTwoWords()
                         unwrapString()
                         swapTopTwoWords()
                     }
                 }
+            } else if (hasStringArgument(instruction)) {
+                unwrapString()
             } else if (instruction.className == "java/security/AccessController") {
                 val descriptor = instruction.descriptor
                 when {

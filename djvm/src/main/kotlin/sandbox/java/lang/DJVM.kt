@@ -10,16 +10,13 @@ import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
 import net.corda.djvm.rules.implementation.*
-import org.objectweb.asm.Opcodes.ACC_ENUM
 import org.objectweb.asm.Type
 import sandbox.isEntryPoint
 import sandbox.java.io.*
 import sandbox.java.lang.annotation.Annotation
 import sandbox.java.nio.ByteOrder
-import sandbox.java.util.Collections.unmodifiableMap
 import sandbox.java.util.Date
 import sandbox.java.util.Enumeration
-import sandbox.java.util.LinkedHashMap
 import sandbox.java.util.Locale
 import sandbox.java.util.MissingResourceException
 import sandbox.java.util.Properties
@@ -351,16 +348,6 @@ fun hashCode(obj: Any?): Int {
     }
 }
 
-/**
- * Replacement functions for members of [java.lang.Class] that return [String].
- */
-fun toString(clazz: Class<*>): String = String.toDJVM(clazz.toString())
-fun getName(clazz: Class<*>): String = String.toDJVM(clazz.name)
-fun getCanonicalName(clazz: Class<*>): String? = String.toDJVM(clazz.canonicalName)
-fun getSimpleName(clazz: Class<*>): String = String.toDJVM(clazz.simpleName)
-fun toGenericString(clazz: Class<*>): String = String.toDJVM(clazz.toGenericString())
-fun getTypeName(clazz: Class<*>): String = String.toDJVM(clazz.typeName)
-
 @Throws(ClassNotFoundException::class)
 internal fun Enum<*>.fromDJVMEnum(): kotlin.Enum<*> {
     return javaClass.fromDJVMType().enumConstants[ordinal()] as kotlin.Enum<*>
@@ -369,47 +356,12 @@ internal fun Enum<*>.fromDJVMEnum(): kotlin.Enum<*> {
 @Throws(ClassNotFoundException::class)
 private fun kotlin.Enum<*>.toDJVMEnum(): Enum<*> {
     @Suppress("unchecked_cast")
-    return (getEnumConstants(javaClass.toDJVM()) as Array<Enum<*>>)[ordinal]
-}
-
-/**
- * Replacement functions for the members of Class<*> that support Enums.
- */
-fun isEnum(clazz: Class<*>): kotlin.Boolean
-        = (clazz.modifiers and ACC_ENUM != 0) && (clazz.superclass == sandbox.java.lang.Enum::class.java)
-
-fun getEnumConstants(clazz: Class<out Enum<*>>): Array<*>? {
-    return getEnumConstantsShared(clazz)?.clone()
-}
-
-internal fun enumConstantDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Map<String, out Enum<*>>? {
-    return allEnumDirectories.get(clazz) ?: createEnumDirectory(clazz)
+    return (DJVMClass.getEnumConstants(javaClass.toDJVM()) as Array<Enum<*>>)[ordinal]
 }
 
 internal fun getEnumConstantsShared(clazz: Class<out Enum<*>>): Array<out Enum<*>>? {
-    return if (isEnum(clazz)) {
-        allEnums.get(clazz) ?: createEnum(clazz)
-    } else {
-        null
-    }
+    return DJVMClass.getEnumConstantsShared(clazz)
 }
-
-private fun createEnum(clazz: Class<out Enum<*>>): Array<out Enum<*>>? {
-    return doPrivileged(DJVMEnumAction(clazz))?.apply { allEnums.put(clazz, this) }
-}
-
-private fun createEnumDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Map<String, out Enum<*>> {
-    val universe = getEnumConstantsShared(clazz) ?: throw IllegalArgumentException("${clazz.name} is not an enum type")
-    val directory = LinkedHashMap<String, Enum<*>>(2 * universe.size)
-    for (entry in universe) {
-        directory.put(entry.name(), entry)
-    }
-    allEnumDirectories.put(clazz, unmodifiableMap(directory))
-    return directory
-}
-
-private val allEnums: sandbox.java.util.Map<Class<out Enum<*>>, Array<out Enum<*>>> = LinkedHashMap()
-private val allEnumDirectories: sandbox.java.util.Map<Class<out Enum<*>>, sandbox.java.util.Map<String, out Enum<*>>> = LinkedHashMap()
 
 /**
  * Ensure that all string constants refer to the same instance of [sandbox.java.lang.String].
@@ -445,7 +397,7 @@ fun getSystemClassLoader(): ClassLoader {
  * that all sandbox classes exist inside the same classloader.
  */
 @Suppress("unused_parameter")
-fun getClassLoader(type: Class<*>): ClassLoader {
+fun getClassLoader(type: Class<*>): ClassLoader? {
     /**
      * We expect [Class.getClassLoader] to return one of the following:
      * - [net.corda.djvm.rewiring.SandboxClassLoader] for sandbox classes

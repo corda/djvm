@@ -620,6 +620,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
         "java.lang.DJVMAnnotationHandler",
         "java.lang.DJVMAnnotationHandler\$MethodValue",
         "java.lang.DJVMBootstrapClassAction",
+        "java.lang.DJVMClass",
         "java.lang.DJVMConstructorAction",
         "java.lang.DJVMDeclaredAnnotationsByTypeAction",
         "java.lang.DJVMEnumAction",
