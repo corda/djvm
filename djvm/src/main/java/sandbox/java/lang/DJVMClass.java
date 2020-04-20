@@ -26,8 +26,21 @@ public final class DJVMClass {
 
     private DJVMClass() {}
 
+    /**
+     * Filter function for {@link Class#getClassLoader}.
+     * We perform no "access control" checks because we are pretending
+     * that all sandbox classes exist inside the same classloader.
+     *
+     * We expect {@link Class#getClassLoader} to return one of the following:
+     * - {@link net.corda.djvm.rewiring.SandboxClassLoader} for sandbox classes
+     * - The application class loader for whitelisted classes
+     * - {@literal null} for basic Java classes.
+     *
+     * So "don't do that". Always return the sandbox classloader instead.
+     */
+    @NotNull
     public static ClassLoader getClassLoader(Class<?> clazz) {
-        return DJVM.getClassLoader(clazz);
+        return DJVM.getSystemClassLoader();
     }
 
     public static String toString(@NotNull Class<?> clazz) {

@@ -22,7 +22,6 @@ object DisallowNonDeterministicMethods : Emitter {
         "getDeclaredClasses",
         "getProtectionDomain"
     )
-    private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
     private val NEW_INSTANCE_CLASSES = setOf(
         "sun/security/x509/CertificateExtensions",
@@ -50,7 +49,7 @@ object DisallowNonDeterministicMethods : Emitter {
                     }
 
                 INVOKESTATIC ->
-                    if (instruction.className == "java/lang/ClassLoader") {
+                    if (instruction.className == CLASSLOADER_NAME) {
                         when {
                             instruction.memberName == "getSystemClassLoader" -> {
                                 invokeStatic(DJVM_NAME, instruction.memberName, instruction.descriptor)
@@ -77,7 +76,7 @@ object DisallowNonDeterministicMethods : Emitter {
 
     private fun EmitterModule.initClassLoader() {
         invokeStatic(DJVM_NAME, "getSystemClassLoader", "()Ljava/lang/ClassLoader;")
-        invokeSpecial("java/lang/ClassLoader", CONSTRUCTOR_NAME, "(Ljava/lang/ClassLoader;)V")
+        invokeSpecial(CLASSLOADER_NAME, CONSTRUCTOR_NAME, "(Ljava/lang/ClassLoader;)V")
         preventDefault()
     }
 
@@ -93,9 +92,8 @@ object DisallowNonDeterministicMethods : Emitter {
         preventDefault()
     }
 
-    private fun isObjectMonitor(instruction: MemberAccessInstruction): Boolean =
-        (instruction.descriptor == "()V" && instruction.memberName in MONITOR_METHODS)
-            || (instruction.memberName == "wait" && (instruction.descriptor == "(J)V" || instruction.descriptor == "(JI)V"))
+    private fun isObjectMonitor(instruction: MemberAccessInstruction): Boolean
+        = isObjectMonitor(instruction.memberName, instruction.descriptor)
 
     private enum class Choice {
         FORBID,

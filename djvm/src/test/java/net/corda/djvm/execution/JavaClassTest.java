@@ -10,19 +10,47 @@ import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoader;
 import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+import sandbox.java.lang.DJVMClass;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static net.corda.djvm.SandboxType.JAVA;
+import static net.corda.djvm.code.Types.isClassMethodThunk;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaClassTest extends TestBase {
     JavaClassTest() {
         super(JAVA);
+    }
+
+    static class ClassMethodThunkSource implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            Stream<String> thunkNames = Arrays.stream(DJVMClass.class.getDeclaredMethods())
+                .filter(method -> Modifier.isPublic(method.getModifiers()))
+                .map(Method::getName);
+            return Stream.concat(thunkNames, Stream.of("enumConstantDirectory"))
+                .map(Arguments::of);
+        }
+    }
+
+    @ParameterizedTest(name = "declared as thunk: {index} => DJVMClass.{0}")
+    @ArgumentsSource(ClassMethodThunkSource.class)
+    void validateClassMethodThunks(String thunkName) {
+        assertTrue(isClassMethodThunk(thunkName));
     }
 
     @Test
@@ -106,6 +134,31 @@ class JavaClassTest extends TestBase {
                 // into this byte-code yet.
                 .map(c -> Boolean.valueOf(c.isEnum()))
                 .toArray(Boolean[]::new);
+        }
+    }
+
+    @Test
+    void testEnumConstantsByMethodReference() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String[] results = WithJava.run(taskFactory, GetEnumConstants.class, null);
+                assertThat(results).containsExactly("GOOD", "BAD", "UGLY");
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetEnumConstants implements Function<String, String[]> {
+        @Override
+        public String[] apply(String s) {
+            Class<?>[] candidates = new Class<?>[] { Cowboy.class };
+            return Arrays.stream(candidates)
+                .map(Class::getEnumConstants)
+                .flatMap(Arrays::stream)
+                .map(Object::toString)
+                .toArray(String[]::new);
         }
     }
 

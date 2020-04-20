@@ -348,6 +348,35 @@ fun hashCode(obj: Any?): Int {
     }
 }
 
+/**
+ * Method references to forbidden [java.lang.Object] functions
+ * will be redirected here.
+ */
+@Suppress("unused_parameter")
+fun notify(obj: Any?) {
+    fail("Disallowed reference to API; Object.notify()")
+}
+
+@Suppress("unused_parameter")
+fun notifyAll(obj: Any?) {
+    fail("Disallowed reference to API; Object.notifyAll()")
+}
+
+@Suppress("unused_parameter")
+fun wait(obj: Any?) {
+    fail("Disallowed reference to API; Object.wait()")
+}
+
+@Suppress("unused_parameter")
+fun wait(obj: Any?, timeout: kotlin.Long) {
+    fail("Disallowed reference to API; Object.wait(long)")
+}
+
+@Suppress("unused_parameter", "RemoveRedundantQualifierName")
+fun wait(obj: Any?, timeout: kotlin.Long, nanos: kotlin.Int) {
+    fail("Disallowed reference to API; Object.wait(long,int)")
+}
+
 @Throws(ClassNotFoundException::class)
 internal fun Enum<*>.fromDJVMEnum(): kotlin.Enum<*> {
     return javaClass.fromDJVMType().enumConstants[ordinal()] as kotlin.Enum<*>
@@ -392,25 +421,8 @@ fun getSystemClassLoader(): ClassLoader {
 }
 
 /**
- * Filter function for [Class.getClassLoader].
- * We perform no "access control" checks because we are pretending
- * that all sandbox classes exist inside the same classloader.
- */
-@Suppress("unused_parameter")
-fun getClassLoader(type: Class<*>): ClassLoader? {
-    /**
-     * We expect [Class.getClassLoader] to return one of the following:
-     * - [net.corda.djvm.rewiring.SandboxClassLoader] for sandbox classes
-     * - the application class loader for whitelisted classes
-     * - null for basic Java classes.
-     *
-     * So "don't do that". Always return the sandbox classloader instead.
-     */
-    return systemClassLoader
-}
-
-/**
  * Replacement function for [ClassLoader.getSystemResourceAsStream].
+ * THIS IS NOT AVAILABLE FOR USER CODE!
  */
 fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
     return InputStream.toDJVM(systemClassLoader.getResourceAsStream(name))

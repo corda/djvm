@@ -2,12 +2,16 @@ package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.Whitelist
+import net.corda.djvm.code.CLASSLOADER_NAME
 import net.corda.djvm.code.CLASS_NAME
 import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.OBJECT_NAME
 import net.corda.djvm.code.SANDBOX_CLASS_NAME
+import net.corda.djvm.code.isClassMethodThunk
+import net.corda.djvm.code.isObjectMonitor
 import org.objectweb.asm.*
 import org.objectweb.asm.commons.Remapper
+import java.util.Collections.unmodifiableSet
 
 /**
  * Class name and descriptor re-mapper for use in a sandbox.
@@ -19,6 +23,13 @@ class SandboxRemapper(
     private val classResolver: ClassResolver,
     private val whitelist: Whitelist
 ) : Remapper() {
+    private val classLoaderMethodThunks = unmodifiableSet(setOf(
+        "getSystemClassLoader"
+    ))
+    private val objectMethodThunks = unmodifiableSet(setOf(
+        "toString",
+        "hashCode"
+    ))
 
     /**
      * The underlying mapping function for descriptors.
@@ -47,7 +58,6 @@ class SandboxRemapper(
     }
 
     private fun mapWhitelistHandle(handle: Handle): Handle? {
-        val newDescriptor = rewriteDescriptor(handle.desc)
         val owner = handle.owner
         return when(handle.tag) {
             Opcodes.H_INVOKEVIRTUAL ->
@@ -56,29 +66,43 @@ class SandboxRemapper(
                      * [java.lang.Class] is final, and so we know exactly
                      * which class the method we're intercepting is for.
                      */
-                    owner == CLASS_NAME && (newDescriptor != handle.desc) ->
+                    owner == CLASS_NAME && isClassMethodThunk(handle.name) ->
                         Handle(
                             Opcodes.H_INVOKESTATIC,
                             SANDBOX_CLASS_NAME,
                             handle.name,
-                            prependArgType(owner, newDescriptor),
+                            prependArgType(owner, rewriteDescriptor(handle.desc)),
                             false
                         )
 
                     /**
-                     * We are only intercepting [java.lang.Object.toString]
-                     * and [java.lang.Object.hashCode] here.
+                     * We allow [java.lang.Object.toString] and [java.lang.Object.hashCode],
+                     * but the monitor methods are forbidden!
                      */
-                    owner == OBJECT_NAME && newDescriptor.startsWith("()") ->
+                    owner == OBJECT_NAME && (handle.name in objectMethodThunks || isMonitor(handle)) ->
                         Handle(
                             Opcodes.H_INVOKESTATIC,
                             DJVM_NAME,
                             handle.name,
-                            prependArgType(owner, newDescriptor),
+                            prependArgType(owner, rewriteDescriptor(handle.desc)),
                             false
                         )
                     else -> handle
                 }
+
+            Opcodes.H_INVOKESTATIC ->
+                when {
+                    owner == CLASSLOADER_NAME && handle.name in classLoaderMethodThunks ->
+                        Handle(
+                            handle.tag,
+                            DJVM_NAME,
+                            handle.name,
+                            handle.desc,
+                            false
+                        )
+                    else -> handle
+                }
+
             else -> handle
         }
     }
@@ -86,6 +110,8 @@ class SandboxRemapper(
     private fun prependArgType(argType: String, descriptor: String): String {
         return "(L$argType;${descriptor.substring(1)}"
     }
+
+    private fun isMonitor(handle: Handle): Boolean = isObjectMonitor(handle.name, handle.desc)
 
     /**
      * All [Object.toString] methods must be transformed to [sandbox.java.lang.Object.toDJVMString],
