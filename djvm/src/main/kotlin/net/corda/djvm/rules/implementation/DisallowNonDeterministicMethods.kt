@@ -24,7 +24,7 @@ object DisallowNonDeterministicMethods : Emitter {
     )
     private val MONITOR_METHODS = setOf("notify", "notifyAll", "wait")
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
-    private val REFLECTING_CLASSES = setOf(
+    private val NEW_INSTANCE_CLASSES = setOf(
         "sun/security/x509/CertificateExtensions",
         "sun/security/x509/CRLExtensions",
         "sun/security/x509/OtherName"
@@ -34,31 +34,33 @@ object DisallowNonDeterministicMethods : Emitter {
         val className = (context.member ?: return).className
         if (instruction is MemberAccessInstruction && instruction.isMethod) {
             when (instruction.operation) {
-                INVOKEVIRTUAL, INVOKESPECIAL -> if (isObjectMonitor(instruction)) {
-                    forbid(instruction)
-                } else {
-                    when (Enforcer(instruction).runFor(className)) {
-                        Choice.FORBID -> forbid(instruction)
-                        Choice.LOAD_CLASS -> loadClass()
-                        Choice.INIT_CLASSLOADER -> initClassLoader()
-                        Choice.GET_PARENT, Choice.GET_PACKAGE -> returnNull(POP)
-                        Choice.NO_RESOURCE -> returnNull(POP2)
-                        Choice.EMPTY_RESOURCES -> emptyResources(POP2)
-                        else -> Unit
-                    }
-                }
-
-                INVOKESTATIC -> if (instruction.className == "java/lang/ClassLoader") {
-                    when {
-                        instruction.memberName == "getSystemClassLoader" -> {
-                            invokeStatic(DJVM_NAME, instruction.memberName, instruction.descriptor)
-                            preventDefault()
+                INVOKEVIRTUAL, INVOKESPECIAL ->
+                    if (isObjectMonitor(instruction)) {
+                        forbid(instruction)
+                    } else {
+                        when (Enforcer(instruction).runFor(className)) {
+                            Choice.FORBID -> forbid(instruction)
+                            Choice.LOAD_CLASS -> loadClass()
+                            Choice.INIT_CLASSLOADER -> initClassLoader()
+                            Choice.GET_PARENT, Choice.GET_PACKAGE -> returnNull(POP)
+                            Choice.NO_RESOURCE -> returnNull(POP2)
+                            Choice.EMPTY_RESOURCES -> emptyResources(POP2)
+                            else -> Unit
                         }
-                        instruction.memberName == "getSystemResources" -> emptyResources(POP)
-                        instruction.memberName.startsWith("getSystemResource") -> returnNull(POP)
-                        else -> forbid(instruction)
                     }
-                }
+
+                INVOKESTATIC ->
+                    if (instruction.className == "java/lang/ClassLoader") {
+                        when {
+                            instruction.memberName == "getSystemClassLoader" -> {
+                                invokeStatic(DJVM_NAME, instruction.memberName, instruction.descriptor)
+                                preventDefault()
+                            }
+                            instruction.memberName == "getSystemResources" -> emptyResources(POP)
+                            instruction.memberName.startsWith("getSystemResource") -> returnNull(POP)
+                            else -> forbid(instruction)
+                        }
+                    }
             }
         }
     }
@@ -141,7 +143,7 @@ object DisallowNonDeterministicMethods : Emitter {
         }
 
         private fun forbidNewInstance(className: String): Choice = when(className) {
-            in REFLECTING_CLASSES -> Choice.PASS
+            in NEW_INSTANCE_CLASSES -> Choice.PASS
             else -> Choice.FORBID
         }
 
