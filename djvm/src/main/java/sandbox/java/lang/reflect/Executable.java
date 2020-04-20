@@ -4,6 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import sandbox.java.lang.String;
 import sandbox.java.lang.annotation.Annotation;
 
+import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.ACC_VARARGS;
+
 @SuppressWarnings("unused")
 public abstract class Executable extends AccessibleObject implements Member, GenericDeclaration {
     Executable() {}
@@ -20,9 +23,13 @@ public abstract class Executable extends AccessibleObject implements Member, Gen
     public abstract int getModifiers();
 
     @Override
-    public abstract boolean isSynthetic();
+    public boolean isSynthetic() {
+        return (getModifiers() & ACC_SYNTHETIC) != 0;
+    }
 
-    public abstract boolean isVarArgs();
+    public boolean isVarArgs() {
+        return (getModifiers() & ACC_VARARGS) != 0;
+    }
 
     @Override
     public abstract TypeVariable<?>[] getTypeParameters();
@@ -43,17 +50,36 @@ public abstract class Executable extends AccessibleObject implements Member, Gen
         throw new AbstractMethodError();
     }
 
-    public abstract Type[] getGenericParameterTypes();
+    public Type[] getGenericParameterTypes() {
+        throw new AbstractMethodError();
+    }
 
     public abstract Class<?>[] getExceptionTypes();
 
-    public abstract Type[] getGenericExceptionTypes();
+    public Type[] getGenericExceptionTypes() {
+        throw new AbstractMethodError();
+    }
 
     public abstract String toGenericString();
 
     public abstract Annotation[][] getParameterAnnotations();
 
     public abstract AnnotatedType getAnnotatedReturnType();
+
+    @Override
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".getAnnotation(Class)");
+    }
+
+    @Override
+    public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
+        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".getAnnotationsByType(Class)");
+    }
+
+    @Override
+    public Annotation[] getDeclaredAnnotations() {
+        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".getDeclaredAnnotations()");
+    }
 
     public AnnotatedType getAnnotatedReceiverType() {
         throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".getAnnotatedReceiverType()");

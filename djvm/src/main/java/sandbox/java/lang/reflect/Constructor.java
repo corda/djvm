@@ -23,7 +23,7 @@ public final class Constructor<T> extends Executable {
     }
 
     @Override
-    java.lang.reflect.Constructor getRoot() {
+    java.lang.reflect.Executable getRoot() {
         return constructor;
     }
 
@@ -125,6 +125,9 @@ public final class Constructor<T> extends Executable {
         throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getAnnotatedReceiverType()");
     }
 
+    /*
+     * We need to invoke this method occasionally and so cannot stub it out.
+     */
     @NotNull
     public T newInstance(java.lang.Object ... args) throws java.lang.Throwable {
         try {

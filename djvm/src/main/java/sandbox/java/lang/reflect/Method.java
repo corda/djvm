@@ -22,7 +22,7 @@ public final class Method extends Executable {
     }
 
     @Override
-    java.lang.reflect.Method getRoot() {
+    java.lang.reflect.Executable getRoot() {
         return method;
     }
 
