@@ -1,5 +1,9 @@
 package net.corda.djvm.execution;
 
+import net.corda.djvm.AnnotationUtils;
+import net.corda.djvm.Cowboy;
+import net.corda.djvm.JavaAnnotation;
+import net.corda.djvm.JavaLabel;
 import net.corda.djvm.TestBase;
 import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
@@ -7,9 +11,6 @@ import net.corda.djvm.rewiring.SandboxClassLoader;
 import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Function;
@@ -76,6 +77,70 @@ class JavaClassTest extends TestBase {
     }
 
     @Test
+    void testClassMethodReferenceWithPrimitiveReturnType() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Boolean[] results = WithJava.run(taskFactory, SpotTheEnum.class, null);
+                assertThat(results).containsExactly(true, false, false, true);
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class SpotTheEnum implements Function<String, Boolean[]> {
+        @SuppressWarnings("UnnecessaryBoxing")
+        @Override
+        public Boolean[] apply(String s) {
+            Class<?>[] candidates = new Class<?>[]{
+                ExampleEnum.class,
+                SpotTheEnum.class,
+                Object.class,
+                Cowboy.class
+            };
+            return Arrays.stream(candidates)
+                // We currently NEED to box this primitive type manually.
+                // The DJVM cannot inject:
+                //     "boolean -> sandbox.java.lang.Boolean"
+                // into this byte-code yet.
+                .map(c -> Boolean.valueOf(c.isEnum()))
+                .toArray(Boolean[]::new);
+        }
+    }
+
+    @Test
+    void testGetAnnotationsByMethodReference() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String[] results = WithJava.run(taskFactory, BulkFetchAnnotations.class, null);
+                assertThat(results).containsExactly(
+                    "@sandbox.net.corda.djvm.JavaAnnotation(value=Bulk Fetch)",
+                    "@sandbox.net.corda.djvm.JavaLabel(name=Happy)"
+                );
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @JavaAnnotation("Bulk Fetch")
+    @JavaLabel(name = "Happy")
+    public static class BulkFetchAnnotations implements Function<String, String[]> {
+        @Override
+        public String[] apply(String s) {
+            Class<?>[] candidates = new Class<?>[]{
+                BulkFetchAnnotations.class
+            };
+            return Arrays.stream(candidates)
+                .map(Class::getAnnotations)
+                .flatMap(AnnotationUtils::toStrings)
+                .toArray(String[]::new);
+        }
+    }
+
+    @Test
     void testGetGenericInterfacesIsForbidden() {
         sandbox(ctx -> {
             try {
@@ -91,12 +156,10 @@ class JavaClassTest extends TestBase {
         });
     }
 
-    public static class GetGenericInterfaces implements Function<String, String[]> {
+    public static class GetGenericInterfaces implements Function<String, Object> {
         @Override
-        public String[] apply(String s) {
-            return Arrays.stream(GetGenericInterfaces.class.getGenericInterfaces())
-                .map(Type::getTypeName)
-                .toArray(String[]::new);
+        public Object apply(String s) {
+            return getClass().getGenericInterfaces();
         }
     }
 
@@ -116,13 +179,10 @@ class JavaClassTest extends TestBase {
         });
     }
 
-    public static class GetAnnotatedInterfaces implements Function<String, String[]> {
+    public static class GetAnnotatedInterfaces implements Function<String, Object> {
         @Override
-        public String[] apply(String unused) {
-            return Arrays.stream(GetAnnotatedInterfaces.class.getAnnotatedInterfaces())
-                .map(AnnotatedType::getType)
-                .map(Type::getTypeName)
-                .toArray(String[]::new);
+        public Object apply(String unused) {
+            return getClass().getAnnotatedInterfaces();
         }
     }
 
@@ -142,11 +202,10 @@ class JavaClassTest extends TestBase {
         });
     }
 
-    public static class GetGenericSuperclass implements Function<String, String> {
+    public static class GetGenericSuperclass implements Function<String, Object> {
         @Override
-        public String apply(String unused) {
-            Type superclass = GetGenericSuperclass.class.getGenericSuperclass();
-            return (superclass == null) ? null : superclass.getTypeName();
+        public Object apply(String unused) {
+            return getClass().getGenericSuperclass();
         }
     }
 
@@ -166,11 +225,10 @@ class JavaClassTest extends TestBase {
         });
     }
 
-    public static class GetAnnotatedSuperclass implements Function<String, String> {
+    public static class GetAnnotatedSuperclass implements Function<String, Object> {
         @Override
-        public String apply(String unused) {
-            AnnotatedType superclass = GetAnnotatedSuperclass.class.getAnnotatedSuperclass();
-            return (superclass == null) ? null : superclass.getType().getTypeName();
+        public Object apply(String unused) {
+            return getClass().getAnnotatedSuperclass();
         }
     }
 
@@ -190,12 +248,10 @@ class JavaClassTest extends TestBase {
         });
     }
 
-    public static class GetTypeParameters implements Function<String, String[]> {
+    public static class GetTypeParameters implements Function<String, Object> {
         @Override
-        public String[] apply(String unused) {
-            return Arrays.stream(GetTypeParameters.class.getTypeParameters())
-                .map(TypeVariable::getTypeName)
-                .toArray(String[]::new);
+        public Object apply(String unused) {
+            return getClass().getTypeParameters();
         }
     }
 }

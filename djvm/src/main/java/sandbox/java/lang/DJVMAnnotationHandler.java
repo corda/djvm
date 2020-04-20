@@ -132,9 +132,13 @@ final class DJVMAnnotationHandler implements InvocationHandler {
                 // Primitive types and classes don't need sandboxing.
                 return jvmResult;
             } else if (resultType == String.class) {
-                return String.valueOf(jvmResult);
+                return String.toDJVM(java.lang.String.valueOf(jvmResult));
             } else if (DJVMClass.isEnum(resultType)) {
-                return Enum.valueOf(resultType.<Enum>asSubclass(Enum.class), String.valueOf(jvmResult));
+                return Enum.valueOf(
+                    // The byte-code stores the name value as a String.
+                    // Use this to look up the actual Enum value.
+                    resultType.<Enum>asSubclass(Enum.class), String.toDJVM(java.lang.String.valueOf(jvmResult))
+                );
             } else if (resultType.isAnnotation()) {
                 return DJVM.createDJVMAnnotation(
                     resultType.asSubclass(Annotation.class), (java.lang.annotation.Annotation) jvmResult
