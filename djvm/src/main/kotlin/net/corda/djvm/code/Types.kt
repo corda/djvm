@@ -14,9 +14,10 @@ const val EMIT_TRAPPING_EXCEPTIONS: Int = EMIT_TRACING + 1
 const val EMIT_HANDLING_EXCEPTIONS: Int = EMIT_TRAPPING_EXCEPTIONS + 1
 const val EMIT_DEFAULT: Int = 10
 
-const val EMIT_BEFORE_INVOKE: Int  = EMIT_DEFAULT - 2
+const val EMIT_BEFORE_INVOKE: Int = EMIT_DEFAULT - 2
 const val EMIT_AFTER_INVOKE: Int = EMIT_DEFAULT + 2
 
+const val CLASS_NAME = "java/lang/Class"
 const val OBJECT_NAME = "java/lang/Object"
 const val THROWABLE_NAME = "java/lang/Throwable"
 const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"

@@ -162,7 +162,6 @@ class SandboxConfiguration private constructor(
             AlwaysInheritFromSandboxedObject,
             AlwaysUseExactMath,
             ArgumentUnwrapper,
-            DisallowDynamicInvocation,
             DisallowCatchingBlacklistedExceptions,
             DisallowNonDeterministicMethods,
             HandleExceptionUnwrapper,

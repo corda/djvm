@@ -73,6 +73,10 @@ open class EmitterContext(
         return configuration.classResolver.resolve(typeName)
     }
 
+    fun resolveDescriptor(descriptor: String): String {
+        return configuration.classResolver.resolveDescriptor(descriptor)
+    }
+
     /**
      * Set up and execute an emitter block for a particular member.
      */

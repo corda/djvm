@@ -1,20 +1,18 @@
 package net.corda.djvm.rules.implementation
 
+import net.corda.djvm.code.CLASS_NAME
 import net.corda.djvm.code.EMIT_AFTER_INVOKE
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.OBJECT_NAME
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import org.objectweb.asm.Opcodes.INVOKESPECIAL
 import org.objectweb.asm.Opcodes.INVOKESTATIC
 import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
 
 /**
- * Whitelisted classes may still return [java.lang.String] from some
- * functions, e.g. [java.lang.Object.toString]. So always explicitly
- * invoke [sandbox.java.lang.String.toDJVM] after these.
- *
- * These factory functions also need special handling:
+ * These factory functions need special handling:
  *   [java.util.concurrent.atomic.AtomicIntegerFieldUpdater.newUpdater]
  *   [java.util.concurrent.atomic.AtomicLongFieldUpdater.newUpdater]
  *   [java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater]
@@ -31,6 +29,7 @@ import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
  */
 object ReturnTypeWrapper : Emitter {
     private val ATOMIC_FIELD_UPDATER = "^java/util/concurrent/atomic/Atomic(Integer|Long|Reference)FieldUpdater\$".toRegex()
+    private val EXCLUDE_STRING = setOf(CLASS_NAME, OBJECT_NAME)
 
     /**
      * Ensure that this emitter executes after all of the emitters which
@@ -47,7 +46,7 @@ object ReturnTypeWrapper : Emitter {
                 else -> Unit
             }
 
-            if (hasStringReturnType(instruction)) {
+            if (hasStringReturnType(instruction) && instruction.className !in EXCLUDE_STRING) {
                 preventDefault()
                 invokeMethod()
                 invokeStatic(

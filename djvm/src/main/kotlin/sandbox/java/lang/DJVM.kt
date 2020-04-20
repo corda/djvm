@@ -45,6 +45,7 @@ fun Any.unsandbox(): Any {
 
 @Throws(ClassNotFoundException::class)
 fun Any.sandbox(): Any {
+    @Suppress("RemoveRedundantQualifierName")
     return when (this) {
         is kotlin.String -> String.toDJVM(this)
         is kotlin.Char -> Character.toDJVM(this)
@@ -279,6 +280,43 @@ private fun Array<*>.toDJVMArray(): Array<*> {
     }
 }
 
+/**
+ * Replacement function for [java.lang.Object.toString], because some
+ * objects (i.e. arrays) cannot be replaced by [sandbox.java.lang.Object].
+ */
+fun toString(obj: Any?): String {
+    return when {
+        obj is Object ->  obj.toDJVMString()
+        obj is Annotation -> String.toDJVM(obj.toString())
+        obj != null -> Object.toDJVMString(System.identityHashCode(obj))
+        else -> // Throw the same exception that the JVM would throw in this case.
+            throw NullPointerException().sanitise(1)
+    }
+}
+
+/**
+ * Replacement function for [java.lang.Object.hashCode], because some
+ * objects (i.e. arrays) cannot be replaced by [sandbox.java.lang.Object].
+ */
+fun hashCode(obj: Any?): Int {
+    return when {
+        obj is Object -> obj.hashCode()
+        obj != null -> System.identityHashCode(obj)
+        else -> // Throw the same exception that the JVM would throw in this case.
+            throw NullPointerException().sanitise(1)
+    }
+}
+
+/**
+ * Replacement functions for members of [java.lang.Class] that return [String].
+ */
+fun toString(clazz: Class<*>): String = String.toDJVM(clazz.toString())
+fun getName(clazz: Class<*>): String = String.toDJVM(clazz.name)
+fun getCanonicalName(clazz: Class<*>): String? = String.toDJVM(clazz.canonicalName)
+fun getSimpleName(clazz: Class<*>): String = String.toDJVM(clazz.simpleName)
+fun toGenericString(clazz: Class<*>): String = String.toDJVM(clazz.toGenericString())
+fun getTypeName(clazz: Class<*>): String = String.toDJVM(clazz.typeName)
+
 @Throws(ClassNotFoundException::class)
 internal fun Enum<*>.fromDJVMEnum(): kotlin.Enum<*> {
     return javaClass.fromDJVMType().enumConstants[ordinal()] as kotlin.Enum<*>
@@ -328,19 +366,6 @@ private fun createEnumDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Ma
 
 private val allEnums: sandbox.java.util.Map<Class<out Enum<*>>, Array<out Enum<*>>> = LinkedHashMap()
 private val allEnumDirectories: sandbox.java.util.Map<Class<out Enum<*>>, sandbox.java.util.Map<String, out Enum<*>>> = LinkedHashMap()
-
-/**
- * Replacement function for Object.hashCode(), because some objects
- * (i.e. arrays) cannot be replaced by [sandbox.java.lang.Object].
- */
-fun hashCode(obj: Any?): Int {
-    return when {
-        obj is Object -> obj.hashCode()
-        obj != null -> System.identityHashCode(obj)
-        else -> // Throw the same exception that the JVM would throw in this case.
-            throw NullPointerException().sanitise(1)
-    }
-}
 
 /**
  * Ensure that all string constants refer to the same instance of [sandbox.java.lang.String].

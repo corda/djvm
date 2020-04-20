@@ -25,6 +25,7 @@ public final class String extends Object implements Comparable<String>, CharSequ
 
     private static final String TRUE = new String("true").intern();
     private static final String FALSE = new String("false").intern();
+    private static final String EMPTY = new String().intern();
 
     private static final Constructor SHARED = AccessController.doPrivileged(new InitAction());
 
@@ -207,6 +208,7 @@ public final class String extends Object implements Comparable<String>, CharSequ
         return value;
     }
 
+    @SuppressWarnings("RedundantCast")
     public boolean contentEquals(StringBuffer sb) {
         return value.contentEquals((CharSequence) sb);
     }
@@ -417,6 +419,7 @@ public final class String extends Object implements Comparable<String>, CharSequ
         return toDJVM(java.lang.String.valueOf(d));
     }
 
+    @SuppressWarnings("WeakerAccess")
     static String[] toDJVM(java.lang.String[] value) {
         if (value == null) {
             return null;
@@ -440,7 +443,7 @@ public final class String extends Object implements Comparable<String>, CharSequ
     }
 
     public static String toDJVM(java.lang.String value) {
-        return (value == null) ? null : new String(value);
+        return (value == null) ? null : (value.length() == 0 ? EMPTY : new String(value));
     }
 
     public static java.lang.String fromDJVM(String value) {

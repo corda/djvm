@@ -268,4 +268,40 @@ class SandboxStringTest extends TestBase {
             return StreamSupport.stream(split, false).collect(joining("+"));
         }
     }
+
+    @Test
+    void testObjectToString() {
+        UUID uuid = UUID.randomUUID();
+        Object[] inputs = new Object[]{
+            new String[]{ "TEXT" },
+            new byte[]{ 127 },
+            new long[]{ 5000 },
+            HELLO_WORLD,
+            uuid
+        };
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Object[] results = WithJava.run(taskFactory, ToStringTask.class, inputs);
+                assertThat(results).containsExactlyInAnyOrder(
+                    "sandbox.java.lang.Object@fedc0e0",
+                    "sandbox.java.lang.Object@fedc0e1",
+                    "sandbox.java.lang.Object@fedc0e2",
+                    HELLO_WORLD,
+                    uuid.toString()
+                );
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class ToStringTask implements Function<Object[], String[]> {
+        @Override
+        public String[] apply(Object[] inputs) {
+            return Arrays.stream(inputs)
+                .map(Object::toString)
+                .toArray(String[]::new);
+        }
+    }
 }

@@ -437,7 +437,8 @@ open class ClassAndMemberVisitor(
         /**
          * Extract information about provided dynamic invocation instruction.
          */
-        override fun visitInvokeDynamicInsn(name: String, desc: String, bsm: Handle, vararg bsmArgs: Any?) {
+        override fun visitInvokeDynamicInsn(name: String, desc: String, bsm: Handle, bsmArgs: Array<Any>) {
+            @Suppress("unchecked_cast")
             val dynamicInstruction = DynamicInvocationInstruction(
                 method = method,
                 memberName = name,

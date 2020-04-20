@@ -17,7 +17,11 @@ public class Object {
 
     @NotNull
     public String toDJVMString() {
-        return String.toDJVM("sandbox.java.lang.Object@" + java.lang.Integer.toString(hashCode(), 16));
+        return toDJVMString(hashCode());
+    }
+
+    static String toDJVMString(int hashCode) {
+        return String.toDJVM("sandbox.java.lang.Object@" + java.lang.Integer.toString(hashCode, 16));
     }
 
     @NotNull
