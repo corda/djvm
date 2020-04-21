@@ -461,6 +461,14 @@ fun loadClass(classLoader: ClassLoader, className: kotlin.String): Class<*> {
 }
 
 /**
+ * Thunk for method reference ClassLoader::loadClass.
+ */
+@Throws(ClassNotFoundException::class)
+fun loadClass(classLoader: ClassLoader, className: String): Class<*> {
+    return loadClass(classLoader, String.fromDJVM(className))
+}
+
+/**
  * Force the qualified class name into the sandbox.* namespace.
  * Throw [ClassNotFoundException] anyway if we wouldn't want to
  * return the resulting sandbox class. E.g. for any of our own

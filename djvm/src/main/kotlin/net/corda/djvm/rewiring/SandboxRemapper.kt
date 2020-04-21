@@ -23,9 +23,6 @@ class SandboxRemapper(
     private val classResolver: ClassResolver,
     private val whitelist: Whitelist
 ) : Remapper() {
-    private val classLoaderMethodThunks = unmodifiableSet(setOf(
-        "getSystemClassLoader"
-    ))
     private val objectMethodThunks = unmodifiableSet(setOf(
         "toString",
         "hashCode"
@@ -67,32 +64,28 @@ class SandboxRemapper(
                      * which class the method we're intercepting is for.
                      */
                     owner == CLASS_NAME && isClassMethodThunk(handle.name) ->
-                        Handle(
-                            Opcodes.H_INVOKESTATIC,
-                            SANDBOX_CLASS_NAME,
-                            handle.name,
-                            prependArgType(owner, rewriteDescriptor(handle.desc)),
-                            false
-                        )
+                        handle.toStaticClass(SANDBOX_CLASS_NAME)
 
                     /**
                      * We allow [java.lang.Object.toString] and [java.lang.Object.hashCode],
-                     * but the monitor methods are forbidden!
+                     * but the monitor methods are forbidden! Apply appropriate thunks...
                      */
                     owner == OBJECT_NAME && (handle.name in objectMethodThunks || isMonitor(handle)) ->
-                        Handle(
-                            Opcodes.H_INVOKESTATIC,
-                            DJVM_NAME,
-                            handle.name,
-                            prependArgType(owner, rewriteDescriptor(handle.desc)),
-                            false
-                        )
+                        handle.toStaticClass(DJVM_NAME)
+
+                    /**
+                     * We allow [ClassLoader.loadClass] here too, to be consistent with
+                     * [net.corda.djvm.rules.implementation.DisallowNonDeterministicMethods].
+                     */
+                    owner == CLASSLOADER_NAME && handle.name == "loadClass" && handle.desc == "(Ljava/lang/String;)Ljava/lang/Class;" ->
+                        handle.toStaticClass(DJVM_NAME)
+
                     else -> handle
                 }
 
             Opcodes.H_INVOKESTATIC ->
                 when {
-                    owner == CLASSLOADER_NAME && handle.name in classLoaderMethodThunks ->
+                    owner == CLASSLOADER_NAME && handle.name == "getSystemClassLoader" ->
                         Handle(
                             handle.tag,
                             DJVM_NAME,
@@ -106,6 +99,18 @@ class SandboxRemapper(
             else -> handle
         }
     }
+
+    /**
+     * Recreates a virtual method references as a
+     * static method reference to a different class.
+     */
+    private fun Handle.toStaticClass(className: String) = Handle(
+        Opcodes.H_INVOKESTATIC,
+        className,
+        name,
+        prependArgType(owner, rewriteDescriptor(desc)),
+        false
+    )
 
     private fun prependArgType(argType: String, descriptor: String): String {
         return "(L$argType;${descriptor.substring(1)}"
