@@ -3,84 +3,71 @@ package net.corda.djvm.rewiring
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.KOTLIN_METADATA
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
+import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSyntheticDescriptor
 import net.corda.djvm.references.MemberInformation
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.ACC_ANNOTATION
+import org.objectweb.asm.TypePath
 import org.objectweb.asm.commons.ClassRemapper
+import java.util.function.Consumer
+import java.util.function.Function
 
 class SandboxClassRemapper(
-    private val nonClassMapper: ClassVisitor,
+    classNonMapper: ClassVisitor,
     remapper: SandboxRemapper,
     private val configuration: AnalysisConfiguration
-) : ClassRemapper(nonClassMapper, remapper) {
-    companion object {
-        @JvmField
-        val RETURNS_STRING = "\\)\\[*Ljava/lang/String;\$".toRegex()
-    }
-
-    private var classAccess: Int = 0
-
-    private val isAnnotationClass: Boolean get() = (classAccess and ACC_ANNOTATION) != 0
-
-    override fun visit(
-        version: Int,
-        access: Int,
-        name: String,
-        signature: String?,
-        superName: String?,
-        interfaces: Array<String>?
-    ) {
-        classAccess = access
-        super.visit(version, access, name, signature, superName, interfaces)
-    }
+) : ClassRemapper(API_VERSION, classNonMapper, remapper) {
 
     override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
-        return if (configuration.isUnmappedAnnotation(descriptor)) {
-            nonClassMapper.visitAnnotation(descriptor, visible)
-        } else if (configuration.isMappedAnnotation(descriptor)) {
-            super.visitAnnotation(descriptor, visible)?.let {
+        return if (configuration.isJvmAnnotationDesc(descriptor)) {
+            /*
+             * The annotation can be preserved "as is" because
+             * it has no data fields that need transforming.
+             */
+            cv.visitAnnotation(descriptor, visible)
+        } else {
+            super.visitAnnotation(getDJVMSyntheticDescriptor(descriptor), visible)?.let {
+                val transformer = AnnotationTransformer(api, it, configuration)
+
+                /*
+                 * Check whether we want to preserve the original annotation.
+                 * This will be "stitched back" under its transformed version.
+                 */
+                val av = if (visible && descriptor in configuration.stitchedAnnotations) {
+                    AnnotationStitcher(api, transformer, descriptor, Consumer { ann ->
+                        ann.accept(cv, Function.identity())
+                    })
+                } else {
+                    transformer
+                }
+
                 /**
                  * Remap all of the descriptors within Kotlin's [Metadata] annotation.
                  * THIS ASSUMES THAT WE WILL NEVER WHITELIST KOTLIN CLASSES!!
                  */
                 if (descriptor == KOTLIN_METADATA) {
-                    KotlinMetadataVisitor(api, it, remapper)
+                    KotlinMetadataVisitor(api, av, remapper)
                 } else {
-                    it
+                    av
                 }
             }
-        } else {
-            /**
-             * This annotation is neither mapped nor unmapped, i.e. we drop it.
-             * We cannot accept arbitrary annotations inside the sandbox until
-             * we can handle annotations with [Enum] methods safely.
-             */
-            null
         }
     }
 
     /**
-     * Annotation methods can return [String], [Enum] or primitive types. Obviously
-     * primitives types are no problem as they are the same both inside and outside
-     * the sandbox. Users can define their own [Enum] classes and so these MUST be
-     * sandboxed. However, the JVM cannot handle methods with return types that use
-     * [sandbox.java.lang.String] and so don't map these.
-     *
-     * The assumption here is that code running inside the sandbox will not need to
-     * inspect its own annotations.
+     * Drop these annotations because we aren't handling them - yet?
      */
-    override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-        return if (isAnnotationClass && RETURNS_STRING.containsMatchIn(descriptor)) {
-            nonClassMapper.visitMethod(access, name, descriptor, signature, exceptions)
-        } else {
-            super.visitMethod(access, name, descriptor, signature, exceptions)
-        }
-    }
+    override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
 
     override fun createMethodRemapper(mv: MethodVisitor): MethodVisitor {
         return MethodRemapperWithTemplating(mv, super.createMethodRemapper(mv))
+    }
+
+    override fun createFieldRemapper(fv: FieldVisitor): FieldVisitor {
+        return FieldRemapper(super.createFieldRemapper(fv))
     }
 
     /**
@@ -88,16 +75,58 @@ class SandboxClassRemapper(
      * For example, [sandbox.recordAllocation] and [sandbox.recordArrayAllocation]
      * really DO use [java.lang.String] rather than [sandbox.java.lang.String].
      */
-    private inner class MethodRemapperWithTemplating(private val nonMethodMapper: MethodVisitor, remapper: MethodVisitor)
-        : MethodVisitor(API_VERSION, remapper) {
+    private inner class MethodRemapperWithTemplating(private val methodNonMapper: MethodVisitor, remapper: MethodVisitor)
+        : MethodVisitor(api, remapper) {
 
         private fun mapperFor(element: Element): MethodVisitor {
             return if (configuration.isTemplateClass(element.className) || isUnmapped(element)) {
-                nonMethodMapper
+                methodNonMapper
             } else {
                 mv
             }
         }
+
+        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+            return super.visitAnnotation(getDJVMSyntheticDescriptor(descriptor), visible)?.let { av ->
+                val transformer = AnnotationTransformer(api, av, configuration)
+
+                /*
+                 * Check whether we want to preserve the original annotation.
+                 * This will be "stitched back" under its transformed version.
+                 */
+                if (visible && descriptor in configuration.stitchedAnnotations) {
+                    AnnotationStitcher(api, transformer, descriptor, Consumer { ann ->
+                        ann.accept(methodNonMapper, Function.identity())
+                    })
+                } else {
+                    transformer
+                }
+            }
+        }
+
+        override fun visitParameterAnnotation(parameter: Int, descriptor: String, visible: Boolean): AnnotationVisitor? {
+            return super.visitParameterAnnotation(parameter, getDJVMSyntheticDescriptor(descriptor), visible)?.let { av ->
+                val transformer = AnnotationTransformer(api, av, configuration)
+
+                /*
+                 * Check whether we want to preserve the original annotation.
+                 * This will be "stitched back" under its transformed version.
+                 */
+                if (visible && descriptor in configuration.stitchedAnnotations) {
+                    AnnotationStitcher(api, transformer, descriptor, Consumer { ann ->
+                        ann.accept(methodNonMapper, parameter, Function.identity())
+                    })
+                } else {
+                    transformer
+                }
+            }
+        }
+
+        /**
+         * An annotation class is just an interface after it has been mapped,
+         * so remove special "default value" attributes from its methods.
+         */
+        override fun visitAnnotationDefault(): AnnotationVisitor? = null
 
         override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) {
             val method = Element(owner, name, descriptor)
@@ -108,6 +137,30 @@ class SandboxClassRemapper(
             val field = Element(owner, name, descriptor)
             return mapperFor(field).visitFieldInsn(opcode, owner, name, descriptor)
         }
+
+        /**
+         * Drop these annotations because we aren't handling them - yet?
+         */
+        override fun visitInsnAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
+        override fun visitLocalVariableAnnotation(
+            typeRef: Int,
+            typePath: TypePath?,
+            start: Array<out Label>?,
+            end: Array<out Label>?,
+            index: IntArray?,
+            descriptor: String,
+            visible: Boolean
+        ): AnnotationVisitor? = null
+        override fun visitTryCatchAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
+        override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
+    }
+
+    /**
+     * Drop any annotations from fields because we cannot access them - yet?
+     */
+    private inner class FieldRemapper(remapper: FieldVisitor) : FieldVisitor(api, remapper) {
+        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? = null
+        override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
     }
 
     private fun isUnmapped(element: Element): Boolean = configuration.whitelist.matches(element.reference)

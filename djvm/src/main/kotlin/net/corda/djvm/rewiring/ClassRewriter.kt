@@ -1,10 +1,10 @@
 package net.corda.djvm.rewiring
 
 import net.corda.djvm.SandboxConfiguration
-import net.corda.djvm.analysis.AnalysisConfiguration.Companion.SANDBOX_PREFIX
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.code.ClassMutator
+import net.corda.djvm.code.DJVM_SYNTHETIC
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.emptyAsNull
 import net.corda.djvm.references.Member
@@ -16,8 +16,6 @@ import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
 import org.objectweb.asm.Opcodes.ACC_ABSTRACT
 import java.security.CodeSource
-import java.util.function.Consumer
-import java.util.function.Function
 
 /**
  * Functionality for rewriting parts of a class as it is being loaded.
@@ -25,12 +23,13 @@ import java.util.function.Function
  * @property configuration The configuration of the sandbox.
  * @property classLoader The class loader used to load the source classes that are to be rewritten.
  */
-open class ClassRewriter(
-        private val configuration: SandboxConfiguration,
-        private val classLoader: SourceClassLoader
+class ClassRewriter(
+    private val configuration: SandboxConfiguration,
+    private val classLoader: SourceClassLoader
 ) {
     private val analysisConfig = configuration.analysisConfiguration
-    private val remapper = SandboxRemapper(analysisConfig.classResolver, analysisConfig.whitelist)
+    private val remapper = with(analysisConfig) { SandboxRemapper(classResolver, whitelist) }
+    private val syntheticRemapper = SyntheticRemapper(analysisConfig)
 
     /**
      * Process class and allow user to rewrite parts/all of its content through provided hooks.
@@ -47,14 +46,21 @@ open class ClassRewriter(
             remapper,
             analysisConfig
         )
-        val visitor = ClassMutator(
+        val mutator = ClassMutator(
             classRemapper,
             analysisConfig,
             configuration.definitionProviders,
             configuration.emitters
         )
-        visitor.analyze(reader, context, options = SKIP_FRAMES)
-        return ByteCode(writer.toByteArray(), codeSource, visitor.hasBeenModified)
+        mutator.analyze(reader, context, options = SKIP_FRAMES)
+        return ByteCode(writer.toByteArray(), codeSource, mutator.flags)
+    }
+
+    fun generateAnnotation(reader: ClassReader, codeSource: CodeSource?): ByteCode {
+        val writer = SandboxClassWriter(reader, classLoader, analysisConfig, options = COMPUTE_FRAMES)
+        val annotationFactory = SyntheticAnnotationFactory(writer, syntheticRemapper, analysisConfig)
+        reader.accept(annotationFactory, SKIP_FRAMES)
+        return ByteCode(writer.toByteArray(), codeSource, DJVM_SYNTHETIC)
     }
 
     private companion object {
@@ -98,22 +104,8 @@ open class ClassRewriter(
             super.visit(version, access, className, stitchedSignature, superName, stitchedInterfaces)
         }
 
-        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
-            return super.visitAnnotation(descriptor, visible)?.let {
-                if (visible && descriptor in analysisConfig.stitchedAnnotations) {
-                    AnnotationStitcher(api, it, descriptor, Consumer { ann ->
-                        ann.accept(this, Function { annotation ->
-                            annotation.replace(SANDBOX_PREFIX, "")
-                        })
-                    })
-                } else {
-                    it
-                }
-            }
-        }
-
         override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-            val methodVisitor = if (extraMethods.isEmpty()) {
+            return if (extraMethods.isEmpty()) {
                 super.visitMethod(access, name, descriptor, signature, exceptions)
             } else {
                 val idx = extraMethods.indexOfFirst { it.memberName == name && it.descriptor == descriptor && it.genericsDetails.emptyAsNull == signature }
@@ -133,7 +125,6 @@ open class ClassRewriter(
                     super.visitMethod(access, name, descriptor, signature, exceptions)
                 }
             }
-            return methodVisitor?.let(::MethodAnnotationStitcher)
         }
 
         override fun visitEnd() {
@@ -157,30 +148,11 @@ open class ClassRewriter(
     }
 
     /**
-     * Methods may have annotations that could need stitching, so ensure we visit these too.
-     */
-    private inner class MethodAnnotationStitcher(parent: MethodVisitor) : MethodVisitor(API_VERSION, parent) {
-        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
-            return super.visitAnnotation(descriptor, visible)?.let {
-                if (visible && descriptor in analysisConfig.stitchedAnnotations) {
-                    AnnotationStitcher(api, it, descriptor, Consumer { ann ->
-                        ann.accept(this, Function { annotation ->
-                            annotation.replace(SANDBOX_PREFIX, "")
-                        })
-                    })
-                } else {
-                    it
-                }
-            }
-        }
-    }
-
-    /**
      * Map exceptions in method signatures to their sandboxed equivalents.
      */
     private inner class ClassExceptionRemapper(parent: ClassVisitor) : ClassVisitor(API_VERSION, parent) {
         override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-            val mappedExceptions = exceptions?.map(analysisConfig.exceptionResolver::getThrowableOwnerName)?.toTypedArray()
+            val mappedExceptions = exceptions?.map(analysisConfig.syntheticResolver::getRealThrowableName)?.toTypedArray()
             return super.visitMethod(access, name, descriptor, signature, mappedExceptions)?.let {
                 MethodExceptionRemapper(it)
             }
@@ -192,7 +164,7 @@ open class ClassRewriter(
      */
     private inner class MethodExceptionRemapper(parent: MethodVisitor) : MethodVisitor(API_VERSION, parent) {
         override fun visitTryCatchBlock(start: Label, end: Label, handler: Label, exceptionType: String?) {
-            val mappedExceptionType = exceptionType?.let(analysisConfig.exceptionResolver::getThrowableOwnerName)
+            val mappedExceptionType = exceptionType?.let(analysisConfig.syntheticResolver::getRealThrowableName)
             super.visitTryCatchBlock(start, end, handler, mappedExceptionType)
         }
     }

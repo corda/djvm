@@ -49,11 +49,19 @@ class ClassMutator(
     private val emitters: List<Emitter> = (emitters + PrependClassInitializer()).sortedBy(Emitter::priority)
     private val initializers = mutableListOf<MethodBody>()
 
+    var flags: Int = 0
+        private set(value) { field = field or value }
+
     /**
      * Tracks whether any modifications have been applied to any of the processed class(es) and pertinent members.
      */
-    var hasBeenModified: Boolean = false
-        private set
+    private fun setModified() {
+        flags = DJVM_MODIFIED
+    }
+
+    private fun setAnnotation() {
+        flags = DJVM_ANNOTATION
+    }
 
     /**
      * Apply definition providers to a class. This can be used to update the name or definition (pertinent meta-data)
@@ -66,7 +74,10 @@ class ClassMutator(
         })
         if (clazz != resultingClass) {
             logger.trace("Type has been mutated {}", clazz)
-            hasBeenModified = true
+            setModified()
+        }
+        if (clazz.access and ACC_ANNOTATION != 0) {
+            setAnnotation()
         }
         return super.visitClass(resultingClass)
     }
@@ -90,7 +101,7 @@ class ClassMutator(
                 mv.visitEnd()
             }
             initializers.clear()
-            hasBeenModified = true
+            setModified()
         }
     }
 
@@ -105,7 +116,7 @@ class ClassMutator(
         })
         if (method != resultingMethod) {
             logger.trace("Method has been mutated {}", method)
-            hasBeenModified = true
+            setModified()
         }
         return super.visitMethod(clazz, resultingMethod)
     }
@@ -122,7 +133,7 @@ class ClassMutator(
         if (field != resultingField) {
             logger.trace("Field has been mutated {}", field)
             initializers += resultingField.body
-            hasBeenModified = true
+            setModified()
         }
         return super.visitField(clazz, resultingField)
     }
@@ -137,7 +148,7 @@ class ClassMutator(
             it.emit(context, instruction)
         })
         if (!emitter.emitDefaultInstruction || emitter.hasEmittedCustomCode) {
-            hasBeenModified = true
+            setModified()
         }
         super.visitInstruction(method, emitter, instruction)
     }

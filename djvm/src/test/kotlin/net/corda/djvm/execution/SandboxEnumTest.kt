@@ -34,6 +34,18 @@ class SandboxEnumTest : TestBase(KOTLIN) {
     }
 
     @Test
+    fun `test enum class gives all its constants`() = sandbox {
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val result = taskFactory.create(DescribeEnum::class.java)
+            .apply("")
+        assertThat(result).containsExactly(
+            ExampleEnum.ONE,
+            ExampleEnum.TWO,
+            ExampleEnum.THREE
+        )
+    }
+
+    @Test
     fun `test we can create EnumMap`() = sandbox {
         val taskFactory = classLoader.createTypedTaskFactory()
         val result = taskFactory.create(UseEnumMap::class.java)
@@ -54,6 +66,12 @@ class SandboxEnumTest : TestBase(KOTLIN) {
 class AssertEnum : Function<ExampleEnum, Boolean> {
     override fun apply(input: ExampleEnum): Boolean {
         return input::class.java.isEnum
+    }
+}
+
+class DescribeEnum : Function<String, Array<ExampleEnum>> {
+    override fun apply(unused: String): Array<ExampleEnum> {
+        return ExampleEnum::class.java.enumConstants
     }
 }
 

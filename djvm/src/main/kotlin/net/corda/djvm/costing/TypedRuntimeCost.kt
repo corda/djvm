@@ -54,7 +54,7 @@ open class TypedRuntimeCost<T>(
      */
     private fun getAndCheckThread(): Thread? {
         val currentThread = Thread.currentThread()
-        if (filteredThreads.contains(currentThread)) {
+        if (currentThread in filteredThreads) {
             logger.trace("Thread will not be affected by runtime costing")
             return null
         }

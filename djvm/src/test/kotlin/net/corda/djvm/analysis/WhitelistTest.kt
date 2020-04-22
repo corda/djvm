@@ -72,23 +72,6 @@ class WhitelistTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `test Java annotations`() {
-        val whitelist = Whitelist.MINIMAL
-        assertThat(whitelist.matches("java/lang/FunctionalInterface")).isTrue()
-        assertThat(whitelist.matches("java/lang/annotation/Annotation")).isTrue()
-        assertThat(whitelist.matches("java/lang/annotation/Documented")).isTrue()
-        assertThat(whitelist.matches("java/lang/annotation/ElementType")).isFalse()
-        assertThat(whitelist.matches("java/lang/annotation/Inherited")).isTrue()
-        assertThat(whitelist.matches("java/lang/annotation/Repeatable")).isTrue()
-        assertThat(whitelist.matches("java/lang/annotation/RetentionPolicy")).isFalse()
-        assertThat(whitelist.matches("java/lang/annotation/Retention")).isFalse()
-        assertThat(whitelist.matches("java/lang/annotation/Target")).isFalse()
-        assertThat(whitelist.matches("java/lang/annotation/AnnotationFormatError")).isFalse()
-        assertThat(whitelist.matches("java/lang/annotation/AnnotationTypeMismatchException")).isFalse()
-        assertThat(whitelist.matches("java/lang/annotation/IncompleteAnnotationException")).isFalse()
-    }
-
-    @Test
     fun `test access controller`() {
         val whitelist = Whitelist.MINIMAL
         assertThat(whitelist.matches("java/security/AccessController")).isFalse()

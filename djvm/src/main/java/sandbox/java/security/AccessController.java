@@ -1,6 +1,6 @@
 package sandbox.java.security;
 
-import net.corda.djvm.rules.RuleViolationError;
+import sandbox.java.lang.DJVM;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings({"unused", "RedundantThrows"})
@@ -18,7 +18,7 @@ public final class AccessController extends sandbox.java.lang.Object {
      * @return T The result of the privileged action.
      */
     public static <T> T doPrivileged(@NotNull PrivilegedAction<T> action) {
-        throw new RuleViolationError(FORBIDDEN_METHOD);
+        throw DJVM.fail(FORBIDDEN_METHOD);
     }
 
     /**
@@ -32,6 +32,6 @@ public final class AccessController extends sandbox.java.lang.Object {
      * exception that the privileged action may throw.
      */
     public static <T> T doPrivileged(@NotNull PrivilegedExceptionAction<T> action) throws java.security.PrivilegedActionException {
-        throw new RuleViolationError(FORBIDDEN_METHOD);
+        throw DJVM.fail(FORBIDDEN_METHOD);
     }
 }

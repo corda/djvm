@@ -45,7 +45,7 @@ open class Whitelist private constructor(
                 seenNames.add(name)
                 true
             }
-            entries.any { it.matches(name) } -> {
+            entries.any { it matches name } -> {
                 seenNames.add(name)
                 true
             }
@@ -103,14 +103,11 @@ open class Whitelist private constructor(
             "^java/lang/Class(\\..*)?\$".toRegex(),
             "^java/lang/ClassLoader(\\..*)?\$".toRegex(),
             "^java/lang/Cloneable\$".toRegex(),
-            "^java/lang/FunctionalInterface\$".toRegex(),
             "^java/lang/Object(\\..*)?\$".toRegex(),
             "^java/lang/StrictMath\\.(?!random:).*\$".toRegex(),
             "^java/lang/Void\$".toRegex(),
-            "^java/lang/annotation/(Annotation|Documented|Inherited|Repeatable)\$".toRegex(),
             "^java/lang/invoke/LambdaMetafactory\$".toRegex(),
             "^java/lang/reflect/Array(\\..*)?\$".toRegex(),
-            "^java/lang/reflect/Constructor(\\..*)?\$".toRegex(),
             "^java/io/Closeable(\\..*)?\$".toRegex(),
             "^java/io/Serializable\$".toRegex(),
             "^java/security/AccessController\\.doPrivileged(WithCombiner)?:\\(Ljava/security/Privileged(Exception)?Action;\\).*\$".toRegex(),
@@ -134,9 +131,9 @@ open class Whitelist private constructor(
          */
         @JvmField
         val EVERYTHING: Whitelist = Whitelist(
-                Whitelist(null, everythingRegex, emptySet()),
-                everythingRegex,
-                emptySet()
+            Whitelist(null, everythingRegex, emptySet()),
+            everythingRegex,
+            emptySet()
         )
 
         /**

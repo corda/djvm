@@ -22,10 +22,10 @@ class SyntheticExceptionCachingTest : TestBase(KOTLIN) {
 
         sandbox(externalCache) {
             assertThat(classLoader.parent).isInstanceOf(SandboxClassLoader::class.java)
-            classLoader.loadClass(syntheticClassName)
+            classLoader.loadClass(syntheticClassName).asSubclass(Throwable::class.java)
         }
 
-        // Check that the bytecode has also been cached correctly.
+        // Check that the byte-code has also been cached correctly.
         // The synthetic exception class is cheap to create and so is not cached.
         val classNames = externalCache.keys.mapTo(LinkedHashSet(), ByteCodeKey::className)
         assertThat(classNames)
@@ -39,11 +39,11 @@ class SyntheticExceptionCachingTest : TestBase(KOTLIN) {
             // will force us to consult the external cache.
             flushInternalCache()
 
-            assertDoesNotThrow { classLoader.loadClass(syntheticClassName) }
+            assertDoesNotThrow { classLoader.loadClass(syntheticClassName).asSubclass(Throwable::class.java) }
             assertDoesNotThrow { classLoader.loadClass(exceptionName) }
 
             // Check we can reload these classes, to prove they were loaded correctly!
-            assertDoesNotThrow { classLoader.loadClass(syntheticClassName) }
+            assertDoesNotThrow { classLoader.loadClass(syntheticClassName).asSubclass(Throwable::class.java) }
             assertDoesNotThrow { classLoader.loadClass(exceptionName) }
         }
     }

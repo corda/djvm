@@ -2,6 +2,7 @@ package net.corda.djvm;
 
 import net.corda.djvm.costing.ThresholdViolationError;
 import net.corda.djvm.rules.RuleViolationError;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -23,7 +24,8 @@ public final class Utilities {
         throw new ThresholdViolationError(CANNOT_CATCH);
     }
 
-    public static <T> T newInstance(Class<T> clazz)
+    @NotNull
+    public static <T> T newInstance(@NotNull Class<T> clazz)
             throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         return clazz.getDeclaredConstructor().newInstance();
     }

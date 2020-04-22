@@ -34,6 +34,10 @@ class AnnotationStitcher(
     fun accept(mv: MethodVisitor, transform: Function<String, String>) {
         accept(transform, Supplier { mv.visitAnnotation(transform.apply(descriptor), true) })
     }
+
+    fun accept(mv: MethodVisitor, parameter: Int, transform: Function<String, String>) {
+        accept(transform, Supplier { mv.visitParameterAnnotation(parameter, transform.apply(descriptor), true) })
+    }
 }
 
 abstract class AnnotationAccumulator(api: Int, av: AnnotationVisitor) : AnnotationVisitor(api, av) {

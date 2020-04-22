@@ -37,7 +37,7 @@ class MessageCollection(
         }
         val location = message.location
         val key = "${location.className}:${location.memberName}:${location.lineNumber}:${message.message}"
-        if (seenEntries.contains(key)) {
+        if (key in seenEntries) {
             return
         }
         seenEntries.add(key)

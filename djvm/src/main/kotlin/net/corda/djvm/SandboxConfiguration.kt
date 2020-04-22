@@ -154,7 +154,7 @@ class SandboxConfiguration private constructor(
             StaticConstantRemover,
             StubOutFinalizerMethods,
             StubOutNativeMethods,
-            StubOutReflectionMethods
+            StubOutIntrospectiveMethods
         ))
 
         @JvmField

@@ -3,29 +3,36 @@
 package sandbox.java.lang
 
 import net.corda.djvm.SandboxRuntimeContext
+import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_ANNOTATIONS
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_EXCEPTIONS
-import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMException
+import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSynthetic
+import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
 import net.corda.djvm.rules.implementation.*
-import org.objectweb.asm.Opcodes.ACC_ENUM
 import org.objectweb.asm.Type
 import sandbox.isEntryPoint
 import sandbox.java.io.*
+import sandbox.java.lang.annotation.Annotation
 import sandbox.java.nio.ByteOrder
-import sandbox.java.util.Collections.unmodifiableMap
 import sandbox.java.util.Date
 import sandbox.java.util.Enumeration
-import sandbox.java.util.LinkedHashMap
 import sandbox.java.util.Locale
 import sandbox.java.util.MissingResourceException
 import sandbox.java.util.Properties
 import sandbox.java.util.ResourceBundle
 import sandbox.java.util.UUID
 import java.io.IOException
+import java.lang.reflect.AnnotatedElement
+import java.lang.reflect.Array.newInstance
 import java.lang.reflect.Constructor
+import java.lang.reflect.Executable
+import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Member
+import java.lang.reflect.Method
 import java.lang.reflect.Modifier.*
+import java.lang.reflect.Proxy
 import java.security.AccessController
 import java.security.PrivilegedAction
 import java.security.PrivilegedActionException
@@ -39,6 +46,7 @@ fun Any.unsandbox(): Any {
     return when (this) {
         is Object -> fromDJVM()
         is Array<*> -> fromDJVMArray()
+        is Annotation -> fail("Annotation proxies cannot escape sandbox!")
         else -> this
     }
 }
@@ -46,7 +54,7 @@ fun Any.unsandbox(): Any {
 @Throws(ClassNotFoundException::class)
 fun Any.sandbox(): Any {
     @Suppress("RemoveRedundantQualifierName")
-    return when (this) {
+    return when(this) {
         is kotlin.String -> String.toDJVM(this)
         is kotlin.Char -> Character.toDJVM(this)
         is kotlin.Long -> Long.toDJVM(this)
@@ -79,17 +87,44 @@ fun Any.sandbox(): Any {
         )
         is java.time.ZoneId -> sandbox.java.time.ZoneId.of(String.toDJVM(id))
         is Array<*> -> toDJVMArray()
+        is Member ->
+            if (declaringClass.isForSandbox) {
+                when(this) {
+                    is Constructor<*> -> sandbox.java.lang.reflect.DJVM.toDJVM(this)
+                    is Method -> sandbox.java.lang.reflect.DJVM.toDJVM(this)
+                    is Field -> sandbox.java.lang.reflect.DJVM.toDJVM(this)
+                    else -> fail("Cannot sandbox $this")
+                }
+            } else {
+                fail("Cannot sandbox $this")
+            }
 
-        // These types are white-listed inside the sandbox, which
-        // means that they're used "as is". So prevent the user
-        // from passing bad instances into the sandbox through the
-        // front door!
-        is Class<*>, is Constructor<*> -> throw RuleViolationError("Cannot sandbox $this").sanitise(1)
-        is ClassLoader -> throw RuleViolationError("Cannot sandbox a ClassLoader").sanitise(1)
+        /**
+         * [Class] and [Constructor] are white-listed inside the sandbox,
+         * which means that they're used "as is". So prevent the user from
+         * passing bad instances into the sandbox through the front door!
+         *
+         * Objects which implement [kotlin.Annotation] are almost certainly
+         * dynamic proxies, so keep them out of the sandbox too!
+         */
+        is Class<*>, is kotlin.Annotation -> fail("Cannot sandbox $this")
+        is ClassLoader -> fail("Cannot sandbox a ClassLoader")
 
         // Default behaviour...
         else -> this
     }
+}
+
+private val Class<*>.isForSandbox: kotlin.Boolean get() {
+    val cl = classLoader
+    var current: ClassLoader = systemClassLoader
+    do {
+        if (current === cl) {
+            return true
+        }
+        current = current.parent
+    } while (current is SandboxClassLoader)
+    return false
 }
 
 fun kotlin.Throwable.toRuleViolationError(): RuleViolationError {
@@ -157,7 +192,7 @@ private fun Throwable.escapeSandbox(): kotlin.Throwable {
             }
         } else {
             val escapingMessage = "$sandboxedName -> $message"
-            val sourceType = loadSandboxClass(getDJVMException(sandboxedName))
+            val sourceType = loadSandboxClass(getDJVMSynthetic(sandboxedName))
             when {
                 RuntimeException::class.java.isAssignableFrom(sourceType) -> RuntimeException(escapingMessage)
                 kotlin.Exception::class.java.isAssignableFrom(sourceType) -> kotlin.Exception(escapingMessage)
@@ -250,7 +285,9 @@ private fun loadSandboxClass(name: kotlin.String): Class<*> = Class.forName(name
 private fun loadBootstrapClass(name: kotlin.String): Class<*> = doPrivileged(DJVMBootstrapClassAction(name))
 
 @Throws(ClassNotFoundException::class)
-private fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(systemClassLoader.resolveName(name))
+internal fun Class<*>.toDJVMType(): Class<*> = loadSandboxClass(systemClassLoader.resolveName(name))
+
+private inline fun <reified T> Class<*>.toDJVM(): Class<out T> = toDJVMType().asSubclass(T::class.java)
 
 @Throws(ClassNotFoundException::class)
 internal fun Class<*>.fromDJVMType(): Class<*> {
@@ -273,7 +310,7 @@ private fun kotlin.String.fromSandboxPackage(): kotlin.String {
 
 private fun Array<*>.toDJVMArray(): Array<*> {
     @Suppress("unchecked_cast")
-    return (java.lang.reflect.Array.newInstance(javaClass.componentType.toDJVMType(), size) as Array<Any?>).also {
+    return (newInstance(javaClass.componentType.toDJVMType(), size) as Array<Any?>).also {
         for ((i, item) in withIndex()) {
             it[i] = item?.sandbox()
         }
@@ -287,7 +324,7 @@ private fun Array<*>.toDJVMArray(): Array<*> {
 fun toString(obj: Any?): String {
     return when {
         obj is Object ->  obj.toDJVMString()
-        obj is Annotation -> String.toDJVM(obj.toString())
+        obj is Annotation -> obj.toDJVMString()
         obj != null -> Object.toDJVMString(System.identityHashCode(obj))
         else -> // Throw the same exception that the JVM would throw in this case.
             throw NullPointerException().sanitise(1)
@@ -295,12 +332,16 @@ fun toString(obj: Any?): String {
 }
 
 /**
- * Replacement function for [java.lang.Object.hashCode], because some
- * objects (i.e. arrays) cannot be replaced by [sandbox.java.lang.Object].
+ * Replacement function for Object.hashCode(), because some objects
+ * (i.e. arrays) cannot be replaced by [sandbox.java.lang.Object].
+ * Note that the DJVM will implement [Annotation] using a dynamic
+ * proxy, and so we MUST execute [hashCode] normally to invoke
+ * its handler.
  */
 fun hashCode(obj: Any?): Int {
     return when {
         obj is Object -> obj.hashCode()
+        obj is Annotation && Proxy.isProxyClass(obj::class.java) -> obj.hashCode()
         obj != null -> System.identityHashCode(obj)
         else -> // Throw the same exception that the JVM would throw in this case.
             throw NullPointerException().sanitise(1)
@@ -308,14 +349,33 @@ fun hashCode(obj: Any?): Int {
 }
 
 /**
- * Replacement functions for members of [java.lang.Class] that return [String].
+ * Method references to forbidden [java.lang.Object] functions
+ * will be redirected here.
  */
-fun toString(clazz: Class<*>): String = String.toDJVM(clazz.toString())
-fun getName(clazz: Class<*>): String = String.toDJVM(clazz.name)
-fun getCanonicalName(clazz: Class<*>): String? = String.toDJVM(clazz.canonicalName)
-fun getSimpleName(clazz: Class<*>): String = String.toDJVM(clazz.simpleName)
-fun toGenericString(clazz: Class<*>): String = String.toDJVM(clazz.toGenericString())
-fun getTypeName(clazz: Class<*>): String = String.toDJVM(clazz.typeName)
+@Suppress("unused_parameter")
+fun notify(obj: Any?) {
+    fail("Disallowed reference to API; Object.notify()")
+}
+
+@Suppress("unused_parameter")
+fun notifyAll(obj: Any?) {
+    fail("Disallowed reference to API; Object.notifyAll()")
+}
+
+@Suppress("unused_parameter")
+fun wait(obj: Any?) {
+    fail("Disallowed reference to API; Object.wait()")
+}
+
+@Suppress("unused_parameter")
+fun wait(obj: Any?, timeout: kotlin.Long) {
+    fail("Disallowed reference to API; Object.wait(long)")
+}
+
+@Suppress("unused_parameter", "RemoveRedundantQualifierName")
+fun wait(obj: Any?, timeout: kotlin.Long, nanos: kotlin.Int) {
+    fail("Disallowed reference to API; Object.wait(long,int)")
+}
 
 @Throws(ClassNotFoundException::class)
 internal fun Enum<*>.fromDJVMEnum(): kotlin.Enum<*> {
@@ -325,47 +385,12 @@ internal fun Enum<*>.fromDJVMEnum(): kotlin.Enum<*> {
 @Throws(ClassNotFoundException::class)
 private fun kotlin.Enum<*>.toDJVMEnum(): Enum<*> {
     @Suppress("unchecked_cast")
-    return (getEnumConstants(javaClass.toDJVMType() as Class<Enum<*>>) as Array<Enum<*>>)[ordinal]
-}
-
-/**
- * Replacement functions for the members of Class<*> that support Enums.
- */
-fun isEnum(clazz: Class<*>): kotlin.Boolean
-        = (clazz.modifiers and ACC_ENUM != 0) && (clazz.superclass == sandbox.java.lang.Enum::class.java)
-
-fun getEnumConstants(clazz: Class<out Enum<*>>): Array<*>? {
-    return getEnumConstantsShared(clazz)?.clone()
-}
-
-internal fun enumConstantDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Map<String, out Enum<*>>? {
-    return allEnumDirectories.get(clazz) ?: createEnumDirectory(clazz)
+    return (DJVMClass.getEnumConstants(javaClass.toDJVM()) as Array<Enum<*>>)[ordinal]
 }
 
 internal fun getEnumConstantsShared(clazz: Class<out Enum<*>>): Array<out Enum<*>>? {
-    return if (isEnum(clazz)) {
-        allEnums.get(clazz) ?: createEnum(clazz)
-    } else {
-        null
-    }
+    return DJVMClass.getEnumConstantsShared(clazz)
 }
-
-private fun createEnum(clazz: Class<out Enum<*>>): Array<out Enum<*>>? {
-    return doPrivileged(DJVMEnumAction(clazz))?.apply { allEnums.put(clazz, this) }
-}
-
-private fun createEnumDirectory(clazz: Class<out Enum<*>>): sandbox.java.util.Map<String, out Enum<*>> {
-    val universe = getEnumConstantsShared(clazz) ?: throw IllegalArgumentException("${clazz.name} is not an enum type")
-    val directory = LinkedHashMap<String, Enum<*>>(2 * universe.size)
-    for (entry in universe) {
-        directory.put(entry.name(), entry)
-    }
-    allEnumDirectories.put(clazz, unmodifiableMap(directory))
-    return directory
-}
-
-private val allEnums: sandbox.java.util.Map<Class<out Enum<*>>, Array<out Enum<*>>> = LinkedHashMap()
-private val allEnumDirectories: sandbox.java.util.Map<Class<out Enum<*>>, sandbox.java.util.Map<String, out Enum<*>>> = LinkedHashMap()
 
 /**
  * Ensure that all string constants refer to the same instance of [sandbox.java.lang.String].
@@ -396,25 +421,8 @@ fun getSystemClassLoader(): ClassLoader {
 }
 
 /**
- * Filter function for [Class.getClassLoader].
- * We perform no "access control" checks because we are pretending
- * that all sandbox classes exist inside the same classloader.
- */
-@Suppress("unused_parameter")
-fun getClassLoader(type: Class<*>): ClassLoader {
-    /**
-     * We expect [Class.getClassLoader] to return one of the following:
-     * - [net.corda.djvm.rewiring.SandboxClassLoader] for sandbox classes
-     * - the application class loader for whitelisted classes
-     * - null for basic Java classes.
-     *
-     * So "don't do that". Always return the sandbox classloader instead.
-     */
-    return systemClassLoader
-}
-
-/**
  * Replacement function for [ClassLoader.getSystemResourceAsStream].
+ * THIS IS NOT AVAILABLE FOR USER CODE!
  */
 fun getSystemResourceAsStream(name: kotlin.String): InputStream? {
     return InputStream.toDJVM(systemClassLoader.getResourceAsStream(name))
@@ -453,6 +461,14 @@ fun loadClass(classLoader: ClassLoader, className: kotlin.String): Class<*> {
 }
 
 /**
+ * Thunk for method reference ClassLoader::loadClass.
+ */
+@Throws(ClassNotFoundException::class)
+fun loadClass(classLoader: ClassLoader, className: String): Class<*> {
+    return loadClass(classLoader, String.fromDJVM(className))
+}
+
+/**
  * Force the qualified class name into the sandbox.* namespace.
  * Throw [ClassNotFoundException] anyway if we wouldn't want to
  * return the resulting sandbox class. E.g. for any of our own
@@ -466,8 +482,8 @@ fun toSandbox(className: kotlin.String): kotlin.String {
 
     val matchName = className.removePrefix(SANDBOX_PREFIX)
     val (actualName, sandboxName) = OBJECT_ARRAY.matchEntire(matchName)?.let {
-        Pair(it.groupValues[2], it.groupValues[1] + SANDBOX_PREFIX + it.groupValues[2] + ';')
-    } ?: Pair(matchName, SANDBOX_PREFIX + matchName)
+        it.groupValues[2] to it.groupValues[1] + SANDBOX_PREFIX + it.groupValues[2] + ';'
+    } ?: matchName to SANDBOX_PREFIX + matchName
 
     if (bannedClasses.any { it.matches(actualName) }) {
         throw ClassNotFoundException(className).sanitise(1)
@@ -523,7 +539,7 @@ fun fromDJVM(t: Throwable?): kotlin.Throwable {
                 throwable
             } else {
                 // Whereas the sandbox creates a synthetic throwable wrapper for these.
-                val wrapperClass = loadSandboxClass(getDJVMException(sandboxClass.name))
+                val wrapperClass = loadSandboxClass(getDJVMSynthetic(sandboxClass.name))
                 wrapperClass.getPrivilegedConstructor(sandboxThrowable)
                     .newInstance(t) as kotlin.Throwable
             }
@@ -590,14 +606,14 @@ private fun <T: kotlin.Throwable> T.sanitise(firstIndex: Int): T {
 private fun kotlin.Throwable.toDJVMThrowable(): Throwable {
     return (this as? DJVMException)?.throwable ?:
                sandboxedExceptions.remove(this) ?:
-               javaClass.toDJVMType().createDJVMThrowable(this)
+               javaClass.toDJVM<Throwable>().createDJVMThrowable(this)
 }
 
 /**
  * Creates a new [sandbox.java.lang.Throwable] from a [java.lang.Throwable],
  * which was probably thrown by the JVM itself.
  */
-private fun Class<*>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
+private fun Class<out Throwable>.createDJVMThrowable(t: kotlin.Throwable): Throwable {
     val cause = t.cause?.toDJVMThrowable()
     val message = String.toDJVM(t.message)
     return try {
@@ -774,6 +790,110 @@ private object DJVMNoResource : ResourceBundle() {
     override fun toDJVMString(): String = intern("NON-EXISTENT BUNDLE")
 }
 
+/**
+ * Annotation handling.
+ */
+fun isAnnotationPresent(annotated: AnnotatedElement, annotationType: Class<out Annotation>): kotlin.Boolean {
+    return annotated.isAnnotationPresent(annotationType.toRealAnnotationType())
+}
+
+fun <T: Annotation> getAnnotation(annotated: AnnotatedElement, annotationType: Class<T>): T? {
+    return annotated.getAnnotation(annotationType.toRealAnnotationType())?.let { ann ->
+        return annotationType.createDJVMAnnotation(ann)
+    }
+}
+
+fun getAnnotations(annotated: AnnotatedElement): Array<out Annotation> {
+    return annotated.annotations.toDJVMAnnotations()
+}
+
+fun <T: Annotation> getAnnotationsByType(annotated: AnnotatedElement, annotationType: Class<T>): Array<T> {
+    return doPrivileged(DJVMAnnotationsByTypeAction(annotated, annotationType.toRealAnnotationType()))
+        .toDJVMAnnotations(annotationType)
+}
+
+fun <T: Annotation> getDeclaredAnnotation(annotated: AnnotatedElement, annotationType: Class<T>): T? {
+    return annotated.getDeclaredAnnotation(annotationType.toRealAnnotationType())?.let { ann ->
+        annotationType.createDJVMAnnotation(ann)
+    }
+}
+
+fun getDeclaredAnnotations(annotated: AnnotatedElement): Array<out Annotation> {
+    return annotated.declaredAnnotations.toDJVMAnnotations()
+}
+
+fun <T: Annotation> getDeclaredAnnotationsByType(annotated: AnnotatedElement, annotationType: Class<T>): Array<T> {
+    return doPrivileged(DJVMDeclaredAnnotationsByTypeAction(annotated, annotationType.toRealAnnotationType()))
+        .toDJVMAnnotations(annotationType)
+}
+
+fun getDefaultValue(method: Method): Any? {
+    @Suppress("unchecked_cast")
+    val realMethod = (method.declaringClass as Class<out Annotation>)
+        .toRealAnnotationType()
+        .getMethod(method.name)
+    return realMethod.defaultValue?.let { value ->
+        DJVMAnnotationHandler.getDefaultValue(method.returnType, value)
+    }
+}
+
+fun getParameterAnnotations(executable: Executable): Array<Array<out Annotation>> {
+    val parameterAnnotations = executable.parameterAnnotations
+    @Suppress("unchecked_cast")
+    return (newInstance(Array<out Annotation>::class.java, parameterAnnotations.size) as Array<Array<out Annotation>>).also {
+        for ((i, item) in parameterAnnotations.withIndex()) {
+            it[i] = item.toDJVMAnnotations()
+        }
+    }
+}
+
+/**
+ * Worker functions to convert [java.lang.annotation.Annotation]
+ * into [sandbox.java.lang.annotation.Annotation].
+ */
+private fun <T: Annotation> Array<out kotlin.Annotation>.toDJVMAnnotations(annotationType: Class<T>): Array<T> {
+    @Suppress("unchecked_cast")
+    return (newInstance(annotationType, size) as Array<T>).also {
+        for ((i, item) in withIndex()) {
+            it[i] = annotationType.createDJVMAnnotation(item)
+        }
+    }
+}
+
+private fun Array<out kotlin.Annotation>.toDJVMAnnotations(): Array<out Annotation> {
+    val annotations = ArrayList<Annotation>(size)
+    for (item in this) {
+        val annotationType = item.annotationClass.java.toSandboxAnnotationType()
+        if (annotationType != null) {
+            annotations.add(annotationType.createDJVMAnnotation(item))
+        }
+    }
+    return annotations.toArray(arrayOf<Annotation>())
+}
+
+private fun Class<out Annotation>.toRealAnnotationType(): Class<out kotlin.Annotation> {
+    return if (Type.getInternalName(this) in JVM_ANNOTATIONS) {
+        toDJVM()
+    } else {
+        @Suppress("unchecked_cast")
+        loadSandboxClass(getDJVMSynthetic(name)) as Class<out kotlin.Annotation>
+    }
+}
+
+private fun Class<out kotlin.Annotation>.toSandboxAnnotationType(): Class<out Annotation>? {
+    val sandboxAnnotationName = systemClassLoader.resolveAnnotationName(name) ?: return null
+    @Suppress("unchecked_cast")
+    return loadSandboxClass(sandboxAnnotationName) as Class<out Annotation>
+}
+
+/**
+ * Creates a new [sandbox.java.lang.annotation.Annotation] from a
+ * [java.lang.annotation.Annotation] which was created by the JVM.
+ */
+fun <T: Annotation> Class<T>.createDJVMAnnotation(a: kotlin.Annotation): T {
+    return AccessController.doPrivileged(DJVMAnnotationAction(this, a))
+}
+
 // This helper function MUST remain private so that it cannot
 // be invoked by untrusted code!
 private fun <T> doPrivileged(action: PrivilegedExceptionAction<T>): T {
@@ -829,5 +949,37 @@ private class DJVMBootstrapClassAction(private val name: kotlin.String) : Privil
     @Throws(ClassNotFoundException::class)
     override fun run(): Class<*> {
         return Class.forName(name, false, null)
+    }
+}
+
+private class DJVMAnnotationAction<T: Annotation>(
+    private val annotationType: Class<T>,
+    private val underlying: kotlin.Annotation
+) : PrivilegedAction<T> {
+    override fun run(): T {
+        @Suppress("unchecked_cast")
+        return Proxy.newProxyInstance(
+            systemClassLoader,
+            arrayOf(annotationType),
+            DJVMAnnotationHandler(annotationType, underlying)
+        ) as T
+    }
+}
+
+private class DJVMAnnotationsByTypeAction(
+    private val annotated: AnnotatedElement,
+    private val annotationType: Class<out kotlin.Annotation>
+) : PrivilegedExceptionAction<Array<out kotlin.Annotation>> {
+    override fun run(): Array<out kotlin.Annotation> {
+        return annotated.getAnnotationsByType(annotationType)
+    }
+}
+
+private class DJVMDeclaredAnnotationsByTypeAction(
+    private val annotated: AnnotatedElement,
+    private val annotationType: Class<out kotlin.Annotation>
+) : PrivilegedExceptionAction<Array<out kotlin.Annotation>> {
+    override fun run(): Array<out kotlin.Annotation> {
+        return annotated.getDeclaredAnnotationsByType(annotationType)
     }
 }

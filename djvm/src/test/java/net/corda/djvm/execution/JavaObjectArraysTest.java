@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -44,10 +43,9 @@ class JavaObjectArraysTest extends TestBase {
                 assertArrayOfClass("sandbox.java.lang.String", objArray[0][0][0].getClass());
 
                 DJVM djvm = new DJVM(ctx.getClassLoader());
-                List<Object> elements = Arrays.stream(objArray)
+                Stream<Object> elements = Arrays.stream(objArray)
                     .flatMap(Arrays::stream)
-                    .flatMap(Arrays::stream)
-                    .collect(toList());
+                    .flatMap(Arrays::stream);
                 assertThat(elements).containsExactly(
                     djvm.stringOf("ONE"),
                     djvm.stringOf("TWO"),
@@ -85,9 +83,8 @@ class JavaObjectArraysTest extends TestBase {
                 assertArrayOfClass("sandbox.java.lang.Double", objArray[1][0].getClass());
 
                 DJVM djvm = new DJVM(ctx.getClassLoader());
-                List<Object> elements = Arrays.stream(objArray)
-                    .flatMap(Arrays::stream)
-                    .collect(toList());
+                Stream<Object> elements = Arrays.stream(objArray)
+                    .flatMap(Arrays::stream);
                 assertThat(elements).containsExactly(
                     djvm.longOf(1000), djvm.longOf(2000),
                     djvm.doubleOf(1234.5678), djvm.doubleOf(5678.9999)
@@ -112,10 +109,9 @@ class JavaObjectArraysTest extends TestBase {
                 assertArrayOfArray("[Ljava.lang.String;", objArray[0][0].getClass());
                 assertArrayOfClass("java.lang.String", objArray[0][0][0].getClass());
 
-                List<String> elements = Arrays.stream((String[][][])result)
+                Stream<String> elements = Arrays.stream((String[][][])result)
                     .flatMap(Arrays::stream)
-                    .flatMap(Arrays::stream)
-                    .collect(toList());
+                    .flatMap(Arrays::stream);
                 assertThat(elements).containsExactly(
                     "AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH"
                 );
@@ -150,9 +146,8 @@ class JavaObjectArraysTest extends TestBase {
                 assertArrayOfArray("[Ljava.lang.Integer;", objArray[1].getClass());
                 assertArrayOfClass("java.lang.Integer", objArray[1][0].getClass());
 
-                List<Serializable> elements = Arrays.stream((Serializable[][])result)
-                    .flatMap(Arrays::stream)
-                    .collect(toList());
+                Stream<Serializable> elements = Arrays.stream((Serializable[][])result)
+                    .flatMap(Arrays::stream);
                 assertThat(elements).containsExactly(
                     "Hello", "World", 1234, 5678
                 );

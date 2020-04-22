@@ -28,6 +28,10 @@ public abstract class Enum<E extends Enum<E>> extends Object implements Comparab
         return ordinal;
     }
 
+    public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name) {
+        throw new UnsupportedOperationException(UNSUPPORTED);
+    }
+
     @Override
     @NotNull
     protected final java.lang.Enum<?> fromDJVM() {

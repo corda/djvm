@@ -6,9 +6,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
-import java.util.List;
+import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -30,9 +29,8 @@ class StitchedInterfaceTest extends TestBase {
         sandbox(ctx -> {
             try {
                 Class<?> sandboxClass = Class.forName(sandboxName, true, ctx.getClassLoader());
-                List<String> generics = Arrays.stream(sandboxClass.getGenericInterfaces())
-                    .map(Type::getTypeName)
-                    .collect(toList());
+                Stream<String> generics = Arrays.stream(sandboxClass.getGenericInterfaces())
+                    .map(Type::getTypeName);
                 assertThat(generics).containsExactly(stitchedName);
             } catch (Exception e) {
                 fail(e);

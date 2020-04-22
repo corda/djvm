@@ -4,8 +4,8 @@ package net.corda.djvm.source
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.analysis.ClassResolver
-import net.corda.djvm.analysis.ExceptionResolver.Companion.getDJVMExceptionOwner
-import net.corda.djvm.analysis.ExceptionResolver.Companion.isDJVMException
+import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSyntheticOwner
+import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
 import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.code.asResourcePath
@@ -173,18 +173,19 @@ class SourceClassLoader(
     }
 
     /**
-     * Load the class header with the specified binary name.
+     * Load the underlying [ClassHeader] for the sandbox class
+     * with the specified binary name.
      */
     @Throws(ClassNotFoundException::class)
     fun loadSourceHeader(name: String): ClassHeader {
-        logger.trace("Loading source class {}...", name)
+        logger.trace("Loading source class for {}...", name)
         // We need the name of the equivalent class outside of the sandbox.
         // This class is expected to belong to the application classloader.
         val originalName = classResolver.toSourceNormalized(name).let { n ->
-            // A synthetic exception should be mapped back to its
-            // corresponding exception in the original hierarchy.
-            if (isDJVMException(n)) {
-                getDJVMExceptionOwner(n)
+            // A synthetic DJVM class should be mapped back to its
+            // corresponding class in the original hierarchy.
+            if (isDJVMSynthetic(n)) {
+                getDJVMSyntheticOwner(n)
             } else {
                 n
             }
@@ -192,6 +193,10 @@ class SourceClassLoader(
         return loadClassHeader(originalName)
     }
 
+    /**
+     * Load the [ClassHeader] for the source class
+     * with the specified binary name.
+     */
     @Throws(ClassNotFoundException::class)
     fun loadClassHeader(name: String): ClassHeader {
         return try {

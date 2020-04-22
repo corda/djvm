@@ -4,6 +4,7 @@ package net.corda.djvm.code
 import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.rules.RuleViolationError
 import org.objectweb.asm.Type
+import java.util.Collections.unmodifiableSet
 
 /**
  * These are the priorities for executing [Emitter] instances.
@@ -19,7 +20,10 @@ const val EMIT_AFTER_INVOKE: Int = EMIT_DEFAULT + 2
 
 const val CLASS_NAME = "java/lang/Class"
 const val OBJECT_NAME = "java/lang/Object"
+const val CLASSLOADER_NAME = "java/lang/ClassLoader"
 const val THROWABLE_NAME = "java/lang/Throwable"
+const val ENUM_NAME = "java/lang/Enum"
+const val SANDBOX_CLASS_NAME = "sandbox/java/lang/DJVMClass"
 const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"
 const val CLASS_CONSTRUCTOR_NAME = "<clinit>"
 const val CONSTRUCTOR_NAME = "<init>"
@@ -43,7 +47,57 @@ const val RUNTIME_ACCOUNTER_NAME: String = "sandbox/RuntimeCostAccounter"
  */
 const val DJVM_EXCEPTION_NAME: String = "sandbox/java/lang/DJVMException"
 
+/**
+ * Flags describing contents of [net.corda.djvm.rewiring.ByteCode] objects.
+ */
+const val DJVM_MODIFIED = 0x0001
+const val DJVM_SYNTHETIC = 0x0002
+const val DJVM_ANNOTATION = 0x0004
+
+/**
+ * The monitor methods are BANNED!
+ */
+private val MONITOR_METHODS = unmodifiableSet(setOf("notify", "notifyAll", "wait"))
+
+fun isObjectMonitor(name: String, descriptor: String): Boolean {
+    return (descriptor == "()V" && name in MONITOR_METHODS)
+        || (name == "wait" && (descriptor == "(J)V" || descriptor == "(JI)V"))
+}
+
+/**
+ * These are the names of methods in [sandbox.java.lang.DJVMClass].
+ * They correspond to the [java.lang.Class] methods that we intercept.
+ */
+private val classMethodThunks = unmodifiableSet(setOf(
+    // We only need to intercept this when we sandbox
+    // java.lang.Enum because it is package private.
+    "enumConstantDirectory",
+
+    // These are all public methods.
+    "getAnnotation",
+    "getAnnotations",
+    "getAnnotationsByType",
+    "getCanonicalName",
+    "getClassLoader",
+    "getDeclaredAnnotation",
+    "getDeclaredAnnotations",
+    "getDeclaredAnnotationsByType",
+    "getEnumConstants",
+    "getName",
+    "getSimpleName",
+    "getTypeName",
+    "isAnnotationPresent",
+    "isEnum",
+    "toGenericString",
+    "toString"
+))
+
+fun isClassMethodThunk(name: String): Boolean = name in classMethodThunks
+
+@JvmField
 val ruleViolationError: String = Type.getInternalName(RuleViolationError::class.java)
+
+@JvmField
 val thresholdViolationError: String = Type.getInternalName(ThresholdViolationError::class.java)
 
 /**

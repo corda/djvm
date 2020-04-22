@@ -6,6 +6,8 @@ import net.corda.djvm.code.DJVM_EXCEPTION_NAME
 import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
+import net.corda.djvm.code.SANDBOX_CLASS_NAME
+import net.corda.djvm.code.SANDBOX_OBJECT_NAME
 import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.formatting.MemberFormatter
 import net.corda.djvm.messages.Severity
@@ -38,7 +40,6 @@ import java.util.Collections.unmodifiableMap
 import java.util.Collections.unmodifiableSet
 import java.util.Random
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.regex.Pattern
 import javax.security.auth.x500.X500Principal
 import javax.xml.datatype.DatatypeFactory
 import kotlin.Comparator
@@ -49,14 +50,11 @@ import kotlin.collections.LinkedHashSet
  *
  * @property parent This configuration's parent [AnalysisConfiguration].
  * @property whitelist The whitelist of class names.
- * @property sandboxAnnotations A user-supplied set of regexps to control which annotations should be preserved
- * inside the sandbox.
- * @property allowedAnnotations Literal descriptors for annotations which should be preserved inside the sandbox.
  * @property stitchedAnnotations Descriptors for annotation classes whose unsandboxed values must also be preserved.
  * @property minimumSeverityLevel The minimum severity level to log and report.
  * @property supportingClassLoader ClassLoader providing the classes to run inside the sandbox.
  * @property classResolver Functionality used to resolve the qualified name and relevant information about a class.
- * @property exceptionResolver Resolves the internal names of synthetic exception classes.
+ * @property syntheticResolver Resolves the internal names of synthetic "friend" classes.
  * @property analyzeAnnotations Analyze annotations despite not being explicitly referenced.
  * @property prefixFilters Only record messages where the originating class name matches one of the provided prefixes.
  * If none are provided, all messages will be reported.
@@ -66,13 +64,11 @@ import kotlin.collections.LinkedHashSet
 class AnalysisConfiguration private constructor(
     val parent: AnalysisConfiguration?,
     val whitelist: Whitelist,
-    val sandboxAnnotations: Set<Pattern>,
-    val allowedAnnotations: Set<String>,
     val stitchedAnnotations: Set<String>,
     val minimumSeverityLevel: Severity,
     val supportingClassLoader: SourceClassLoader,
     val classResolver: ClassResolver,
-    val exceptionResolver: ExceptionResolver,
+    val syntheticResolver: SyntheticResolver,
     val analyzeAnnotations: Boolean,
     val prefixFilters: List<String>,
     val classModule: ClassModule,
@@ -97,18 +93,18 @@ class AnalysisConfiguration private constructor(
     fun isTemplateClass(className: String): Boolean = className in TEMPLATE_CLASSES
 
     fun isJvmException(className: String): Boolean = className in JVM_EXCEPTIONS
-    fun isSandboxClass(className: String): Boolean = className.startsWith(SANDBOX_PREFIX)
+    fun isJvmAnnotation(className: String): Boolean = className in JVM_ANNOTATIONS
+    fun hasDJVMSynthetic(className: String): Boolean = !isJvmException(className) && !isJvmAnnotation(className)
 
-    fun isUnmappedAnnotation(descriptor: String): Boolean = descriptor in UNMAPPED_ANNOTATIONS
-    fun isMappedAnnotation(descriptor: String): Boolean
-                = descriptor in allowedAnnotations || sandboxAnnotations.any { ann -> ann.matcher(descriptor).matches() }
+    fun isJvmAnnotationDesc(descriptor: String): Boolean = descriptor in JVM_ANNOTATION_DESC
+
+    fun isSandboxClass(className: String): Boolean = className.startsWith(SANDBOX_PREFIX)
 
     fun toSandboxClassName(header: ClassHeader): String {
         val sandboxName = classResolver.resolve(header.internalName)
-        return if (header.isThrowable) {
-            exceptionResolver.getThrowableOwnerName(sandboxName)
-        } else {
-            sandboxName
+        return when {
+            header.isThrowable -> syntheticResolver.getRealThrowableName(sandboxName)
+            else -> sandboxName
         }
     }
 
@@ -128,16 +124,11 @@ class AnalysisConfiguration private constructor(
     fun createChild(userSource: UserSource): Builder = AnalysisChildBuilder(userSource)
 
     private inner class AnalysisChildBuilder(private val userSource: UserSource): Builder {
-        private val sandboxOnlyAnnotations = linkedSetOf<String>()
         private val visibleAnnotations = linkedSetOf<Class<out Annotation>>()
         private var newMinimumSeverityLevel = minimumSeverityLevel
 
         override fun setMinimumSeverityLevel(level: Severity) {
             newMinimumSeverityLevel = level
-        }
-
-        override fun setSandboxOnlyAnnotations(annotations: Iterable<String>) {
-            sandboxOnlyAnnotations.addAll(annotations)
         }
 
         override fun setVisibleAnnotations(annotations: Iterable<Class<out Annotation>>) {
@@ -148,11 +139,9 @@ class AnalysisConfiguration private constructor(
             return AnalysisConfiguration(
                 parent = this@AnalysisConfiguration,
                 whitelist = whitelist,
-                sandboxAnnotations = unmodifiable(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern) + sandboxAnnotations),
-                allowedAnnotations = allowedAnnotations.merge(visibleAnnotations),
-                stitchedAnnotations = stitchedAnnotations.mergeSandboxed(visibleAnnotations),
+                stitchedAnnotations = stitchedAnnotations.merge(visibleAnnotations),
                 classResolver = classResolver,
-                exceptionResolver = exceptionResolver,
+                syntheticResolver = syntheticResolver,
                 minimumSeverityLevel = minimumSeverityLevel,
                 analyzeAnnotations = analyzeAnnotations,
                 prefixFilters = prefixFilters,
@@ -184,44 +173,7 @@ class AnalysisConfiguration private constructor(
          * annotation and the transformed one.
          */
         private val STITCHED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
-            "Lsandbox/kotlin/annotation/MustBeDocumented;",
-            "Lsandbox/kotlin/annotation/Repeatable;",
-            "Lsandbox/kotlin/Metadata;"
-        ))
-
-        /**
-         * These are descriptors for the annotations that are considered
-         * "safe" to preserve inside the sandbox.
-         */
-        private val ALLOWED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
-            "Ljava/lang/FunctionalInterface;",
-            "Ljava/lang/annotation/Documented;",
-            "Ljava/lang/annotation/Inherited;",
-            "Ljava/lang/annotation/Repeatable;",
-            "Lkotlin/annotation/MustBeDocumented;",
-            "Lkotlin/annotation/Repeatable;",
             KOTLIN_METADATA
-        ))
-
-        /**
-         * These annotations cannot be mapped into the sandbox, e.g.
-         * because they have a method with an [Enum] value that the
-         * JVM cannot assign.
-         *
-         * Not mapping an annotation leaves the original annotation
-         * in place without also applying its sandboxed equivalent.
-         *
-         * Annotations which are neither mapped nor unmapped are deleted.
-         */
-        private val UNMAPPED_ANNOTATIONS: Set<String> = unmodifiable(setOf(
-            /**
-             * These meta-annotations configure how the JVM handles annotations,
-             * and so these need to be preserved.
-             */
-            "Lkotlin/annotation/Retention;",
-            "Lkotlin/annotation/Target;",
-            "Ljava/lang/annotation/Retention;",
-            "Ljava/lang/annotation/Target;"
         ))
 
         /**
@@ -254,8 +206,7 @@ class AnalysisConfiguration private constructor(
             java.util.concurrent.atomic.AtomicReference::class.java,
             java.util.concurrent.locks.ReentrantLock::class.java,
             java.util.zip.CRC32::class.java,
-            java.util.zip.Inflater::class.java,
-            Any::class.java
+            java.util.zip.Inflater::class.java
         ).sandboxed() + setOf(
             "sandbox/BasicInput",
             "sandbox/BasicOutput",
@@ -268,15 +219,29 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/io/DJVMInputStream",
             "sandbox/java/lang/Character\$Cache",
             DJVM_NAME,
+            "sandbox/java/lang/DJVMAnnotationAction",
+            "sandbox/java/lang/DJVMAnnotationsByTypeAction",
+            "sandbox/java/lang/DJVMAnnotationHandler",
+            "sandbox/java/lang/DJVMAnnotationHandler\$MethodValue",
+            "sandbox/java/lang/DJVMBootstrapClassAction",
+            SANDBOX_CLASS_NAME,
+            "sandbox/java/lang/DJVMConstructorAction",
+            "sandbox/java/lang/DJVMDeclaredAnnotationsByTypeAction",
+            "sandbox/java/lang/DJVMEnumAction",
             DJVM_EXCEPTION_NAME,
             "sandbox/java/lang/DJVMNoResource",
             "sandbox/java/lang/DJVMResourceKey",
-            "sandbox/java/lang/DJVMThrowableWrapper",
-            "sandbox/java/lang/DJVMBootstrapClassAction",
-            "sandbox/java/lang/DJVMConstructorAction",
-            "sandbox/java/lang/DJVMEnumAction",
             "sandbox/java/lang/DJVMSystemResourceAction",
+            "sandbox/java/lang/DJVMThrowableWrapper",
+            SANDBOX_OBJECT_NAME,
             "sandbox/java/lang/String\$InitAction",
+            "sandbox/java/lang/reflect/AccessibleObject",
+            "sandbox/java/lang/reflect/Constructor",
+            "sandbox/java/lang/reflect/DJVM",
+            "sandbox/java/lang/reflect/Executable",
+            "sandbox/java/lang/reflect/Field",
+            "sandbox/java/lang/reflect/Method",
+            "sandbox/java/lang/reflect/Parameter",
             "sandbox/java/nio/charset/Charset\$ExtendedProviderHolder",
             "sandbox/java/security/DJVM",
             "sandbox/java/security/DJVM\$PrivilegedExceptionTask",
@@ -303,6 +268,34 @@ class AnalysisConfiguration private constructor(
             "$X500_NAME\$1",
             "sandbox/sun/util/calendar/ZoneInfoFile\$1"
         ))
+
+        /**
+         * These annotations don't need synthetic friends
+         * because they have no data fields that need to
+         * be transformed.
+         */
+        private val JVM_ANNOTATION_DESC: Set<String>
+
+        @JvmField
+        val JVM_ANNOTATIONS: Set<String>
+
+        init {
+            val simpleAnnotations = setOf(
+                /**
+                 * These annotations only target "Types", such as
+                 * interfaces or annotations. We would need to modify
+                 * [net.corda.djvm.rewiring.SandboxClassRemapper]
+                 * if any annotation here could also be applied to
+                 * methods, method parameters or to fields.
+                 */
+                java.lang.FunctionalInterface::class.java,
+                java.lang.annotation.Documented::class.java,
+                java.lang.annotation.Inherited::class.java,
+                MustBeDocumented::class.java
+            )
+            JVM_ANNOTATION_DESC = unmodifiableSet(simpleAnnotations.mapTo(LinkedHashSet(), ::toDescriptor))
+            JVM_ANNOTATIONS = unmodifiableSet(simpleAnnotations.sandboxed())
+        }
 
         /**
          * These exceptions are thrown by the JVM itself, and
@@ -442,6 +435,7 @@ class AnalysisConfiguration private constructor(
          * trying to invoke [sun.misc.Unsafe] and other assorted native methods.
          */
         private val STITCHED_CLASSES: Map<String, List<Member>> = unmodifiable((
+            generateJavaAnnotationMethods() +
             generateJavaCalendarMethods() +
             generateJavaTimeMethods() +
             generateJavaResourceBundleMethods() +
@@ -649,12 +643,7 @@ class AnalysisConfiguration private constructor(
         fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
         fun Set<Class<*>>.sandboxed(): Set<String> = mapTo(LinkedHashSet(), Companion::sandboxed)
 
-        private fun toSandboxDescriptor(clazz: Class<*>): String = "L$SANDBOX_PREFIX${Type.getInternalName(clazz)};".intern()
         private fun toDescriptor(clazz: Class<*>): String = "L${Type.getInternalName(clazz)};".intern()
-
-        private fun Set<String>.mergeSandboxed(extra: Collection<Class<out Annotation>>): Set<String> {
-            return merge(extra, ::toSandboxDescriptor)
-        }
 
         private fun Set<String>.merge(extra: Collection<Class<out Annotation>>): Set<String> {
             return merge(extra, ::toDescriptor)
@@ -666,31 +655,6 @@ class AnalysisConfiguration private constructor(
             } else {
                 unmodifiable(this + extra.map(mapping))
             }
-        }
-
-        private fun toPattern(str: String): Pattern {
-            val builder = StringBuilder("^L")
-            var i = 0
-            while (i < str.length) {
-                val c = str[i]
-                when (c) {
-                    '.' -> builder.append('/')
-                    '?' -> builder.append('.')
-                    '*' -> {
-                        val j = i + 1
-                        if (j < str.length && str[j] == '*') {
-                            builder.append(".*")
-                            i = j
-                        } else {
-                            builder.append("[^/]*")
-                        }
-                    }
-                    '$' -> builder.append("\\$")
-                    else -> builder.append(c)
-                }
-                ++i
-            }
-            return Pattern.compile(builder.append(";$").toString())
         }
 
         private fun Iterable<Member>.mapByClassName(): Map<String, List<Member>>
@@ -722,7 +686,6 @@ class AnalysisConfiguration private constructor(
             userSource: UserSource,
             whitelist: Whitelist,
             visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
-            sandboxOnlyAnnotations: Set<String> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
             bootstrapSource: ApiSource? = null,
             analyzeAnnotations: Boolean = false,
@@ -747,13 +710,11 @@ class AnalysisConfiguration private constructor(
             return AnalysisConfiguration(
                 parent = null,
                 whitelist = actualWhitelist,
-                sandboxAnnotations = unmodifiable<Pattern>(sandboxOnlyAnnotations.mapTo(LinkedHashSet(), ::toPattern)),
-                allowedAnnotations = ALLOWED_ANNOTATIONS.merge(visibleAnnotations),
-                stitchedAnnotations = STITCHED_ANNOTATIONS.mergeSandboxed(visibleAnnotations),
+                stitchedAnnotations = STITCHED_ANNOTATIONS.merge(visibleAnnotations),
                 minimumSeverityLevel = minimumSeverityLevel,
                 supportingClassLoader = SourceClassLoader(classResolver, userSource, bootstrapSource),
                 classResolver = classResolver,
-                exceptionResolver = ExceptionResolver(JVM_EXCEPTIONS, SANDBOX_PREFIX),
+                syntheticResolver = SyntheticResolver(JVM_EXCEPTIONS, JVM_ANNOTATIONS, SANDBOX_PREFIX),
                 analyzeAnnotations = analyzeAnnotations,
                 prefixFilters = prefixFilters,
                 classModule = classModule,
@@ -770,7 +731,6 @@ class AnalysisConfiguration private constructor(
         fun createRoot(
             userSource: UserSource,
             visibleAnnotations: Set<Class<out Annotation>>,
-            sandboxOnlyAnnotations: Set<String>,
             minimumSeverityLevel: Severity,
             bootstrapSource: ApiSource?
         ): AnalysisConfiguration {
@@ -778,7 +738,6 @@ class AnalysisConfiguration private constructor(
                 userSource = userSource,
                 whitelist = Whitelist.MINIMAL,
                 visibleAnnotations = visibleAnnotations,
-                sandboxOnlyAnnotations = sandboxOnlyAnnotations,
                 minimumSeverityLevel = minimumSeverityLevel,
                 bootstrapSource = bootstrapSource
             )

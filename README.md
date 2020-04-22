@@ -79,7 +79,6 @@ fun AnalysisConfiguration.createRoot(
     userSource: UserSource,
     whitelist: Whitelist,
     visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
-    sandboxOnlyAnnotations: Set<String> = emptySet(),
     minimumSeverityLevel: Severity = Severity.WARNING,
     bootstrapSource: ApiSource? = null,
     analyzeAnnotations: Boolean = false,
@@ -93,10 +92,8 @@ where:
 - `userSource` is an instance of `UserSource` that contains the user's classes to be sandboxed.
 - `whitelist` contains the class names which the DJVM should _not_ map into the sandbox. Regular
 expressions are supported, although you probably still want to use `Whitelist.MINIMAL` anyway.
-- `visibleAnnotations`Not only will occurrences of these annotations be mapped into the `sandbox.*`,
+- `visibleAnnotations` Not only will occurrences of these annotations be mapped into the `sandbox.*`,
 package space, but the original annotations will be preserved too.
-- `sandboxOnlyAnnotations` is a set of annotation class globs. Occurrences of these annotations will be
-mapped into the `sandbox.*` package space.
 - `minimumSeverityLevel` is the minimum message severity level to be recorded in `MessageCollection` by
 `sandbox.*` classes.
 - `bootstrapSource` is an instance of `ApiSource` containing an implementation of Java 8 APIs. A `null`
@@ -106,9 +103,6 @@ the analysts phase.
 - `prefixFilter` is another logging option. If set, only messages from classes matching one of these
 prefixes will be recorded in `MessageCollection`.
 - `classModule`, `memberModule` Just accept the default values...
-
-Note that annotations which aren't mapped into the sandbox _at all_ will silently be deleted. This is because
-the DJVM cannot currently support annotations with `Enum` default values.
 
 ## SandboxConfiguration.
 
@@ -189,7 +183,6 @@ package net.corda.djvm;
 
 interface ChildOptions {
     void setMinimumSeverityLevel(Severity level);
-    void setSandboxOnlyAnnotations(Iterable<String> annotations);
     void setVisibleAnnotations(Iterable<Class<? extends Annotation>> annotations);
     void setExternalCache(ConcurrentMap<ByteCodeKey, ByteCode> externalCache);
 }

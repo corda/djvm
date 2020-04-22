@@ -9,6 +9,10 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
+/**
+ * Apply this annotation to elements that we want
+ * the API Scanner Gradle plugin to ignore.
+ */
 @Target({
    TYPE,
    FIELD,
