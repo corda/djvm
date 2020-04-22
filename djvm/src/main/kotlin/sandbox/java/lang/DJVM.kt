@@ -276,6 +276,14 @@ fun fail(message: kotlin.String): Error {
     throw RuleViolationError(message).sanitise(1)
 }
 
+fun failApi(message: kotlin.String): Error {
+    // Discard the first two stack frames so that the
+    // function which invoked our invoker is in top.
+    throw RuleViolationError("Disallowed reference to API; $message").sanitise(2)
+}
+
+internal fun unsandbox(name: kotlin.String) = name.removePrefix(SANDBOX_PREFIX)
+
 /**
  * Use [Class.forName] so that we can also fetch classes for array types.
  * Also use the sandbox's classloader explicitly here, because this invoking
@@ -354,27 +362,30 @@ fun hashCode(obj: Any?): Int {
  */
 @Suppress("unused_parameter")
 fun notify(obj: Any?) {
-    fail("Disallowed reference to API; Object.notify()")
+    failApi("java.lang.Object.notify()")
 }
 
 @Suppress("unused_parameter")
 fun notifyAll(obj: Any?) {
-    fail("Disallowed reference to API; Object.notifyAll()")
+    failApi("java.lang.Object.notifyAll()")
 }
 
 @Suppress("unused_parameter")
+@Throws(InterruptedException::class)
 fun wait(obj: Any?) {
-    fail("Disallowed reference to API; Object.wait()")
+    failApi("java.lang.Object.wait()")
 }
 
 @Suppress("unused_parameter")
+@Throws(InterruptedException::class)
 fun wait(obj: Any?, timeout: kotlin.Long) {
-    fail("Disallowed reference to API; Object.wait(long)")
+    failApi("java.lang.Object.wait(long)")
 }
 
 @Suppress("unused_parameter", "RemoveRedundantQualifierName")
+@Throws(InterruptedException::class)
 fun wait(obj: Any?, timeout: kotlin.Long, nanos: kotlin.Int) {
-    fail("Disallowed reference to API; Object.wait(long,int)")
+    failApi("java.lang.Object.wait(long,int)")
 }
 
 @Throws(ClassNotFoundException::class)
@@ -458,14 +469,6 @@ fun classForName(className: kotlin.String, initialize: kotlin.Boolean, classLoad
 @Throws(ClassNotFoundException::class)
 fun loadClass(classLoader: ClassLoader, className: kotlin.String): Class<*> {
     return classLoader.loadClass(toSandbox(className))
-}
-
-/**
- * Thunk for method reference ClassLoader::loadClass.
- */
-@Throws(ClassNotFoundException::class)
-fun loadClass(classLoader: ClassLoader, className: String): Class<*> {
-    return loadClass(classLoader, String.fromDJVM(className))
 }
 
 /**

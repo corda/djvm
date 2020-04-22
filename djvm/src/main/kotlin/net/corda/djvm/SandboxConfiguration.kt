@@ -168,6 +168,7 @@ class SandboxConfiguration private constructor(
             IgnoreBreakpoints,
             IgnoreSynchronizedBlocks,
             ReturnTypeWrapper,
+            RewriteClassLoaderMethods,
             RewriteClassMethods,
             RewriteObjectMethods,
             StringConstantWrapper,

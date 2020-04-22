@@ -24,6 +24,7 @@ const val CLASSLOADER_NAME = "java/lang/ClassLoader"
 const val THROWABLE_NAME = "java/lang/Throwable"
 const val ENUM_NAME = "java/lang/Enum"
 const val SANDBOX_CLASS_NAME = "sandbox/java/lang/DJVMClass"
+const val SANDBOX_CLASSLOADER_NAME = "sandbox/java/lang/DJVMClassLoader"
 const val SANDBOX_OBJECT_NAME = "sandbox/java/lang/Object"
 const val CLASS_CONSTRUCTOR_NAME = "<clinit>"
 const val CONSTRUCTOR_NAME = "<init>"
@@ -59,40 +60,14 @@ const val DJVM_ANNOTATION = 0x0004
  */
 private val MONITOR_METHODS = unmodifiableSet(setOf("notify", "notifyAll", "wait"))
 
-fun isObjectMonitor(name: String, descriptor: String): Boolean {
+internal fun isObjectMonitor(name: String, descriptor: String): Boolean {
     return (descriptor == "()V" && name in MONITOR_METHODS)
         || (name == "wait" && (descriptor == "(J)V" || descriptor == "(JI)V"))
 }
 
-/**
- * These are the names of methods in [sandbox.java.lang.DJVMClass].
- * They correspond to the [java.lang.Class] methods that we intercept.
- */
-private val classMethodThunks = unmodifiableSet(setOf(
-    // We only need to intercept this when we sandbox
-    // java.lang.Enum because it is package private.
-    "enumConstantDirectory",
-
-    // These are all public methods.
-    "getAnnotation",
-    "getAnnotations",
-    "getAnnotationsByType",
-    "getCanonicalName",
-    "getClassLoader",
-    "getDeclaredAnnotation",
-    "getDeclaredAnnotations",
-    "getDeclaredAnnotationsByType",
-    "getEnumConstants",
-    "getName",
-    "getSimpleName",
-    "getTypeName",
-    "isAnnotationPresent",
-    "isEnum",
-    "toGenericString",
-    "toString"
-))
-
-fun isClassMethodThunk(name: String): Boolean = name in classMethodThunks
+fun isClassVirtualThunk(methodName: String): Boolean = Thunks.isClassVirtual(methodName)
+fun isClassLoaderStaticThunk(methodName: String): Boolean = Thunks.isClassLoaderStatic(methodName)
+fun isClassLoaderVirtualThunk(methodName: String): Boolean = Thunks.isClassLoaderVirtual(methodName)
 
 @JvmField
 val ruleViolationError: String = Type.getInternalName(RuleViolationError::class.java)

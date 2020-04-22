@@ -7,7 +7,7 @@ import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.SANDBOX_CLASS_NAME
 import net.corda.djvm.code.instructions.MemberAccessInstruction
-import net.corda.djvm.code.isClassMethodThunk
+import net.corda.djvm.code.isClassVirtualThunk
 import org.objectweb.asm.Opcodes.*
 
 /**
@@ -37,7 +37,7 @@ object RewriteClassMethods : Emitter {
         if (instruction is MemberAccessInstruction && instruction.className == CLASS_NAME) {
             when (instruction.operation) {
                 INVOKEVIRTUAL ->
-                    if (isClassMethodThunk(instruction.memberName)) {
+                    if (isClassVirtualThunk(instruction.memberName)) {
                         invokeStatic(
                             owner = SANDBOX_CLASS_NAME,
                             name = instruction.memberName,

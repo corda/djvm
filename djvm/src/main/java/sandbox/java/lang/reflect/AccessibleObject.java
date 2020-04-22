@@ -4,12 +4,15 @@ import sandbox.java.lang.annotation.Annotation;
 
 @SuppressWarnings("unused")
 public class AccessibleObject extends sandbox.java.lang.Object implements AnnotatedElement {
-    static final java.lang.String FORBIDDEN_METHOD = "Disallowed reference to API; ";
     private static final String ZOMBIE_METHOD = "Zombie method invoked!";
 
+    String named(String methodName) {
+        return sandbox.java.lang.DJVM.unsandbox(getClass().getName()) + '.' + methodName;
+    }
+
     public static void setAccessible(AccessibleObject[] array, boolean flag) {
-        throw sandbox.java.lang.DJVM.fail(
-            FORBIDDEN_METHOD + "AccessibleObject.setAccessible(AccessibleObject[], boolean)"
+        throw sandbox.java.lang.DJVM.failApi(
+            "java.lang.reflect.AccessibleObject.setAccessible(AccessibleObject[], boolean)"
         );
     }
 
@@ -20,7 +23,7 @@ public class AccessibleObject extends sandbox.java.lang.Object implements Annota
     }
 
     public void setAccessible(boolean flag) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".setAccessible(boolean)");
+        throw sandbox.java.lang.DJVM.failApi(named("setAccessible(boolean)"));
     }
 
     @Override

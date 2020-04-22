@@ -1,5 +1,6 @@
 package net.corda.djvm.rules.implementation
 
+import net.corda.djvm.code.CLASSLOADER_NAME
 import net.corda.djvm.code.CLASS_NAME
 import net.corda.djvm.code.EMIT_BEFORE_INVOKE
 import net.corda.djvm.code.Emitter
@@ -53,6 +54,7 @@ object ArgumentUnwrapper : Emitter {
                         swapTopTwoWords()
                     }
                 }
+            } else if (instruction.className == CLASSLOADER_NAME) {
             } else if (hasStringArgument(instruction)) {
                 unwrapString()
             } else if (instruction.className == "java/security/AccessController") {

@@ -6,8 +6,11 @@ import net.corda.djvm.code.CLASSLOADER_NAME
 import net.corda.djvm.code.CLASS_NAME
 import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.OBJECT_NAME
+import net.corda.djvm.code.SANDBOX_CLASSLOADER_NAME
 import net.corda.djvm.code.SANDBOX_CLASS_NAME
-import net.corda.djvm.code.isClassMethodThunk
+import net.corda.djvm.code.isClassLoaderStaticThunk
+import net.corda.djvm.code.isClassLoaderVirtualThunk
+import net.corda.djvm.code.isClassVirtualThunk
 import net.corda.djvm.code.isObjectMonitor
 import org.objectweb.asm.*
 import org.objectweb.asm.commons.Remapper
@@ -63,7 +66,7 @@ class SandboxRemapper(
                      * [java.lang.Class] is final, and so we know exactly
                      * which class the method we're intercepting is for.
                      */
-                    owner == CLASS_NAME && isClassMethodThunk(handle.name) ->
+                    owner == CLASS_NAME && isClassVirtualThunk(handle.name) ->
                         handle.toStaticClass(SANDBOX_CLASS_NAME)
 
                     /**
@@ -77,22 +80,20 @@ class SandboxRemapper(
                      * We allow [ClassLoader.loadClass] here too, to be consistent with
                      * [net.corda.djvm.rules.implementation.DisallowNonDeterministicMethods].
                      */
-                    owner == CLASSLOADER_NAME && handle.name == "loadClass" && handle.desc == "(Ljava/lang/String;)Ljava/lang/Class;" ->
-                        handle.toStaticClass(DJVM_NAME)
+                    owner == CLASSLOADER_NAME && isClassLoaderVirtualThunk(handle.name, handle.desc) ->
+                        handle.toStaticClass(SANDBOX_CLASSLOADER_NAME)
 
                     else -> handle
                 }
 
             Opcodes.H_INVOKESTATIC ->
                 when {
-                    owner == CLASSLOADER_NAME && handle.name == "getSystemClassLoader" ->
-                        Handle(
-                            handle.tag,
-                            DJVM_NAME,
-                            handle.name,
-                            handle.desc,
-                            false
-                        )
+                    owner == CLASSLOADER_NAME && isClassLoaderStaticThunk(handle.name) ->
+                        handle.toClass(SANDBOX_CLASSLOADER_NAME)
+
+                    owner == CLASS_NAME && handle.name == "forName" ->
+                        handle.toClass(SANDBOX_CLASS_NAME)
+
                     else -> handle
                 }
 
@@ -112,11 +113,23 @@ class SandboxRemapper(
         false
     )
 
+    /**
+     * Recreates a handle with a new class name.
+     */
+    private fun Handle.toClass(className: String) = Handle(
+        tag, className, name, rewriteDescriptor(desc), false
+    )
+
     private fun prependArgType(argType: String, descriptor: String): String {
         return "(L$argType;${descriptor.substring(1)}"
     }
 
     private fun isMonitor(handle: Handle): Boolean = isObjectMonitor(handle.name, handle.desc)
+
+    private fun isClassLoaderVirtualThunk(name: String, descriptor: String): Boolean {
+        return (name == "loadClass" && descriptor == "(Ljava/lang/String;)Ljava/lang/Class;")
+            || isClassLoaderVirtualThunk(name)
+    }
 
     /**
      * All [Object.toString] methods must be transformed to [sandbox.java.lang.Object.toDJVMString],

@@ -1,5 +1,6 @@
 package net.corda.djvm.execution;
 
+import net.corda.djvm.ExceptionalFunction;
 import net.corda.djvm.TestBase;
 import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
@@ -101,6 +102,37 @@ class SafeJavaReflectionTest extends TestBase {
             try {
                 UserData userData = UserData.class.getDeclaredConstructor(String.class).newInstance(data);
                 return userData.toString();
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
+        }
+    }
+
+    @Test
+    void testInvokingNewInstanceByReference() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                RuleViolationError ex = assertThrows(RuleViolationError.class,
+                    () -> WithJava.run(taskFactory, InvokeNewInstanceByReference.class, null));
+                assertThat(ex)
+                    .hasMessage("Disallowed reference to API; java.lang.reflect.Constructor.newInstance(Object...)")
+                    .hasNoCause();
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class InvokeNewInstanceByReference implements Function<String, String> {
+        @Override
+        public String apply(String data) {
+            ExceptionalFunction<Object[], UserData> factory;
+            Constructor<UserData> constructor;
+            try {
+                constructor = UserData.class.getConstructor(String.class);
+                factory = constructor::newInstance;
+                return factory.apply(new Object[]{ data }).toString();
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage(), e);
             }

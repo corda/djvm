@@ -1,14 +1,11 @@
 package sandbox.java.lang.reflect;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import sandbox.java.lang.String;
 import sandbox.java.lang.annotation.Annotation;
 
 @SuppressWarnings("unused")
 public final class Parameter extends sandbox.java.lang.Object implements AnnotatedElement {
-    private static final java.lang.String FORBIDDEN_METHOD = "Disallowed reference to API; java.lang.reflect.Parameter.";
-
     private final java.lang.reflect.Parameter parameter;
     private final Executable executable;
     private final String name;
@@ -76,12 +73,11 @@ public final class Parameter extends sandbox.java.lang.Object implements Annotat
     }
 
     public Type getParameterizedType() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getParameterizedType()");
+        throw sandbox.java.lang.DJVM.failApi("java.lang.reflect.Parameter.getParameterizedType()");
     }
 
-    @Contract(" -> fail")
     public AnnotatedType getAnnotatedType() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getAnnotatedType()");
+        throw sandbox.java.lang.DJVM.failApi("java.lang.reflect.Parameter.getAnnotatedType()");
     }
 
     @Override

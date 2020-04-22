@@ -2,7 +2,10 @@ package sandbox.java.lang;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sandbox.java.io.InputStream;
 import sandbox.java.lang.annotation.Annotation;
+import sandbox.java.net.URL;
+import sandbox.java.security.ProtectionDomain;
 import sandbox.java.util.LinkedHashMap;
 import sandbox.java.util.Map;
 
@@ -31,7 +34,7 @@ public final class DJVMClass {
      * We perform no "access control" checks because we are pretending
      * that all sandbox classes exist inside the same classloader.
      *
-     * We expect {@link Class#getClassLoader} to return one of the following:
+     * We would expect {@link Class#getClassLoader} to return one of the following:
      * - {@link net.corda.djvm.rewiring.SandboxClassLoader} for sandbox classes
      * - The application class loader for whitelisted classes
      * - {@literal null} for basic Java classes.
@@ -41,6 +44,16 @@ public final class DJVMClass {
     @NotNull
     public static ClassLoader getClassLoader(Class<?> clazz) {
         return DJVM.getSystemClassLoader();
+    }
+
+    @SuppressWarnings("RedundantThrows")
+    public static Class<?> forName(String className) throws ClassNotFoundException {
+        throw DJVM.failApi("java.lang.Class.forName(String)");
+    }
+
+    @SuppressWarnings("RedundantThrows")
+    public static Class<?> forName(String className, boolean initialize, ClassLoader classLoader) throws ClassNotFoundException {
+        throw DJVM.failApi("java.lang.Class.forName(String,boolean,ClassLoader)");
     }
 
     public static String toString(@NotNull Class<?> clazz) {
@@ -65,6 +78,29 @@ public final class DJVMClass {
 
     public static String getTypeName(@NotNull Class<?> clazz) {
         return String.toDJVM(clazz.getTypeName());
+    }
+
+    public static Class<?>[] getDeclaredClasses(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getDeclaredClasses()");
+    }
+
+    @Nullable
+    public static Package getPackage(Class<?> clazz) {
+        return null;
+    }
+
+    public static ProtectionDomain getProtectionDomain(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getProtectionDomain()");
+    }
+
+    @Nullable
+    public static InputStream getResourceAsStream(Class<?> clazz, String name) {
+        return null;
+    }
+
+    @Nullable
+    public static URL getResource(Class<?> clazz, String name) {
+        return null;
     }
 
     /*

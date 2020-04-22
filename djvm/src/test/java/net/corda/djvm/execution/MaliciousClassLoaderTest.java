@@ -110,8 +110,7 @@ class MaliciousClassLoaderTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Function<String, ClassLoader> getParentClassLoader = taskFactory.create(GetParentClassLoader.class);
-                ClassLoader result = getParentClassLoader.apply("");
+                ClassLoader result = WithJava.run(taskFactory, GetParentClassLoader.class, "");
                 assertThat(result)
                     .isExactlyInstanceOf(SandboxClassLoader.class)
                     .extracting(ClassLoader::getParent)

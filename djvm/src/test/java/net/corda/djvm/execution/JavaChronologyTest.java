@@ -2,6 +2,7 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
 import net.corda.djvm.TypedTaskFactory;
+import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
 import java.time.chrono.Chronology;
@@ -21,9 +22,7 @@ class JavaChronologyTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-
-                Function<? super String, String[]> chronologyTask = taskFactory.create(GetChronologyNames.class);
-                String[] chronologies = chronologyTask.apply(null);
+                String[] chronologies = WithJava.run(taskFactory, GetChronologyNames.class, null);
                 assertThat(chronologies).contains(
                     "Hijrah-umalqura",
                     "ISO",

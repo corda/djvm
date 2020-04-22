@@ -68,28 +68,28 @@ public abstract class Executable extends AccessibleObject implements Member, Gen
 
     @Override
     public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".getAnnotation(Class)");
+        throw sandbox.java.lang.DJVM.failApi(named("getAnnotation(Class)"));
     }
 
     @Override
     public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".getAnnotationsByType(Class)");
+        throw sandbox.java.lang.DJVM.failApi(named("getAnnotationsByType(Class)"));
     }
 
     @Override
     public Annotation[] getDeclaredAnnotations() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".getDeclaredAnnotations()");
+        throw sandbox.java.lang.DJVM.failApi(named("getDeclaredAnnotations()"));
     }
 
     public AnnotatedType getAnnotatedReceiverType() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".getAnnotatedReceiverType()");
+        throw sandbox.java.lang.DJVM.failApi(named("getAnnotatedReceiverType()"));
     }
 
     public AnnotatedType[] getAnnotatedParameterTypes() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".getAnnotatedParameterTypes()");
+        throw sandbox.java.lang.DJVM.failApi(named("getAnnotatedParameterTypes()"));
     }
 
     public AnnotatedType[] getAnnotatedExceptionTypes() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + getClass().getName() + ".getAnnotatedExceptionTypes()");
+        throw sandbox.java.lang.DJVM.failApi(named("getAnnotatedExceptionTypes()"));
     }
 }
