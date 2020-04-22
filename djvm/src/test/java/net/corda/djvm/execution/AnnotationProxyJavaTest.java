@@ -88,7 +88,7 @@ class AnnotationProxyJavaTest extends TestBase {
 
     public static class ReadInheritedAnnotations implements Function<String, String[][]> {
         @NotNull
-        private String[]toClassNames(Annotation[] annotations) {
+        private String[] toClassNames(Annotation[] annotations) {
             return Arrays.stream(annotations)
                 .map(Annotation::toString)
                 .toArray(String[]::new);

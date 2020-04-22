@@ -9,12 +9,12 @@ public class GetJavaAnnotationsByType implements Function<String, String[][]> {
     @Override
     public String[][] apply(String unused) {
         JavaAnnotation[] childAnnotations = UserChildData.class.getAnnotationsByType(JavaAnnotation.class);
-        JavaAnnotation[] emptyAnnotations = EmptyChildData.class.getAnnotationsByType(JavaAnnotation.class);
-        JavaAnnotation[] declaredAnnotations = EmptyChildData.class.getDeclaredAnnotationsByType(JavaAnnotation.class);
+        JavaAnnotation[] inheritedAnnotations = EmptyChildData.class.getAnnotationsByType(JavaAnnotation.class);
+        JavaAnnotation[] ignoreInheritedAnnotations = EmptyChildData.class.getDeclaredAnnotationsByType(JavaAnnotation.class);
         return new String[][]{
             toStringArray(childAnnotations),
-            toStringArray(emptyAnnotations),
-            toStringArray(declaredAnnotations)
+            toStringArray(inheritedAnnotations),
+            toStringArray(ignoreInheritedAnnotations)
         };
     }
 }
