@@ -1,14 +1,17 @@
 package net.corda.djvm.execution;
 
+import com.example.testing.BaseObject;
 import net.corda.djvm.ExceptionalConsumer;
 import net.corda.djvm.ExceptionalObjectLongConsumer;
 import net.corda.djvm.ExceptionalObjectLongIntConsumer;
 import net.corda.djvm.TestBase;
 import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
+import net.corda.djvm.rewiring.SandboxClassLoader;
 import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -22,6 +25,28 @@ import static org.junit.jupiter.api.Assertions.fail;
 class JavaObjectTest extends TestBase {
     JavaObjectTest() {
         super(JAVA);
+    }
+
+    @Test
+    void testOverridingBaseObjectMethods() {
+        sandbox(ctx -> {
+            try {
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                Class<?> stringClass = classLoader.toSandboxClass(String.class);
+                Class<?> sandboxClass = ctx.getClassLoader().toSandboxClass(BaseObject.class);
+
+                Method hashCode = sandboxClass.getMethod("hashCode");
+                assertThat(hashCode.getReturnType()).isSameAs(Integer.TYPE);
+
+                Method toString = sandboxClass.getMethod("toString");
+                assertThat(toString.getReturnType()).isSameAs(String.class);
+
+                Method toDJVMString = sandboxClass.getMethod("toDJVMString");
+                assertThat(toDJVMString.getReturnType()).isSameAs(stringClass);
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
     }
 
     @Test

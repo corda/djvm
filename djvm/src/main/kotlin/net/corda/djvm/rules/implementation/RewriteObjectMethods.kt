@@ -18,14 +18,14 @@ object RewriteObjectMethods : Emitter {
         if (instruction is MemberAccessInstruction && instruction.className == OBJECT_NAME) {
             when (instruction.operation) {
                 INVOKEVIRTUAL ->
-                    if (instruction.memberName == "hashCode" && instruction.descriptor == "()I") {
+                    if (instruction.isHashCode) {
                         invokeStatic(
                             owner = DJVM_NAME,
                             name = "hashCode",
                             descriptor = "(Ljava/lang/Object;)I"
                         )
                         preventDefault()
-                    } else if (instruction.memberName == "toString" && instruction.descriptor == "()Ljava/lang/String;") {
+                    } else if (instruction.isToString) {
                         invokeStatic(
                             owner = DJVM_NAME,
                             name = "toString",
@@ -33,7 +33,32 @@ object RewriteObjectMethods : Emitter {
                         )
                         preventDefault()
                     }
+
+                INVOKESPECIAL ->
+                    if (context.clazz.superClass == SANDBOX_OBJECT_NAME) {
+                        if (instruction.isToString) {
+                            invokeSpecial(
+                                owner = SANDBOX_OBJECT_NAME,
+                                name = "toDJVMString",
+                                descriptor = "()Lsandbox/java/lang/String;"
+                            )
+                            preventDefault()
+                        } else if (instruction.isHashCode) {
+                            invokeSpecial(
+                                owner = SANDBOX_OBJECT_NAME,
+                                name = "hashCode",
+                                descriptor = "()I"
+                            )
+                            preventDefault()
+                        }
+                    }
             }
         }
     }
+
+    private val MemberAccessInstruction.isToString: Boolean
+        get() = memberName == "toString" && descriptor == "()Ljava/lang/String;"
+
+    private val MemberAccessInstruction.isHashCode: Boolean
+        get() = memberName == "hashCode" && descriptor == "()I"
 }

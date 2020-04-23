@@ -3,6 +3,7 @@ package sandbox.java.lang.reflect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sandbox.java.lang.String;
+import sandbox.java.lang.Throwable;
 import sandbox.java.lang.annotation.Annotation;
 
 import java.lang.reflect.InvocationTargetException;
@@ -142,7 +143,7 @@ public final class Constructor<T> extends Executable {
         try {
             return constructor.newInstance(args);
         } catch (InvocationTargetException e) {
-            sandbox.java.lang.Throwable t = sandbox.java.lang.DJVM.doCatch(e);
+            Throwable t = sandbox.java.lang.DJVM.doCatch(e);
             throw (Exception) sandbox.java.lang.DJVM.fromDJVM(t);
         }
     }
