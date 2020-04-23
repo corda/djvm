@@ -1,6 +1,7 @@
 package net.corda.djvm.execution;
 
 import com.example.testing.BaseObject;
+import com.example.testing.DerivedObject;
 import net.corda.djvm.ExceptionalConsumer;
 import net.corda.djvm.ExceptionalObjectLongConsumer;
 import net.corda.djvm.ExceptionalObjectLongIntConsumer;
@@ -33,20 +34,37 @@ class JavaObjectTest extends TestBase {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 Class<?> stringClass = classLoader.toSandboxClass(String.class);
-                Class<?> sandboxClass = ctx.getClassLoader().toSandboxClass(BaseObject.class);
-
-                Method hashCode = sandboxClass.getMethod("hashCode");
-                assertThat(hashCode.getReturnType()).isSameAs(Integer.TYPE);
-
-                Method toString = sandboxClass.getMethod("toString");
-                assertThat(toString.getReturnType()).isSameAs(String.class);
-
-                Method toDJVMString = sandboxClass.getMethod("toDJVMString");
-                assertThat(toDJVMString.getReturnType()).isSameAs(stringClass);
+                Class<?> sandboxClass = classLoader.toSandboxClass(BaseObject.class);
+                validateBaseMethods(sandboxClass, stringClass);
             } catch(Exception e) {
                 fail(e);
             }
         });
+    }
+
+    @Test
+    void testInheritingFromSimpleObjectMethods() {
+        sandbox(ctx -> {
+            try {
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                Class<?> stringClass = classLoader.toSandboxClass(String.class);
+                Class<?> sandboxClass = classLoader.toSandboxClass(DerivedObject.class);
+                validateBaseMethods(sandboxClass, stringClass);
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    private void validateBaseMethods(Class<?> sandboxClass, Class<?> stringClass) throws NoSuchMethodException {
+        Method hashCode = sandboxClass.getMethod("hashCode");
+        assertThat(hashCode.getReturnType()).isSameAs(Integer.TYPE);
+
+        Method toString = sandboxClass.getMethod("toString");
+        assertThat(toString.getReturnType()).isSameAs(String.class);
+
+        Method toDJVMString = sandboxClass.getMethod("toDJVMString");
+        assertThat(toDJVMString.getReturnType()).isSameAs(stringClass);
     }
 
     @Test

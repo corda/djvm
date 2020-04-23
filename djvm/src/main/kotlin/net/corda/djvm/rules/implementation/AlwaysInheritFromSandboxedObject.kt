@@ -6,7 +6,6 @@ import net.corda.djvm.code.instructions.MemberAccessInstruction
 import net.corda.djvm.code.instructions.TypeInstruction
 import net.corda.djvm.references.ClassRepresentation
 import org.objectweb.asm.Opcodes
-import java.lang.reflect.Modifier
 
 /**
  * Definition provider that ensures that all objects inherit from a sandboxed version of [java.lang.Object], with a
@@ -54,11 +53,7 @@ object AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
     }
 
     private fun isDirectSubClassOfObject(clazz: ClassRepresentation): Boolean {
-        // Check if the super class is java.lang.Object and that current class is not sandbox.java.lang.Object.
-        val isClass = !Modifier.isInterface(clazz.access)
-        return isClass && isObject(clazz.superClass) && clazz.name != SANDBOX_OBJECT_NAME
+        // Check if the super class is java.lang.Object.
+        return !clazz.isInterface && clazz.hasObjectAsSuperclass
     }
-
-    private fun isObject(superClass: String) = superClass.isBlank() || superClass == OBJECT_NAME
-
 }

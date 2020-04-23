@@ -2,6 +2,8 @@ package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.code.*
 import net.corda.djvm.code.instructions.MemberAccessInstruction
+import net.corda.djvm.references.ClassRepresentation
+import net.corda.djvm.references.MemberInformation
 import org.objectweb.asm.Opcodes.*
 
 /**
@@ -35,7 +37,13 @@ object RewriteObjectMethods : Emitter {
                     }
 
                 INVOKESPECIAL ->
-                    if (context.clazz.superClass == SANDBOX_OBJECT_NAME) {
+                    /**
+                     * The [AlwaysInheritFromSandboxedObject] rule should
+                     * ensure that only classes that really DO want
+                     * [java.lang.Object] as their superclass will have
+                     * an empty superClass field here.
+                     */
+                    if (isSubclassOfSandboxObject(context.clazz)) {
                         if (instruction.isToString) {
                             invokeSpecial(
                                 owner = SANDBOX_OBJECT_NAME,
@@ -56,9 +64,13 @@ object RewriteObjectMethods : Emitter {
         }
     }
 
-    private val MemberAccessInstruction.isToString: Boolean
+    private fun isSubclassOfSandboxObject(clazz: ClassRepresentation): Boolean {
+        return !clazz.isInterface && !clazz.hasObjectAsSuperclass
+    }
+
+    private val MemberInformation.isToString: Boolean
         get() = memberName == "toString" && descriptor == "()Ljava/lang/String;"
 
-    private val MemberAccessInstruction.isHashCode: Boolean
+    private val MemberInformation.isHashCode: Boolean
         get() = memberName == "hashCode" && descriptor == "()I"
 }
