@@ -65,6 +65,7 @@ internal fun isObjectMonitor(name: String, descriptor: String): Boolean {
         || (name == "wait" && (descriptor == "(J)V" || descriptor == "(JI)V"))
 }
 
+fun isClassStaticThunk(methodName: String): Boolean = Thunks.isClassStatic(methodName)
 fun isClassVirtualThunk(methodName: String): Boolean = Thunks.isClassVirtual(methodName)
 fun isClassLoaderStaticThunk(methodName: String): Boolean = Thunks.isClassLoaderStatic(methodName)
 fun isClassLoaderVirtualThunk(methodName: String): Boolean = Thunks.isClassLoaderVirtual(methodName)

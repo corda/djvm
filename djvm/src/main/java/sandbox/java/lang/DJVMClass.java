@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sandbox.java.io.InputStream;
 import sandbox.java.lang.annotation.Annotation;
+import sandbox.java.lang.reflect.Constructor;
+import sandbox.java.lang.reflect.Method;
 import sandbox.java.net.URL;
 import sandbox.java.security.ProtectionDomain;
 import sandbox.java.util.LinkedHashMap;
@@ -29,6 +31,16 @@ public final class DJVMClass {
 
     private DJVMClass() {}
 
+    @NotNull
+    public static Class<?> forName(String className) throws ClassNotFoundException {
+        return DJVM.classForName(className, true);
+    }
+
+    @NotNull
+    public static Class<?> forName(String className, boolean initialize, ClassLoader classLoader) throws ClassNotFoundException {
+        return DJVM.classForName(className, initialize);
+    }
+
     /**
      * Filter function for {@link Class#getClassLoader}.
      * We perform no "access control" checks because we are pretending
@@ -40,20 +52,13 @@ public final class DJVMClass {
      * - {@literal null} for basic Java classes.
      *
      * So "don't do that". Always return the sandbox classloader instead.
+     *
+     * @param clazz The class that we are pretending to query.
+     * @return Always the "top-most" sandbox classloader.
      */
     @NotNull
     public static ClassLoader getClassLoader(Class<?> clazz) {
         return DJVM.getSystemClassLoader();
-    }
-
-    @SuppressWarnings("RedundantThrows")
-    public static Class<?> forName(String className) throws ClassNotFoundException {
-        throw DJVM.failApi("java.lang.Class.forName(String)");
-    }
-
-    @SuppressWarnings("RedundantThrows")
-    public static Class<?> forName(String className, boolean initialize, ClassLoader classLoader) throws ClassNotFoundException {
-        throw DJVM.failApi("java.lang.Class.forName(String,boolean,ClassLoader)");
     }
 
     public static String toString(@NotNull Class<?> clazz) {
@@ -82,6 +87,61 @@ public final class DJVMClass {
 
     public static Class<?>[] getDeclaredClasses(Class<?> clazz) {
         throw DJVM.failApi("java.lang.Class.getDeclaredClasses()");
+    }
+
+    /*
+     * These reflection APIs are "@CallerSensitive" so that a SecurityManager
+     * can determine whether the caller should be permitted to query the class.
+     * For the sake of repeatability, we must assume that the caller should
+     * always be able to query sandbox classes. Note also that the true caller
+     * bas become DJVMClass itself now, and this should satisfy a SecurityManager
+     * because DJVMClass lives in the "base" SandboxClassLoader. (A classloader
+     * is permitted to query classes belonging to its children.)
+     */
+    @SuppressWarnings("RedundantThrows")
+    public static <T> Constructor<T> getDeclaredConstructor(Class<T> clazz, Class<?>[] parameterTypes) throws NoSuchMethodException {
+        throw DJVM.failApi("java.lang.Class.getDeclaredConstructor(Class[])");
+    }
+
+    public static Constructor<?>[] getDeclaredConstructors(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getDeclaredConstructors()");
+    }
+
+    public static Constructor<?> getEnclosingConstructor(@NotNull Class<?> clazz) {
+        return sandbox.java.lang.reflect.DJVM.toDJVM(clazz.getEnclosingConstructor());
+    }
+
+    public static <T> Constructor<T> getConstructor(@NotNull Class<T> clazz, Class<?>[] parameterTypes) throws NoSuchMethodException {
+        java.lang.reflect.Constructor<T> constructor = clazz.getConstructor(parameterTypes);
+        return sandbox.java.lang.reflect.DJVM.toDJVM(constructor);
+    }
+
+    @NotNull
+    public static Constructor<?>[] getConstructors(@NotNull Class<?> clazz) {
+        return sandbox.java.lang.reflect.DJVM.toDJVM(clazz.getConstructors());
+    }
+
+    @SuppressWarnings("RedundantThrows")
+    public static Method getDeclaredMethod(Class<?> clazz, String methodName, Class<?>[] parameterTypes) throws NoSuchMethodException {
+        throw DJVM.failApi("java.lang.Class.getDeclaredMethod(String, Class[])");
+    }
+
+    public static Method[] getDeclaredMethods(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getDeclaredMethods()");
+    }
+
+    public static Method getEnclosingMethod(@NotNull Class<?> clazz) {
+        return sandbox.java.lang.reflect.DJVM.toDJVM(clazz.getEnclosingMethod());
+    }
+
+    public static Method getMethod(@NotNull Class<?> clazz, String methodName, Class<?>[] parameterTypes) throws NoSuchMethodException {
+        java.lang.reflect.Method method = clazz.getMethod(String.fromDJVM(methodName), parameterTypes);
+        return sandbox.java.lang.reflect.DJVM.toDJVM(method);
+    }
+
+    @NotNull
+    public static Method[] getMethods(@NotNull Class<?> clazz) {
+        return sandbox.java.lang.reflect.DJVM.toDJVM(clazz.getMethods());
     }
 
     @Nullable

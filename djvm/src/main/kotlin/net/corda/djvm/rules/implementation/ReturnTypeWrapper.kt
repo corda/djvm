@@ -27,7 +27,6 @@ import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
  */
 object ReturnTypeWrapper : Emitter {
     private val ATOMIC_FIELD_UPDATER = "^java/util/concurrent/atomic/Atomic(Integer|Long|Reference)FieldUpdater\$".toRegex()
-    private val REFLECTION = "^.*\\)(\\[)?Ljava/lang/reflect/(Constructor|Method);\$".toRegex()
 
     /**
      * Ensure that this emitter executes after all of the emitters which
@@ -52,19 +51,6 @@ object ReturnTypeWrapper : Emitter {
                     name = "toDJVM",
                     descriptor = "(L${instruction.className};)Lsandbox/${instruction.className};"
                 )
-            } else {
-                REFLECTION.matchEntire(instruction.descriptor)?.also {
-                    val baseName = "java/lang/reflect/${it.groupValues[2]}"
-                    val arrayMarker = it.groupValues[1]
-
-                    preventDefault()
-                    invokeMethod()
-                    invokeStatic(
-                        owner = "sandbox/java/lang/reflect/DJVM",
-                        name = "toDJVM",
-                        descriptor = "(${arrayMarker}L$baseName;)${arrayMarker}Lsandbox/$baseName;"
-                    )
-                }
             }
         }
     }

@@ -8,6 +8,7 @@ import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.FROM_DJVM
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.MemberAccessInstruction
+import java.util.Collections.unmodifiableSet
 
 /**
  * Some whitelisted functions have [java.lang.String] arguments, so we
@@ -20,42 +21,18 @@ import net.corda.djvm.code.instructions.MemberAccessInstruction
  * theoretically arbitrary. However, in practice WE control the whitelist.
  */
 object ArgumentUnwrapper : Emitter {
+    private val THUNKED_CLASSES = unmodifiableSet(setOf(CLASS_NAME, CLASSLOADER_NAME))
+
     override val priority: Int = EMIT_BEFORE_INVOKE
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
-        if (instruction is MemberAccessInstruction && context.whitelist.matches(instruction.reference)) {
+        if (instruction is MemberAccessInstruction
+            && context.whitelist.matches(instruction.reference)
+            && instruction.className !in THUNKED_CLASSES
+        ) {
             fun unwrapString() = invokeStatic("sandbox/java/lang/String", FROM_DJVM, "(Lsandbox/java/lang/String;)Ljava/lang/String;")
 
-            if (instruction.className == CLASS_NAME) {
-                val descriptor = instruction.descriptor
-                when {
-                    /**
-                     * [kotlin.jvm.internal.Intrinsics.checkHasClass] invokes [Class.forName],
-                     * so I'm adding support for both of this function's variants. For now.
-                     */
-                    descriptor == "(Ljava/lang/String;)Ljava/lang/Class;" -> {
-                        unwrapString()
-                    }
-                    descriptor == "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;" -> {
-                        raiseThirdWordToTop()
-                        unwrapString()
-                        sinkTopToThirdWord()
-                    }
-                    descriptor.startsWith("(Ljava/lang/String;[Ljava/lang/Class;)") -> {
-                        /**
-                         * Support for [Class.getMethod] and [Class.getDeclaredMethod].
-                         * These are "@CallerSensitive" and so I haven't wrapped them.
-                         * However, this wrapping seems to be to allow [SecurityManager]
-                         * to allow/deny access based on the caller's [ClassLoader], so
-                         * I MIGHT be able to ignore this restriction. Maybe.
-                         */
-                        swapTopTwoWords()
-                        unwrapString()
-                        swapTopTwoWords()
-                    }
-                }
-            } else if (instruction.className == CLASSLOADER_NAME) {
-            } else if (hasStringArgument(instruction)) {
+            if (hasStringArgument(instruction)) {
                 unwrapString()
             } else if (instruction.className == "java/security/AccessController") {
                 val descriptor = instruction.descriptor

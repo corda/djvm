@@ -1,12 +1,12 @@
 package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.code.CLASS_NAME
-import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.SANDBOX_CLASS_NAME
 import net.corda.djvm.code.instructions.MemberAccessInstruction
+import net.corda.djvm.code.isClassStaticThunk
 import net.corda.djvm.code.isClassVirtualThunk
 import org.objectweb.asm.Opcodes.*
 
@@ -47,25 +47,13 @@ object RewriteClassMethods : Emitter {
                      }
 
                 INVOKESTATIC ->
-                    if (instruction.memberName == "forName") {
-                        if (instruction.descriptor == "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;") {
-                            invokeStatic(
-                                owner = DJVM_NAME,
-                                name = "classForName",
-                                descriptor = instruction.descriptor
-                            )
-                            preventDefault()
-                        } else if (instruction.descriptor == "(Ljava/lang/String;)Ljava/lang/Class;") {
-                            // Map the class name into the sandbox namespace, but still invoke
-                            // Class.forName(String) here so that it uses the caller's classloader
-                            // and not the classloader of the DJVM class. We cannot assume that
-                            // the DJVM class has access to the user's libraries.
-                            invokeStatic(
-                                owner = DJVM_NAME,
-                                name = "toSandbox",
-                                descriptor = "(Ljava/lang/String;)Ljava/lang/String;"
-                            )
-                        }
+                    if (isClassStaticThunk(instruction.memberName)) {
+                        invokeStatic(
+                            owner = SANDBOX_CLASS_NAME,
+                            name = instruction.memberName,
+                            descriptor = context.resolveDescriptor(instruction.descriptor)
+                        )
+                        preventDefault()
                     }
             }
         }

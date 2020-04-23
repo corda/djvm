@@ -21,6 +21,8 @@ import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -131,24 +133,30 @@ class JavaClassTest extends TestBase {
     void testShortClassForNameByMethodReference() {
         sandbox(ctx -> {
             try {
-                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                RuleViolationError ex = assertThrows(RuleViolationError.class,
-                    () -> WithJava.run(taskFactory, ShortClassForNameByReference.class, HappyObject.class.getName()));
+                String className = HappyObject.class.getName();
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                Class<?> sandboxClass = WithJava.run(taskFactory, ShortClassForNameByReference.class, className);
+                assertEquals("sandbox." + className, sandboxClass.getName());
+                assertSame(classLoader, sandboxClass.getClassLoader());
+
+                RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> WithJava.run(taskFactory, ShortClassForNameByReference.class, ExampleEnum.class.getName()));
                 assertThat(ex)
-                    .hasMessage("Disallowed reference to API; java.lang.Class.forName(String)")
-                    .hasNoCause();
+                    .hasCauseExactlyInstanceOf(ClassNotFoundException.class)
+                    .hasMessage(ExampleEnum.class.getName());
             } catch (Exception e) {
                 fail(e);
             }
         });
     }
 
-    public static class ShortClassForNameByReference implements Function<String, String> {
+    public static class ShortClassForNameByReference implements Function<String, Class<?>> {
         @Override
-        public String apply(String className) {
+        public Class<?> apply(String className) {
             ExceptionalFunction<String, Class<?>> loader = Class::forName;
             try {
-                return loader.apply(className).getName();
+                return loader.apply(className);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage(), e);
             }
@@ -159,29 +167,35 @@ class JavaClassTest extends TestBase {
     void testFullClassForNameByMethodReference() {
         sandbox(ctx -> {
             try {
-                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                RuleViolationError ex = assertThrows(RuleViolationError.class,
-                    () -> WithJava.run(taskFactory, FullClassForNameByReference.class, HappyObject.class.getName()));
+                String className = HappyObject.class.getName();
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                Class<?> sandboxClass = WithJava.run(taskFactory, FullClassForNameByReference.class, className);
+                assertEquals("sandbox." + className, sandboxClass.getName());
+                assertSame(classLoader, sandboxClass.getClassLoader());
+
+                RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> WithJava.run(taskFactory, FullClassForNameByReference.class, ExampleEnum.class.getName()));
                 assertThat(ex)
-                    .hasMessage("Disallowed reference to API; java.lang.Class.forName(String,boolean,ClassLoader)")
-                    .hasNoCause();
+                    .hasCauseExactlyInstanceOf(ClassNotFoundException.class)
+                    .hasMessage(ExampleEnum.class.getName());
             } catch (Exception e) {
                 fail(e);
             }
         });
     }
 
-    public static class FullClassForNameByReference implements Function<String, String> {
+    public static class FullClassForNameByReference implements Function<String, Class<?>> {
         interface ClassLoading {
             Class<?> load(String className, boolean initialize, ClassLoader classLoader)
                     throws ClassNotFoundException;
         }
 
         @Override
-        public String apply(String className) {
+        public Class<?> apply(String className) {
             ClassLoading loader = Class::forName;
             try {
-                return loader.load(className, false, ClassLoader.getSystemClassLoader()).getName();
+                return loader.load(className, false, ClassLoader.getSystemClassLoader());
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage(), e);
             }

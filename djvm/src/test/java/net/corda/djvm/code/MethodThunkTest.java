@@ -28,6 +28,7 @@ import static org.objectweb.asm.Opcodes.ACC_STATIC;
 class MethodThunkTest {
     private static final int THUNK_MASK = ACC_PUBLIC | ACC_PROTECTED | ACC_PRIVATE | ACC_STATIC;
 
+    private static final Map<String, List<Method>> CLASS_STATIC_METHODS = mapStaticByName(Class.class);
     private static final Map<String, List<Method>> CLASS_VIRTUAL_METHODS = mapVirtualByName(Class.class);
     private static final Map<String, List<Method>> CLASS_THUNK_METHODS = mapStaticByName(DJVMClass.class);
 
@@ -70,6 +71,33 @@ class MethodThunkTest {
         ThunkMatcher matcher = new ThunkMatcher(Class.class, actualMethods);
         for (Method thunkMethod : thunkMethods) {
             Method[] matches = matcher.findVirtualThunk(thunkMethod);
+            assertEquals(1, matches.length, "No corresponding Class method for " + thunkMethod);
+        }
+    }
+
+    /**
+     * Match thunks for static methods in {@link java.lang.Class}.
+     */
+    static class ClassStaticThunkSource implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Thunks.getClassStatic().stream().map(Arguments::of);
+        }
+    }
+
+    @ParameterizedTest(name = "class static thunk: {index} => DJVMClass.{0}")
+    @ArgumentsSource(ClassStaticThunkSource.class)
+    void validateClassStaticThunks(String thunkName) {
+        List<Method> actualMethods = CLASS_STATIC_METHODS.get(thunkName);
+        assertNotNull(actualMethods, thunkName + " method not found in Class");
+
+        List<Method> thunkMethods = CLASS_THUNK_METHODS.get(thunkName);
+        assertNotNull(thunkMethods, thunkName + " method not found in DJVMClass");
+        assertThat(thunkMethods).isNotEmpty();
+
+        ThunkMatcher matcher = new ThunkMatcher(Class.class, actualMethods);
+        for (Method thunkMethod : thunkMethods) {
+            Method[] matches = matcher.findStaticThunk(thunkMethod);
             assertEquals(1, matches.length, "No corresponding Class method for " + thunkMethod);
         }
     }

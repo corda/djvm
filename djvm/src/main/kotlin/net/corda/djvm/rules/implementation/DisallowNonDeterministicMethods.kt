@@ -10,14 +10,6 @@ import org.objectweb.asm.Opcodes.*
  */
 object DisallowNonDeterministicMethods : Emitter {
 
-    private val ALLOWED_GETTERS = setOf(
-        "getConstructor",
-        "getConstructors",
-        "getEnclosingConstructor",
-        "getMethod",
-        "getMethods",
-        "getEnclosingMethod"
-    )
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
     private val NEW_INSTANCE_CLASSES = setOf(
         "java/security/Provider\$Service",
@@ -77,7 +69,7 @@ object DisallowNonDeterministicMethods : Emitter {
 
         private val hasClassReflection: Boolean get() = instruction.className == CLASS_NAME
             && instruction.descriptor.contains("Ljava/lang/reflect/")
-            && instruction.memberName !in ALLOWED_GETTERS
+            && !isClassVirtualThunk(instruction.memberName)
 
         private val isNewInstance: Boolean get() = instruction.className == "java/lang/reflect/Constructor"
             && instruction.memberName == "newInstance"

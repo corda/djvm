@@ -5,6 +5,8 @@ import org.jetbrains.annotations.Nullable;
 import sandbox.java.lang.String;
 import sandbox.java.lang.annotation.Annotation;
 
+import java.lang.reflect.InvocationTargetException;
+
 @SuppressWarnings("unused")
 public final class Constructor<T> extends Executable {
     private final java.lang.reflect.Constructor<T> constructor;
@@ -130,10 +132,19 @@ public final class Constructor<T> extends Executable {
     /**
      * We still need to invoke {@link java.lang.reflect.Constructor#newInstance}
      * occasionally.
+     *
+     * @param args The constructor parameters.
+     * @return The newly created instance.
+     * @throws java.lang.Exception in case anything goes wrong
      */
     @NotNull
     public T djvmInstance(java.lang.Object[] args) throws java.lang.Exception {
-        return constructor.newInstance(args);
+        try {
+            return constructor.newInstance(args);
+        } catch (InvocationTargetException e) {
+            sandbox.java.lang.Throwable t = sandbox.java.lang.DJVM.doCatch(e);
+            throw (Exception) sandbox.java.lang.DJVM.fromDJVM(t);
+        }
     }
 
     @Override

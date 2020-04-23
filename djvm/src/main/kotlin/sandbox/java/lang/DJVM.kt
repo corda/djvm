@@ -385,7 +385,7 @@ fun wait(obj: Any?, timeout: kotlin.Long) {
 @Suppress("unused_parameter", "RemoveRedundantQualifierName")
 @Throws(InterruptedException::class)
 fun wait(obj: Any?, timeout: kotlin.Long, nanos: kotlin.Int) {
-    failApi("java.lang.Object.wait(long,int)")
+    failApi("java.lang.Object.wait(long, int)")
 }
 
 @Throws(ClassNotFoundException::class)
@@ -459,16 +459,12 @@ fun getCalendarProperties(): Properties {
 
 /**
  * Replacement function for Class<*>.forName(String, boolean, ClassLoader) which protects
- * against users loading classes from outside the sandbox.
+ * against users loading classes from outside the sandbox. Note that we ALWAYS use the
+ * top-most instance of [SandboxClassLoader] here.
  */
 @Throws(ClassNotFoundException::class)
-fun classForName(className: kotlin.String, initialize: kotlin.Boolean, classLoader: ClassLoader?): Class<*> {
-    return Class.forName(toSandbox(className), initialize, classLoader ?: systemClassLoader)
-}
-
-@Throws(ClassNotFoundException::class)
-fun loadClass(classLoader: ClassLoader, className: kotlin.String): Class<*> {
-    return classLoader.loadClass(toSandbox(className))
+fun classForName(className: String, initialize: kotlin.Boolean): Class<*> {
+    return Class.forName(toSandbox(className), initialize, systemClassLoader)
 }
 
 /**
@@ -478,7 +474,10 @@ fun loadClass(classLoader: ClassLoader, className: kotlin.String): Class<*> {
  * internal classes.
  */
 @Throws(ClassNotFoundException::class)
-fun toSandbox(className: kotlin.String): kotlin.String {
+fun toSandbox(className: String): kotlin.String = toSandbox(String.fromDJVM(className))
+
+@Throws(ClassNotFoundException::class)
+private fun toSandbox(className: kotlin.String): kotlin.String {
     if (PRIMITIVE_ARRAY.matches(className)) {
         return className
     }

@@ -88,7 +88,7 @@ class JavaObjectTest extends TestBase {
                 RuleViolationError ex = assertThrows(RuleViolationError.class,
                     () -> WithJava.run(taskFactory, ObjectWaitLongInt.class, null));
                 assertThat(ex)
-                    .hasMessage("Disallowed reference to API; java.lang.Object.wait(long,int)");
+                    .hasMessage("Disallowed reference to API; java.lang.Object.wait(long, int)");
             } catch (Exception e) {
                 fail(e);
             }

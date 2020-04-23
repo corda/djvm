@@ -16,6 +16,7 @@ import static java.util.Collections.unmodifiableSet;
  */
 final class Thunks {
     private static final Set<String> CLASS_VIRTUAL;
+    private static final Set<String> CLASS_STATIC;
     private static final Set<String> CLASSLOADER_VIRTUAL;
     private static final Set<String> CLASSLOADER_STATIC;
 
@@ -32,11 +33,21 @@ final class Thunks {
             "getAnnotationsByType",
             "getCanonicalName",
             "getClassLoader",
+            "getConstructor",
+            "getConstructors",
             "getDeclaredAnnotation",
             "getDeclaredAnnotations",
             "getDeclaredAnnotationsByType",
             "getDeclaredClasses",
+            "getDeclaredConstructor",
+            "getDeclaredConstructors",
+            "getDeclaredMethod",
+            "getDeclaredMethods",
+            "getEnclosingConstructor",
+            "getEnclosingMethod",
             "getEnumConstants",
+            "getMethod",
+            "getMethods",
             "getName",
             "getPackage",
             "getProtectionDomain",
@@ -50,6 +61,12 @@ final class Thunks {
             "toString"
         );
         CLASS_VIRTUAL = unmodifiableSet(classVirtual);
+
+        Set<String> classStatic = new HashSet<>();
+        Collections.addAll(classStatic,
+            "forName"
+        );
+        CLASS_STATIC = unmodifiableSet(classStatic);
 
         Set<String> classloaderVirtual = new HashSet<>();
         Collections.addAll(classloaderVirtual,
@@ -77,6 +94,10 @@ final class Thunks {
         return CLASS_VIRTUAL.contains(methodName);
     }
 
+    static boolean isClassStatic(String methodName) {
+        return CLASS_STATIC.contains(methodName);
+    }
+
     static boolean isClassLoaderVirtual(String methodName) {
         return CLASSLOADER_VIRTUAL.contains(methodName);
     }
@@ -87,6 +108,10 @@ final class Thunks {
 
     static Set<String> getClassVirtual() {
         return CLASS_VIRTUAL;
+    }
+
+    static Set<String> getClassStatic() {
+        return CLASS_STATIC;
     }
 
     static Set<String> getClassLoaderVirtual() {
