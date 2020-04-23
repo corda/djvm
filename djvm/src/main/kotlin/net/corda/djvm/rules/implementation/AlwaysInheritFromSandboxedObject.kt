@@ -13,10 +13,22 @@ import java.lang.reflect.Modifier
  * deterministic `hashCode()` method.
  */
 object AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
+    private val SIGNATURE = "^(<.*>)?Ljava/lang/Object;(.*)$".toRegex()
 
     override fun define(context: AnalysisRuntimeContext, clazz: ClassRepresentation) = when {
-        isDirectSubClassOfObject(context.clazz) -> clazz.copy(superClass = SANDBOX_OBJECT_NAME)
-        else -> clazz
+        isDirectSubClassOfObject(context.clazz) ->
+            clazz.copy(
+                superClass = SANDBOX_OBJECT_NAME,
+                genericsDetails = mapToSandboxObject(clazz.genericsDetails)
+            )
+        else ->
+            clazz
+    }
+
+    private fun mapToSandboxObject(signature: String): String {
+        return SIGNATURE.matchEntire(signature)?.let {
+            "${it.groupValues[1]}L$SANDBOX_OBJECT_NAME;${it.groupValues[2]}"
+        } ?: signature
     }
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {

@@ -331,7 +331,7 @@ private fun Array<*>.toDJVMArray(): Array<*> {
  */
 fun toString(obj: Any?): String {
     return when {
-        obj is Object ->  obj.toDJVMString()
+        obj is Object -> obj.toDJVMString()
         obj is Annotation -> obj.toDJVMString()
         obj != null -> Object.toDJVMString(System.identityHashCode(obj))
         else -> // Throw the same exception that the JVM would throw in this case.
