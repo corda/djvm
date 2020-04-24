@@ -6,10 +6,10 @@ import sandbox.java.lang.String;
 import sandbox.java.lang.Throwable;
 import sandbox.java.lang.annotation.Annotation;
 
+import java.lang.reflect.InvocationTargetException;
+
 @SuppressWarnings("unused")
 public final class Constructor<T> extends Executable {
-    private static final java.lang.String FORBIDDEN_METHOD = "Disallowed reference to API; java.lang.reflect.Constructor.";
-
     private final java.lang.reflect.Constructor<T> constructor;
     private final String name;
     private final String stringValue;
@@ -102,39 +102,49 @@ public final class Constructor<T> extends Executable {
 
     @Override
     public TypeVariable<Constructor<T>>[] getTypeParameters() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getTypeParameters()");
+        throw sandbox.java.lang.DJVM.failApi(named("getTypeParameters()"));
     }
 
     @Override
     public Type[] getGenericParameterTypes() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getGenericParameterTypes()");
+        throw sandbox.java.lang.DJVM.failApi(named("getGenericParameterTypes()"));
     }
 
     @Override
     public Type[] getGenericExceptionTypes() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getGenericExceptionTypes()");
+        throw sandbox.java.lang.DJVM.failApi(named("getGenericExceptionTypes()"));
     }
 
     @Override
     public AnnotatedType getAnnotatedReturnType() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getAnnotatedReturnType()");
+        throw sandbox.java.lang.DJVM.failApi(named("getAnnotatedReturnType()"));
     }
 
     @Override
     public AnnotatedType getAnnotatedReceiverType() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getAnnotatedReceiverType()");
+        throw sandbox.java.lang.DJVM.failApi(named("getAnnotatedReceiverType()"));
     }
 
-    /*
-     * We need to invoke this method occasionally and so cannot stub it out.
+    @NotNull
+    public T newInstance(java.lang.Object... args) {
+        throw sandbox.java.lang.DJVM.failApi(named("newInstance(Object...)"));
+    }
+
+    /**
+     * We still need to invoke {@link java.lang.reflect.Constructor#newInstance}
+     * occasionally.
+     *
+     * @param args The constructor parameters.
+     * @return The newly created instance.
+     * @throws java.lang.Exception in case anything goes wrong
      */
     @NotNull
-    public T newInstance(java.lang.Object ... args) throws java.lang.Throwable {
+    public T djvmInstance(java.lang.Object[] args) throws java.lang.Exception {
         try {
             return constructor.newInstance(args);
-        } catch (Exception e) {
+        } catch (InvocationTargetException e) {
             Throwable t = sandbox.java.lang.DJVM.doCatch(e);
-            throw sandbox.java.lang.DJVM.fromDJVM(t);
+            throw (Exception) sandbox.java.lang.DJVM.fromDJVM(t);
         }
     }
 

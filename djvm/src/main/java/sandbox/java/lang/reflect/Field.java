@@ -6,8 +6,6 @@ import sandbox.java.lang.annotation.Annotation;
 
 @SuppressWarnings("unused")
 public final class Field extends AccessibleObject implements Member {
-    private static final java.lang.String FORBIDDEN_METHOD = "Disallowed reference to API; java.lang.reflect.Field.";
-
     private final java.lang.reflect.Field field;
     private final String name;
     private final String stringValue;
@@ -75,79 +73,79 @@ public final class Field extends AccessibleObject implements Member {
     }
 
     public Type getGenericType() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getGenericType()");
+        throw sandbox.java.lang.DJVM.failApi(named("getGenericType()"));
     }
 
     public java.lang.Object get(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "get(Object)");
+        throw sandbox.java.lang.DJVM.failApi(named("get(Object)"));
     }
 
     public void set(java.lang.Object obj, java.lang.Object value) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "set(Object, Object)");
+        throw sandbox.java.lang.DJVM.failApi(named("set(Object, Object)"));
     }
 
     public boolean getBoolean(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getBoolean(Object)");
+        throw sandbox.java.lang.DJVM.failApi(named("getBoolean(Object)"));
     }
 
     public void setBoolean(java.lang.Object obj, boolean z) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "setBoolean(Object, boolean)");
+        throw sandbox.java.lang.DJVM.failApi(named("setBoolean(Object, boolean)"));
     }
 
     public byte getByte(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getByte(Object)");
+        throw sandbox.java.lang.DJVM.failApi(named("getByte(Object)"));
     }
 
     public void setByte(java.lang.Object obj, byte b) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "setByte(Object, byte)");
+        throw sandbox.java.lang.DJVM.failApi(named("setByte(Object, byte)"));
     }
 
     public char getChar(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getChar(Object)");
+        throw sandbox.java.lang.DJVM.failApi(named("getChar(Object)"));
     }
 
     public void setChar(java.lang.Object obj, char c) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "setChar(Object, char)");
+        throw sandbox.java.lang.DJVM.failApi(named("setChar(Object, char)"));
     }
 
     public short getShort(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getShort(Object)");
+        throw sandbox.java.lang.DJVM.failApi(named("getShort(Object)"));
     }
 
     public void setShort(java.lang.Object obj, short s) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "setShort(Object, short)");
+        throw sandbox.java.lang.DJVM.failApi(named("setShort(Object, short)"));
     }
 
     public int getInt(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getInt(Object)");
+        throw sandbox.java.lang.DJVM.failApi(named("getInt(Object)"));
     }
 
     public void setInt(java.lang.Object obj, int i) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "setInt(Object, int)");
+        throw sandbox.java.lang.DJVM.failApi(named("setInt(Object, int)"));
     }
 
     public long getLong(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getLong(Object)");
+        throw sandbox.java.lang.DJVM.failApi(named("getLong(Object)"));
     }
 
     public void setLong(java.lang.Object obj, long l) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "setLong(Object, long)");
+        throw sandbox.java.lang.DJVM.failApi(named("setLong(Object, long)"));
     }
 
     public float getFloat(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getFloat(Object)");
+        throw sandbox.java.lang.DJVM.failApi(named("getFloat(Object)"));
     }
 
     public void setFloat(java.lang.Object obj, float f) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "setFloat(Object, float)");
+        throw sandbox.java.lang.DJVM.failApi(named("setFloat(Object, float)"));
     }
 
     public double getDouble(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getDouble(Object)");
+        throw sandbox.java.lang.DJVM.failApi(named("getDouble(Object)"));
     }
 
     public void setDouble(java.lang.Object obj, double d) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "setDouble(Object, double)");
+        throw sandbox.java.lang.DJVM.failApi(named("setDouble(Object, double)"));
     }
 
     @Override

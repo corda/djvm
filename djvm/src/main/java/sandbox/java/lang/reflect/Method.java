@@ -7,8 +7,6 @@ import sandbox.java.lang.annotation.Annotation;
 
 @SuppressWarnings("unused")
 public final class Method extends Executable {
-    private static final java.lang.String FORBIDDEN_METHOD = "Disallowed reference to API; java.lang.reflect.Method.";
-
     private final java.lang.reflect.Method method;
     private final String name;
     private final String stringValue;
@@ -118,30 +116,30 @@ public final class Method extends Executable {
 
     @Override
     public Type[] getGenericParameterTypes() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getGenericParameterTypes()");
+        throw sandbox.java.lang.DJVM.failApi(named("getGenericParameterTypes()"));
     }
 
     public Type getGenericReturnType() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getGenericReturnType()");
+        throw sandbox.java.lang.DJVM.failApi(named("getGenericReturnType()"));
     }
 
     @Override
     public TypeVariable<?>[] getTypeParameters() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getTypeParameters()");
+        throw sandbox.java.lang.DJVM.failApi(named("getTypeParameters()"));
     }
 
     @Override
     public Type[] getGenericExceptionTypes() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getGenericExceptionTypes()");
+        throw sandbox.java.lang.DJVM.failApi(named("getGenericExceptionTypes()"));
     }
 
     @Override
     public AnnotatedType getAnnotatedReturnType() {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "getAnnotatedReturnValue()");
+        throw sandbox.java.lang.DJVM.failApi(named("getAnnotatedReturnValue()"));
     }
 
     public java.lang.Object invoke(java.lang.Object obj, java.lang.Object... args) {
-        throw sandbox.java.lang.DJVM.fail(FORBIDDEN_METHOD + "invoke(Object, Object...)");
+        throw sandbox.java.lang.DJVM.failApi(named("invoke(Object, Object...)"));
     }
 
     @Override

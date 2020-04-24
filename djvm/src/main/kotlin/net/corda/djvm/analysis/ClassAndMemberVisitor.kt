@@ -235,9 +235,12 @@ open class ClassAndMemberVisitor(
             val visitedClass = currentClass!!
             analysisContext.classes.add(visitedClass)
             super.visit(
-                    version, access, visitedClass.name, signature,
-                    visitedClass.superClass.emptyAsNull,
-                    visitedClass.interfaces.toTypedArray()
+                version,
+                access,
+                visitedClass.name,
+                visitedClass.genericsDetails.emptyAsNull,
+                visitedClass.superClass.emptyAsNull,
+                visitedClass.interfaces.toTypedArray()
             )
         }
 

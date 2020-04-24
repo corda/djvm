@@ -2,6 +2,8 @@ package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.code.*
 import net.corda.djvm.code.instructions.MemberAccessInstruction
+import net.corda.djvm.references.ClassRepresentation
+import net.corda.djvm.references.MemberInformation
 import org.objectweb.asm.Opcodes.*
 
 /**
@@ -18,14 +20,14 @@ object RewriteObjectMethods : Emitter {
         if (instruction is MemberAccessInstruction && instruction.className == OBJECT_NAME) {
             when (instruction.operation) {
                 INVOKEVIRTUAL ->
-                    if (instruction.memberName == "hashCode" && instruction.descriptor == "()I") {
+                    if (instruction.isHashCode) {
                         invokeStatic(
                             owner = DJVM_NAME,
                             name = "hashCode",
                             descriptor = "(Ljava/lang/Object;)I"
                         )
                         preventDefault()
-                    } else if (instruction.memberName == "toString" && instruction.descriptor == "()Ljava/lang/String;") {
+                    } else if (instruction.isToString) {
                         invokeStatic(
                             owner = DJVM_NAME,
                             name = "toString",
@@ -33,7 +35,42 @@ object RewriteObjectMethods : Emitter {
                         )
                         preventDefault()
                     }
+
+                INVOKESPECIAL ->
+                    /**
+                     * The [AlwaysInheritFromSandboxedObject] rule should
+                     * ensure that only classes that really DO want
+                     * [java.lang.Object] as their superclass will have
+                     * an empty superClass field here.
+                     */
+                    if (isSubclassOfSandboxObject(context.clazz)) {
+                        if (instruction.isToString) {
+                            invokeSpecial(
+                                owner = SANDBOX_OBJECT_NAME,
+                                name = "toDJVMString",
+                                descriptor = "()Lsandbox/java/lang/String;"
+                            )
+                            preventDefault()
+                        } else if (instruction.isHashCode) {
+                            invokeSpecial(
+                                owner = SANDBOX_OBJECT_NAME,
+                                name = "hashCode",
+                                descriptor = "()I"
+                            )
+                            preventDefault()
+                        }
+                    }
             }
         }
     }
+
+    private fun isSubclassOfSandboxObject(clazz: ClassRepresentation): Boolean {
+        return !clazz.isInterface && !clazz.hasObjectAsSuperclass
+    }
+
+    private val MemberInformation.isToString: Boolean
+        get() = memberName == "toString" && descriptor == "()Ljava/lang/String;"
+
+    private val MemberInformation.isHashCode: Boolean
+        get() = memberName == "hashCode" && descriptor == "()I"
 }

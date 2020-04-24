@@ -6,6 +6,7 @@ import net.corda.djvm.code.DJVM_EXCEPTION_NAME
 import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
+import net.corda.djvm.code.SANDBOX_CLASSLOADER_NAME
 import net.corda.djvm.code.SANDBOX_CLASS_NAME
 import net.corda.djvm.code.SANDBOX_OBJECT_NAME
 import net.corda.djvm.code.asPackagePath
@@ -225,6 +226,7 @@ class AnalysisConfiguration private constructor(
             "sandbox/java/lang/DJVMAnnotationHandler\$MethodValue",
             "sandbox/java/lang/DJVMBootstrapClassAction",
             SANDBOX_CLASS_NAME,
+            SANDBOX_CLASSLOADER_NAME,
             "sandbox/java/lang/DJVMConstructorAction",
             "sandbox/java/lang/DJVMDeclaredAnnotationsByTypeAction",
             "sandbox/java/lang/DJVMEnumAction",

@@ -10,20 +10,9 @@ import org.objectweb.asm.Opcodes.*
  */
 object DisallowNonDeterministicMethods : Emitter {
 
-    private val ALLOWED_GETTERS = setOf(
-        "getConstructor",
-        "getConstructors",
-        "getEnclosingConstructor",
-        "getMethod",
-        "getMethods",
-        "getEnclosingMethod"
-    )
-    private val FORBIDDEN_METHODS = setOf(
-        "getDeclaredClasses",
-        "getProtectionDomain"
-    )
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
     private val NEW_INSTANCE_CLASSES = setOf(
+        "java/security/Provider\$Service",
         "sun/security/x509/CertificateExtensions",
         "sun/security/x509/CRLExtensions",
         "sun/security/x509/OtherName"
@@ -39,25 +28,9 @@ object DisallowNonDeterministicMethods : Emitter {
                     } else {
                         when (Enforcer(instruction).runFor(className)) {
                             Choice.FORBID -> forbid(instruction)
-                            Choice.LOAD_CLASS -> loadClass()
                             Choice.INIT_CLASSLOADER -> initClassLoader()
-                            Choice.GET_PARENT, Choice.GET_PACKAGE -> returnNull(POP)
-                            Choice.NO_RESOURCE -> returnNull(POP2)
-                            Choice.EMPTY_RESOURCES -> emptyResources(POP2)
+                            Choice.NEW_INSTANCE -> djvmInstance(instruction)
                             else -> Unit
-                        }
-                    }
-
-                INVOKESTATIC ->
-                    if (instruction.className == CLASSLOADER_NAME) {
-                        when {
-                            instruction.memberName == "getSystemClassLoader" -> {
-                                invokeStatic(DJVM_NAME, instruction.memberName, instruction.descriptor)
-                                preventDefault()
-                            }
-                            instruction.memberName == "getSystemResources" -> emptyResources(POP)
-                            instruction.memberName.startsWith("getSystemResource") -> returnNull(POP)
-                            else -> forbid(instruction)
                         }
                     }
             }
@@ -69,26 +42,14 @@ object DisallowNonDeterministicMethods : Emitter {
         preventDefault()
     }
 
-    private fun EmitterModule.loadClass() {
-        invokeStatic(DJVM_NAME, "loadClass", "(Ljava/lang/ClassLoader;Ljava/lang/String;)Ljava/lang/Class;")
-        preventDefault()
-    }
-
     private fun EmitterModule.initClassLoader() {
         invokeStatic(DJVM_NAME, "getSystemClassLoader", "()Ljava/lang/ClassLoader;")
         invokeSpecial(CLASSLOADER_NAME, CONSTRUCTOR_NAME, "(Ljava/lang/ClassLoader;)V")
         preventDefault()
     }
 
-    private fun EmitterModule.returnNull(popCode: Int) {
-        instruction(popCode)
-        pushNull()
-        preventDefault()
-    }
-
-    private fun EmitterModule.emptyResources(popCode: Int) {
-        instruction(popCode)
-        invokeStatic("sandbox/java/util/Collections", "emptyEnumeration", "()Lsandbox/java/util/Enumeration;")
+    private fun EmitterModule.djvmInstance(instruction: MemberAccessInstruction) {
+        invokeVirtual(instruction.className, "djvmInstance", instruction.descriptor)
         preventDefault()
     }
 
@@ -97,23 +58,18 @@ object DisallowNonDeterministicMethods : Emitter {
 
     private enum class Choice {
         FORBID,
-        LOAD_CLASS,
         INIT_CLASSLOADER,
-        GET_PACKAGE,
-        GET_PARENT,
-        NO_RESOURCE,
-        EMPTY_RESOURCES,
+        NEW_INSTANCE,
         PASS
     }
 
     private class Enforcer(private val instruction: MemberAccessInstruction) {
-        private val isClassLoader: Boolean = instruction.className == "java/lang/ClassLoader"
-        private val isClass: Boolean = instruction.className == CLASS_NAME
+        private val isClassLoader: Boolean = instruction.className == CLASSLOADER_NAME
         private val isLoadClass: Boolean = instruction.memberName == "loadClass"
 
-        private val hasClassReflection: Boolean get() = isClass
+        private val hasClassReflection: Boolean get() = instruction.className == CLASS_NAME
             && instruction.descriptor.contains("Ljava/lang/reflect/")
-            && instruction.memberName !in ALLOWED_GETTERS
+            && !isClassVirtualThunk(instruction.memberName)
 
         private val isNewInstance: Boolean get() = instruction.className == "java/lang/reflect/Constructor"
             && instruction.memberName == "newInstance"
@@ -124,14 +80,8 @@ object DisallowNonDeterministicMethods : Emitter {
             } else {
                 Choice.FORBID
             }
-            isClassLoader && instruction.memberName == "getParent" -> Choice.GET_PARENT
-            isClassLoader && instruction.memberName == "getResources" -> Choice.EMPTY_RESOURCES
-            isClassLoader && instruction.memberName.startsWith("getResource") -> Choice.NO_RESOURCE
-            isClass && instruction.memberName == "getPackage" -> Choice.GET_PACKAGE
-            isClass && instruction.memberName in FORBIDDEN_METHODS -> Choice.FORBID
 
-            className == "java/security/Provider\$Service" -> allowLoadClass()
-
+            // Are we allowed to invoke Constructor.newInstance()?
             isNewInstance -> forbidNewInstance(className)
 
             // Forbid reflection otherwise.
@@ -141,14 +91,14 @@ object DisallowNonDeterministicMethods : Emitter {
         }
 
         private fun forbidNewInstance(className: String): Choice = when(className) {
-            in NEW_INSTANCE_CLASSES -> Choice.PASS
+            in NEW_INSTANCE_CLASSES -> Choice.NEW_INSTANCE
             else -> Choice.FORBID
         }
 
         private fun allowLoadClass(): Choice = when {
             !isClassLoader -> Choice.PASS
             isLoadClass -> when (instruction.descriptor) {
-                "(Ljava/lang/String;)Ljava/lang/Class;" -> Choice.LOAD_CLASS
+                "(Ljava/lang/String;)Ljava/lang/Class;" -> Choice.PASS
                 else -> Choice.FORBID
             }
             instruction.memberName in CLASSLOADING_METHODS -> Choice.FORBID

@@ -2,6 +2,7 @@ package net.corda.djvm.execution;
 
 import net.corda.djvm.TestBase;
 import net.corda.djvm.TypedTaskFactory;
+import net.corda.djvm.WithJava;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -22,8 +23,8 @@ class JavaPackageTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Function<String, String> fetchPackage = taskFactory.create(FetchPackage.class);
-                assertNull(fetchPackage.apply("java.lang"));
+                Object result = WithJava.run(taskFactory, FetchPackage.class, "java.lang");
+                assertNull(result);
             } catch (Exception e) {
                 fail(e);
             }
@@ -43,8 +44,8 @@ class JavaPackageTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Function<Object, String[]> fetchAllPackages = taskFactory.create(FetchAllPackages.class);
-                assertThat(fetchAllPackages.apply(null)).isEmpty();
+                String[] result = WithJava.run(taskFactory, FetchAllPackages.class, null);
+                assertThat(result).isEmpty();
             } catch (Exception e) {
                 fail(e);
             }
@@ -54,7 +55,9 @@ class JavaPackageTest extends TestBase {
     public static class FetchAllPackages implements Function<Object, String[]> {
         @Override
         public String[] apply(Object input) {
-            return Arrays.stream(Package.getPackages()).map(Package::getName).toArray(String[]::new);
+            return Arrays.stream(Package.getPackages())
+                .map(Package::getName)
+                .toArray(String[]::new);
         }
     }
 }

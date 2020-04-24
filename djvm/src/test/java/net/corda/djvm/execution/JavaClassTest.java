@@ -1,7 +1,9 @@
 package net.corda.djvm.execution;
 
+import com.example.testing.HappyObject;
 import net.corda.djvm.AnnotationUtils;
 import net.corda.djvm.Cowboy;
+import net.corda.djvm.ExceptionalFunction;
 import net.corda.djvm.JavaAnnotation;
 import net.corda.djvm.JavaLabel;
 import net.corda.djvm.TestBase;
@@ -10,47 +12,23 @@ import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoader;
 import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
-import sandbox.java.lang.DJVMClass;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static net.corda.djvm.SandboxType.JAVA;
-import static net.corda.djvm.code.Types.isClassMethodThunk;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaClassTest extends TestBase {
     JavaClassTest() {
         super(JAVA);
-    }
-
-    static class ClassMethodThunkSource implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            Stream<String> thunkNames = Arrays.stream(DJVMClass.class.getDeclaredMethods())
-                .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .map(Method::getName);
-            return Stream.concat(thunkNames, Stream.of("enumConstantDirectory"))
-                .map(Arguments::of);
-        }
-    }
-
-    @ParameterizedTest(name = "declared as thunk: {index} => DJVMClass.{0}")
-    @ArgumentsSource(ClassMethodThunkSource.class)
-    void validateClassMethodThunks(String thunkName) {
-        assertTrue(isClassMethodThunk(thunkName));
     }
 
     @Test
@@ -101,6 +79,126 @@ class JavaClassTest extends TestBase {
             return Arrays.stream(classes)
                 .map(Class::getName)
                 .toArray(String[]::new);
+        }
+    }
+
+    @Test
+    void testGetResourceByMethodReference() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Object result = WithJava.run(taskFactory,
+                    GetResourceByReference.class, "/META-INF/MANIFEST.MF"
+                );
+                assertThat(result).isNull();
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetResourceByReference implements Function<String, String> {
+        @Override
+        public String apply(String input) {
+            Function<String, URL> getResource = getClass()::getResource;
+            URL resource = getResource.apply(input);
+            return (resource == null) ? null : resource.toString();
+        }
+    }
+
+    @Test
+    void testGetResourceStreamByMethodReference() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                Object result = WithJava.run(taskFactory,
+                    GetResourceStreamByReference.class, "/META-INF/MANIFEST.MF"
+                );
+                assertThat(result).isNull();
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetResourceStreamByReference implements Function<String, InputStream> {
+        @Override
+        public InputStream apply(String input) {
+            Function<String, InputStream> getResource = getClass()::getResourceAsStream;
+            return getResource.apply(input);
+        }
+    }
+
+    @Test
+    void testShortClassForNameByMethodReference() {
+        sandbox(ctx -> {
+            try {
+                String className = HappyObject.class.getName();
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                Class<?> sandboxClass = WithJava.run(taskFactory, ShortClassForNameByReference.class, className);
+                assertEquals("sandbox." + className, sandboxClass.getName());
+                assertSame(classLoader, sandboxClass.getClassLoader());
+
+                RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> WithJava.run(taskFactory, ShortClassForNameByReference.class, ExampleEnum.class.getName()));
+                assertThat(ex)
+                    .hasCauseExactlyInstanceOf(ClassNotFoundException.class)
+                    .hasMessage(ExampleEnum.class.getName());
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class ShortClassForNameByReference implements Function<String, Class<?>> {
+        @Override
+        public Class<?> apply(String className) {
+            ExceptionalFunction<String, Class<?>> loader = Class::forName;
+            try {
+                return loader.apply(className);
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
+        }
+    }
+
+    @Test
+    void testFullClassForNameByMethodReference() {
+        sandbox(ctx -> {
+            try {
+                String className = HappyObject.class.getName();
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                Class<?> sandboxClass = WithJava.run(taskFactory, FullClassForNameByReference.class, className);
+                assertEquals("sandbox." + className, sandboxClass.getName());
+                assertSame(classLoader, sandboxClass.getClassLoader());
+
+                RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> WithJava.run(taskFactory, FullClassForNameByReference.class, ExampleEnum.class.getName()));
+                assertThat(ex)
+                    .hasCauseExactlyInstanceOf(ClassNotFoundException.class)
+                    .hasMessage(ExampleEnum.class.getName());
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class FullClassForNameByReference implements Function<String, Class<?>> {
+        interface ClassLoading {
+            Class<?> load(String className, boolean initialize, ClassLoader classLoader)
+                    throws ClassNotFoundException;
+        }
+
+        @Override
+        public Class<?> apply(String className) {
+            ClassLoading loader = Class::forName;
+            try {
+                return loader.load(className, false, ClassLoader.getSystemClassLoader());
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
         }
     }
 

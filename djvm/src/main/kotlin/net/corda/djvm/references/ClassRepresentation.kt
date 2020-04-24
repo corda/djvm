@@ -1,5 +1,8 @@
 package net.corda.djvm.references
 
+import net.corda.djvm.code.OBJECT_NAME
+import java.lang.reflect.Modifier
+
 /**
  * Representation of a class.
  *
@@ -23,4 +26,10 @@ data class ClassRepresentation(
         val genericsDetails: String = "",
         val members: MutableMap<String, Member> = mutableMapOf(),
         val annotations: MutableSet<String> = mutableSetOf()
-) : EntityWithAccessFlag
+) : EntityWithAccessFlag {
+    val isInterface: Boolean
+        get() = Modifier.isInterface(access)
+
+    val hasObjectAsSuperclass: Boolean
+        get() = superClass.isEmpty() || superClass == OBJECT_NAME
+}

@@ -14,8 +14,7 @@ class JavaTimeZoneTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Function<?, String[]> allZoneIDs = taskFactory.create(GetAllZoneIDs.class);
-                String[] zoneIDs = allZoneIDs.apply(null);
+                String[] zoneIDs = WithJava.run(taskFactory, GetAllZoneIDs.class, null);
                 assertThat(zoneIDs).hasSize(600);
             } catch (Exception e) {
                 fail(e);
@@ -28,8 +27,7 @@ class JavaTimeZoneTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Function<?, String> defaultZoneIdTask = taskFactory.create(GetDefaultZoneID.class);
-                String defaultZoneID = defaultZoneIdTask.apply(null);
+                String defaultZoneID = WithJava.run(taskFactory, GetDefaultZoneID.class, null);
                 assertThat(defaultZoneID).isEqualTo("UTC");
             } catch (Exception e) {
                 fail(e);
@@ -42,8 +40,7 @@ class JavaTimeZoneTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Function<?, String> defaultTimeZoneTask = taskFactory.create(GetDefaultTimeZone.class);
-                String defaultTimeZone = defaultTimeZoneTask.apply(null);
+                String defaultTimeZone = WithJava.run(taskFactory, GetDefaultTimeZone.class, null);
                 assertThat(defaultTimeZone).isEqualTo("Coordinated Universal Time");
             } catch (Exception e) {
                 fail(e);

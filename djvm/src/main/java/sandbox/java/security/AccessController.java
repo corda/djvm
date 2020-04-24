@@ -5,8 +5,6 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings({"unused", "RedundantThrows"})
 public final class AccessController extends sandbox.java.lang.Object {
-    private static final String FORBIDDEN_METHOD = "Zombie method invoked!";
-
     private AccessController() {}
 
     /**
@@ -18,7 +16,7 @@ public final class AccessController extends sandbox.java.lang.Object {
      * @return T The result of the privileged action.
      */
     public static <T> T doPrivileged(@NotNull PrivilegedAction<T> action) {
-        throw DJVM.fail(FORBIDDEN_METHOD);
+        throw DJVM.failApi("java.security.AccessController.doPrivileged(PrivilegedAction)");
     }
 
     /**
@@ -32,6 +30,6 @@ public final class AccessController extends sandbox.java.lang.Object {
      * exception that the privileged action may throw.
      */
     public static <T> T doPrivileged(@NotNull PrivilegedExceptionAction<T> action) throws java.security.PrivilegedActionException {
-        throw DJVM.fail(FORBIDDEN_METHOD);
+        throw DJVM.failApi("java.security.AccessController.doPrivileged(PrivilegedExceptionAction)");
     }
 }
