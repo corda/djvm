@@ -61,6 +61,7 @@ final class Thunks {
             "getProtectionDomain",
             "getResource",
             "getResourceAsStream",
+            "getSigners",
             "getSimpleName",
             "getTypeName",
             "getTypeParameters",

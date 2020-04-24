@@ -93,6 +93,11 @@ public final class DJVMClass {
         throw DJVM.failApi("java.lang.Class.getDeclaredClasses()");
     }
 
+    @Nullable
+    public static java.lang.Object[] getSigners(Class<?> clazz) {
+        return null;
+    }
+
     /*
      * These reflection APIs are "@CallerSensitive" so that a SecurityManager
      * can determine whether the caller should be permitted to query the class.

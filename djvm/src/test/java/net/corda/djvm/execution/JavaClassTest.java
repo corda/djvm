@@ -2,6 +2,7 @@ package net.corda.djvm.execution;
 
 import com.example.testing.HappyObject;
 import net.corda.djvm.AnnotationUtils;
+import net.corda.djvm.BouncyCastle;
 import net.corda.djvm.Cowboy;
 import net.corda.djvm.ExceptionalFunction;
 import net.corda.djvm.JavaAnnotation;
@@ -12,20 +13,26 @@ import net.corda.djvm.WithJava;
 import net.corda.djvm.rewiring.SandboxClassLoader;
 import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+@ExtendWith(BouncyCastle.class)
 class JavaClassTest extends TestBase {
     JavaClassTest() {
         super(JAVA);
@@ -403,6 +410,39 @@ class JavaClassTest extends TestBase {
         @Override
         public Object apply(String unused) {
             return getClass().getTypeParameters();
+        }
+    }
+
+    @Test
+    void testGetSignersIsAlwaysNull() {
+        /*
+         * I am using security providers as examples of classes
+         * which have been signed.
+         */
+        Optional<? extends Class<?>> signedClass = Arrays.stream(Security.getProviders())
+            .map(Object::getClass)
+            .filter(c -> c.getSigners() != null)
+            .findFirst();
+        assumeTrue(signedClass.isPresent(), "No example of a signed class found.");
+
+        sandbox(ctx -> {
+            try {
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                Object result = classLoader.createRawTaskFactory()
+                    .compose(classLoader.createSandboxFunction())
+                    .apply(GetSigners.class)
+                    .apply(signedClass.get());
+                assertNull(result);
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetSigners implements Function<Class<?>, Object[]> {
+        @Override
+        public Object[] apply(Class<?> signed) {
+            return signed.getSigners();
         }
     }
 }
