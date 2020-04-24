@@ -4,8 +4,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sandbox.java.io.InputStream;
 import sandbox.java.lang.annotation.Annotation;
+import sandbox.java.lang.reflect.AnnotatedType;
 import sandbox.java.lang.reflect.Constructor;
+import sandbox.java.lang.reflect.Field;
 import sandbox.java.lang.reflect.Method;
+import sandbox.java.lang.reflect.Type;
+import sandbox.java.lang.reflect.TypeVariable;
 import sandbox.java.net.URL;
 import sandbox.java.security.ProtectionDomain;
 import sandbox.java.util.LinkedHashMap;
@@ -94,7 +98,7 @@ public final class DJVMClass {
      * can determine whether the caller should be permitted to query the class.
      * For the sake of repeatability, we must assume that the caller should
      * always be able to query sandbox classes. Note also that the true caller
-     * bas become DJVMClass itself now, and this should satisfy a SecurityManager
+     * has become DJVMClass itself now, and this should satisfy a SecurityManager
      * because DJVMClass lives in the "base" SandboxClassLoader. (A classloader
      * is permitted to query classes belonging to its children.)
      */
@@ -144,9 +148,47 @@ public final class DJVMClass {
         return sandbox.java.lang.reflect.DJVM.toDJVM(clazz.getMethods());
     }
 
+    @SuppressWarnings("RedundantThrows")
+    public static Field getDeclaredField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
+        throw DJVM.failApi("java.lang.Class.getDeclaredField(String)");
+    }
+
+    public static Field[] getDeclaredFields(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getDeclaredFields()");
+    }
+
+    @SuppressWarnings("RedundantThrows")
+    public static Field getField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
+        throw DJVM.failApi("java.lang.Class.getField(String)");
+    }
+
+    public static Field[] getFields(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getFields()");
+    }
+
     @Nullable
     public static Package getPackage(Class<?> clazz) {
         return null;
+    }
+
+    public static TypeVariable<?>[] getTypeParameters(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getTypeParameters()");
+    }
+
+    public static AnnotatedType[] getAnnotatedInterfaces(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getAnnotatedInterfaces()");
+    }
+
+    public static AnnotatedType getAnnotatedSuperclass(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getAnnotatedSuperclass()");
+    }
+
+    public static Type[] getGenericInterfaces(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getGenericInterfaces()");
+    }
+
+    public static Type getGenericSuperclass(Class<?> clazz) {
+        throw DJVM.failApi("java.lang.Class.getGenericSuperclass()");
     }
 
     public static ProtectionDomain getProtectionDomain(Class<?> clazz) {
