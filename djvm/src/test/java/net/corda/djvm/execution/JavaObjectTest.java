@@ -225,9 +225,15 @@ class JavaObjectTest extends TestBase {
         UUID uuid = UUID.randomUUID();
         sandbox(ctx -> {
             try {
-                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Object result = WithJava.run(taskFactory, GetString.class, uuid);
-                assertThat(result).isEqualTo(uuid.toString());
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                Class<?> stringClass = classLoader.toSandboxClass(String.class);
+                Object result = classLoader.createRawTaskFactory()
+                    .compose(classLoader.createSandboxFunction())
+                    .apply(GetString.class)
+                    .compose(classLoader.createBasicInput())
+                    .apply(uuid);
+                assertThat(result).isInstanceOf(stringClass);
+                assertThat(result.toString()).isEqualTo(uuid.toString());
             } catch (Exception e) {
                 fail(e);
             }
