@@ -9,7 +9,7 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /*
- * @sandbox.java.lang.annotation.Target$1DJVM({"TYPE", "METHOD", "FIELD"})
+ * @sandbox.java.lang.annotation.Target$1DJVM({"TYPE", "METHOD", "FIELD", "PACKAGE})
  * @sandbox.java.lang.annotation.Retention$1DJVM("RUNTIME")
  * @Documented
  * @Inherited
@@ -17,7 +17,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     sandbox.Untrusted value();
  * }
  *
- * @Target({TYPE, METHOD, FIELD})
+ * @Target({TYPE, METHOD, FIELD, PACKAGE})
  * @Retention(RUNTIME)
  * @Documented
  * @Inherited
@@ -25,7 +25,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     String value() default "NAUGHTY";
  * }
  */
-@Target({TYPE, METHOD, FIELD})
+@Target({TYPE, METHOD, FIELD, PACKAGE})
 @Retention(RUNTIME)
 @Documented
 @Inherited
