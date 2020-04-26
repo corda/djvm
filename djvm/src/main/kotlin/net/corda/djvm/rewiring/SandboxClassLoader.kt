@@ -414,6 +414,23 @@ class SandboxClassLoader private constructor(
     }
 
     /**
+     * Load the class with the specified binary name
+     * into this particular [SandboxClassLoader].
+     *
+     * @param name The binary name of the class.
+     * @return The resulting [Class] object.
+     */
+    @Throws(ClassNotFoundException::class)
+    override fun findClass(name: String): Class<*> {
+        val source = ClassSource.fromClassName(name)
+        if (analysisConfiguration.isSandboxClass(source.internalClassName)) {
+            return loadSandboxClass(source, context)
+        } else {
+            throw ClassNotFoundException(name)
+        }
+    }
+
+    /**
      * A sandboxed exception class cannot be thrown, and so we may also need to create a
      * synthetic throwable wrapper for it. Or perhaps we've just been asked to load the
      * synthetic wrapper class belonging to an exception that we haven't loaded yet?
