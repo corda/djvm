@@ -9,7 +9,7 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
 /*
- * @sandbox.java.lang.annotation.Target$1DJVM({"TYPE", "CONSTRUCTOR", "METHOD", "FIELD"})
+ * @sandbox.java.lang.annotation.Target$1DJVM({"TYPE", "CONSTRUCTOR", "METHOD", "FIELD", "PACKAGE})
  * @sandbox.java.lang.annotation.Retention$1DJVM("RUNTIME")
  * @Documented
  * @Inherited
@@ -17,7 +17,7 @@ import static java.lang.annotation.RetentionPolicy.*;
  *     sandbox.String value();
  * }
  *
- * @Target({TYPE, CONSTRUCTOR, METHOD, FIELD})
+ * @Target({TYPE, CONSTRUCTOR, METHOD, FIELD, PACKAGE})
  * @Retention(RUNTIME)
  * @Documented
  * @Inherited
@@ -25,7 +25,7 @@ import static java.lang.annotation.RetentionPolicy.*;
  *     String value() default "<default-value>";
  * }
  */
-@Target({TYPE, CONSTRUCTOR, METHOD, FIELD})
+@Target({TYPE, CONSTRUCTOR, METHOD, FIELD, PACKAGE})
 @Retention(RUNTIME)
 @Documented
 @Inherited

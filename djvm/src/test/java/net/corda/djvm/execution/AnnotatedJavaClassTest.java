@@ -102,7 +102,8 @@ class AnnotatedJavaClassTest extends TestBase {
                 Annotation annotationValue = sandboxClass.getAnnotation(sandboxAnnotation);
                 assertThat(annotationValue).isNotNull();
                 String[] policy = (String[]) valueMethod.invoke(annotationValue);
-                assertThat(policy).containsExactlyInAnyOrder("TYPE", "CONSTRUCTOR", "METHOD", "FIELD");
+                assertThat(policy)
+                    .containsExactlyInAnyOrder("TYPE", "CONSTRUCTOR", "METHOD", "FIELD", "PACKAGE");
             } catch (Exception e) {
                 fail(e);
             }

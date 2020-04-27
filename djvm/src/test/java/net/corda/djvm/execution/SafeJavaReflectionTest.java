@@ -8,6 +8,7 @@ import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.function.Function;
 
@@ -201,11 +202,14 @@ class SafeJavaReflectionTest extends TestBase {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class UserData {
         private final String data;
+        public final String publicData;
 
         public UserData(String data) {
             this.data = data;
+            this.publicData = data;
         }
 
         @Override
@@ -303,6 +307,110 @@ class SafeJavaReflectionTest extends TestBase {
         @Override
         public Method apply(String unused) {
             return UserData.class.getEnclosingMethod();
+        }
+    }
+
+    @Test
+    void testGetField() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                RuleViolationError ex = assertThrows(RuleViolationError.class,
+                    () -> WithJava.run(taskFactory, GetField.class, "publicData")
+                );
+                assertThat(ex)
+                    .hasMessage("Disallowed reference to API; java.lang.Class.getField(String)")
+                    .hasNoCause();
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetField implements Function<String, Field> {
+        @Override
+        public Field apply(String fieldName) {
+            try {
+                return UserData.class.getField(fieldName);
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
+        }
+    }
+
+    @Test
+    void tstGetFields() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                RuleViolationError ex = assertThrows(RuleViolationError.class,
+                    () -> WithJava.run(taskFactory, GetFields.class, null)
+                );
+                assertThat(ex)
+                    .hasMessage("Disallowed reference to API; java.lang.Class.getFields()")
+                    .hasNoCause();
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetFields implements Function<String, Field[]> {
+        @Override
+        public Field[] apply(String unused) {
+            return UserData.class.getFields();
+        }
+    }
+
+    @Test
+    void testGetDeclaredField() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                RuleViolationError ex = assertThrows(RuleViolationError.class,
+                    () -> WithJava.run(taskFactory, GetDeclaredField.class, "publicData")
+                );
+                assertThat(ex)
+                    .hasMessage("Disallowed reference to API; java.lang.Class.getDeclaredField(String)")
+                    .hasNoCause();
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetDeclaredField implements Function<String, Field> {
+        @Override
+        public Field apply(String fieldName) {
+            try {
+                return UserData.class.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
+        }
+    }
+
+    @Test
+    void testDeclaredFields() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                RuleViolationError ex = assertThrows(RuleViolationError.class,
+                    () -> WithJava.run(taskFactory, GetDeclaredFields.class, null)
+                );
+                assertThat(ex)
+                    .hasMessage("Disallowed reference to API; java.lang.Class.getDeclaredFields()")
+                    .hasNoCause();
+            } catch(Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class GetDeclaredFields implements Function<String, Field[]> {
+        @Override
+        public Field[] apply(String unused) {
+            return UserData.class.getDeclaredFields();
         }
     }
 }
