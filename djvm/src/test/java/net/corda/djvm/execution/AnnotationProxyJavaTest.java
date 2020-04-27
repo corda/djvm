@@ -339,9 +339,7 @@ class AnnotationProxyJavaTest extends TestBase {
                 Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(taskFactory, EvilAnnotationTask.class, null));
                 assertThat(ex)
                     .isExactlyInstanceOf(RuleViolationError.class)
-                    .hasMessageStartingWith("java.lang.NoSuchMethodError -> ")
-                    .hasMessageContaining("sandbox.java.lang.System.currentTimeMillis()")
-                    .hasMessageMatching(".*( 'long sandbox\\..*\\(\\)'$|\\.currentTimeMillis\\(\\)J$)")
+                    .hasMessage("Disallowed reference to API; java.lang.System.currentTimeMillis()")
                     .hasNoCause();
             } catch (Exception e) {
                 fail(e);

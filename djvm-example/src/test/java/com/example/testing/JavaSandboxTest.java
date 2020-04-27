@@ -1,6 +1,7 @@
 package com.example.testing;
 
 import net.corda.djvm.TypedTaskFactory;
+import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
 
 import static com.example.testing.SandboxType.JAVA;
@@ -32,11 +33,11 @@ class JavaSandboxTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Throwable ex = assertThrows(NoSuchMethodError.class, () -> WithJava.run(taskFactory, BadJavaTask.class, BIG_NUMBER));
+                Throwable ex = assertThrows(RuleViolationError.class, () -> WithJava.run(taskFactory, BadJavaTask.class, BIG_NUMBER));
                 assertThat(ex)
-                    .isExactlyInstanceOf(NoSuchMethodError.class)
-                    .hasMessageContaining("sandbox.java.lang.System.currentTimeMillis()")
-                    .hasMessageFindingMatch("(long sandbox\\.|\\.currentTimeMillis\\(\\)J)+");
+                    .isExactlyInstanceOf(RuleViolationError.class)
+                    .hasMessage("Disallowed reference to API; java.lang.System.currentTimeMillis()")
+                    .hasNoCause();
             } catch(Exception e) {
                 fail(e);
             }

@@ -21,14 +21,24 @@ public final class System extends Object {
         java.lang.System.arraycopy(src, srcPos, dest, destPos, length);
     }
 
+    public static long currentTimeMillis() {
+        throw DJVM.failApi("java.lang.System.currentTimeMillis()");
+    }
+
+    public static long nanoTime() {
+        throw DJVM.failApi("java.lang.System.nanoTime()");
+    }
+
     public static String getProperty(String name, String defaultValue) {
         return defaultValue;
     }
 
+    @Nullable
     public static String getProperty(String name) {
         return null;
     }
 
+    @Nullable
     public static String setProperty(String name, String value) {
         return null;
     }

@@ -138,10 +138,9 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     @Test
     fun `can detect illegal references in Kotlin meta-classes`() = sandbox {
         val taskFactory = classLoader.createTypedTaskFactory()
-        assertThatExceptionOfType(NoSuchMethodError::class.java)
+        assertThatExceptionOfType(RuleViolationError::class.java)
             .isThrownBy { taskFactory.create(TestKotlinMetaClasses::class.java).apply(0) }
-            .withMessageContaining("sandbox.java.lang.System.nanoTime()")
-            .withMessageMatching(".*(long sandbox\\.|\\.nanoTime\\(\\)J)+.*")
+            .withMessage("Disallowed reference to API; java.lang.System.nanoTime()")
     }
 
     class TestKotlinMetaClasses : Function<Int, Long> {
@@ -154,10 +153,9 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     @Test
     fun `cannot execute runnable that references non-deterministic code`() = sandbox {
         val taskFactory = classLoader.createTypedTaskFactory()
-        assertThatExceptionOfType(NoSuchMethodError::class.java)
+        assertThatExceptionOfType(RuleViolationError::class.java)
             .isThrownBy { taskFactory.create(TestNonDeterministicCode::class.java).apply(0) }
-            .withMessageContaining("sandbox.java.lang.System.currentTimeMillis()")
-            .withMessageMatching(".*(long sandbox\\.|\\.currentTimeMillis\\(\\)J)+.*")
+            .withMessage("Disallowed reference to API; java.lang.System.currentTimeMillis()")
     }
 
     class TestNonDeterministicCode : Function<Int, Long> {
