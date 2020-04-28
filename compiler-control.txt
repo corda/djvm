@@ -1,0 +1,11 @@
+[
+    {
+        match: "sandbox.*::*",
+
+        // Disable the optimising compiler for sandbox
+        // classes because they will all be discarded.
+        c2: {
+             Exclude:true
+        }
+    }
+]
