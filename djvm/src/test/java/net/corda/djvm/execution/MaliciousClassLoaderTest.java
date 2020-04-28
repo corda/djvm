@@ -25,10 +25,11 @@ class MaliciousClassLoaderTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Throwable ex = assertThrows(NoSuchMethodError.class, () -> WithJava.run(taskFactory, ActOfEvil.class, PureEvil.class.getName()));
+                RuleViolationError ex = assertThrows(RuleViolationError.class,
+                    () -> WithJava.run(taskFactory, ActOfEvil.class, PureEvil.class.getName())
+                );
                 assertThat(ex)
-                    .hasMessageContaining("sandbox.java.lang.System.currentTimeMillis()")
-                    .hasMessageFindingMatch("(long sandbox\\.|\\.currentTimeMillis\\(\\)J)+")
+                    .hasMessage("Disallowed reference to API; java.lang.System.currentTimeMillis()")
                     .hasNoCause();
             } catch(Exception e){
                 fail(e);
