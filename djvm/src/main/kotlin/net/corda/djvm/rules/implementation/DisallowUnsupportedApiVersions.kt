@@ -15,7 +15,7 @@ object DisallowUnsupportedApiVersions : ClassRule() {
                 (clazz.apiVersion !in supportedVersions)
     }
 
-    private val supportedVersions = setOf(V1_5, V1_6, V1_7, V1_8)
+    private val supportedVersions = IntRange(V1_2, V1_8)
 
     private val versionMap = mapOf(
         V1_1 to "1.1", V1_2 to "1.2", V1_3 to "1.3", V1_4 to "1.4",
