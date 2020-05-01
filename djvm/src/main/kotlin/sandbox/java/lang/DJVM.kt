@@ -66,6 +66,8 @@ fun Any.sandbox(): Any {
         is kotlin.Boolean -> Boolean.toDJVM(this)
         is kotlin.Enum<*> -> toDJVMEnum()
         is kotlin.Throwable -> toDJVMThrowable()
+        is java.math.BigInteger -> toDJVMBigInteger()
+        is java.math.BigDecimal -> sandbox.java.math.BigDecimal(unscaledValue().toDJVMBigInteger(), scale())
         is java.util.Date -> Date(time)
         is java.io.InputStream -> InputStream.toDJVM(this)
         is java.util.UUID -> UUID(mostSignificantBits, leastSignificantBits)
@@ -246,6 +248,10 @@ private fun kotlin.Throwable.copyExtraTo(t: kotlin.Throwable) {
 }
 
 private fun Array<*>.fromDJVMArray(): Array<*> = Object.fromDJVM(this)
+
+private fun java.math.BigInteger.toDJVMBigInteger(): sandbox.java.math.BigInteger {
+    return sandbox.java.math.BigInteger(signum(), toByteArray())
+}
 
 private fun java.time.LocalDate.toDJVM(): sandbox.java.time.LocalDate {
     return sandbox.java.time.LocalDate.of(year, monthValue, dayOfMonth)

@@ -440,6 +440,7 @@ class AnalysisConfiguration private constructor(
             generateJavaUuidMethods() +
             generateJavaPackageMethods() +
             generateJavaBitsMethods() +
+            generateJavaMathMethods() +
 
             object : FromDJVMBuilder(
                 className = sandboxed(Enum::class.java),
