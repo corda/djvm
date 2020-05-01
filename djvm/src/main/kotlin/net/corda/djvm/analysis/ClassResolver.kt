@@ -17,14 +17,15 @@ import net.corda.djvm.code.asResourcePath
  * defined in "java/lang/", e.g., [Integer] and [String]. These cannot be trivially moved into a different package due
  * to the internal mechanisms of the JVM.
  *
+ * @property templateClasses The set of classes that have been hand-rewritten for use inside the sandbox.
  * @property whitelist The set of classes in the Java runtime libraries that have been whitelisted and that should be
  * left alone.
  * @property sandboxPrefix The package name prefix to use for classes loaded into a sandbox.
  */
 class ClassResolver(
-        private val templateClasses: Set<String>,
-        private val whitelist: Whitelist,
-        private val sandboxPrefix: String
+    private val templateClasses: Set<String>,
+    private val whitelist: Whitelist,
+    private val sandboxPrefix: String
 ) {
 
     /**
@@ -80,9 +81,10 @@ class ClassResolver(
 
     /**
      * Reverse the resolution of a class name.
+     * Does not work for array classes.
      */
     fun reverse(resolvedClassName: String): String {
-        return if (resolvedClassName in templateClasses) {
+        return if (isTemplateClass(resolvedClassName)) {
             resolvedClassName
         } else {
             removeSandboxPrefix(resolvedClassName)
@@ -105,9 +107,10 @@ class ClassResolver(
 
     /**
      * Resolve sandboxed class name from a fully qualified name.
+     * Does not work for array classes.
      */
     private fun resolveName(name: String): String {
-        return if (isWhitelistedClass(name) || name in templateClasses) {
+        return if (isWhitelistedClass(name) || isSandboxClass(name)) {
             name
         } else {
             "$sandboxPrefix$name"
@@ -133,13 +136,21 @@ class ClassResolver(
     }
 
     /**
+     * Checks if this class is one of the hand-written ones
+     * that will be mapped "as-is" into the sandbox.
+     */
+    fun isTemplateClass(internalName: String): Boolean = internalName in templateClasses
+
+    /**
+     * Checks if this class exists inside the sandbox.
+     * Does not work for array classes.
+     */
+    fun isSandboxClass(internalName: String): Boolean = internalName.startsWith(sandboxPrefix)
+
+    /**
      * Check if class is whitelisted.
      */
-    private fun isWhitelistedClass(name: String): Boolean {
-        return whitelist.matches(name) || sandboxRegex matches name
-    }
-
-    private val sandboxRegex = "^$sandboxPrefix.*\$".toRegex()
+    fun isWhitelistedClass(internalName: String): Boolean = whitelist.matches(internalName)
 
     companion object {
         private val complexArrayTypeRegex = "^(\\[+)L(.*);\$".toRegex()

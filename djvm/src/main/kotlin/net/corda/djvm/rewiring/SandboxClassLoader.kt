@@ -62,9 +62,9 @@ class SandboxClassLoader private constructor(
 ) : SecureClassLoader(parent ?: SandboxClassLoader::class.java.classLoader), AutoCloseable {
 
     /**
-     * Set of classes that should be left untouched due to whitelisting.
+     * Maps class names into and out of the sandbox.
      */
-    private val whitelistedClasses = analysisConfiguration.whitelist
+    private val classResolver = analysisConfiguration.classResolver
 
     /**
      * Cache of loaded byte-code.
@@ -355,14 +355,14 @@ class SandboxClassLoader private constructor(
     fun toSandboxClass(className: String): Class<*> = loadClassForSandbox(className)
 
     fun resolveName(className: String): String {
-        return analysisConfiguration.classResolver.resolveNormalized(className)
+        return classResolver.resolveNormalized(className)
     }
 
     fun resolveAnnotationName(className: String): String? {
         return if (isDJVMSynthetic(className)) {
             getDJVMSyntheticOwner(className)
         } else {
-            val sandboxName = analysisConfiguration.classResolver.resolve(className.asResourcePath)
+            val sandboxName = classResolver.resolve(className.asResourcePath)
             if (analysisConfiguration.isJvmAnnotation(sandboxName)) {
                 sandboxName.asPackagePath
             } else {
@@ -385,7 +385,7 @@ class SandboxClassLoader private constructor(
             var clazz = findLoadedClass(name)
             if (clazz == null) {
                 val source = ClassSource.fromClassName(name)
-                val isSandboxClass = analysisConfiguration.isSandboxClass(source.internalClassName)
+                val isSandboxClass = classResolver.isSandboxClass(source.internalClassName)
 
                 // We ALWAYS have a parent classloader, because a sandbox
                 // classloader MUST ultimately delegate to the DJVM itself.
@@ -423,7 +423,7 @@ class SandboxClassLoader private constructor(
     @Throws(ClassNotFoundException::class)
     override fun findClass(name: String): Class<*> {
         val source = ClassSource.fromClassName(name)
-        if (analysisConfiguration.isSandboxClass(source.internalClassName)) {
+        if (classResolver.isSandboxClass(source.internalClassName)) {
             return loadSandboxClass(source, context)
         } else {
             throw ClassNotFoundException(name)
@@ -499,10 +499,10 @@ class SandboxClassLoader private constructor(
     private fun loadClassAndBytes(request: ClassSource, context: AnalysisContext): Class<*> {
         logger.debug("Loading class {}, origin={}...", request.qualifiedClassName, request.origin)
         val requestedPath = request.internalClassName
-        val sourceName = analysisConfiguration.classResolver.reverseNormalized(request.qualifiedClassName)
-        val resolvedName = analysisConfiguration.classResolver.resolveNormalized(sourceName)
+        val sourceName = classResolver.reverseNormalized(request.qualifiedClassName)
+        val resolvedName = classResolver.resolveNormalized(sourceName)
 
-        val byteCode = if (analysisConfiguration.isTemplateClass(requestedPath)) {
+        val byteCode = if (classResolver.isTemplateClass(requestedPath)) {
             loadUnmodifiedByteCode(requestedPath)
         } else {
             byteCodeCache[request.qualifiedClassName] ?: run {
@@ -530,7 +530,7 @@ class SandboxClassLoader private constructor(
         // Try to define the transformed class.
         val clazz: Class<*> = try {
             when {
-                whitelistedClasses.matches(sourceName.asResourcePath) -> supportingClassLoader.loadClass(sourceName)
+                classResolver.isWhitelistedClass(sourceName.asResourcePath) -> supportingClassLoader.loadClass(sourceName)
                 else -> defineClass(resolvedName, byteCode)
             }
         } catch (exception: SecurityException) {

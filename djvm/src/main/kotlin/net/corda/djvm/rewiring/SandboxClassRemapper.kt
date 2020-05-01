@@ -79,7 +79,7 @@ class SandboxClassRemapper(
         : MethodVisitor(api, remapper) {
 
         private fun mapperFor(element: Element): MethodVisitor {
-            return if (configuration.isTemplateClass(element.className) || isUnmapped(element)) {
+            return if (configuration.classResolver.isTemplateClass(element.className) || isUnmapped(element)) {
                 methodNonMapper
             } else {
                 mv
