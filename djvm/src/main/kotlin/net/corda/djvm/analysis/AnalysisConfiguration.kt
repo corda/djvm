@@ -91,15 +91,11 @@ class AnalysisConfiguration private constructor(
      */
     val stitchedClasses: Map<String, List<Member>> get() = STITCHED_CLASSES
 
-    fun isTemplateClass(className: String): Boolean = className in TEMPLATE_CLASSES
-
     fun isJvmException(className: String): Boolean = className in JVM_EXCEPTIONS
     fun isJvmAnnotation(className: String): Boolean = className in JVM_ANNOTATIONS
     fun hasDJVMSynthetic(className: String): Boolean = !isJvmException(className) && !isJvmAnnotation(className)
 
     fun isJvmAnnotationDesc(descriptor: String): Boolean = descriptor in JVM_ANNOTATION_DESC
-
-    fun isSandboxClass(className: String): Boolean = className.startsWith(SANDBOX_PREFIX)
 
     fun toSandboxClassName(header: ClassHeader): String {
         val sandboxName = classResolver.resolve(header.internalName)

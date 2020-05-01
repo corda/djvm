@@ -16,7 +16,9 @@ import net.corda.djvm.references.*
 class RuleContext(
     private val analysisContext: AnalysisRuntimeContext
 ) : ConstraintProvider(analysisContext) {
-    fun formatFor(member: MemberInformation): String = analysisContext.configuration.formatFor(member)
+    private val configuration = analysisContext.configuration
+
+    fun formatFor(member: MemberInformation): String = configuration.formatFor(member)
 
     /**
      * The class currently being analysed.
@@ -40,24 +42,24 @@ class RuleContext(
      * The configured whitelist.
      */
     val whitelist: Whitelist
-        get() = analysisContext.configuration.whitelist
+        get() = configuration.whitelist
 
     /**
      * Utilities for dealing with classes.
      */
     val classModule: ClassModule
-        get() = analysisContext.configuration.classModule
+        get() = configuration.classModule
 
     /**
      * Utilities for dealing with members.
      */
     val memberModule: MemberModule
-        get() = analysisContext.configuration.memberModule
+        get() = configuration.memberModule
 
     /**
      * Check whether the class has been explicitly defined in the sandbox namespace.
      */
-    fun isSandboxClass(className: String): Boolean = analysisContext.configuration.isSandboxClass(className)
+    fun isSandboxClass(className: String): Boolean = configuration.classResolver.isSandboxClass(className)
 
     /**
      * Set up and execute a rule validation block.
