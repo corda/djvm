@@ -77,10 +77,10 @@ package net.corda.djvm.analysis
 
 fun AnalysisConfiguration.createRoot(
     userSource: UserSource,
-    whitelist: Whitelist,
     visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
     minimumSeverityLevel: Severity = Severity.WARNING,
     bootstrapSource: ApiSource? = null,
+    overrideClasses: Set<String> = emptySet(),
     analyzeAnnotations: Boolean = false,
     prefixFilters: List<String> = emptyList(),
     classModule: ClassModule = ClassModule(),
@@ -90,14 +90,18 @@ fun AnalysisConfiguration.createRoot(
 
 where:
 - `userSource` is an instance of `UserSource` that contains the user's classes to be sandboxed.
-- `whitelist` contains the class names which the DJVM should _not_ map into the sandbox. Regular
-expressions are supported, although you probably still want to use `Whitelist.MINIMAL` anyway.
 - `visibleAnnotations` Not only will occurrences of these annotations be mapped into the `sandbox.*`,
 package space, but the original annotations will be preserved too.
 - `minimumSeverityLevel` is the minimum message severity level to be recorded in `MessageCollection` by
 `sandbox.*` classes.
 - `bootstrapSource` is an instance of `ApiSource` containing an implementation of Java 8 APIs. A `null`
 value forcs the DJVM to use the underlying JVM's API classes instead.
+- `overrideClasses` is a set of names of classes which will be included in the sandbox "as is". These
+classes must already exist on the classpath. Any class which already belongs to the `sandbox.*` package
+space will be copied and relinked into the `SandboxClassLoader`, whereas classes outside the `sandbox.*`
+packages will be used directly from the classpath. **It is your responsibility to ensure that these classes
+are compatible with the rest of the classes inside the sandbox.** This is a very powerful, and consequently
+_VERY DANGEROUS_ option. _HANDLE WITH CARE!_
 - `analyzeAnnotations` determines whether the DJVM should include class references from annotations during
 the analysts phase.
 - `prefixFilter` is another logging option. If set, only messages from classes matching one of these

@@ -7,8 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * Whitelist this {@link Utilities} class inside the sandbox to allow
- * tests to invoke these functions.
+ * Add this {@link Utilities} class inside the sandbox as
+ * an override to allow tests to invoke these functions.
  */
 public final class Utilities {
     public static final String CANNOT_CATCH = "Can't catch this!";

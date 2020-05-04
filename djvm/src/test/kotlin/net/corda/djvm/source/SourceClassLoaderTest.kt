@@ -20,7 +20,7 @@ import java.nio.file.Paths
 
 class SourceClassLoaderTest {
 
-    private val classResolver = ClassResolver(emptySet(), Whitelist.MINIMAL, "")
+    private val classResolver = ClassResolver(emptySet(), Whitelist.createWhitelist(), "")
     private val apiSource = BootstrapClassLoader(Paths.get(
         System.getProperty("deterministic-rt.path") ?: fail("deterministic-rt.path property not set")
     ))

@@ -1,6 +1,5 @@
 package net.corda.djvm.tools.cli
 
-import net.corda.djvm.analysis.Whitelist
 import net.corda.djvm.execution.SandboxException
 import net.corda.djvm.messages.MessageCollection
 import net.corda.djvm.messages.Severity
@@ -13,7 +12,6 @@ import org.apache.logging.log4j.core.config.Configurator
 import picocli.CommandLine
 import picocli.CommandLine.Help.Ansi
 import picocli.CommandLine.Option
-import java.nio.file.Path
 import java.util.concurrent.Callable
 
 @Suppress("KDocMissingDocumentation")
@@ -198,10 +196,9 @@ abstract class CommandBase : Callable<Boolean> {
                 printError(" - @|$severityColor ${message.severity}|@ $location\n   ${message.message}.")
             }
             if (printOrigins) {
-                val classOrigins = origins[message.location.className.replace("/", ".")] ?: emptySet()
-                for (classOrigin in classOrigins.groupBy({ it.className }, { it })) {
-                    val count = classOrigin.value.count()
-                    val reference = when (count) {
+                val classOrigins = origins[message.location.className.replace('/', '.')] ?: emptySet()
+                for (classOrigin in classOrigins.groupBy(EntityReference::className) { it }) {
+                    val reference = when (classOrigin.value.count()) {
                         1 -> classOrigin.value.first()
                         else -> ClassReference(classOrigin.value.first().className)
                     }
@@ -246,24 +243,6 @@ abstract class CommandBase : Callable<Boolean> {
         printInfo("Execution successful")
         printInfo(" - result = $result")
         printInfo()
-    }
-
-    protected fun whitelistFromPath(whitelist: Path?): Whitelist {
-        return whitelist?.let {
-            if ("$it" == "NONE") {
-                Whitelist.EMPTY
-            } else if ("$it" == "ALL") {
-                Whitelist.EVERYTHING
-            } else if ("$it" == "LANG") {
-                Whitelist.MINIMAL
-            } else {
-                try {
-                    Whitelist.fromFile(file = it)
-                } catch (exception: Throwable) {
-                    throw Exception("Failed to load whitelist '$it'", exception)
-                }
-            }
-        } ?: Whitelist.MINIMAL
     }
 
     private fun Int.countOf(suffix: String): String {

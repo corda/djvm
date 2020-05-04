@@ -5,7 +5,6 @@ import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.analysis.Whitelist
 import net.corda.djvm.execution.*
 import net.corda.djvm.references.ClassModule
 import net.corda.djvm.source.ClassSource
@@ -67,7 +66,7 @@ abstract class ClassCommand : CommandBase() {
     override fun validateArguments() = filters.isNotEmpty()
 
     override fun handleCommand(): Boolean {
-        val configuration = getConfiguration(Whitelist.MINIMAL)
+        val configuration = getConfiguration()
         classLoader = configuration.analysisConfiguration.supportingClassLoader
         createExecutor(configuration)
 
@@ -179,7 +178,7 @@ abstract class ClassCommand : CommandBase() {
           + filters.filter { it.endsWith(".jar", true) }.map { Paths.get(it) }
     )
 
-    private fun getConfiguration(whitelist: Whitelist): SandboxConfiguration {
+    private fun getConfiguration(): SandboxConfiguration {
         return SandboxConfiguration.of(
                 profile = if (disableTracing) { null } else { profile },
                 rules = if (ignoreRules) { emptyList() } else { ALL_RULES },
@@ -187,7 +186,6 @@ abstract class ClassCommand : CommandBase() {
                 definitionProviders = if (ignoreDefinitionProviders) { emptyList() } else { ALL_DEFINITION_PROVIDERS },
                 analysisConfiguration = AnalysisConfiguration.createRoot(
                         userSource = UserPathSource(getClasspath()),
-                        whitelist = whitelist,
                         minimumSeverityLevel = level,
                         analyzeAnnotations = analyzeAnnotations,
                         prefixFilters = prefixFilters.toList()

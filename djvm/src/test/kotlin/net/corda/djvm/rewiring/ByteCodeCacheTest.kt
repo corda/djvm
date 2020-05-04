@@ -1,7 +1,6 @@
 package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.analysis.Whitelist
 import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -31,7 +30,6 @@ class ByteCodeCacheTest {
 
     private fun createAnalysisConfiguration() = AnalysisConfiguration.createRoot(
         userSource = UserPathSource(emptyList()),
-        whitelist = Whitelist.EMPTY,
         visibleAnnotations = emptySet()
     )
 }

@@ -7,7 +7,6 @@ import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.Utilities.throwRuleViolationError
 import net.corda.djvm.Utilities.throwThresholdViolationError
-import net.corda.djvm.analysis.Whitelist.Companion.MINIMAL
 import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.rules.RuleViolationError
 import org.assertj.core.api.Assertions.assertThat
@@ -27,7 +26,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     }
 
     @Test
-    fun `can load and execute runnable`() = customSandbox(MINIMAL) {
+    fun `can load and execute runnable`() = sandbox {
         val taskFactory = classLoader.createTypedTaskFactory()
         val result = taskFactory.create(TestSandboxedRunnable::class.java).apply(1)
         assertThat(result).isEqualTo("sandbox")
