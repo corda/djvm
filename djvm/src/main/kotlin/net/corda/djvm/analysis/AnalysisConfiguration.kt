@@ -10,6 +10,7 @@ import net.corda.djvm.code.SANDBOX_CLASSLOADER_NAME
 import net.corda.djvm.code.SANDBOX_CLASS_NAME
 import net.corda.djvm.code.SANDBOX_OBJECT_NAME
 import net.corda.djvm.code.asPackagePath
+import net.corda.djvm.code.asResourcePath
 import net.corda.djvm.formatting.MemberFormatter
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.references.ClassModule
@@ -683,10 +684,10 @@ class AnalysisConfiguration private constructor(
         @JvmStatic
         fun createRoot(
             userSource: UserSource,
-            whitelist: Whitelist,
             visibleAnnotations: Set<Class<out Annotation>> = emptySet(),
             minimumSeverityLevel: Severity = Severity.WARNING,
             bootstrapSource: ApiSource? = null,
+            overrideClasses: Set<String> = emptySet(),
             analyzeAnnotations: Boolean = false,
             prefixFilters: List<String> = emptyList(),
             classModule: ClassModule = ClassModule(),
@@ -697,6 +698,7 @@ class AnalysisConfiguration private constructor(
              * "stitch" into sandbox classes, to protect their invocations from
              * being remapped by [net.corda.djvm.rewiring.SandboxClassRemapper].
              */
+            val whitelist = Whitelist.createWhitelist()
             val actualWhitelist = whitelist.addTextEntries(
                 STITCHED_CLASSES
                     .flatMap(Map.Entry<String, List<Member>>::value)
@@ -704,7 +706,8 @@ class AnalysisConfiguration private constructor(
                     .filter(MemberFilter(whitelist)::isWhitelistable)
                     .mapTo(LinkedHashSet(), Member::reference)
             )
-            val classResolver = ClassResolver(TEMPLATE_CLASSES, actualWhitelist, SANDBOX_PREFIX)
+            val templateClasses = TEMPLATE_CLASSES + overrideClasses.map(String::asResourcePath)
+            val classResolver = ClassResolver(templateClasses, actualWhitelist, SANDBOX_PREFIX)
 
             return AnalysisConfiguration(
                 parent = null,
@@ -719,26 +722,6 @@ class AnalysisConfiguration private constructor(
                 classModule = classModule,
                 memberModule = memberModule,
                 memberFormatter = MemberFormatter(classModule, memberModule)
-            )
-        }
-
-        /**
-         * @see [AnalysisConfiguration]
-         */
-        @Suppress("unused")
-        @JvmStatic
-        fun createRoot(
-            userSource: UserSource,
-            visibleAnnotations: Set<Class<out Annotation>>,
-            minimumSeverityLevel: Severity,
-            bootstrapSource: ApiSource?
-        ): AnalysisConfiguration {
-            return createRoot(
-                userSource = userSource,
-                whitelist = Whitelist.MINIMAL,
-                visibleAnnotations = visibleAnnotations,
-                minimumSeverityLevel = minimumSeverityLevel,
-                bootstrapSource = bootstrapSource
             )
         }
     }

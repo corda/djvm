@@ -9,7 +9,7 @@ class WhitelistTest : TestBase(KOTLIN) {
 
     @Test
     fun `can determine when a class is whitelisted when namespace is covered`() {
-        val whitelist = Whitelist.MINIMAL
+        val whitelist = Whitelist.createWhitelist()
         assertThat(whitelist.matches("java/lang/Object")).isTrue()
         assertThat(whitelist.matches("java/lang/Object.<init>:()V")).isTrue()
         assertThat(whitelist.matches("java/lang/reflect/Array")).isTrue()
@@ -19,7 +19,7 @@ class WhitelistTest : TestBase(KOTLIN) {
 
     @Test
     fun `can determine when a class is not whitelisted when namespace is covered`() {
-        val whitelist = Whitelist.MINIMAL
+        val whitelist = Whitelist.createWhitelist()
         assertThat(whitelist.matches("java/util/Random")).isFalse()
         assertThat(whitelist.matches("java/util/Random.<init>:()V")).isFalse()
         assertThat(whitelist.matches("java/util/Random.nextInt:()I")).isFalse()
@@ -29,7 +29,7 @@ class WhitelistTest : TestBase(KOTLIN) {
 
     @Test
     fun `can determine when a class is whitelisted when namespace is not covered`() {
-        val whitelist = Whitelist.MINIMAL + setOf(
+        val whitelist = Whitelist.createWhitelist()+ setOf(
                 "^org/assertj/.*\$".toRegex(),
                 "^org/junit/.*\$".toRegex()
         )
@@ -40,14 +40,14 @@ class WhitelistTest : TestBase(KOTLIN) {
 
     @Test
     fun `can determine when a namespace is not covered`() {
-        val whitelist = Whitelist.MINIMAL
+        val whitelist = Whitelist.createWhitelist()
         assertThat(whitelist.matches("java/lang/Object")).isTrue()
         assertThat(whitelist.matches("org/junit/Test")).isFalse()
     }
 
     @Test
     fun `test closeables are whitelisted`() {
-        val whitelist = Whitelist.MINIMAL
+        val whitelist = Whitelist.createWhitelist()
         assertThat(whitelist.matches("java/lang/AutoCloseable")).isTrue()
         assertThat(whitelist.matches("java/lang/AutoCloseable.close:()V")).isTrue()
 
@@ -57,7 +57,7 @@ class WhitelistTest : TestBase(KOTLIN) {
 
     @Test
     fun `test atomic field updater factories are whitelisted`() {
-        val whitelist = Whitelist.MINIMAL
+        val whitelist = Whitelist.createWhitelist()
         assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicIntegerFieldUpdater.newUpdater:(Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicIntegerFieldUpdater;")).isTrue()
         assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicLongFieldUpdater.newUpdater:(Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicLongFieldUpdater;")).isTrue()
         assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicReferenceFieldUpdater.newUpdater:(Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/String;)Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;")).isTrue()
@@ -65,7 +65,7 @@ class WhitelistTest : TestBase(KOTLIN) {
 
     @Test
     fun `test atomic field updaters are not whitelisted`() {
-        val whitelist = Whitelist.MINIMAL
+        val whitelist = Whitelist.createWhitelist()
         assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicIntegerFieldUpdater")).isFalse()
         assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicLongFieldUpdater")).isFalse()
         assertThat(whitelist.matches("java/util/concurrent/atomic/AtomicReferenceFieldUpdater")).isFalse()
@@ -73,7 +73,7 @@ class WhitelistTest : TestBase(KOTLIN) {
 
     @Test
     fun `test access controller`() {
-        val whitelist = Whitelist.MINIMAL
+        val whitelist = Whitelist.createWhitelist()
         assertThat(whitelist.matches("java/security/AccessController")).isFalse()
         assertThat(whitelist.matches("java/security/AccessController.doPrivileged:(Ljava/security/PrivilegedAction;)Ljava/lang/Object;")).isTrue()
         assertThat(whitelist.matches("java/security/AccessController.doPrivileged:(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object;")).isTrue()

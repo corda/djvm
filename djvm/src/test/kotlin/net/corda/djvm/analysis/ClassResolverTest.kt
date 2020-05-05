@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 
 class ClassResolverTest {
 
-    private val resolver = ClassResolver(emptySet(), Whitelist.MINIMAL, SANDBOX_PREFIX)
+    private val resolver = ClassResolver(emptySet(), Whitelist.createWhitelist(), SANDBOX_PREFIX)
 
     @Test
     fun `can resolve class name`() {

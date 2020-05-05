@@ -9,7 +9,6 @@ import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor
-import net.corda.djvm.analysis.Whitelist
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.Emitter
@@ -67,8 +66,12 @@ abstract class TestBase(type: SandboxType) {
         val TESTING_LIBRARIES: List<Path> = (System.getProperty("sandbox-libraries.path") ?: fail("sandbox-libraries.path property not set"))
             .split(File.pathSeparator).map { Paths.get(it) }.filter { exists(it) }
 
+        /**
+         * This class does not belong to the sandbox package space
+         * and so will be used directly without being duplicated.
+         */
         @JvmField
-        val TEST_WHITELIST = Whitelist.MINIMAL + setOf("^net/corda/djvm/Utilities(\\..*)?\$".toRegex())
+        val TEST_OVERRIDES = setOf(Utilities::class.java.name)
 
         private lateinit var parentConfiguration: SandboxConfiguration
         private lateinit var bootstrapClassLoader: BootstrapClassLoader
@@ -84,8 +87,8 @@ abstract class TestBase(type: SandboxType) {
             bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
             val rootConfiguration = AnalysisConfiguration.createRoot(
                 userSource = UserPathSource(emptyList()),
-                whitelist = TEST_WHITELIST,
-                bootstrapSource = bootstrapClassLoader
+                bootstrapSource = bootstrapClassLoader,
+                overrideClasses = TEST_OVERRIDES
             )
             parentConfiguration = SandboxConfiguration.createFor(
                 analysisConfiguration = rootConfiguration,
@@ -112,8 +115,8 @@ abstract class TestBase(type: SandboxType) {
      */
     val configuration = AnalysisConfiguration.createRoot(
         userSource = userSource,
-        whitelist = TEST_WHITELIST,
-        bootstrapSource = bootstrapClassLoader
+        bootstrapSource = bootstrapClassLoader,
+        overrideClasses = TEST_OVERRIDES
     )
 
     /**
@@ -149,9 +152,9 @@ abstract class TestBase(type: SandboxType) {
         UserPathSource(classPaths).use { userSource ->
             val analysisConfiguration = AnalysisConfiguration.createRoot(
                 userSource = userSource,
-                whitelist = TEST_WHITELIST,
                 minimumSeverityLevel = minimumSeverityLevel,
-                bootstrapSource = bootstrapClassLoader
+                bootstrapSource = bootstrapClassLoader,
+                overrideClasses = TEST_OVERRIDES
             )
             val validator = RuleValidator(ALL_RULES, analysisConfiguration)
             val context = AnalysisContext.fromConfiguration(analysisConfiguration)
@@ -191,7 +194,6 @@ abstract class TestBase(type: SandboxType) {
         val definitionProviders = mutableListOf<DefinitionProvider>().apply { addAll(ALL_DEFINITION_PROVIDERS) }
         val classSources = mutableListOf<ClassSource>()
         var profile = ExecutionProfile.UNLIMITED
-        var whitelist = TEST_WHITELIST
         for (option in options) {
             when (option) {
                 is Rule -> rules.add(option)
@@ -199,7 +201,6 @@ abstract class TestBase(type: SandboxType) {
                 is DefinitionProvider -> definitionProviders.add(option)
                 is ExecutionProfile -> profile = option
                 is ClassSource -> classSources.add(option)
-                is Whitelist -> whitelist = option
                 is List<*> -> {
                     rules.addAll(option.filterIsInstance<Rule>())
                     emitters.addAll(option.filterIsInstance<Emitter>())
@@ -213,10 +214,10 @@ abstract class TestBase(type: SandboxType) {
             UserPathSource(classPaths).use { userSource ->
                 val analysisConfiguration = AnalysisConfiguration.createRoot(
                     userSource = userSource,
-                    whitelist = whitelist,
                     visibleAnnotations = visibleAnnotations,
                     minimumSeverityLevel = minimumSeverityLevel,
-                    bootstrapSource = bootstrapClassLoader
+                    bootstrapSource = bootstrapClassLoader,
+                    overrideClasses = TEST_OVERRIDES
                 )
                 SandboxRuntimeContext(SandboxConfiguration.of(
                     executionProfile,

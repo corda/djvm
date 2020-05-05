@@ -1,6 +1,5 @@
 package net.corda.djvm.analysis
 
-import java.io.FileNotFoundException
 import java.io.InputStream
 import java.io.PushbackInputStream
 import java.nio.file.Files
@@ -96,8 +95,6 @@ open class Whitelist private constructor(
         get() = textEntries + entries.map(Regex::pattern)
 
     companion object {
-        private val everythingRegex = setOf(".*".toRegex())
-
         private val minimumSet = setOf(
             "^java/lang/AutoCloseable(\\..*)?\$".toRegex(),
             "^java/lang/Class(\\..*)?\$".toRegex(),
@@ -115,35 +112,10 @@ open class Whitelist private constructor(
         )
 
         /**
-         * Empty whitelist.
-         */
-        @JvmField
-        val EMPTY: Whitelist = Whitelist(null, emptySet(), emptySet())
-
-        /**
          * The minimum set of classes that needs to be whitelisted from standard Java libraries.
          */
-        @JvmField
-        val MINIMAL: Whitelist = Whitelist(Whitelist(null, minimumSet, emptySet()), minimumSet, emptySet())
-
-        /**
-         * Whitelist everything.
-         */
-        @JvmField
-        val EVERYTHING: Whitelist = Whitelist(
-            Whitelist(null, everythingRegex, emptySet()),
-            everythingRegex,
-            emptySet()
-        )
-
-        /**
-         * Load a whitelist from a resource stream.
-         */
-        fun fromResource(resourceName: String): Whitelist {
-            val inputStream = Whitelist::class.java.getResourceAsStream("/$resourceName")
-                    ?: throw FileNotFoundException("Cannot find resource \"$resourceName\"")
-            return fromStream(inputStream)
-        }
+        @JvmStatic
+        fun createWhitelist() = Whitelist(Whitelist(null, minimumSet, emptySet()), minimumSet, emptySet())
 
         /**
          * Load a whitelist from a file.
