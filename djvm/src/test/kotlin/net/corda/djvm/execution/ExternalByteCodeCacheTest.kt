@@ -9,6 +9,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -98,7 +99,8 @@ class ExternalByteCodeCacheTest : TestBase(KOTLIN) {
 
         // Replace the entry inside the external cache with nonsense.
         val key = externalCache.keys.first()
-        externalCache[key] = ByteCode(byteArrayOf(), null)
+        val byteCode = externalCache.put(key, ByteCode(byteArrayOf(), null)) ?: fail("ByteCode cannot be null")
+        updateInternalCache(mapOf(key.className to byteCode))
 
         sandbox(externalCache) {
             classLoader.toSandboxClass(ExternalTask::class.java)
