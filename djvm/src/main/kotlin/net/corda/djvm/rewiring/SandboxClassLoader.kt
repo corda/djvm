@@ -46,7 +46,7 @@ import java.util.function.Function
  * @property byteCodeCache Precomputed class bytecode, to save us from regenerating it.
  * @property externalCache An externally-provided [ConcurrentMap] of pre-computed byte-code.
  * @param throwableClass This sandbox's definition of [sandbox.java.lang.Throwable].
- * @param parent This classloader's parent classloader.
+ * @param parentClassLoader This classloader's parent classloader.
  */
 class SandboxClassLoader private constructor(
     private val analysisConfiguration: AnalysisConfiguration,
@@ -58,8 +58,8 @@ class SandboxClassLoader private constructor(
     private val externalCache: ExternalCache?,
     throwableClass: Class<*>?,
     annotationClass: Class<*>?,
-    parent: ClassLoader?
-) : SecureClassLoader(parent ?: SandboxClassLoader::class.java.classLoader), AutoCloseable {
+    private val parentClassLoader: ClassLoader
+) : SecureClassLoader(parentClassLoader), AutoCloseable {
 
     /**
      * Maps class names into and out of the sandbox.
@@ -80,7 +80,7 @@ class SandboxClassLoader private constructor(
         System.getSecurityManager()?.apply {
             checkPermission(RuntimePermission("closeClassLoader"))
         }
-        (parent as? SandboxClassLoader)?.close()
+        (parentClassLoader as? SandboxClassLoader)?.close()
         byteCodeCache.update(loadedByteCode)
     }
 
@@ -128,7 +128,7 @@ class SandboxClassLoader private constructor(
         externalCache,
         throwableClass,
         annotationClass,
-        parent
+        parentClassLoader
     )
 
     /**
@@ -328,7 +328,7 @@ class SandboxClassLoader private constructor(
             if (byteCode != null) {
                 return LoadedClass(sandboxClass, byteCode)
             }
-            loader = loader.parent as? SandboxClassLoader ?: return LoadedClass(sandboxClass, UNMODIFIED)
+            loader = loader.parentClassLoader as? SandboxClassLoader ?: return LoadedClass(sandboxClass, UNMODIFIED)
         }
     }
 
@@ -387,9 +387,6 @@ class SandboxClassLoader private constructor(
                 val source = ClassSource.fromClassName(name)
                 val isSandboxClass = classResolver.isSandboxClass(source.internalClassName)
 
-                // We ALWAYS have a parent classloader, because a sandbox
-                // classloader MUST ultimately delegate to the DJVM itself.
-                val parentClassLoader = parent
                 if (!isSandboxClass || parentClassLoader is SandboxClassLoader) {
                     try {
                         clazz = parentClassLoader.loadClass(name)
@@ -807,7 +804,7 @@ class SandboxClassLoader private constructor(
                 externalCache = configuration.externalCache,
                 throwableClass = parentClassLoader?.throwableClass,
                 annotationClass = parentClassLoader?.annotationClass,
-                parent = parentClassLoader
+                parentClassLoader = parentClassLoader ?: HostClassLoader()
             )
         }
     }
