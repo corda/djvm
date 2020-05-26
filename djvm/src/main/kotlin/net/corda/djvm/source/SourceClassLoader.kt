@@ -14,6 +14,8 @@ import net.corda.djvm.messages.Severity
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassReader.SKIP_CODE
+import org.objectweb.asm.ClassReader.SKIP_DEBUG
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.ClassVisitor
 import java.io.FileNotFoundException
@@ -131,7 +133,7 @@ class SourceClassLoader(
         val urls = getURLs().mapTo(LinkedHashSet()) { it }
         var next = parent as? SourceClassLoader
         while (next != null) {
-            Collections.addAll<URL>(urls, *next.getURLs())
+            Collections.addAll(urls, *next.getURLs())
             next = next.parent as? SourceClassLoader
         }
         return urls
@@ -247,7 +249,7 @@ class SourceClassLoader(
 
     private fun defineHeader(name: String, internalName: String, byteCode: ByteArray): ClassHeader {
         val visitor = HeaderVisitor()
-        ClassReader(byteCode).accept(visitor, SKIP_FRAMES)
+        ClassReader(byteCode).accept(visitor, SKIP_FRAMES or SKIP_DEBUG or SKIP_CODE)
 
         if (internalName != visitor.internalName) {
             throw NoClassDefFoundError(internalName)
