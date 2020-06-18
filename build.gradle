@@ -109,7 +109,7 @@ artifactory {
         repository {
             repoKey = 'corda-dependencies-dev'
             username = credentials.getProperty('artifactory.username', System.getenv('CORDA_ARTIFACTORY_USERNAME'))
-            password = credentials.getProperty('artifactory.password', System.getenv('CORDA_ARTIFACTORY_PASSWORD'))
+            password = credentials.getProperty('artifactory.apikey', System.getenv('CORDA_ARTIFACTORY_APIKEY'))
         }
 
         defaults {
