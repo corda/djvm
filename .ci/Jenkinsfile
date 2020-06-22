@@ -1,0 +1,105 @@
+#!groovy
+/**
+ * Jenkins pipeline to build Corda Enterprise Network Services
+ */
+
+/**
+ * Kill already started job.
+ * Assume new commit takes precendence and results from previous
+ * unfinished builds are not required.
+ * This feature doesn't play well with disableConcurrentBuilds() option
+ */
+@Library('existing-build-control')
+import static com.r3.build.BuildControl.killAllExistingBuildsForJob
+killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
+
+/**
+ * Sense environment
+ */
+// boolean isReleaseBranch = (env.BRANCH_NAME =~ /^release\/.*/)
+// boolean isRelease = (env.TAG_NAME =~ /^release_.*/)
+
+pipeline {
+    agent {
+        label 'k8s'
+    }
+
+//     parameters {
+//         booleanParam defaultValue: (isReleaseBranch || isRelease), description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
+//     }
+
+    options {
+        timestamps()
+        buildDiscarder(logRotator(daysToKeepStr: '7', artifactDaysToKeepStr: '7'))
+        disableConcurrentBuilds()
+        timeout(time: 3, unit: 'HOURS')
+    }
+
+    environment {
+        DOCKER_TAG_TO_USE = "${env.GIT_COMMIT.subSequence(0, 8)}"
+        EXECUTOR_NUMBER = "${env.EXECUTOR_NUMBER}"
+        BUILD_ID = "${env.BUILD_ID}-${env.JOB_NAME}"
+        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
+        ARTIFACTORY_BUILD_NAME = "DJVM / Publish / Publish to Artifactory".replaceAll("/", "::")
+    }
+
+    stages {
+
+        stage('Build DJVM') {
+            steps {
+                sh "./gradlew --daemon --no-build-cache clean build"
+            }
+        }
+
+        stage('Build DJVM Example') {
+            steps {
+                sh "./gradlew --daemon --no-build-cache clean build"
+            }
+        }
+
+        stage('Publish to Artifactory') {
+//            when {
+//                expression { params.DO_PUBLISH }
+//                beforeAgent true
+//            }
+
+            // only publish on commits to master
+            // do not publish on pr
+
+            steps {
+                rtServer(
+                        id: 'R3-Artifactory',
+                        url: 'https://software.r3.com/artifactory',
+                        credentialsId: 'artifactory-credentials'
+                )
+                rtGradleDeployer(
+                        id: 'deployer',
+                        serverId: 'R3-Artifactory',
+                        repo: 'r3-tools-dev'
+//                        repo: isRelease ? 'r3-corda-releases' : 'r3-corda-dev'
+                )
+                rtGradleRun(
+                        usesPlugin: true,
+                        useWrapper: true,
+                        switches: '-s --info',
+                        tasks: 'artifactoryPublish',
+                        deployerId: 'deployer',
+                        buildName: env.ARTIFACTORY_BUILD_NAME
+                )
+                rtPublishBuildInfo(
+                        serverId: 'R3-Artifactory',
+                        buildName: env.ARTIFACTORY_BUILD_NAME
+                )
+            }
+        }
+    }
+
+    post {
+        always {
+            junit testResults: '**/build/test-results/**/*.xml', allowEmptyResults: true
+        }
+        cleanup {
+            deleteDir() /* clean up our workspace */
+        }
+    }
+}
