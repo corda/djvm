@@ -44,7 +44,9 @@ pipeline {
 
         stage('Build DJVM Example') {
             steps {
-                sh "cd djvm-example && ./gradlew --daemon --no-build-cache clean build && cd .."
+                dir('djvm-example') {
+                    sh "./gradlew --daemon --no-build-cache clean build"
+                }
             }
         }
 
