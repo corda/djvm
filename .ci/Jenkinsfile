@@ -1,6 +1,6 @@
 #!groovy
 /**
- * Jenkins pipeline to build Corda Enterprise Network Services
+ * Jenkins pipeline to build Corda DJVM
  */
 
 /**
@@ -16,17 +16,12 @@ killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 /**
  * Sense environment
  */
-// boolean isReleaseBranch = (env.BRANCH_NAME =~ /^release\/.*/)
-// boolean isRelease = (env.TAG_NAME =~ /^release_.*/)
+ boolean isMaster = (env.BRANCH_NAME =~ /^master$/)
 
 pipeline {
     agent {
         label 'k8s'
     }
-
-//     parameters {
-//         booleanParam defaultValue: (isReleaseBranch || isRelease), description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
-//     }
 
     options {
         timestamps()
@@ -58,13 +53,9 @@ pipeline {
         }
 
         stage('Publish to Artifactory') {
-//            when {
-//                expression { params.DO_PUBLISH }
-//                beforeAgent true
-//            }
-
-            // only publish on commits to master
-            // do not publish on pr
+            when {
+                expression { master }
+            }
 
             steps {
                 rtServer(
@@ -75,8 +66,7 @@ pipeline {
                 rtGradleDeployer(
                         id: 'deployer',
                         serverId: 'R3-Artifactory',
-                        repo: 'r3-tools-dev'
-//                        repo: isRelease ? 'r3-corda-releases' : 'r3-corda-dev'
+                        repo: 'corda-dependencies-dev'
                 )
                 rtGradleRun(
                         usesPlugin: true,
