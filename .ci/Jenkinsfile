@@ -20,7 +20,7 @@ boolean isMaster = (env.BRANCH_NAME =~ /^master$/)
 
 pipeline {
     agent {
-        label 'k8s'
+        label 'standard'
     }
 
     options {
@@ -30,9 +30,6 @@ pipeline {
     }
 
     environment {
-        DOCKER_TAG_TO_USE = "${env.GIT_COMMIT.subSequence(0, 8)}"
-        EXECUTOR_NUMBER = "${env.EXECUTOR_NUMBER}"
-        BUILD_ID = "${env.BUILD_ID}-${env.JOB_NAME}"
         ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
         ARTIFACTORY_BUILD_NAME = "DJVM / Publish / Publish to Artifactory".replaceAll("/", "::")
     }
@@ -47,7 +44,7 @@ pipeline {
 
         stage('Build DJVM Example') {
             steps {
-                sh "./gradlew --daemon --no-build-cache clean build"
+                sh "cd djvm-example && ./gradlew --daemon --no-build-cache clean build"
             }
         }
 
@@ -85,7 +82,7 @@ pipeline {
 
     post {
         always {
-            junit testResults: '**/build/test-results/**/*.xml', allowEmptyResults: true
+            junit testResults: '**/build/test-results/**/*.xml', allowEmptyResults: true, keepLongStdio: true
         }
         cleanup {
             deleteDir() /* clean up our workspace */
