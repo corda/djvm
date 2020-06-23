@@ -16,7 +16,7 @@ killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 /**
  * Sense environment
  */
- boolean isMaster = (env.BRANCH_NAME =~ /^master$/)
+boolean isMaster = (env.BRANCH_NAME =~ /^master$/)
 
 pipeline {
     agent {
@@ -26,7 +26,6 @@ pipeline {
     options {
         timestamps()
         buildDiscarder(logRotator(daysToKeepStr: '7', artifactDaysToKeepStr: '7'))
-        disableConcurrentBuilds()
         timeout(time: 3, unit: 'HOURS')
     }
 
