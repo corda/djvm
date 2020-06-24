@@ -35,7 +35,7 @@ pipeline {
     }
 
     environment {
-        ARTIFACTORY_BUILD_NAME = "DJVM / Publish / Publish to Artifactory".replaceAll("/", "::")
+        ARTIFACTORY_BUILD_NAME = "DJVM / Publish / ${isSnapshot ? "Snapshot /":""} Publish to Artifactory".replaceAll("/", "::")
     }
 
     stages {
