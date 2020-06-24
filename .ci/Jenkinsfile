@@ -24,7 +24,7 @@ pipeline {
         label 'standard'
     }
 
-    params {
+    parameters {
         booleanParam defaultValue: ( isRelease || isSnapshot ), description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
     }
 
@@ -68,7 +68,8 @@ pipeline {
                 rtGradleDeployer(
                         id: 'deployer',
                         serverId: 'R3-Artifactory',
-                        repo: isRelease ? 'corda-dependencies' : 'corda-dependencies-dev'
+//                        repo: isRelease ? 'corda-dependencies' : 'corda-dependencies-dev'
+                        repo: isRelease ? 'testing-ci-uploads-release' : 'testing-ci-uploads-dev'
                 )
                 rtGradleRun(
                         usesPlugin: true,
