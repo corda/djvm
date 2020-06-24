@@ -16,9 +16,8 @@ killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 /**
  * Sense environment
  */
-//boolean isRelease = (env.TAG_NAME =~ /^release\/.+$/)
-boolean isRelease = (env.TAG_NAME =~ /^ci-test-release.*$/)
-boolean isSnapshot = (env.TAG_NAME =~ /^ci-test-snapshot.*$/)
+boolean isRelease = (env.TAG_NAME =~ /^release\/.+$/)
+boolean isSnapshot = (env.BRANCH_NAME =~ /^master$/)
 
 pipeline {
     agent {
@@ -69,8 +68,7 @@ pipeline {
                 rtGradleDeployer(
                         id: 'deployer',
                         serverId: 'R3-Artifactory',
-//                        repo: isRelease ? 'corda-dependencies' : 'corda-dependencies-dev'
-                        repo: isRelease ? 'testing-ci-uploads-release' : 'testing-ci-uploads-dev'
+                        repo: isRelease ? 'corda-dependencies' : 'corda-dependencies-dev'
                 )
                 rtGradleRun(
                         usesPlugin: true,
