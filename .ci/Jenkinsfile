@@ -16,7 +16,8 @@ killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 /**
  * Sense environment
  */
-boolean isReleaseTag = (env.TAG_NAME =~ /^release\/.+$/)
+boolean isPR = (env.BRANCH_NAME.startsWith('PR'))
+boolean isRelease = (env.TAG_NAME =~ /^release\/.+$/ || env.BRANCH_NAME =~ /^release\/.+$/)
 
 pipeline {
     agent {
@@ -51,7 +52,7 @@ pipeline {
 
         stage('Publish to Artifactory') {
             when {
-                expression { isReleaseTag }
+                expression { !isPR }
             }
 
             steps {
@@ -63,7 +64,7 @@ pipeline {
                 rtGradleDeployer(
                         id: 'deployer',
                         serverId: 'R3-Artifactory',
-                        repo: 'corda-dependencies-dev'
+                        repo: isRelease ? 'corda-dependencies' : 'corda-dependencies-dev'
                 )
                 rtGradleRun(
                         usesPlugin: true,
