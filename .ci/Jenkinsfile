@@ -70,7 +70,7 @@ pipeline {
                         id: 'deployer',
                         serverId: 'R3-Artifactory',
 //                        repo: isRelease ? 'corda-dependencies' : 'corda-dependencies-dev'
-                        repo: isRelease ? 'testing-ci-uploads-release' : 'testing-ci-uploads-dev'
+                        repo: isRelease ? 'testing-ci-uploads-dev' : 'testing-ci-uploads-release'
                 )
                 rtGradleRun(
                         usesPlugin: true,
