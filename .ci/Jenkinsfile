@@ -18,7 +18,7 @@ killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
  */
 //boolean isRelease = (env.TAG_NAME =~ /^release\/.+$/)
 boolean isRelease = (env.TAG_NAME =~ /^ci-test-release.*$/)
-boolean isSnapshot = (env.BRANCH_NAME =~ /^ci-test-snapshot.*$/)
+boolean isSnapshot = (env.TAG_NAME =~ /^ci-test-snapshot.*$/)
 
 pipeline {
     agent {
