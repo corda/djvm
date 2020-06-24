@@ -17,7 +17,7 @@ killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
  * Sense environment
  */
 //boolean isRelease = (env.TAG_NAME =~ /^release\/.+$/)
-boolean isRelease = (env.TAG_NAME =~ '/^ci-test.*$/')
+boolean isRelease = (env.TAG_NAME =~ /^ci-test.*$/)
 boolean isSnapshot = (env.BRANCH_NAME =~ /^master$/)
 
 pipeline {
