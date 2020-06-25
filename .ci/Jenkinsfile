@@ -92,6 +92,7 @@ pipeline {
             junit testResults: '**/build/test-results/**/*.xml', allowEmptyResults: true, keepLongStdio: true
         }
         cleanup {
+            sh "./gradlew --stop"
             deleteDir() /* clean up our workspace */
         }
     }
