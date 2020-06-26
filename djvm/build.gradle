@@ -73,6 +73,14 @@ tasks.named('jar', Jar) {
     enabled = false
 }
 
+tasks.named('sourceJar', Jar) {
+    exclude 'sandbox/**'
+}
+
+tasks.named('javadoc', Javadoc) {
+    exclude 'sandbox/**'
+}
+
 shadowJar {
     classifier ''
     reproducibleFileOrder = true
