@@ -20,12 +20,19 @@ class ScalaSandboxTest : TestBase(KOTLIN) {
     }
 
     @Test
+    fun testDigestTask() = sandbox {
+        val taskFactory = classLoader.createTypedTaskFactory()
+        val digest = taskFactory.create(ScalaDigestTask::class.java).apply("Secret Message!".toByteArray())
+        assertEquals("1bf7aa187ccdf0082f99593371a2f4cd0a4f9dc9a30e867d5ad48b9971a95f53", digest)
+    }
+
+    @Test
     fun testBadTask() = sandbox {
         val taskFactory = classLoader.createTypedTaskFactory()
         val ex = assertThrows<RuleViolationError> {
-            taskFactory.create(BadScalaTask::class.java).apply("Secret Message!".toByteArray())
+            taskFactory.create(BadScalaTask::class.java).apply("name")
         }
         assertThat(ex)
-            .hasMessageContaining("Disallowed reference to API; java.lang.invoke.MethodHandleImpl\$1.run()")
+            .hasMessageContaining("Disallowed reference to API; java.lang.Class.getField(String)")
     }
 }
