@@ -29,14 +29,14 @@ subprojects {
         mavenCentral()
     }
 
-    tasks.withType(JavaCompile) {
+    tasks.withType(JavaCompile).configureEach {
         sourceCompatibility = VERSION_1_8
         targetCompatibility = VERSION_1_8
         options.encoding = 'UTF-8'
         options.compilerArgs << '-XDenableSunApiLintControl' << '-Werror'
     }
 
-    tasks.withType(KotlinCompile) {
+    tasks.withType(KotlinCompile).configureEach {
         kotlinOptions {
             languageVersion = '1.2'
             apiVersion = '1.2'
@@ -46,13 +46,13 @@ subprojects {
         }
     }
 
-    tasks.withType(Jar) { task ->
+    tasks.withType(Jar).configureEach {
         manifest {
             attributes('Corda-Vendor': 'Corda Open Source')
         }
     }
 
-    tasks.withType(Test) {
+    tasks.withType(Test).configureEach {
         useJUnitPlatform()
 
         // Prevent the project from creating temporary files outside of the build directory.
