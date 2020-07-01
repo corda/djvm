@@ -82,7 +82,7 @@ tasks.named('jar', Jar) {
 
 def securityPolicy = file('targeted.policy')
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 
