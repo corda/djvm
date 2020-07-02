@@ -57,9 +57,8 @@ task shadowZip(type: Zip) {
     zip64 true
 }
 
-assemble.dependsOn shadowZip
-
 artifacts {
+    archives shadowZip
     publish shadowZip
 }
 

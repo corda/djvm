@@ -174,7 +174,6 @@ shadowJar {
     exclude 'sandbox/sun/security/x509/X500Name.class'
     exclude 'sandbox/sun/util/calendar/ZoneInfoFile.class'
 }
-assemble.dependsOn shadowJar
 
 def securityPolicy = file('permissive.policy')
 
@@ -200,6 +199,7 @@ tasks.withType(Test).configureEach {
 }
 
 artifacts {
+    archives shadowJar
     publish shadowJar
 }
 

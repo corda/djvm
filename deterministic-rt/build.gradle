@@ -144,8 +144,6 @@ task apiJar(type: Jar, dependsOn: runtimeJar) {
 }
 
 defaultTasks 'build'
-assemble.dependsOn runtimeJar
-assemble.dependsOn apiJar
 clean.dependsOn cleanJdk
 
 artifacts {
