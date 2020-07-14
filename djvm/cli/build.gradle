@@ -29,7 +29,7 @@ tasks.named('jar', Jar) {
     enabled = false
 }
 
-shadowJar {
+def shadowJar = tasks.named('shadowJar', Jar) {
     archiveBaseName = djvmName
     archiveClassifier = ''
     manifest {
@@ -43,7 +43,7 @@ shadowJar {
     }
 }
 
-task shadowZip(type: Zip) {
+def shadowZip = tasks.register('shadowZip', Zip) {
     archiveBaseName = djvmName
     archiveClassifier = ''
 
@@ -58,13 +58,13 @@ task shadowZip(type: Zip) {
 }
 
 artifacts {
-    archives shadowZip
-    publish shadowZip
+    archives shadowZip.flatMap { it.archiveFile }
+    publish shadowZip.flatMap { it.archiveFile }
 }
 
 publish {
     dependenciesFrom configurations.shadow
     publishSources = false
     publishJavadoc = false
-    name shadowZip.baseName
+    name shadowZip.flatMap { it.archiveBaseName }
 }

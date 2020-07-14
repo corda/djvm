@@ -6,7 +6,6 @@ plugins {
     id 'net.corda.plugins.publish-utils'
     id 'net.corda.plugins.api-scanner'
     id 'com.jfrog.artifactory'
-    id 'com.jfrog.bintray'
     id 'java-library'
     id 'idea'
 }
@@ -81,7 +80,7 @@ tasks.named('javadoc', Javadoc) {
     exclude 'sandbox/**'
 }
 
-shadowJar {
+def shadowJar = tasks.named('shadowJar', Jar) {
     classifier ''
     reproducibleFileOrder = true
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
@@ -199,8 +198,8 @@ tasks.withType(Test).configureEach {
 }
 
 artifacts {
-    archives shadowJar
-    publish shadowJar
+    archives shadowJar.flatMap { it.archiveFile }
+    publish shadowJar.flatMap { it.archiveFile }
 }
 
 scanApi {

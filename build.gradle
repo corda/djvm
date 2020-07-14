@@ -3,7 +3,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import static org.gradle.api.JavaVersion.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import net.corda.plugins.GenerateApi
+import net.corda.plugins.apiscanner.GenerateApi
 
 plugins {
     id 'org.jetbrains.kotlin.jvm' apply false
