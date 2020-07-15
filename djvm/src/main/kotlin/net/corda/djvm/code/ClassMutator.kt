@@ -4,6 +4,8 @@ import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.ClassAndMemberVisitor
 import net.corda.djvm.code.instructions.MethodEntry
 import net.corda.djvm.references.ClassRepresentation
+import net.corda.djvm.references.ImmutableClass
+import net.corda.djvm.references.ImmutableMember
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
 import net.corda.djvm.utilities.loggerFor
@@ -68,18 +70,18 @@ class ClassMutator(
      * of the class itself.
      */
     override fun visitClass(clazz: ClassRepresentation): ClassRepresentation {
-        var resultingClass = clazz
+        var resultingClass: ImmutableClass = clazz
         processEntriesOfType<ClassDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
             resultingClass = it.define(currentAnalysisContext(), resultingClass)
         })
-        if (clazz != resultingClass) {
+        if (clazz !== resultingClass) {
             logger.trace("Type has been mutated {}", clazz)
             setModified()
         }
         if (clazz.access and ACC_ANNOTATION != 0) {
             setAnnotation()
         }
-        return super.visitClass(resultingClass)
+        return super.visitClass(resultingClass as ClassRepresentation)
     }
 
     /**
@@ -110,15 +112,15 @@ class ClassMutator(
      * of a class member.
      */
     override fun visitMethod(clazz: ClassRepresentation, method: Member): Member {
-        var resultingMethod = method
+        var resultingMethod: ImmutableMember = method
         processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
             resultingMethod = it.define(currentAnalysisContext(), resultingMethod)
         })
-        if (method != resultingMethod) {
+        if (method !== resultingMethod) {
             logger.trace("Method has been mutated {}", method)
             setModified()
         }
-        return super.visitMethod(clazz, resultingMethod)
+        return super.visitMethod(clazz, resultingMethod as Member)
     }
 
     /**
@@ -126,16 +128,16 @@ class ClassMutator(
      * of a class member.
      */
     override fun visitField(clazz: ClassRepresentation, field: Member): Member {
-        var resultingField = field
+        var resultingField: ImmutableMember = field
         processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
             resultingField = it.define(currentAnalysisContext(), resultingField)
         })
-        if (field != resultingField) {
+        if (field !== resultingField) {
             logger.trace("Field has been mutated {}", field)
             initializers += resultingField.body
             setModified()
         }
-        return super.visitField(clazz, resultingField)
+        return super.visitField(clazz, resultingField as Member)
     }
 
     /**
