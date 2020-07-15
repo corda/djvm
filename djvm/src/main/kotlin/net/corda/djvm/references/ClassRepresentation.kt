@@ -21,7 +21,7 @@ data class ClassRepresentation(
         override val access: Int,
         val name: String,
         val superClass: String = "",
-        val interfaces: List<String> = listOf(),
+        val interfaces: List<String> = emptyList(),
         var sourceFile: String = "",
         val genericsDetails: String = "",
         val members: MutableMap<String, Member> = mutableMapOf(),
