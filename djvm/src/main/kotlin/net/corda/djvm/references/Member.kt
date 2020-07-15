@@ -32,7 +32,7 @@ data class Member(
     override val descriptor: String,
     val genericsDetails: String,
     val annotations: MutableSet<String> = mutableSetOf(),
-    val exceptions: MutableSet<String> = mutableSetOf(),
+    val exceptions: Set<String> = emptySet(),
     val value: Any? = null,
     val body: List<MethodBody> = emptyList(),
     val runtimeContext: MutableMap<Emitter, Any> = mutableMapOf()

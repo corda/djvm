@@ -300,7 +300,7 @@ open class ClassAndMemberVisitor(
                 memberName = name,
                 descriptor = desc,
                 genericsDetails = signature ?: "",
-                exceptions = exceptions?.toMutableSet() ?: mutableSetOf()
+                exceptions = exceptions?.toSet() ?: emptySet()
             )
             currentMember = member
             sourceLocation = sourceLocation.copy(

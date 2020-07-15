@@ -66,5 +66,5 @@ publish {
     dependenciesFrom configurations.shadow
     publishSources = false
     publishJavadoc = false
-    name shadowZip.flatMap { it.archiveBaseName }
+    name = shadowZip.flatMap { it.archiveBaseName }
 }

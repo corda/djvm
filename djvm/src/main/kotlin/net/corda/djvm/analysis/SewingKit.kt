@@ -10,6 +10,8 @@ import org.objectweb.asm.Opcodes.ACC_BRIDGE
 import org.objectweb.asm.Opcodes.ACC_FINAL
 import org.objectweb.asm.Opcodes.ACC_PROTECTED
 import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
+import java.util.Collections.unmodifiableList
+import java.util.Collections.unmodifiableSet
 
 @CordaInternal
 open class MethodBuilder(
@@ -37,8 +39,8 @@ open class MethodBuilder(
         memberName = memberName,
         descriptor = descriptor,
         genericsDetails = signature,
-        exceptions = exceptions.toMutableSet(),
-        body = bodies
+        exceptions = unmodifiableSet(exceptions),
+        body = unmodifiableList(bodies)
     )
 }
 
