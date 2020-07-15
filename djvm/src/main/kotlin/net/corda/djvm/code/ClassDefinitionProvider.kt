@@ -1,7 +1,7 @@
 package net.corda.djvm.code
 
 import net.corda.djvm.analysis.AnalysisRuntimeContext
-import net.corda.djvm.references.ClassRepresentation
+import net.corda.djvm.references.ImmutableClass
 
 /**
  * A class definition provider is a hook for [ClassMutator], from where one can modify the name and meta-data of
@@ -17,6 +17,6 @@ interface ClassDefinitionProvider : DefinitionProvider {
      *
      * @return The updated class definition, or [clazz] if no changes are desired.
      */
-    fun define(context: AnalysisRuntimeContext, clazz: ClassRepresentation): ClassRepresentation
+    fun define(context: AnalysisRuntimeContext, clazz: ImmutableClass): ImmutableClass
 
 }

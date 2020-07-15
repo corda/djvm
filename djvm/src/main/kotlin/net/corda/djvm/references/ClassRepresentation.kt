@@ -1,5 +1,6 @@
 package net.corda.djvm.references
 
+import net.corda.djvm.CordaInternal
 import net.corda.djvm.code.OBJECT_NAME
 import java.lang.reflect.Modifier
 
@@ -17,19 +18,55 @@ import java.lang.reflect.Modifier
  * @property annotations The set of annotations applied to the class.
  */
 data class ClassRepresentation(
-        val apiVersion: Int,
+        override val apiVersion: Int,
         override val access: Int,
-        val name: String,
-        val superClass: String = "",
-        val interfaces: List<String> = emptyList(),
-        var sourceFile: String = "",
-        val genericsDetails: String = "",
+        override val name: String,
+        override val superClass: String = "",
+        override val interfaces: List<String> = emptyList(),
+        override var sourceFile: String = "",
+        override val genericsDetails: String = "",
         val members: MutableMap<String, Member> = mutableMapOf(),
         val annotations: MutableSet<String> = mutableSetOf()
-) : EntityWithAccessFlag {
-    val isInterface: Boolean
+) : EntityWithAccessFlag, ImmutableClass {
+    override val isInterface: Boolean
         get() = Modifier.isInterface(access)
 
-    val hasObjectAsSuperclass: Boolean
+    override val hasObjectAsSuperclass: Boolean
         get() = superClass.isEmpty() || superClass == OBJECT_NAME
+
+    override fun toMutable(): ClassCopier = ClassCopier(this)
+}
+
+@CordaInternal
+interface ImmutableClass : ClassInformation {
+    val apiVersion: Int
+    val access: Int
+    val name: String
+    val superClass: String
+    val interfaces: List<String>
+    var sourceFile: String
+    val genericsDetails: String
+
+    fun toMutable(): ClassCopier
+}
+
+@CordaInternal
+class ClassCopier internal constructor(private val clazz: ClassRepresentation) {
+    fun copy(
+        apiVersion: Int = clazz.apiVersion,
+        access: Int = clazz.access,
+        name: String = clazz.name,
+        superClass: String = clazz.superClass,
+        interfaces: List<String> = clazz.interfaces,
+        sourceFile: String = clazz.sourceFile,
+        genericsDetails: String = clazz.genericsDetails
+    ): ClassRepresentation = clazz.copy(
+        apiVersion = apiVersion,
+        access = access,
+        name = name,
+        superClass = superClass,
+        interfaces = interfaces,
+        sourceFile = sourceFile,
+        genericsDetails = genericsDetails
+    )
 }

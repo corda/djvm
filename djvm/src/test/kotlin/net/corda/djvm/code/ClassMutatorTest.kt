@@ -3,8 +3,8 @@ package net.corda.djvm.code
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.analysis.AnalysisRuntimeContext
-import net.corda.djvm.references.ClassRepresentation
-import net.corda.djvm.references.Member
+import net.corda.djvm.references.ImmutableClass
+import net.corda.djvm.references.ImmutableMember
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.objectweb.asm.Opcodes.ACC_STRICT
@@ -16,9 +16,9 @@ class ClassMutatorTest : TestBase(KOTLIN) {
     fun `can mutate class definition`() {
         var hasProvidedDefinition = false
         val definitionProvider = object : ClassDefinitionProvider {
-            override fun define(context: AnalysisRuntimeContext, clazz: ClassRepresentation): ClassRepresentation {
+            override fun define(context: AnalysisRuntimeContext, clazz: ImmutableClass): ImmutableClass {
                 hasProvidedDefinition = true
-                return clazz.copy(access = clazz.access or ACC_STRICT)
+                return clazz.toMutable().copy(access = clazz.access or ACC_STRICT)
             }
         }
         val context = context
@@ -39,9 +39,9 @@ class ClassMutatorTest : TestBase(KOTLIN) {
     fun `can mutate member definition`() {
         var hasProvidedDefinition = false
         val definitionProvider = object : MemberDefinitionProvider {
-            override fun define(context: AnalysisRuntimeContext, member: Member): Member {
+            override fun define(context: AnalysisRuntimeContext, member: ImmutableMember): ImmutableMember {
                 hasProvidedDefinition = true
-                return member.copy(access = member.access or ACC_STRICT)
+                return member.toMutable().copy(access = member.access or ACC_STRICT)
             }
         }
         val context = context

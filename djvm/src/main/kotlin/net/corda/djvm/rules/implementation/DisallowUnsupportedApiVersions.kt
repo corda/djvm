@@ -1,6 +1,6 @@
 package net.corda.djvm.rules.implementation
 
-import net.corda.djvm.references.ClassRepresentation
+import net.corda.djvm.references.ImmutableClass
 import net.corda.djvm.rules.ClassRule
 import net.corda.djvm.validation.RuleContext
 import org.objectweb.asm.Opcodes.*
@@ -10,7 +10,7 @@ import org.objectweb.asm.Opcodes.*
  */
 object DisallowUnsupportedApiVersions : ClassRule() {
 
-    override fun validate(context: RuleContext, clazz: ClassRepresentation) = context.validate {
+    override fun validate(context: RuleContext, clazz: ImmutableClass) = context.validate {
         fail("Unsupported Java API version '${versionString(clazz.apiVersion)}'") given
                 (clazz.apiVersion !in supportedVersions)
     }

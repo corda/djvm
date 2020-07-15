@@ -30,10 +30,49 @@ data class Member(
     override val className: String,
     override val memberName: String,
     override val descriptor: String,
-    val genericsDetails: String,
+    override val genericsDetails: String,
     val annotations: MutableSet<String> = mutableSetOf(),
-    val exceptions: Set<String> = emptySet(),
-    val value: Any? = null,
-    val body: List<MethodBody> = emptyList(),
+    override val exceptions: Set<String> = emptySet(),
+    override val value: Any? = null,
+    override val body: List<MethodBody> = emptyList(),
     val runtimeContext: MutableMap<Emitter, Any> = mutableMapOf()
-) : MemberInformation, EntityWithAccessFlag
+) : ImmutableMember, EntityWithAccessFlag {
+    override fun toMutable() = MemberCopier(this)
+}
+
+@CordaInternal
+interface ImmutableMember : MemberInformation {
+    val access: Int
+    override val className: String
+    override val memberName: String
+    override val descriptor: String
+    val genericsDetails: String
+    val exceptions: Set<String>
+    val value: Any?
+    val body: List<MethodBody>
+
+    fun toMutable(): MemberCopier
+}
+
+@CordaInternal
+class MemberCopier internal constructor(private val member: Member) {
+    fun copy(
+        access: Int = member.access,
+        className: String = member.className,
+        memberName: String = member.memberName,
+        descriptor: String = member.descriptor,
+        genericsDetails: String = member.genericsDetails,
+        exceptions: Set<String> = member.exceptions,
+        value: Any? = member.value,
+        body: List<MethodBody> = member.body
+    ): Member = member.copy(
+        access = access,
+        className = className,
+        memberName = memberName,
+        descriptor = descriptor,
+        genericsDetails = genericsDetails,
+        exceptions = exceptions,
+        value = value,
+        body = body
+    )
+}
