@@ -519,7 +519,7 @@ val securityProviders: Properties
     }
 
 private fun Properties.setDJVMProperty(key: kotlin.String, value: kotlin.String) {
-    setProperty(String.toDJVM(key), String.toDJVM(value))
+    setProperty(intern(key), intern(value))
 }
 
 /**

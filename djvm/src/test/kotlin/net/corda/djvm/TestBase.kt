@@ -37,7 +37,7 @@ import org.objectweb.asm.Type
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.Files.exists
-import java.nio.file.Files.isDirectory
+import java.nio.file.Files.isRegularFile
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections.unmodifiableList
@@ -46,7 +46,7 @@ import java.util.function.Consumer
 import kotlin.concurrent.thread
 import kotlin.reflect.jvm.jvmName
 
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 @ExtendWith(SecurityManagement::class)
 abstract class TestBase(type: SandboxType) {
     companion object {
@@ -105,7 +105,11 @@ abstract class TestBase(type: SandboxType) {
 
     val classPaths: List<Path> = when(type) {
         KOTLIN -> TESTING_LIBRARIES
-        JAVA -> TESTING_LIBRARIES.filter { isDirectory(it) }
+        JAVA -> TESTING_LIBRARIES.filterNot(::isKotlin)
+    }
+
+    private fun isKotlin(path: Path): Boolean {
+        return isRegularFile(path) && path.fileName.toString().contains("kotlin")
     }
 
     private val userSource = UserPathSource(classPaths)
