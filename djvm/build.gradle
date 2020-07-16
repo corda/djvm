@@ -189,7 +189,7 @@ tasks.withType(Test).configureEach {
     if (current().isJava9Compatible()) {
         // https://openjdk.java.net/jeps/165
         jvmArgs '-XX:+UnlockDiagnosticVMOptions',
-                "-XX:CompilerDirectivesFile=${rootProject.projectDir}/compiler-control.json"
+                "-XX:CompilerDirectivesFile=$rootDir/compiler-control.json"
     } else {
         // Disable JIT compilation of sandbox.* classes because they are discarded after use.
         // https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
