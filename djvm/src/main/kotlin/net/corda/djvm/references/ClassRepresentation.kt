@@ -17,19 +17,55 @@ import java.lang.reflect.Modifier
  * @property annotations The set of annotations applied to the class.
  */
 data class ClassRepresentation(
-        val apiVersion: Int,
+        override val apiVersion: Int,
         override val access: Int,
-        val name: String,
-        val superClass: String = "",
-        val interfaces: List<String> = listOf(),
-        var sourceFile: String = "",
-        val genericsDetails: String = "",
+        override val name: String,
+        override val superClass: String = "",
+        override val interfaces: List<String> = emptyList(),
+        override var sourceFile: String = "",
+        override val genericsDetails: String = "",
         val members: MutableMap<String, Member> = mutableMapOf(),
         val annotations: MutableSet<String> = mutableSetOf()
-) : EntityWithAccessFlag {
-    val isInterface: Boolean
+) : EntityWithAccessFlag, ImmutableClass {
+    override val isInterface: Boolean
         get() = Modifier.isInterface(access)
 
-    val hasObjectAsSuperclass: Boolean
+    override val hasObjectAsSuperclass: Boolean
         get() = superClass.isEmpty() || superClass == OBJECT_NAME
+
+    override fun toMutable(): Copier = Copier()
+
+    inner class Copier {
+        fun copy(
+            apiVersion: Int = this@ClassRepresentation.apiVersion,
+            access: Int = this@ClassRepresentation.access,
+            name: String = this@ClassRepresentation.name,
+            superClass: String = this@ClassRepresentation.superClass,
+            interfaces: List<String> = this@ClassRepresentation.interfaces,
+            sourceFile: String = this@ClassRepresentation.sourceFile,
+            genericsDetails: String = this@ClassRepresentation.genericsDetails
+        ): ImmutableClass = ClassRepresentation(
+            apiVersion = apiVersion,
+            access = access,
+            name = name,
+            superClass = superClass,
+            interfaces = interfaces,
+            sourceFile = sourceFile,
+            genericsDetails = genericsDetails,
+            members = this@ClassRepresentation.members,
+            annotations = this@ClassRepresentation.annotations
+        )
+    }
+}
+
+interface ImmutableClass : ClassInformation {
+    val apiVersion: Int
+    val access: Int
+    val name: String
+    val superClass: String
+    val interfaces: List<String>
+    var sourceFile: String
+    val genericsDetails: String
+
+    fun toMutable(): ClassRepresentation.Copier
 }

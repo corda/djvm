@@ -4,7 +4,7 @@ import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.code.*
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import net.corda.djvm.code.instructions.TypeInstruction
-import net.corda.djvm.references.ClassRepresentation
+import net.corda.djvm.references.ImmutableClass
 import org.objectweb.asm.Opcodes
 
 /**
@@ -14,9 +14,9 @@ import org.objectweb.asm.Opcodes
 object AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
     private val SIGNATURE = "^(<.*>)?Ljava/lang/Object;(.*)$".toRegex()
 
-    override fun define(context: AnalysisRuntimeContext, clazz: ClassRepresentation) = when {
+    override fun define(context: AnalysisRuntimeContext, clazz: ImmutableClass): ImmutableClass = when {
         isDirectSubClassOfObject(context.clazz) ->
-            clazz.copy(
+            clazz.toMutable().copy(
                 superClass = SANDBOX_OBJECT_NAME,
                 genericsDetails = mapToSandboxObject(clazz.genericsDetails)
             )
@@ -52,7 +52,7 @@ object AlwaysInheritFromSandboxedObject : ClassDefinitionProvider, Emitter {
         }
     }
 
-    private fun isDirectSubClassOfObject(clazz: ClassRepresentation): Boolean {
+    private fun isDirectSubClassOfObject(clazz: ImmutableClass): Boolean {
         // Check if the super class is java.lang.Object.
         return !clazz.isInterface && clazz.hasObjectAsSuperclass
     }

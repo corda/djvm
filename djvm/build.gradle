@@ -213,7 +213,7 @@ publish {
     dependenciesFrom(configurations.shadow) {
         defaultScope = 'compile'
     }
-    name 'corda-djvm'
+    name = 'corda-djvm'
 }
 
 idea {

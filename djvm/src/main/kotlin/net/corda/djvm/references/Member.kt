@@ -30,10 +30,51 @@ data class Member(
     override val className: String,
     override val memberName: String,
     override val descriptor: String,
-    val genericsDetails: String,
+    override val genericsDetails: String,
     val annotations: MutableSet<String> = mutableSetOf(),
-    val exceptions: MutableSet<String> = mutableSetOf(),
-    val value: Any? = null,
-    val body: List<MethodBody> = emptyList(),
+    override val exceptions: Set<String> = emptySet(),
+    override val value: Any? = null,
+    override val body: List<MethodBody> = emptyList(),
     val runtimeContext: MutableMap<Emitter, Any> = mutableMapOf()
-) : MemberInformation, EntityWithAccessFlag
+) : ImmutableMember, EntityWithAccessFlag {
+    override fun toMutable(): Copier = Copier()
+
+    @CordaInternal
+    inner class Copier {
+        fun copy(
+            access: Int = this@Member.access,
+            className: String = this@Member.className,
+            memberName: String = this@Member.memberName,
+            descriptor: String = this@Member.descriptor,
+            genericsDetails: String = this@Member.genericsDetails,
+            exceptions: Set<String> = this@Member.exceptions,
+            value: Any? = this@Member.value,
+            body: List<MethodBody> = this@Member.body
+        ): ImmutableMember = Member(
+            access = access,
+            className = className,
+            memberName = memberName,
+            descriptor = descriptor,
+            genericsDetails = genericsDetails,
+            annotations = this@Member.annotations,
+            exceptions = exceptions,
+            value = value,
+            body = body,
+            runtimeContext = this@Member.runtimeContext
+        )
+    }
+}
+
+@CordaInternal
+interface ImmutableMember : MemberInformation {
+    val access: Int
+    override val className: String
+    override val memberName: String
+    override val descriptor: String
+    val genericsDetails: String
+    val exceptions: Set<String>
+    val value: Any?
+    val body: List<MethodBody>
+
+    fun toMutable(): Member.Copier
+}

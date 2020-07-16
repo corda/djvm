@@ -1,7 +1,7 @@
 package net.corda.djvm.code
 
 import net.corda.djvm.analysis.AnalysisRuntimeContext
-import net.corda.djvm.references.Member
+import net.corda.djvm.references.ImmutableMember
 
 /**
  * A member definition provider is a hook for [ClassMutator], from where one can modify the name and meta-data of
@@ -17,6 +17,6 @@ interface MemberDefinitionProvider : DefinitionProvider {
      *
      * @return The updated member definition, or [member] if no changes are desired.
      */
-    fun define(context: AnalysisRuntimeContext, member: Member): Member
+    fun define(context: AnalysisRuntimeContext, member: ImmutableMember): ImmutableMember
 
 }

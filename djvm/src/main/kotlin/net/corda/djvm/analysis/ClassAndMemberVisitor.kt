@@ -223,7 +223,7 @@ open class ClassAndMemberVisitor(
                 interfaces: Array<String>?
         ) {
             val superClassName = superName ?: ""
-            val interfaceNames = interfaces?.toMutableList() ?: mutableListOf()
+            val interfaceNames = interfaces?.toList() ?: emptyList()
             ClassRepresentation(version, access, name, superClassName, interfaceNames, genericsDetails = signature ?: "").also {
                 currentClass = it
                 currentMember = null
@@ -300,7 +300,7 @@ open class ClassAndMemberVisitor(
                 memberName = name,
                 descriptor = desc,
                 genericsDetails = signature ?: "",
-                exceptions = exceptions?.toMutableSet() ?: mutableSetOf()
+                exceptions = exceptions?.toSet() ?: emptySet()
             )
             currentMember = member
             sourceLocation = sourceLocation.copy(
