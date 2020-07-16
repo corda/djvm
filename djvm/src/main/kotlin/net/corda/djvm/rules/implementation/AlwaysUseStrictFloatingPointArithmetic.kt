@@ -22,7 +22,7 @@ object AlwaysUseStrictFloatingPointArithmetic : MemberRule(), MemberDefinitionPr
         }
     }
 
-    override fun define(context: AnalysisRuntimeContext, member: ImmutableMember) = when {
+    override fun define(context: AnalysisRuntimeContext, member: ImmutableMember): ImmutableMember = when {
         member.isMethod && isConcrete(context.clazz) -> member.toMutable().copy(access = member.access or ACC_STRICT)
         else -> member
     }

@@ -37,7 +37,32 @@ data class Member(
     override val body: List<MethodBody> = emptyList(),
     val runtimeContext: MutableMap<Emitter, Any> = mutableMapOf()
 ) : ImmutableMember, EntityWithAccessFlag {
-    override fun toMutable() = MemberCopier(this)
+    override fun toMutable(): Copier = Copier()
+
+    @CordaInternal
+    inner class Copier {
+        fun copy(
+            access: Int = this@Member.access,
+            className: String = this@Member.className,
+            memberName: String = this@Member.memberName,
+            descriptor: String = this@Member.descriptor,
+            genericsDetails: String = this@Member.genericsDetails,
+            exceptions: Set<String> = this@Member.exceptions,
+            value: Any? = this@Member.value,
+            body: List<MethodBody> = this@Member.body
+        ): ImmutableMember = Member(
+            access = access,
+            className = className,
+            memberName = memberName,
+            descriptor = descriptor,
+            genericsDetails = genericsDetails,
+            annotations = this@Member.annotations,
+            exceptions = exceptions,
+            value = value,
+            body = body,
+            runtimeContext = this@Member.runtimeContext
+        )
+    }
 }
 
 @CordaInternal
@@ -51,28 +76,5 @@ interface ImmutableMember : MemberInformation {
     val value: Any?
     val body: List<MethodBody>
 
-    fun toMutable(): MemberCopier
-}
-
-@CordaInternal
-class MemberCopier internal constructor(private val member: Member) {
-    fun copy(
-        access: Int = member.access,
-        className: String = member.className,
-        memberName: String = member.memberName,
-        descriptor: String = member.descriptor,
-        genericsDetails: String = member.genericsDetails,
-        exceptions: Set<String> = member.exceptions,
-        value: Any? = member.value,
-        body: List<MethodBody> = member.body
-    ): Member = member.copy(
-        access = access,
-        className = className,
-        memberName = memberName,
-        descriptor = descriptor,
-        genericsDetails = genericsDetails,
-        exceptions = exceptions,
-        value = value,
-        body = body
-    )
+    fun toMutable(): Member.Copier
 }
