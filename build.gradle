@@ -63,6 +63,13 @@ subprojects {
 
         // Choose which garbage-collector to use.
         jvmArgs '-XX:+UseG1GC'
+
+        // Corda serialization needs reflective access to these packages.
+        if (current().isJava9Compatible()) {
+            jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED',
+                    '--add-opens', 'java.base/java.time=ALL-UNNAMED',
+                    '--illegal-access=warn'
+        }
     }
 }
 

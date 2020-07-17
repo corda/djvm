@@ -1,3 +1,4 @@
+import static org.gradle.api.JavaVersion.current
 import static org.gradle.api.JavaVersion.VERSION_1_8
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -133,6 +134,13 @@ tasks.withType(Test).configureEach {
     useJUnitPlatform()
     systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
+
+    // Corda serialization needs reflective access to these packages.
+    if (current().isJava9Compatible()) {
+        jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED',
+                '--add-opens', 'java.base/java.time=ALL-UNNAMED',
+                '--illegal-access=warn'
+    }
 
     if (djvmProject) {
         dependsOn djvmProject.task(':djvm:bootstrap:assemble')
