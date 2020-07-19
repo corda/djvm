@@ -81,7 +81,8 @@ tasks.named('javadoc', Javadoc) {
 }
 
 def shadowJar = tasks.named('shadowJar', Jar) {
-    classifier ''
+    archiveBaseName = 'corda-djvm'
+    archiveClassifier = ''
     reproducibleFileOrder = true
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
 
@@ -213,7 +214,7 @@ publish {
     dependenciesFrom(configurations.shadow) {
         defaultScope = 'compile'
     }
-    name = 'corda-djvm'
+    name = shadowJar.flatMap { it.archiveBaseName }
 }
 
 idea {
