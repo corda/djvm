@@ -26,7 +26,7 @@ class RunCommand : ClassCommand() {
                 return
             }
             printInfo("Running class ${clazz.name}...")
-            executor.run(ClassSource.fromClassName(clazz.name), Any()).apply {
+            executor.run(ClassSource.fromClassName(clazz.name), null).apply {
                 printResult(result)
                 printCosts(costs)
             }

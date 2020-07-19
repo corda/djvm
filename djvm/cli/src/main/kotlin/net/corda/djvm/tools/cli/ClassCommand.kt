@@ -56,7 +56,7 @@ abstract class ClassCommand : CommandBase() {
 
     private lateinit var classLoader: SourceClassLoader
 
-    protected lateinit var executor: SandboxExecutor<Any, Any>
+    protected lateinit var executor: SandboxExecutor<Any?, Any?>
         private set
 
     abstract fun processClasses(classes: List<Class<*>>)
