@@ -2,10 +2,15 @@ plugins {
     id 'base'
 }
 
+configurations {
+    bootstrap
+    it.'default'.extendsFrom bootstrap
+}
+
 /*
  * Configure this module's default configuration with the
  * shaded DJVM jar and its correct transitive dependencies.
  */
 dependencies {
-    'default' project(path: ':djvm', configuration: 'shadow')
+    bootstrap project(path: ':djvm', configuration: 'shadow')
 }
