@@ -549,11 +549,7 @@ open class ClassAndMemberVisitor(
 
         private fun tryReplaceMethodBody() {
             if (method.body.isNotEmpty() && (mv != null)) {
-                EmitterModule(mv, configuration).apply {
-                    for (body in method.body) {
-                        body(this)
-                    }
-                }
+                EmitterModule(mv, configuration).writeByteCode(method.body)
                 mv.visitMaxs(-1, -1)
                 mv.visitEnd()
                 mv = null

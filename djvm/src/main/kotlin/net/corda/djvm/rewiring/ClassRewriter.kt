@@ -89,7 +89,7 @@ class ClassRewriter(
                      * parameter. This simplifies how we update the signature
                      * to include this new interface.
                      */
-                    GENERIC_SIGNATURE.matchEntire(stitchedSignature)?.run {
+                    GENERIC_SIGNATURE.matchEntire(stitchedSignature)?.apply {
                         val typeVar = groupValues[1]
                         stitchedSignature += "L$baseInterface<T$typeVar;>;"
                     }
@@ -114,10 +114,10 @@ class ClassRewriter(
                     if (replacement.body.isNotEmpty() || (access and ACC_ABSTRACT) != 0) {
                         // Replace an existing method, or delete it entirely if
                         // the replacement has no method body and isn't abstract.
-                        super.visitMethod(access, name, descriptor, signature, exceptions)?.run {
+                        super.visitMethod(access, name, descriptor, signature, exceptions)?.also { mv ->
                             // This COMPLETELY replaces the original method, and
                             // will also discard any annotations it may have had.
-                            writeMethodBody(this, replacement.body)
+                            writeMethodBody(mv, replacement.body)
                         }
                     }
                     null
@@ -130,8 +130,8 @@ class ClassRewriter(
         override fun visitEnd() {
             for (method in extraMethods) {
                 with(method) {
-                    super.visitMethod(access, memberName, descriptor, genericsDetails.emptyAsNull, exceptions.toTypedArray())?.run {
-                        writeMethodBody(this, body)
+                    super.visitMethod(access, memberName, descriptor, genericsDetails.emptyAsNull, exceptions.toTypedArray())?.also { mv ->
+                        writeMethodBody(mv, body)
                     }
                 }
             }
