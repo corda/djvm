@@ -15,7 +15,7 @@ import org.objectweb.asm.Opcodes.*
  * return [sandbox.java.lang.String] instead. Redirect their invocations to
  * "thunks" on [sandbox.java.lang.DJVMClass] that wrap the return value for us.
  * We do something similar for method references like "Class::getName" too; see
- * [net.corda.djvm.rewiring.SandboxRemapper.mapValue].
+ * [net.corda.djvm.code.SandboxRemapper.mapValue].
  *
  * The enum-related methods on [Class] all require that enums use [java.lang.Enum]
  * as their super class. So replace all their invocations with ones to equivalent

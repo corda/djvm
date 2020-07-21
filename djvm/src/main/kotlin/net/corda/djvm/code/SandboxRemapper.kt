@@ -1,17 +1,7 @@
-package net.corda.djvm.rewiring
+package net.corda.djvm.code
 
 import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.Whitelist
-import net.corda.djvm.code.CLASSLOADER_NAME
-import net.corda.djvm.code.CLASS_NAME
-import net.corda.djvm.code.DJVM_NAME
-import net.corda.djvm.code.OBJECT_NAME
-import net.corda.djvm.code.SANDBOX_CLASSLOADER_NAME
-import net.corda.djvm.code.SANDBOX_CLASS_NAME
-import net.corda.djvm.code.isClassLoaderStaticThunk
-import net.corda.djvm.code.isClassLoaderVirtualThunk
-import net.corda.djvm.code.isClassVirtualThunk
-import net.corda.djvm.code.isObjectMonitor
 import org.objectweb.asm.*
 import org.objectweb.asm.commons.Remapper
 import java.util.Collections.unmodifiableSet

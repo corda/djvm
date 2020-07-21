@@ -322,7 +322,7 @@ class EmitterModule(
     }
 
     /**
-     * The ASM library uses [net.corda.djvm.rewiring.SandboxClassWriter.getCommonSuperClass]
+     * The ASM library uses [SandboxClassWriter.getCommonSuperClass]
      * to compute the stack frames for the classes that it generates,
      * c.f. [org.objectweb.asm.ClassWriter.COMPUTE_FRAMES]. We need to mirror that algorithm
      * here so that the [sandbox.java.lang.Throwable] can be assigned to the local variable

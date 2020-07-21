@@ -6,6 +6,11 @@ import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.code.ClassMutator
 import net.corda.djvm.code.DJVM_SYNTHETIC
 import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.SandboxClassRemapper
+import net.corda.djvm.code.SandboxClassWriter
+import net.corda.djvm.code.SandboxRemapper
+import net.corda.djvm.code.SyntheticAnnotationFactory
+import net.corda.djvm.code.SyntheticRemapper
 import net.corda.djvm.code.emptyAsNull
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody

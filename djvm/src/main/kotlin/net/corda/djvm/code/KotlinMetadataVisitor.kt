@@ -1,4 +1,4 @@
-package net.corda.djvm.rewiring
+package net.corda.djvm.code
 
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.commons.Remapper

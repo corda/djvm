@@ -1,8 +1,6 @@
-package net.corda.djvm.rewiring
+package net.corda.djvm.code
 
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.code.OBJECT_NAME
-import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter

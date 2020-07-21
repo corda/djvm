@@ -696,7 +696,7 @@ class AnalysisConfiguration private constructor(
             /**
              * We may need to whitelist the descriptors for methods that we
              * "stitch" into sandbox classes, to protect their invocations from
-             * being remapped by [net.corda.djvm.rewiring.SandboxClassRemapper].
+             * being remapped by [net.corda.djvm.code.SandboxClassRemapper].
              */
             val whitelist = Whitelist.createWhitelist()
             val actualWhitelist = whitelist.addTextEntries(
