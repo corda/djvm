@@ -283,7 +283,7 @@ class AnalysisConfiguration private constructor(
                 /**
                  * These annotations only target "Types", such as
                  * interfaces or annotations. We would need to modify
-                 * [net.corda.djvm.rewiring.SandboxClassRemapper]
+                 * [net.corda.djvm.code.SandboxClassRemapper]
                  * if any annotation here could also be applied to
                  * methods, method parameters or to fields.
                  */

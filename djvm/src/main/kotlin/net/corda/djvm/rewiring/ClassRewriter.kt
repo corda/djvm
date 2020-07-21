@@ -3,6 +3,7 @@ package net.corda.djvm.rewiring
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
+import net.corda.djvm.analysis.SyntheticResolver
 import net.corda.djvm.code.ClassMutator
 import net.corda.djvm.code.DJVM_SYNTHETIC
 import net.corda.djvm.code.EmitterModule
@@ -47,7 +48,7 @@ class ClassRewriter(
         logger.debug("Rewriting class {}...", reader.className)
         val writer = SandboxClassWriter(reader, classLoader, analysisConfig, options = COMPUTE_FRAMES)
         val classRemapper = SandboxClassRemapper(
-            ClassExceptionRemapper(SandboxStitcher(writer)),
+            ExceptionRemapper(SandboxStitcher(writer), analysisConfig.syntheticResolver),
             remapper,
             analysisConfig
         )
@@ -151,25 +152,23 @@ class ClassRewriter(
             mv.visitEnd()
         }
     }
+}
 
-    /**
-     * Map exceptions in method signatures to their sandboxed equivalents.
-     */
-    private inner class ClassExceptionRemapper(parent: ClassVisitor) : ClassVisitor(API_VERSION, parent) {
-        override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-            val mappedExceptions = exceptions?.map(analysisConfig.syntheticResolver::getRealThrowableName)?.toTypedArray()
-            return super.visitMethod(access, name, descriptor, signature, mappedExceptions)?.let {
-                MethodExceptionRemapper(it)
-            }
-        }
+/**
+ * Map exceptions in method signatures to their sandboxed equivalents.
+ */
+private class ExceptionRemapper(parent: ClassVisitor, private val syntheticResolver: SyntheticResolver) : ClassVisitor(API_VERSION, parent) {
+    override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+        val mappedExceptions = exceptions?.map(syntheticResolver::getRealThrowableName)?.toTypedArray()
+        return super.visitMethod(access, name, descriptor, signature, mappedExceptions)?.let(::MethodExceptionRemapper)
     }
 
     /**
      * Map exceptions in method try-catch blocks to their sandboxed equivalents.
      */
-    private inner class MethodExceptionRemapper(parent: MethodVisitor) : MethodVisitor(API_VERSION, parent) {
+    private inner class MethodExceptionRemapper(parent: MethodVisitor) : MethodVisitor(api, parent) {
         override fun visitTryCatchBlock(start: Label, end: Label, handler: Label, exceptionType: String?) {
-            val mappedExceptionType = exceptionType?.let(analysisConfig.syntheticResolver::getRealThrowableName)
+            val mappedExceptionType = exceptionType?.let(syntheticResolver::getRealThrowableName)
             super.visitTryCatchBlock(start, end, handler, mappedExceptionType)
         }
     }
