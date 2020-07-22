@@ -11,12 +11,13 @@ import org.objectweb.asm.*
 /**
  * Functionality for traversing a class and its members.
  *
- * @property configuration The configuration to use for the analysis
- * @property classVisitor Class visitor to use when traversing the structure of classes.
+ * @param classVisitor Class visitor to use when traversing the structure of classes.
+ * @param configuration The configuration to use for the analysis
  */
 open class ClassAndMemberVisitor(
-        private val configuration: AnalysisConfiguration,
-        private val classVisitor: ClassVisitor?
+        private val classVisitor: ClassVisitor,
+        @JvmField
+        protected val configuration: AnalysisConfiguration
 ) {
 
     /**
@@ -212,7 +213,7 @@ open class ClassAndMemberVisitor(
      * Visitor used to traverse and analyze a class.
      */
     private inner class ClassVisitorImpl(
-            targetVisitor: ClassVisitor?
+            targetVisitor: ClassVisitor
     ) : ClassVisitor(API_VERSION, targetVisitor) {
 
         /**
@@ -593,7 +594,7 @@ open class ClassAndMemberVisitor(
 
     }
 
-    private inner class StubMethodVisitor : MethodVisitor(API_VERSION, null)
+    private class StubMethodVisitor : MethodVisitor(API_VERSION)
 
     companion object {
 

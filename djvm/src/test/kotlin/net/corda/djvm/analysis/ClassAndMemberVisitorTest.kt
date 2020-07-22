@@ -2,6 +2,7 @@ package net.corda.djvm.analysis
 
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
+import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.annotations.NonDeterministic
 import net.corda.djvm.assertions.AssertionExtensions.hasClass
 import net.corda.djvm.assertions.AssertionExtensions.hasInstruction
@@ -15,14 +16,17 @@ import net.corda.djvm.references.ClassRepresentation
 import net.corda.djvm.references.Member
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.objectweb.asm.ClassVisitor
 
 @Suppress("unused")
 class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
 
+    private object StubVisitor : ClassVisitor(API_VERSION)
+
     @Test
     fun `can traverse classes`() {
         val classesVisited = mutableSetOf<ClassRepresentation>()
-        val visitor = object : ClassAndMemberVisitor(configuration, null) {
+        val visitor = object : ClassAndMemberVisitor(StubVisitor, configuration) {
             override fun visitClass(clazz: ClassRepresentation): ClassRepresentation {
                 classesVisited.add(clazz)
                 return clazz
@@ -48,7 +52,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
     @Test
     fun `can traverse fields`() {
         val membersVisited = mutableSetOf<Member>()
-        val visitor = object : ClassAndMemberVisitor(configuration, null) {
+        val visitor = object : ClassAndMemberVisitor(StubVisitor, configuration) {
             override fun visitField(clazz: ClassRepresentation, field: Member): Member {
                 membersVisited.add(field)
                 return field
@@ -78,7 +82,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
     @Test
     fun `can traverse methods`() {
         val membersVisited = mutableSetOf<Member>()
-        val visitor = object : ClassAndMemberVisitor(configuration, null) {
+        val visitor = object : ClassAndMemberVisitor(StubVisitor, configuration) {
             override fun visitMethod(clazz: ClassRepresentation, method: Member): Member {
                 membersVisited.add(method)
                 return method
@@ -103,7 +107,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
     @Test
     fun `can traverse class annotations`() {
         val annotations = mutableSetOf<String>()
-        val visitor = object : ClassAndMemberVisitor(configuration, null) {
+        val visitor = object : ClassAndMemberVisitor(StubVisitor, configuration) {
             override fun visitClassAnnotation(clazz: ClassRepresentation, descriptor: String) {
                 annotations.add(descriptor)
             }
@@ -121,7 +125,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
     @Test
     fun `cannot traverse member annotations when reading`() {
         val annotations = mutableSetOf<String>()
-        val visitor = object : ClassAndMemberVisitor(configuration, null) {
+        val visitor = object : ClassAndMemberVisitor(StubVisitor, configuration) {
             override fun visitMemberAnnotation(clazz: ClassRepresentation, member: Member, descriptor: String) {
                 annotations.add("${member.memberName}:$descriptor")
             }
@@ -133,7 +137,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
     @Test
     fun `can traverse member annotations when writing`() {
         val annotations = mutableSetOf<String>()
-        val visitor = object : ClassAndMemberVisitor(configuration, Writer()) {
+        val visitor = object : ClassAndMemberVisitor(Writer(), configuration) {
             override fun visitMemberAnnotation(clazz: ClassRepresentation, member: Member, descriptor: String) {
                 annotations.add("${member.memberName}:$descriptor")
             }
@@ -159,7 +163,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
     @Test
     fun `can traverse class sources`() {
         val sources = mutableSetOf<String>()
-        val visitor = object : ClassAndMemberVisitor(configuration, null) {
+        val visitor = object : ClassAndMemberVisitor(StubVisitor, configuration) {
             override fun visitSource(clazz: ClassRepresentation, source: String) {
                 sources.add(source)
             }
@@ -175,7 +179,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
     @Test
     fun `does not traverse instructions when reading`() {
         val instructions = mutableSetOf<Pair<Member, Instruction>>()
-        val visitor = object : ClassAndMemberVisitor(configuration, null) {
+        val visitor = object : ClassAndMemberVisitor(StubVisitor, configuration) {
             override fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {
                 instructions.add(Pair(method, instruction))
             }
@@ -187,7 +191,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
     @Test
     fun `can traverse instructions when writing`() {
         val instructions = mutableSetOf<Pair<Member, Instruction>>()
-        val visitor = object : ClassAndMemberVisitor(configuration, Writer()) {
+        val visitor = object : ClassAndMemberVisitor(Writer(), configuration) {
             override fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {
                 instructions.add(Pair(method, instruction))
             }
