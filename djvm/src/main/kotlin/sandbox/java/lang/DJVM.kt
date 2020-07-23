@@ -90,7 +90,7 @@ fun Any.sandbox(): Any {
         is java.time.ZoneId -> sandbox.java.time.ZoneId.of(String.toDJVM(id))
         is Array<*> -> toDJVMArray()
         is Member ->
-            if (declaringClass.isForSandbox) {
+            if (systemClassLoader.contains(declaringClass)) {
                 when(this) {
                     is Constructor<*> -> sandbox.java.lang.reflect.DJVM.toDJVM(this)
                     is Method -> sandbox.java.lang.reflect.DJVM.toDJVM(this)
@@ -115,18 +115,6 @@ fun Any.sandbox(): Any {
         // Default behaviour...
         else -> this
     }
-}
-
-private val Class<*>.isForSandbox: kotlin.Boolean get() {
-    val cl = classLoader
-    var current: ClassLoader = systemClassLoader
-    do {
-        if (current === cl) {
-            return true
-        }
-        current = current.parent
-    } while (current is SandboxClassLoader)
-    return false
 }
 
 fun kotlin.Throwable.toRuleViolationError(): RuleViolationError {
