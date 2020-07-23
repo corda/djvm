@@ -26,7 +26,7 @@ data class ClassRepresentation(
         override val genericsDetails: String = "",
         val members: MutableMap<String, Member> = mutableMapOf(),
         val annotations: MutableSet<String> = mutableSetOf()
-) : EntityWithAccessFlag, ImmutableClass {
+) : ImmutableClass {
     override val isInterface: Boolean
         get() = Modifier.isInterface(access)
 
@@ -58,9 +58,9 @@ data class ClassRepresentation(
     }
 }
 
-interface ImmutableClass : ClassInformation {
+interface ImmutableClass : ClassInformation, EntityWithAccessFlag {
     val apiVersion: Int
-    val access: Int
+    override val access: Int
     val name: String
     val superClass: String
     val interfaces: List<String>

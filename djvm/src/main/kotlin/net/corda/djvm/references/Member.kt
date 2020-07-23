@@ -36,7 +36,7 @@ data class Member(
     override val value: Any? = null,
     override val body: List<MethodBody> = emptyList(),
     val runtimeContext: MutableMap<Emitter, Any> = mutableMapOf()
-) : ImmutableMember, EntityWithAccessFlag {
+) : ImmutableMember {
     override fun toMutable(): Copier = Copier()
 
     @CordaInternal
@@ -66,8 +66,8 @@ data class Member(
 }
 
 @CordaInternal
-interface ImmutableMember : MemberInformation {
-    val access: Int
+interface ImmutableMember : MemberInformation, EntityWithAccessFlag {
+    override val access: Int
     override val className: String
     override val memberName: String
     override val descriptor: String
