@@ -255,7 +255,10 @@ open class ClassAndMemberVisitor(
                     .forEach(::addTypeReference)
             }
             captureExceptions {
-                visitClassEnd(this, currentClass!!)
+                // We have finished rewriting byte-code. Any new methods or fields
+                // created after this point will not be processed by the definition
+                // providers and emitters.
+                visitClassEnd(classVisitor, currentClass!!)
             }
             super.visitEnd()
         }
