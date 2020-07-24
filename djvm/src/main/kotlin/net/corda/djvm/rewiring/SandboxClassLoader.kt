@@ -15,6 +15,7 @@ import net.corda.djvm.references.ClassReference
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.CodeLocation
 import net.corda.djvm.source.SourceClassLoader
+import net.corda.djvm.source.unversioned
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
 import org.objectweb.asm.ClassReader
@@ -585,7 +586,7 @@ class SandboxClassLoader private constructor(
         return try {
             doPrivileged(PrivilegedExceptionAction {
                 val reader = try {
-                    resource.openStream().use(::ClassReader)
+                    resource.unversioned.openStream().use(::ClassReader)
                 } catch (e: IOException) {
                     throw ClassNotFoundException("Error reading source byte-code for $qualifiedClassName: ${e.message}")
                 }
