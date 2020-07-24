@@ -52,14 +52,14 @@ class SyntheticAnnotationFactory(
     }
 
     /**
-     * Drop all fields. This synthetic annotation will not use them.
-     */
-    override fun visitField(access: Int, name: String, descriptor: String, signature: String?, value: Any?): FieldVisitor? = null
-
-    /**
      * Drop these annotations because we aren't handling them - yet?
      */
     override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
+
+    /**
+     * Drop all fields. This synthetic annotation will not use them.
+     */
+    override fun visitField(access: Int, name: String, descriptor: String, signature: String?, value: Any?): FieldVisitor? = null
 
     override fun visitMethod(
         access: Int,
