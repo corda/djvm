@@ -4,6 +4,7 @@ import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Type
 import org.objectweb.asm.TypePath
@@ -51,6 +52,11 @@ class SyntheticAnnotationFactory(
     }
 
     /**
+     * Drop all fields. This synthetic annotation will not use them.
+     */
+    override fun visitField(access: Int, name: String, descriptor: String, signature: String?, value: Any?): FieldVisitor? = null
+
+    /**
      * Drop these annotations because we aren't handling them - yet?
      */
     override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
@@ -62,6 +68,11 @@ class SyntheticAnnotationFactory(
         signature: String?,
         exceptions: Array<out String>?
     ): MethodVisitor? {
+        if (name == CLASS_CONSTRUCTOR_NAME) {
+            // Drop any class initializer function.
+            return null
+        }
+
         val methodDescriptor = remapper.mapMethodDesc(descriptor)
         val mappedSignature = if (signature != null && methodDescriptor == "()Ljava/lang/Class;") {
             /*

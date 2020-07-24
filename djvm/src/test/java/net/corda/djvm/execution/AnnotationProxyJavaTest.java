@@ -4,6 +4,7 @@ import net.corda.djvm.JavaAnnotation;
 import net.corda.djvm.JavaAnnotationClassData;
 import net.corda.djvm.JavaAnnotationData;
 import net.corda.djvm.JavaAnnotationImpl;
+import net.corda.djvm.JavaAnnotationWithField;
 import net.corda.djvm.JavaInvisible;
 import net.corda.djvm.JavaLabel;
 import net.corda.djvm.JavaLabels;
@@ -655,6 +656,27 @@ class AnnotationProxyJavaTest extends TestBase {
         }
     }
 
+    @Test
+    void testAnnotationWithFieldInsideSandbox() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String[] result = WithJava.run(taskFactory, ReadJavaAnnotationField.class, null);
+                assertThat(result).containsExactly("Hello", "Sandbox");
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class ReadJavaAnnotationField implements Function<String, String[]> {
+        @Override
+        public String[] apply(String unused) {
+            JavaAnnotationWithField value = UserJavaAnnotationFieldData.class.getAnnotation(JavaAnnotationWithField.class);
+            return value == null ? null : value.data.toArray(new String[0]);
+        }
+    }
+
     @SuppressWarnings("WeakerAccess")
     @JavaAnnotation(MESSAGE)
     static class Data1 {}
@@ -742,4 +764,8 @@ class AnnotationProxyJavaTest extends TestBase {
     @SuppressWarnings("WeakerAccess")
     @JavaLabel(name = "Child")
     static class InheritingJavaData extends BaseJavaData {}
+
+    @SuppressWarnings("WeakerAccess")
+    @JavaAnnotationWithField
+    static class UserJavaAnnotationFieldData {}
 }

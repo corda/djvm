@@ -4,6 +4,7 @@ import net.corda.djvm.JavaAnnotation;
 import net.corda.djvm.JavaLabel;
 import net.corda.djvm.JavaLabels;
 import net.corda.djvm.JavaNestedAnnotations;
+import net.corda.djvm.JavaAnnotationWithField;
 import net.corda.djvm.TestBase;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -292,6 +293,24 @@ class AnnotatedJavaClassTest extends TestBase {
         });
     }
 
+    @Test
+    void testAnnotationWithField() {
+        sandbox(ctx -> {
+            try {
+                Class<?> sandboxClass = loadClass(ctx, UserJavaAnnotationFieldData.class.getName()).getType();
+                @SuppressWarnings("unchecked")
+                Class<? extends Annotation> sandboxAnnotation
+                    = (Class<? extends Annotation>) loadClass(ctx, "sandbox.net.corda.djvm.JavaAnnotationWithField$1DJVM").getType();
+                Annotation annotationValue = sandboxClass.getAnnotation(sandboxAnnotation);
+                assertThat(annotationValue).isNotNull();
+                assertThat(annotationValue.toString())
+                    .isEqualTo("@sandbox.net.corda.djvm.JavaAnnotationWithField$1DJVM()");
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
     static boolean isForSandbox(@NotNull Annotation annotation) {
         return annotation.annotationType().getName().startsWith("sandbox.");
     }
@@ -326,4 +345,8 @@ class AnnotatedJavaClassTest extends TestBase {
     @SuppressWarnings("WeakerAccess")
     @JavaLabel(name = "Child")
     static class InheritingJavaData extends BaseJavaData {}
+
+    @SuppressWarnings("WeakerAccess")
+    @JavaAnnotationWithField
+    static class UserJavaAnnotationFieldData {}
 }
