@@ -1,7 +1,6 @@
-package net.corda.djvm.rewiring
+package net.corda.djvm.code
 
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.code.CLASS_NAME
 import org.objectweb.asm.Type
 import org.objectweb.asm.commons.Remapper
 

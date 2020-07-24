@@ -18,16 +18,16 @@ import java.util.function.Consumer
  * Helper class for applying a set of definition providers and emitters to a class or set of classes.
  *
  * @param classVisitor Class visitor to use when traversing the structure of classes.
- * @property configuration The configuration to use for class analysis.
- * @property definitionProviders A set of providers used to update the name or meta-data of classes and members.
+ * @param configuration The configuration to use for class analysis.
+ * @param definitionProviders A set of providers used to update the name or meta-data of classes and members.
  * @param emitters A set of code emitters used to modify and instrument method bodies.
  */
 class ClassMutator(
         classVisitor: ClassVisitor,
-        private val configuration: AnalysisConfiguration,
+        configuration: AnalysisConfiguration,
         private val definitionProviders: List<DefinitionProvider>,
         emitters: List<Emitter>
-) : ClassAndMemberVisitor(configuration, classVisitor) {
+) : ClassAndMemberVisitor(classVisitor, configuration) {
 
     /**
      * Internal [Emitter] to add static field initializers to

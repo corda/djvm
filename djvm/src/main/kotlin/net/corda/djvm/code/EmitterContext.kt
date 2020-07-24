@@ -5,16 +5,16 @@ import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.analysis.Whitelist
-import net.corda.djvm.references.ClassRepresentation
 import net.corda.djvm.references.ClassModule
-import net.corda.djvm.references.Member
+import net.corda.djvm.references.ImmutableClass
+import net.corda.djvm.references.ImmutableMember
 import net.corda.djvm.references.MemberModule
 
 /**
  * The context in which an emitter is invoked.
  *
- * @property analysisContext The context in which a class and its members are processed.
- * @property configuration The configuration to used for the analysis.
+ * @param analysisContext The context in which a class and its members are processed.
+ * @param configuration The configuration to used for the analysis.
  * @property emitterModule A module providing code generation functionality that can be used from within an emitter.
  */
 @CordaInternal
@@ -27,13 +27,13 @@ class EmitterContext(
     /**
      * The class currently being analysed.
      */
-    val clazz: ClassRepresentation
+    val clazz: ImmutableClass
         get() = analysisContext.clazz
 
     /**
      * The member currently being analysed, if any.
      */
-    val member: Member?
+    val member: ImmutableMember?
         get() = analysisContext.member
 
     /**
@@ -65,7 +65,7 @@ class EmitterContext(
      * Return the runtime data associated with both this member and this emitter.
      */
     fun getMemberContext(emitter: Emitter): Any? {
-        return (member ?: return null).runtimeContext.computeIfAbsent(emitter, Emitter::createMemberContext)
+        return (analysisContext.member ?: return null).runtimeContext.computeIfAbsent(emitter, Emitter::createMemberContext)
     }
 
     /**

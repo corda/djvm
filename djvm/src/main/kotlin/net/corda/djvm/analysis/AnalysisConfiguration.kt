@@ -283,7 +283,7 @@ class AnalysisConfiguration private constructor(
                 /**
                  * These annotations only target "Types", such as
                  * interfaces or annotations. We would need to modify
-                 * [net.corda.djvm.rewiring.SandboxClassRemapper]
+                 * [net.corda.djvm.code.SandboxClassRemapper]
                  * if any annotation here could also be applied to
                  * methods, method parameters or to fields.
                  */
@@ -696,7 +696,7 @@ class AnalysisConfiguration private constructor(
             /**
              * We may need to whitelist the descriptors for methods that we
              * "stitch" into sandbox classes, to protect their invocations from
-             * being remapped by [net.corda.djvm.rewiring.SandboxClassRemapper].
+             * being remapped by [net.corda.djvm.code.SandboxClassRemapper].
              */
             val whitelist = Whitelist.createWhitelist()
             val actualWhitelist = whitelist.addTextEntries(

@@ -9,7 +9,7 @@ import net.corda.djvm.references.*
 /**
  * The context in which a rule is validated.
  *
- * @property analysisContext The context in which a class and its members are analyzed.
+ * @param analysisContext The context in which a class and its members are analyzed.
  */
 @Suppress("unused")
 @CordaInternal
@@ -23,13 +23,13 @@ class RuleContext(
     /**
      * The class currently being analysed.
      */
-    val clazz: ClassRepresentation
+    val clazz: ImmutableClass
         get() = analysisContext.clazz
 
     /**
      * The member currently being analysed, if any.
      */
-    val member: Member?
+    val member: ImmutableMember?
         get() = analysisContext.member
 
     /**

@@ -750,6 +750,22 @@ class SandboxClassLoader private constructor(
     }
 
     /**
+     * Determines whether [clazz] is owned by this [SandboxClassLoader],
+     * or by any of its parent [SandboxClassLoader]s.
+     */
+    fun contains(clazz: Class<*>): Boolean {
+        val cl = clazz.classLoader
+        var current = this
+        while (true) {
+            if (current === cl) {
+                return true
+            }
+            current = (current.parentClassLoader as? SandboxClassLoader) ?: break
+        }
+        return false
+    }
+
+    /**
      * Allow access to resources in the source classloader.
      */
     override fun getResource(resourceName: String): URL? {

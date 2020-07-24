@@ -19,13 +19,13 @@ import java.util.function.Consumer
 /**
  * Helper class for validating a set of rules for a class or set of classes.
  *
- * @property rules A set of rules to validate for provided classes.
+ * @param rules A set of rules to validate for provided classes.
  * @param configuration The configuration to use for class analysis.
  */
 class RuleValidator(
         private val rules: List<Rule>,
         configuration: AnalysisConfiguration
-) : ClassAndMemberVisitor(configuration, STUB) {
+) : ClassAndMemberVisitor(STUB, configuration) {
     private companion object {
         @JvmField
         val STUB = StubClassReader(API_VERSION)

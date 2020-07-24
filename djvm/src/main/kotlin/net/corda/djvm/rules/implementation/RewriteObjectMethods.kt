@@ -2,7 +2,7 @@ package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.code.*
 import net.corda.djvm.code.instructions.MemberAccessInstruction
-import net.corda.djvm.references.ClassRepresentation
+import net.corda.djvm.references.ImmutableClass
 import net.corda.djvm.references.MemberInformation
 import org.objectweb.asm.Opcodes.*
 
@@ -64,7 +64,7 @@ object RewriteObjectMethods : Emitter {
         }
     }
 
-    private fun isSubclassOfSandboxObject(clazz: ClassRepresentation): Boolean {
+    private fun isSubclassOfSandboxObject(clazz: ImmutableClass): Boolean {
         return !clazz.isInterface && !clazz.hasObjectAsSuperclass
     }
 

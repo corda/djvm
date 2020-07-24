@@ -1,4 +1,4 @@
-package net.corda.djvm.rewiring;
+package net.corda.djvm.code;
 
 import net.corda.djvm.analysis.AnalysisConfiguration;
 import org.jetbrains.annotations.NotNull;

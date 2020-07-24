@@ -32,17 +32,18 @@ ext {
 group 'net.corda'
 version deterministic_rt_version
 
-task cleanJdk(type: Exec) {
+def cleanJdk = tasks.register('cleanJdk', Exec) {
     commandLine 'make', 'clean'
 }
 
-task makeJdk(type: Exec) {
+def makeJdk = tasks.register('makeJdk', Exec) {
     // See: https://github.com/corda/openjdk/tree/deterministic-jvm8
     commandLine 'make', "RT_TAG=$deterministic_rt_tag"
 }
 
-task runtimeJar(type: Jar, dependsOn: makeJdk) {
-    baseName 'deterministic-rt'
+def runtimeJar = tasks.register('runtimeJar', Jar) {
+    dependsOn makeJdk
+    archiveBaseName = 'deterministic-rt'
     inputs.dir 'libs'
 
     from(zipTree('libs/rt.jar'))
@@ -57,7 +58,7 @@ task runtimeJar(type: Jar, dependsOn: makeJdk) {
     includeEmptyDirs = false
 }
 
-task validate(type: ProGuardTask) {
+def validate = tasks.register('validate', ProGuardTask) {
     injars runtimeJar
 
     dontwarn 'java.lang.invoke.**'
@@ -72,13 +73,16 @@ task validate(type: ProGuardTask) {
 
     keep 'class *'
 }
-runtimeJar.finalizedBy validate
+runtimeJar.configure {
+    finalizedBy validate
+}
 
-task apiJar(type: Jar, dependsOn: runtimeJar) {
-    baseName 'deterministic-rt'
-    classifier 'api'
+def apiJar = tasks.register('apiJar', Jar) {
+    dependsOn runtimeJar
+    archiveBaseName = 'deterministic-rt'
+    archiveClassifier = 'api'
 
-    from(zipTree(runtimeJar.outputs.files.singleFile)) {
+    from(zipTree(runtimeJar.map { it.outputs.files.singleFile })) {
         include 'java/'
         include 'javax/'
         exclude 'java/awt/'
@@ -144,7 +148,9 @@ task apiJar(type: Jar, dependsOn: runtimeJar) {
 }
 
 defaultTasks 'build'
-clean.dependsOn cleanJdk
+tasks.named('clean', Delete) {
+    dependsOn cleanJdk
+}
 
 artifacts {
     archives runtimeJar
@@ -182,8 +188,8 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId 'deterministic-rt'
-            artifact runtimeJar
-            artifact apiJar
+            artifact runtimeJar.flatMap { it.archiveFile }
+            artifact apiJar.flatMap { it.archiveFile }
 
             pom {
                 licenses {
