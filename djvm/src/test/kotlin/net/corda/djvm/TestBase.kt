@@ -305,11 +305,23 @@ abstract class TestBase(type: SandboxType) {
     /**
      * Create a new instance of a class using the sandbox class loader.
      */
+    @Throws(ClassNotFoundException::class)
     inline fun <reified T : Callable> SandboxRuntimeContext.newCallable(): LoadedClass = loadClass<T>()
 
+    @Throws(ClassNotFoundException::class)
     inline fun <reified T : Any> SandboxRuntimeContext.loadClass(): LoadedClass = loadClass(T::class.jvmName)
 
+    @Throws(ClassNotFoundException::class)
     fun SandboxRuntimeContext.loadClass(className: String): LoadedClass = classLoader.loadForSandbox(className)
+
+    @Throws(ClassNotFoundException::class)
+    fun SandboxRuntimeContext.toSandboxClass(className: String): Class<*> = classLoader.toSandboxClass(className)
+
+    @Throws(ClassNotFoundException::class)
+    fun <T : Any> SandboxRuntimeContext.toSandboxClass(clazz: Class<T>): Class<*> = classLoader.toSandboxClass(clazz)
+
+    @Throws(ClassNotFoundException::class)
+    inline fun <reified T : Any> SandboxRuntimeContext.toSandboxClass(): Class<*> = toSandboxClass(T::class.java)
 
     /**
      * Run the entry-point of the loaded [Callable] class.

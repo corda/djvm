@@ -4,9 +4,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sandbox.java.lang.String;
 import sandbox.java.lang.annotation.Annotation;
+import static sandbox.java.lang.DJVM.intern;
 
 @SuppressWarnings("unused")
 public final class Method extends Executable {
+    private static final java.lang.String STRING_VALUE = "public sandbox.java.lang.String sandbox.java.lang.Object.toString()";
+    private static final java.lang.String TO_STRING = "toString";
+
     private final java.lang.reflect.Method method;
     private final String name;
     private final String stringValue;
@@ -14,9 +18,18 @@ public final class Method extends Executable {
 
     Method(@NotNull java.lang.reflect.Method method) {
         this.method = method;
-        this.name = String.toDJVM(method.getName());
-        this.stringValue = String.toDJVM(method.toString());
-        this.genericString = String.toDJVM(method.toGenericString());
+        if (isToDJVMString(method)) {
+            name = intern(TO_STRING);
+            genericString = stringValue = intern(STRING_VALUE);
+        } else {
+            name = String.toDJVM(method.getName());
+            stringValue = String.toDJVM(method.toString());
+            genericString = String.toDJVM(method.toGenericString());
+        }
+    }
+
+    private static boolean isToDJVMString(@NotNull java.lang.reflect.Method method) {
+        return "toDJVMString".equals(method.getName()) && method.getParameters().length == 0;
     }
 
     @Override

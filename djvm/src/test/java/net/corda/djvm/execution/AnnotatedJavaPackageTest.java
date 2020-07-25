@@ -19,7 +19,7 @@ class AnnotatedJavaPackageTest extends TestBase {
     void testSandboxAnnotation() {
         sandbox(ctx -> {
             try {
-                Class<?> sandboxClass = ctx.getClassLoader().toSandboxClass(HappyObject.class.getName());
+                Class<?> sandboxClass = toSandboxClass(ctx, HappyObject.class);
                 Package sandboxPackage = sandboxClass.getPackage();
                 Annotation[] annotations = sandboxPackage.getAnnotations();
                 assertThat(annotations).hasSize(1);

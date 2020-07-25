@@ -38,16 +38,18 @@ class SyntheticAnnotationFactory(
              * synthetic annotations. We might need to tweak their
              * data values though.
              */
-            val av = super.visitAnnotation(descriptor, visible)
-            when (descriptor.substring(JAVA_LANG_ANNOTATION.length)) {
-                "Target;" ->TargetAnnotationMapper(api, av)
-                "Repeatable;" -> RepeatableAnnotationMapper(api, av)
-                else -> av
+            super.visitAnnotation(descriptor, visible)?.let { av ->
+                when (descriptor.substring(JAVA_LANG_ANNOTATION.length)) {
+                    "Target;" -> TargetAnnotationMapper(api, av)
+                    "Repeatable;" -> RepeatableAnnotationMapper(api, av)
+                    else -> av
+                }
             }
         } else {
             val mappedDescriptor = remapper.mapAnnotationDesc(descriptor)
-            val av = super.visitAnnotation(mappedDescriptor, visible)
-            AnnotationTransformer(api, av, configuration)
+            super.visitAnnotation(mappedDescriptor, visible)?.let { av ->
+                AnnotationTransformer(api, av, configuration)
+            }
         }
     }
 
@@ -89,12 +91,15 @@ class SyntheticAnnotationFactory(
     private inner class MethodRemapper(mv : MethodVisitor) : MethodVisitor(api, mv) {
         override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
             val mappedDescriptor = remapper.mapAnnotationDesc(descriptor)
-            val av = super.visitAnnotation(mappedDescriptor, visible)
-            return AnnotationTransformer(api, av, configuration)
+            return super.visitAnnotation(mappedDescriptor, visible)?.let { av ->
+                AnnotationTransformer(api, av, configuration)
+            }
         }
 
         override fun visitAnnotationDefault(): AnnotationVisitor? {
-            return AnnotationTransformer(api, super.visitAnnotationDefault(), configuration)
+            return super.visitAnnotationDefault()?.let { av ->
+                AnnotationTransformer(api, av, configuration)
+            }
         }
 
         /**

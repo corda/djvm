@@ -131,7 +131,7 @@ class SandboxConfiguration private constructor(
         private const val CLASS_SUFFIX = ".class"
         private val INITIAL_CLASSES = setOf(
             // These classes are always present inside a sandbox.
-            OBJECT_NAME, "java/lang/StackTraceElement", THROWABLE_NAME
+            OBJECT_NAME, "java/lang/StackTraceElement", THROWABLE_NAME, "java/lang/annotation/Annotation"
         )
 
         private val log = loggerFor<SandboxConfiguration>()

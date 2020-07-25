@@ -14,7 +14,7 @@ import static net.corda.djvm.analysis.SyntheticResolver.getDJVMSyntheticDescript
 class AnnotationTransformer extends AnnotationVisitor {
     private final AnalysisConfiguration configuration;
 
-    AnnotationTransformer(int api, AnnotationVisitor av, AnalysisConfiguration configuration) {
+    AnnotationTransformer(int api, @NotNull AnnotationVisitor av, AnalysisConfiguration configuration) {
         super(api, av);
         this.configuration = configuration;
     }

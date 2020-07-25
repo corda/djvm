@@ -63,11 +63,11 @@ class SandboxClassRemapper(
     override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
 
     override fun createMethodRemapper(mv: MethodVisitor): MethodVisitor {
-        return MethodRemapperWithTemplating(mv, super.createMethodRemapper(mv))
+        return MethodRemapperWithTemplating(super.createMethodRemapper(mv), mv)
     }
 
     override fun createFieldRemapper(fv: FieldVisitor): FieldVisitor {
-        return FieldRemapper(super.createFieldRemapper(fv))
+        return FieldRemapper(super.createFieldRemapper(fv), fv)
     }
 
     /**
@@ -75,7 +75,7 @@ class SandboxClassRemapper(
      * For example, [sandbox.recordAllocation] and [sandbox.recordArrayAllocation]
      * really DO use [java.lang.String] rather than [sandbox.java.lang.String].
      */
-    private inner class MethodRemapperWithTemplating(private val methodNonMapper: MethodVisitor, remapper: MethodVisitor)
+    private inner class MethodRemapperWithTemplating(remapper: MethodVisitor, private val methodNonMapper: MethodVisitor)
         : MethodVisitor(api, remapper) {
 
         private fun mapperFor(element: Element): MethodVisitor {
@@ -155,11 +155,28 @@ class SandboxClassRemapper(
         override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
     }
 
-    /**
-     * Drop any annotations from fields because we cannot access them - yet?
-     */
-    private inner class FieldRemapper(remapper: FieldVisitor) : FieldVisitor(api, remapper) {
-        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? = null
+    private inner class FieldRemapper(remapper: FieldVisitor, private val fieldNonMapper: FieldVisitor) : FieldVisitor(api, remapper) {
+        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+            return super.visitAnnotation(getDJVMSyntheticDescriptor(descriptor), visible)?.let { av ->
+                val transformer = AnnotationTransformer(api, av, configuration)
+
+                /*
+                 * Check whether we want to preserve the original annotation.
+                 * This will be "stitched back" under its transformed version.
+                 */
+                if (visible && descriptor in configuration.stitchedAnnotations) {
+                    AnnotationStitcher(api, transformer, descriptor, Consumer { ann ->
+                        ann.accept(fieldNonMapper, Function.identity())
+                    })
+                } else {
+                    transformer
+                }
+            }
+        }
+
+        /**
+         * Drop these annotations because we aren't handling them - yet?
+         */
         override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, descriptor: String, visible: Boolean): AnnotationVisitor? = null
     }
 

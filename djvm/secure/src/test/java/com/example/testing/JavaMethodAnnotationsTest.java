@@ -12,7 +12,7 @@ class JavaMethodAnnotationsTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                String[][] result = WithJava.run(taskFactory, GetMethodParameterAnnotations.class, null);
+                String[][] result = WithJava.run(taskFactory, GetJavaMethodParameterAnnotations.class, "action");
                 assertThat(result).hasSize(1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaParameters(value=[" +
@@ -30,7 +30,7 @@ class JavaMethodAnnotationsTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                String[][] result = WithJava.run(taskFactory, GetAnnotationsOfMethodParameter.class, null);
+                String[][] result = WithJava.run(taskFactory, GetAnnotationsOfMethodParameter.class, "action");
                 assertThat(result).hasSize(1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaParameters(value=[" +

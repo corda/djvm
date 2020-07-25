@@ -4,12 +4,12 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.function.Function;
 
-public class GetMethodParameterAnnotations implements Function<String, String[][]> {
+public class GetJavaMethodParameterAnnotations implements Function<String, String[][]> {
     @Override
-    public String[][] apply(String unused) {
+    public String[][] apply(String methodName) {
         Annotation[][] annotations;
         try {
-            annotations = UserMethodClass.class.getMethod("action", Long.TYPE).getParameterAnnotations();
+            annotations = UserMethodClass.class.getMethod(methodName, Long.TYPE).getParameterAnnotations();
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

@@ -28,8 +28,8 @@ class AnnotatedJavaMethodParameterTest extends TestBase {
 
         sandbox(ctx -> {
             try {
-                Class<?> sandboxClass = loadClass(ctx, UserJavaClass.class.getName()).getType();
-                Class<?> stringClass = loadClass(ctx, "sandbox.java.lang.String").getType();
+                Class<?> sandboxClass = toSandboxClass(ctx, UserJavaClass.class);
+                Class<?> stringClass = toSandboxClass(ctx, "sandbox.java.lang.String");
                 Annotation[][] parameterAnnotations = sandboxClass.getMethod("getData", stringClass, stringClass)
                     .getParameterAnnotations();
                 assertThat(parameterAnnotations).hasSize(2);
@@ -49,8 +49,8 @@ class AnnotatedJavaMethodParameterTest extends TestBase {
     void testSandboxAnnotationsForMethodParameters() {
         sandbox(ctx -> {
             try {
-                Class<?> sandboxClass = loadClass(ctx, UserJavaClass.class.getName()).getType();
-                Class<?> stringClass = loadClass(ctx, "sandbox.java.lang.String").getType();
+                Class<?> sandboxClass = toSandboxClass(ctx, UserJavaClass.class);
+                Class<?> stringClass = toSandboxClass(ctx, "sandbox.java.lang.String");
                 Parameter[] parameters = sandboxClass.getMethod("getData", stringClass, stringClass).getParameters();
                 assertThat(parameters).hasSize(2);
 

@@ -80,14 +80,30 @@ class JavaAnnotationsTest extends TestBase {
     }
 
     @Test
-    void testDeclaredMethodAnnotations() {
+    void testJavaMethodAnnotations() {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                String[] annotations = WithJava.run(taskFactory, GetJavaMethodAnnotations.class, null);
+                String[] annotations = WithJava.run(taskFactory, GetJavaMethodAnnotations.class, "action");
                 assertThat(annotations).containsExactly(
                     "@sandbox.com.example.testing.JavaAnnotation(value=ONE)",
                     "@sandbox.com.example.testing.JavaTag(value=Madness)"
+                );
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    @Test
+    void testJavaFieldAnnotations() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String[] annotations = WithJava.run(taskFactory, GetJavaFieldAnnotations.class, "data");
+                assertThat(annotations).containsExactly(
+                    "@sandbox.com.example.testing.JavaAnnotation(value=TWO)",
+                    "@sandbox.com.example.testing.JavaTag(value=Lunacy)"
                 );
             } catch (Exception e) {
                 fail(e);

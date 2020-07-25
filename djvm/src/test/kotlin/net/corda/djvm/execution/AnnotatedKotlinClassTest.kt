@@ -25,8 +25,8 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
         assertThat(UserKotlinData::class.findAnnotation<KotlinAnnotation>()).isNotNull
 
         @Suppress("unchecked_cast")
-        val sandboxAnnotation = loadClass("sandbox.net.corda.djvm.KotlinAnnotation\$1DJVM").type as Class<out Annotation>
-        val sandboxClass = loadClass<UserKotlinData>().type
+        val sandboxAnnotation = toSandboxClass("sandbox.net.corda.djvm.KotlinAnnotation\$1DJVM") as Class<out Annotation>
+        val sandboxClass = toSandboxClass<UserKotlinData>()
 
         val annotationValue = sandboxClass.getAnnotation(sandboxAnnotation)
         assertThat(annotationValue.toString())
@@ -36,8 +36,8 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     @Test
     @Suppress("unchecked_cast")
     fun testSandboxAnnotationWithEnumValue() = sandbox {
-        val sandboxClass = loadClass("sandbox.net.corda.djvm.KotlinAnnotation\$1DJVM").type as Class<out Annotation>
-        val sandboxAnnotation = loadClass("sandbox.kotlin.annotation.Retention\$1DJVM").type as Class<out Annotation>
+        val sandboxClass = toSandboxClass("sandbox.net.corda.djvm.KotlinAnnotation\$1DJVM") as Class<out Annotation>
+        val sandboxAnnotation = toSandboxClass("sandbox.kotlin.annotation.Retention\$1DJVM") as Class<out Annotation>
 
         val retentionValue = sandboxClass.kotlin.annotations.filterIsInstance(sandboxAnnotation)
             .singleOrNull() ?: fail("No @Retention\$1DJVM annotation found")
@@ -50,8 +50,8 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     @Test
     @Suppress("unchecked_cast")
     fun testSandboxAnnotationWithEnumArrayValue() = sandbox {
-        val sandboxClass = loadClass("sandbox.net.corda.djvm.KotlinAnnotation\$1DJVM").type as Class<out Annotation>
-        val sandboxAnnotation = loadClass("sandbox.kotlin.annotation.Target\$1DJVM").type as Class<out Annotation>
+        val sandboxClass = toSandboxClass("sandbox.net.corda.djvm.KotlinAnnotation\$1DJVM") as Class<out Annotation>
+        val sandboxAnnotation = toSandboxClass("sandbox.kotlin.annotation.Target\$1DJVM") as Class<out Annotation>
 
         val targetValue = sandboxClass.kotlin.annotations.filterIsInstance(sandboxAnnotation)
             .singleOrNull() ?: fail("No @Target\$1DJVM annotation found")
@@ -63,9 +63,9 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
 
     @Test
     fun testPreservingKotlinMetadataAnnotation() = sandbox {
-        val sandboxClass = loadClass<UserKotlinData>().type
+        val sandboxClass = toSandboxClass<UserKotlinData>()
         @Suppress("unchecked_cast")
-        val sandboxMetadataClass = loadClass("sandbox.kotlin.Metadata\$1DJVM").type as Class<out Annotation>
+        val sandboxMetadataClass = toSandboxClass("sandbox.kotlin.Metadata\$1DJVM") as Class<out Annotation>
 
         val metadata = sandboxClass.getAnnotation(kotlinMetadata)
         val sandboxMetadata = sandboxClass.getAnnotation(sandboxMetadataClass)
@@ -99,7 +99,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
 
     @Test
     fun `test sandboxed class still knows its own primary constructor`() = sandbox {
-        val sandboxClass = loadClass<UserKotlinData>().type
+        val sandboxClass = toSandboxClass<UserKotlinData>()
         val primaryConstructor = sandboxClass.kotlin.primaryConstructor ?: fail("Primary constructor missing!")
 
         val sandboxData = with(DJVM(classLoader)) {
@@ -112,7 +112,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
 
     @Test
     fun `test reflection can fetch all annotations`() = sandbox {
-        val sandboxClass = loadClass<UserKotlinData>().type
+        val sandboxClass = toSandboxClass<UserKotlinData>()
         val kotlinAnnotations = sandboxClass.kotlin.annotations.map { ann ->
             ann.annotationClass.qualifiedName
         }
@@ -135,7 +135,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     fun `test reflection can fetch all stitched annotations`() = sandbox(
             visibleAnnotations = setOf(KotlinAnnotation::class.java)
     ) {
-        val sandboxClass = loadClass<UserKotlinData>().type
+        val sandboxClass = toSandboxClass<UserKotlinData>()
         val kotlinAnnotations = sandboxClass.kotlin.annotations.map { ann ->
             ann.annotationClass.qualifiedName
         }
@@ -159,7 +159,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     @Test
     fun `test reflection can fetch all meta-annotations`() = sandbox {
         @Suppress("unchecked_cast")
-        val sandboxAnnotation = loadClass("sandbox.net.corda.djvm.KotlinAnnotation\$1DJVM").type as Class<out Annotation>
+        val sandboxAnnotation = toSandboxClass("sandbox.net.corda.djvm.KotlinAnnotation\$1DJVM") as Class<out Annotation>
 
         val kotlinAnnotations = sandboxAnnotation.kotlin.annotations.map { ann ->
             ann.annotationClass.qualifiedName
@@ -194,7 +194,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     fun `test reflection can fetch all stitched method annotations`() = sandbox(
         visibleAnnotations = setOf(KotlinAnnotation::class.java)
     ) {
-        val sandboxClass = loadClass<UserKotlinData>().type
+        val sandboxClass = toSandboxClass<UserKotlinData>()
         val sandboxFunction = sandboxClass.kotlin.functions.single { it.name == "holdAnnotation" }
         val kotlinAnnotations = sandboxFunction.annotations.map { ann ->
             ann.annotationClass.qualifiedName
@@ -210,7 +210,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     ) {
         assertThat(UserKotlinLabel::class.findAnnotation<KotlinLabel>()).isNotNull
 
-        val sandboxClass = loadClass<UserKotlinLabel>().type
+        val sandboxClass = toSandboxClass<UserKotlinLabel>()
         val annotations = sandboxClass.kotlin.annotations.groupByTo(LinkedHashMap()) { ann ->
             ann.annotationClass.qualifiedName?.startsWith("sandbox.")
         }
@@ -230,7 +230,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
     @Test
     fun `test reflection can fetch repeatable`() = sandbox {
         @Suppress("unchecked_cast")
-        val sandboxAnnotation = loadClass<KotlinLabel>().type as Class<out Annotation>
+        val sandboxAnnotation = toSandboxClass<KotlinLabel>() as Class<out Annotation>
 
         val kotlinAnnotations = sandboxAnnotation.kotlin.annotations.map { ann ->
             ann.annotationClass.qualifiedName

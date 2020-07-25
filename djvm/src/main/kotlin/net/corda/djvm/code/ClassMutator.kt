@@ -78,7 +78,7 @@ class ClassMutator(
             logger.trace("Type has been mutated {}", clazz)
             setModified()
         }
-        if (clazz.access and ACC_ANNOTATION != 0) {
+        if (resultingClass.access and ACC_ANNOTATION != 0) {
             setAnnotation()
         }
         return super.visitClass(resultingClass as ClassRepresentation)
