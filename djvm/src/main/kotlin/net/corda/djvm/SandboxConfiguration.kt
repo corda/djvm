@@ -151,7 +151,7 @@ class SandboxConfiguration private constructor(
             AlwaysInheritFromSandboxedObject,
             AlwaysUseNonSynchronizedMethods,
             AlwaysUseStrictFloatingPointArithmetic,
-            StaticConstantRemover,
+            ConstantFieldRemover,
             StubOutFinalizerMethods,
             StubOutNativeMethods,
             StubOutIntrospectiveMethods
