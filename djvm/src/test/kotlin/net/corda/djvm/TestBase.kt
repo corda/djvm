@@ -11,6 +11,7 @@ import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.Emitter
+import net.corda.djvm.code.impl.SandboxRemapper
 import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.messages.Severity.INFORMATIONAL
@@ -99,6 +100,11 @@ abstract class TestBase(type: SandboxType) {
         fun destroyRootContext() {
             bootstrapClassLoader.close()
         }
+
+        @JvmStatic
+        fun SandboxRuntimeContext.reset() {
+            accept(ResetVisitor(Runnable::run))
+        }
     }
 
     val classPaths: List<Path> = when(type) {
@@ -120,6 +126,9 @@ abstract class TestBase(type: SandboxType) {
         bootstrapSource = bootstrapClassLoader,
         overrideClasses = TEST_OVERRIDES
     )
+
+    val remapper: SandboxRemapper
+        get() = with(configuration) { SandboxRemapper(classResolver, whitelist) }
 
     /**
      * Default analysis context

@@ -21,6 +21,7 @@ import net.corda.djvm.code.instructions.TypeInstruction
 import net.corda.djvm.messages.Message
 import net.corda.djvm.references.ClassReference
 import net.corda.djvm.references.ClassRepresentation
+import net.corda.djvm.references.ImmutableClass
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MemberReference
 import net.corda.djvm.source.impl.SourceClassLoaderImpl
@@ -41,14 +42,20 @@ import org.objectweb.asm.Opcodes.NEW
 /**
  * Functionality for traversing a class and its members.
  *
- * @param classVisitor Class visitor to use when traversing the structure of classes.
- * @param configuration The configuration to use for the analysis
+ * @param basicVisitor Initial class visitor to use when traversing the structure of classes.
+ * @param configuration The configuration to use for the analysis.
+ * @param specialiseArgs Extra values needed to specialise the [basicVisitor].
  */
+@Suppress("LeakingThis")
 open class ClassAndMemberVisitor(
-        private val classVisitor: ClassVisitor,
+        private val basicVisitor: ClassVisitor,
         @JvmField
-        protected val configuration: AnalysisConfiguration
+        protected val configuration: AnalysisConfiguration,
+        vararg specialiseArgs: Any?
 ) {
+    private val classVisitor: ClassVisitor = specialise(basicVisitor, specialiseArgs)
+
+    protected open fun specialise(cv: ClassVisitor, args: Array<out Any?>): ClassVisitor = cv
 
     /**
      * Holds a reference to the currently used analysis context.
@@ -74,6 +81,10 @@ open class ClassAndMemberVisitor(
      * Analyze class by using the provided qualified name of the class.
      */
     inline fun <reified T> analyze(context: AnalysisContext, options: Int = 0) = analyze(T::class.java.name, context, options)
+
+    protected fun getCurrentClass(): ImmutableClass {
+        return currentClass ?: throw IllegalStateException("Requesting current class without a visit")
+    }
 
     /**
      * Analyze class by using the provided qualified name of the class.
@@ -288,7 +299,7 @@ open class ClassAndMemberVisitor(
                 // We have finished rewriting byte-code. Any new methods or fields
                 // created after this point will not be processed by the definition
                 // providers and emitters.
-                visitClassEnd(classVisitor, currentClass!!)
+                visitClassEnd(basicVisitor, currentClass!!)
             }
             super.visitEnd()
         }

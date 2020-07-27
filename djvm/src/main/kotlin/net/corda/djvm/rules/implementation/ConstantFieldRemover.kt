@@ -23,7 +23,9 @@ object ConstantFieldRemover : MemberDefinitionProvider {
                 // This may not be needed, because this static field never
                 // had a value in the first place! Other classes load this
                 // constant value directly from the constant pool instead.
-                member.toMutable().copy(body = listOf(toMethodBody(StringFieldInitializer(member)::writeInitializer)), value = null)
+                val mutable = member.toMutable()
+                val mapped = mutable.copy(className = context.resolve(member.className))
+                mutable.copy(body = listOf(toMethodBody(StringFieldInitializer(mapped)::writeInitializer)), value = null)
             } else {
                 member.toMutable().copy(value = null)
             }

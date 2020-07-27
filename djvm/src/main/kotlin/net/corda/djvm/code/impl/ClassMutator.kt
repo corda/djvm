@@ -1,14 +1,14 @@
 package net.corda.djvm.code.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.analysis.SyntheticResolver
 import net.corda.djvm.analysis.impl.ClassAndMemberVisitor
+import net.corda.djvm.analysis.impl.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.code.ClassDefinitionProvider
 import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.Emitter
-import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.MemberDefinitionProvider
-import net.corda.djvm.code.instructions.MethodEntry
 import net.corda.djvm.references.ClassRepresentation
 import net.corda.djvm.references.ImmutableClass
 import net.corda.djvm.references.ImmutableMember
@@ -17,7 +17,13 @@ import net.corda.djvm.references.MethodBody
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.utilities.processEntriesOfType
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.commons.Remapper
+import org.objectweb.asm.tree.MethodNode
+import java.util.Collections.unmodifiableList
 import java.util.function.Consumer
 
 /**
@@ -25,27 +31,72 @@ import java.util.function.Consumer
  *
  * @param classVisitor Class visitor to use when traversing the structure of classes.
  * @param configuration The configuration to use for class analysis.
+ * @param remapper [Remapper] for transforming classes into sandbox classes.
  * @param definitionProviders A set of providers used to update the name or meta-data of classes and members.
  * @param emitters A set of code emitters used to modify and instrument method bodies.
  */
 class ClassMutator(
     classVisitor: ClassVisitor,
     configuration: AnalysisConfiguration,
+    private val remapper: Remapper,
     private val definitionProviders: List<DefinitionProvider>,
     emitters: List<Emitter>
-) : ClassAndMemberVisitor(classVisitor, configuration) {
+) : ClassAndMemberVisitor(classVisitor, configuration, remapper) {
 
-    /**
-     * Internal [Emitter] to add static field initializers to
-     * any class constructor method.
-     */
-    private inner class PrependClassInitializer : Emitter {
-        override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
-            if (instruction is MethodEntry
-                    && instruction.method.memberName == CLASS_CONSTRUCTOR_NAME && instruction.method.descriptor == "()V"
-                    && initializers.isNotEmpty()) {
-                writeByteCode(initializers)
-                initializers.clear()
+    override fun specialise(cv: ClassVisitor, args: Array<out Any?>): ClassVisitor {
+        return SandboxClassRemapper(
+            ExceptionRemapper(SandboxStitcher(ResetVisitor(cv), configuration), configuration.syntheticResolver),
+            args[0] as Remapper,
+            configuration
+        )
+    }
+
+    private fun getMappedClassName(): String {
+        return remapper.map(getCurrentClass().name)
+    }
+
+    private inner class ResetVisitor(classVisitor: ClassVisitor) : ClassVisitor(API_VERSION, classVisitor) {
+        override fun visitField(access: Int, name: String, descriptor: String, signature: String?, value: Any?): FieldVisitor {
+            if (access and ACC_STATIC_FINAL == ACC_STATIC && !isImmutable) {
+                val zeroOpcode = when (descriptor) {
+                    "I", "Z", "S", "B", "C" -> ICONST_0
+                    "J" -> LCONST_0
+                    "D" -> DCONST_0
+                    "F" -> FCONST_0
+                    else -> ACONST_NULL
+                }
+                initializationCode.visitInsn(zeroOpcode)
+                initializationCode.visitFieldInsn(PUTSTATIC, getMappedClassName(), name, descriptor)
+            }
+            return super.visitField(access, name, descriptor, signature, value)
+        }
+
+        override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+            return super.visitMethod(access, name, descriptor, signature, exceptions)?.let { mv ->
+                if (name == CLASS_CONSTRUCTOR_NAME && descriptor == "()V" && !isImmutable) {
+                    ClassInitVisitor(api, mv, getMappedClassName())
+                } else {
+                    mv
+                }
+            }
+        }
+    }
+
+    private inner class ClassInitVisitor(api: Int, mv: MethodVisitor, private val mappedName: String)
+        : MethodBodyCopier(api, mv, initializationCode)
+    {
+        override fun visitCode() {
+            super.visitCode()
+            EmitterModuleImpl(mv, configuration).apply {
+                registerResetMethod(mappedName, getCurrentClass().isInterface)
+                isResetRegistered = true
+
+                if (initializers.isNotEmpty()) {
+                    // These initializers are currently all for immutable
+                    // String objects that do not need to be reset.
+                    writeByteCode(initializers)
+                    initializers.clear()
+                }
             }
         }
     }
@@ -54,8 +105,11 @@ class ClassMutator(
      * Some emitters must be executed before others. E.g. we need to apply
      * the tracing emitters before the non-tracing ones.
      */
-    private val emitters: List<Emitter> = (emitters + PrependClassInitializer()).sortedBy(Emitter::priority)
+    private val emitters: List<Emitter> = unmodifiableList(emitters.sortedBy(Emitter::priority))
     private val initializers = mutableListOf<MethodBody>()
+    private val initializationCode = MethodNode()
+    private var isResetRegistered = false
+    private var isImmutable = false
 
     var flags: Int = 0
         private set(value) { field = field or value }
@@ -87,6 +141,7 @@ class ClassMutator(
         if (resultingClass.access and ACC_ANNOTATION != 0) {
             setAnnotation()
         }
+        isImmutable = configuration.isImmutable(getMappedClassName())
         return super.visitClass(resultingClass as ClassRepresentation)
     }
 
@@ -95,15 +150,37 @@ class ClassMutator(
      * to an existing class initialiser block then we need to create one.
      */
     override fun visitClassEnd(classVisitor: ClassVisitor, clazz: ClassRepresentation) {
-        tryWriteClassInitializer(classVisitor)
+        val hasResetter = tryWriteClassResetter(classVisitor)
+        tryWriteClassInitializer(classVisitor, hasResetter)
         super.visitClassEnd(classVisitor, clazz)
     }
 
-    private fun tryWriteClassInitializer(classVisitor: ClassVisitor) {
-        if (initializers.isNotEmpty()) {
-            classVisitor.visitMethod(ACC_STATIC, CLASS_CONSTRUCTOR_NAME, "()V", null, null)?.also { mv ->
+    private fun tryWriteClassResetter(classVisitor: ClassVisitor): Boolean {
+        return if (initializationCode.instructions.size() > 0) {
+            classVisitor.visitMethod(CLASS_RESET_ACCESS, CLASS_RESET_NAME, "()V", null, null)?.also { mv ->
+                initializationCode.visitMaxs(-1, -1)
+                if (initializationCode.instructions.last.opcode != RETURN) {
+                    initializationCode.visitInsn(RETURN)
+                }
+                initializationCode.accept(mv)
+            }
+            setModified()
+            true
+        } else {
+            false
+        }
+    }
+
+    private fun tryWriteClassInitializer(classVisitor: ClassVisitor, hasResetter: Boolean) {
+        if (initializers.isNotEmpty() || (hasResetter && !isResetRegistered)) {
+            classVisitor.visitMethod(ACC_STATIC or ACC_STRICT, CLASS_CONSTRUCTOR_NAME, "()V", null, null)?.also { mv ->
                 mv.visitCode()
-                EmitterModuleImpl(mv, configuration).writeByteCode(initializers)
+                with(EmitterModuleImpl(mv, configuration)) {
+                    if (hasResetter) {
+                        registerResetMethod(getMappedClassName(), getCurrentClass().isInterface)
+                    }
+                    writeByteCode(initializers)
+                }
                 mv.visitInsn(RETURN)
                 mv.visitMaxs(-1, -1)
                 mv.visitEnd()
@@ -163,6 +240,110 @@ class ClassMutator(
 
     private companion object {
         private val logger = loggerFor<ClassMutator>()
+        private const val ACC_STATIC_FINAL: Int = ACC_STATIC or ACC_FINAL
+        private const val CLASS_RESET_ACCESS: Int = ACC_PRIVATE or ACC_STATIC or ACC_SYNTHETIC or ACC_STRICT
+    }
+}
+
+/**
+ * Extra visitor that is applied after remapping is complete. This "stitches" the
+ * original unmapped interface as a super-interface of the mapped version, as well
+ * as adding or replacing any extra methods that are needed.
+ */
+private class SandboxStitcher(parent: ClassVisitor, private val configuration: AnalysisConfiguration)
+    : ClassVisitor(API_VERSION, parent)
+{
+    private companion object {
+        private val GENERIC_SIGNATURE = "^<([^:]++):.*>.*".toRegex()
     }
 
+    private val extraMethods = mutableListOf<Member>()
+
+    override fun visit(version: Int, access: Int, className: String, signature: String?, superName: String?, interfaces: Array<String>?) {
+        var stitchedSignature = signature
+        val stitchedInterfaces = configuration.stitchedInterfaces[className]?.let { methods ->
+            extraMethods += methods
+            val baseInterface = configuration.classResolver.reverse(className)
+            if (stitchedSignature != null) {
+                /*
+                 * All of our stitched interfaces have a single generic
+                 * parameter. This simplifies how we update the signature
+                 * to include this new interface.
+                 */
+                GENERIC_SIGNATURE.matchEntire(stitchedSignature)?.apply {
+                    val typeVar = groupValues[1]
+                    stitchedSignature += "L$baseInterface<T$typeVar;>;"
+                }
+            }
+            arrayOf(*(interfaces ?: emptyArray()), baseInterface)
+        } ?: interfaces
+
+        configuration.stitchedClasses[className]?.also { methods ->
+            extraMethods += methods
+        }
+
+        super.visit(version, access, className, stitchedSignature, superName, stitchedInterfaces)
+    }
+
+    override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+        return if (extraMethods.isEmpty()) {
+            super.visitMethod(access, name, descriptor, signature, exceptions)
+        } else {
+            val idx = extraMethods.indexOfFirst { it.memberName == name && it.descriptor == descriptor && it.genericsDetails.emptyAsNull == signature }
+            if (idx != -1) {
+                val replacement = extraMethods.removeAt(idx)
+                if (replacement.body.isNotEmpty() || (access and ACC_ABSTRACT) != 0) {
+                    // Replace an existing method, or delete it entirely if
+                    // the replacement has no method body and isn't abstract.
+                    super.visitMethod(access, name, descriptor, signature, exceptions)?.also { mv ->
+                        // This COMPLETELY replaces the original method, and
+                        // will also discard any annotations it may have had.
+                        writeMethodBody(mv, replacement.body)
+                    }
+                }
+                null
+            } else {
+                super.visitMethod(access, name, descriptor, signature, exceptions)
+            }
+        }
+    }
+
+    override fun visitEnd() {
+        for (method in extraMethods) {
+            with(method) {
+                super.visitMethod(access, memberName, descriptor, genericsDetails.emptyAsNull, exceptions.toTypedArray())?.also { mv ->
+                    writeMethodBody(mv, body)
+                }
+            }
+        }
+        extraMethods.clear()
+        super.visitEnd()
+    }
+
+    private fun writeMethodBody(mv: MethodVisitor, body: List<MethodBody>) {
+        mv.visitCode()
+        EmitterModuleImpl(mv, configuration).writeByteCode(body)
+        mv.visitMaxs(-1, -1)
+        mv.visitEnd()
+    }
+}
+
+/**
+ * Map exceptions in method signatures to their sandboxed equivalents.
+ */
+private class ExceptionRemapper(parent: ClassVisitor, private val syntheticResolver: SyntheticResolver) : ClassVisitor(API_VERSION, parent) {
+    override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+        val mappedExceptions = exceptions?.map(syntheticResolver::getRealThrowableName)?.toTypedArray()
+        return super.visitMethod(access, name, descriptor, signature, mappedExceptions)?.let(::MethodExceptionRemapper)
+    }
+
+    /**
+     * Map exceptions in method try-catch blocks to their sandboxed equivalents.
+     */
+    private inner class MethodExceptionRemapper(parent: MethodVisitor) : MethodVisitor(api, parent) {
+        override fun visitTryCatchBlock(start: Label, end: Label, handler: Label, exceptionType: String?) {
+            val mappedExceptionType = exceptionType?.let(syntheticResolver::getRealThrowableName)
+            super.visitTryCatchBlock(start, end, handler, mappedExceptionType)
+        }
+    }
 }

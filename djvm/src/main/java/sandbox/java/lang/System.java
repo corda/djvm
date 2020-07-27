@@ -6,8 +6,6 @@ import sandbox.java.security.AccessControlException;
 
 @SuppressWarnings("unused")
 public final class System extends Object {
-    private static final String ACCESS_DENIED = DJVM.intern("access denied");
-
     private System() {}
 
     public static int identityHashCode(java.lang.Object obj) {
@@ -49,7 +47,7 @@ public final class System extends Object {
     }
 
     public static void setSecurityManager(SecurityManager sm) {
-        throw (RuntimeException) DJVM.fromDJVM(new AccessControlException(ACCESS_DENIED));
+        throw (RuntimeException) DJVM.fromDJVM(new AccessControlException(DJVM.intern("access denied")));
     }
 
     public static void runFinalization() {}

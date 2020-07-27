@@ -23,9 +23,9 @@ public final class String extends Object implements Comparable<String>, CharSequ
         }
     }
 
+    private static final String EMPTY = new String().intern();
     private static final String TRUE = new String("true").intern();
     private static final String FALSE = new String("false").intern();
-    private static final String EMPTY = new String().intern();
 
     private static final Constructor SHARED = AccessController.doPrivileged(new InitAction());
 

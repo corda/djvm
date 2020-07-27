@@ -15,6 +15,7 @@ import sandbox.java.security.ProtectionDomain;
 import sandbox.java.util.LinkedHashMap;
 import sandbox.java.util.Map;
 
+import java.lang.invoke.MethodHandles;
 import java.security.PrivilegedActionException;
 import java.util.Arrays;
 
@@ -36,6 +37,16 @@ public final class DJVMClass {
     private static final Map<Class<? extends Enum<?>>, Map<String, ? extends Enum<?>>> allEnumDirectories = new LinkedHashMap<>();
 
     private DJVMClass() {}
+
+    @SuppressWarnings("unused")
+    private static void reset() {
+        allEnumDirectories.clear();
+        allEnums.clear();
+    }
+
+    static {
+        DJVM.forReset(MethodHandles.lookup(), "reset");
+    }
 
     @NotNull
     public static Class<?> forName(String className) throws ClassNotFoundException {

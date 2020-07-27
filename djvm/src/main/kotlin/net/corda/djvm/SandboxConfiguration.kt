@@ -164,6 +164,7 @@ class SandboxConfiguration private constructor(
             AlwaysUseNonSynchronizedMethods,
             AlwaysUseStrictFloatingPointArithmetic,
             ConstantFieldRemover,
+            DisallowUnsupportedApiVersions,
             StubOutFinalizerMethods,
             StubOutNativeMethods,
             StubOutIntrospectiveMethods

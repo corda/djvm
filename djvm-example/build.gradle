@@ -131,9 +131,11 @@ tasks.withType(Test).configureEach {
     systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 
-    // Corda serialization needs reflective access to these packages.
+    // The DJVM and Corda serialization need reflective access to these packages.
     if (current().java9Compatible) {
         jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED',
+                '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+                '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
                 '--add-opens', 'java.base/java.time=ALL-UNNAMED',
                 '--illegal-access=warn'
     }

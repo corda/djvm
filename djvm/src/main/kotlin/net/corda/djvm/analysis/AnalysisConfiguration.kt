@@ -36,6 +36,7 @@ import net.corda.djvm.source.impl.SourceClassLoaderImpl
 import org.objectweb.asm.Opcodes.ACC_STATIC
 import org.objectweb.asm.Type
 import java.lang.reflect.Modifier
+import java.nio.ByteOrder
 import java.util.Collections.unmodifiableList
 import java.util.Collections.unmodifiableMap
 import java.util.Collections.unmodifiableSet
@@ -88,6 +89,7 @@ class AnalysisConfiguration private constructor(
      */
     val stitchedClasses: Map<String, List<Member>> get() = STITCHED_CLASSES
 
+    fun isImmutable(className: String): Boolean = className in IMMUTABLE_CLASSES
     fun isJvmException(className: String): Boolean = className in JVM_EXCEPTIONS
     fun isJvmAnnotation(className: String): Boolean = className in JVM_ANNOTATIONS
     fun hasDJVMSynthetic(className: String): Boolean = !isJvmException(className) && !isJvmAnnotation(className)
@@ -260,6 +262,17 @@ class AnalysisConfiguration private constructor(
             "sandbox/sun/security/provider/ByteArrayAccess",
             "$X500_NAME\$1",
             "sandbox/sun/util/calendar/ZoneInfoFile\$1"
+        ))
+
+        /**
+         * These classes are immutable despite containing static fields, and so do not
+         * need to be reinitialised when the [net.corda.djvm.SandboxRuntimeContext] is
+         * reset.
+         */
+        private val IMMUTABLE_CLASSES: Set<String> = unmodifiableSet(setOf(
+            ByteOrder::class.java
+        ).sandboxed() + setOf(
+            "sandbox/java/nio/Bits"
         ))
 
         /**

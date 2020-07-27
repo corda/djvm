@@ -5,6 +5,7 @@ import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.references.MemberInformation
 import net.corda.djvm.references.MethodBody
+import org.objectweb.asm.Handle
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
@@ -361,6 +362,15 @@ class EmitterModuleImpl(
         for (body in bodies) {
             body.accept(this)
         }
+    }
+
+    /**
+     * Write invocation to register this class for resetting.
+     */
+    fun registerResetMethod(className: String, isInterface: Boolean) {
+        loadConstant(Type.getObjectType(className))
+        loadConstant(Handle(H_INVOKESTATIC, className, CLASS_RESET_NAME, "()V", isInterface))
+        invokeStatic(DJVM_NAME, REGISTER_RESET_NAME, "(Ljava/lang/Class;Ljava/lang/invoke/MethodHandle;)V")
     }
 
     /**

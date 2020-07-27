@@ -26,6 +26,7 @@ class ClassMutatorTest : TestBase(KOTLIN) {
         val context = context
         val mutator = ClassMutator(
             classVisitor = Writer(),
+            remapper = remapper,
             configuration = configuration,
             definitionProviders = listOf(definitionProvider),
             emitters = emptyList()
@@ -49,6 +50,7 @@ class ClassMutatorTest : TestBase(KOTLIN) {
         val context = context
         val mutator = ClassMutator(
             classVisitor = Writer(),
+            remapper = remapper,
             configuration = configuration,
             definitionProviders = listOf(definitionProvider),
             emitters = emptyList()
@@ -82,6 +84,7 @@ class ClassMutatorTest : TestBase(KOTLIN) {
         val context = context
         val mutator = ClassMutator(
             classVisitor = Writer(),
+            remapper = remapper,
             configuration = configuration,
             definitionProviders = emptyList(),
             emitters = listOf(emitter)
