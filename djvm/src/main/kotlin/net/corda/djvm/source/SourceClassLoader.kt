@@ -168,7 +168,7 @@ class SourceClassLoader(
         val resource = getResource("$originalName.class") ?: run(::throwClassLoadingError)
         return try {
             logger.trace("Opening ClassReader for class {}...", originalName)
-            resource.openStream().use(::ClassReader)
+            resource.unversioned.openStream().use(::ClassReader)
         } catch (_: IOException) {
             throwClassLoadingError()
         }
@@ -238,7 +238,7 @@ class SourceClassLoader(
 
     private fun defineHeader(name: String, internalName: String, url: URL): ClassHeader {
         val byteCode = try {
-            url.openStream().use {
+            url.unversioned.openStream().use {
                 it.readBytes()
             }
         } catch (e: IOException) {
@@ -405,6 +405,21 @@ private fun isJavaxInternal(name: String): Boolean {
             || startsWith("crypto/")
             || startsWith("security/")
             || startsWith("xml/")
+    }
+}
+
+private val VERSIONED_JAR = "^(.*!/)META-INF/versions/\\d++/(.*)\$".toRegex()
+
+/**
+ * Converts a multi-release Jar URL into an ordinary Jar URL.
+ */
+val URL.unversioned: URL get() {
+    return if (protocol == "jar") {
+        VERSIONED_JAR.matchEntire(file)?.let {
+            URL(protocol, host, port, it.groupValues[1] + it.groupValues[2])
+        } ?: this
+    } else {
+        this
     }
 }
 
