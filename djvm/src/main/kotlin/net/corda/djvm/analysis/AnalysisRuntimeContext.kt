@@ -19,6 +19,4 @@ data class AnalysisRuntimeContext(
         val location: SourceLocation,
         val messages: MessageCollection,
         val configuration: AnalysisConfiguration
-) {
-    fun resolve(className: String) = configuration.classResolver.resolve(className)
-}
+)

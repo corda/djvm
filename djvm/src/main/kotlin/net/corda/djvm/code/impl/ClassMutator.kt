@@ -90,13 +90,6 @@ class ClassMutator(
             EmitterModuleImpl(mv, configuration).apply {
                 registerResetMethod(mappedName, getCurrentClass().isInterface)
                 isResetRegistered = true
-
-                if (initializers.isNotEmpty()) {
-                    // These initializers are currently all for immutable
-                    // String objects that do not need to be reset.
-                    writeByteCode(initializers)
-                    initializers.clear()
-                }
             }
         }
     }
@@ -106,7 +99,6 @@ class ClassMutator(
      * the tracing emitters before the non-tracing ones.
      */
     private val emitters: List<Emitter> = unmodifiableList(emitters.sortedBy(Emitter::priority))
-    private val initializers = mutableListOf<MethodBody>()
     private val initializationCode = MethodNode()
     private var isResetRegistered = false
     private var isImmutable = false
@@ -146,46 +138,38 @@ class ClassMutator(
     }
 
     /**
-     * If we have some static fields to initialise, and haven't already added them
-     * to an existing class initialiser block then we need to create one.
+     * If we have some static fields to reset, and haven't already registered
+     * our reset method via an existing class initialiser block then we need
+     * to create one and register it.
      */
     override fun visitClassEnd(classVisitor: ClassVisitor, clazz: ClassRepresentation) {
-        val hasResetter = tryWriteClassResetter(classVisitor)
-        tryWriteClassInitializer(classVisitor, hasResetter)
+        if (initializationCode.instructions.size() > 0) {
+            writeClassResetter(classVisitor)
+            if (!isResetRegistered) {
+                writeClassInitializer(classVisitor)
+            }
+        }
         super.visitClassEnd(classVisitor, clazz)
     }
 
-    private fun tryWriteClassResetter(classVisitor: ClassVisitor): Boolean {
-        return if (initializationCode.instructions.size() > 0) {
-            classVisitor.visitMethod(CLASS_RESET_ACCESS, CLASS_RESET_NAME, "()V", null, null)?.also { mv ->
-                initializationCode.visitMaxs(-1, -1)
-                if (initializationCode.instructions.last.opcode != RETURN) {
-                    initializationCode.visitInsn(RETURN)
-                }
-                initializationCode.accept(mv)
+    private fun writeClassResetter(classVisitor: ClassVisitor) {
+        classVisitor.visitMethod(CLASS_RESET_ACCESS, CLASS_RESET_NAME, "()V", null, null)?.also { mv ->
+            initializationCode.visitMaxs(-1, -1)
+            if (initializationCode.instructions.last.opcode != RETURN) {
+                initializationCode.visitInsn(RETURN)
             }
+            initializationCode.accept(mv)
             setModified()
-            true
-        } else {
-            false
         }
     }
 
-    private fun tryWriteClassInitializer(classVisitor: ClassVisitor, hasResetter: Boolean) {
-        if (initializers.isNotEmpty() || (hasResetter && !isResetRegistered)) {
-            classVisitor.visitMethod(ACC_STATIC or ACC_STRICT, CLASS_CONSTRUCTOR_NAME, "()V", null, null)?.also { mv ->
-                mv.visitCode()
-                with(EmitterModuleImpl(mv, configuration)) {
-                    if (hasResetter) {
-                        registerResetMethod(getMappedClassName(), getCurrentClass().isInterface)
-                    }
-                    writeByteCode(initializers)
-                }
-                mv.visitInsn(RETURN)
-                mv.visitMaxs(-1, -1)
-                mv.visitEnd()
-            }
-            initializers.clear()
+    private fun writeClassInitializer(classVisitor: ClassVisitor) {
+        classVisitor.visitMethod(ACC_STATIC or ACC_STRICT, CLASS_CONSTRUCTOR_NAME, "()V", null, null)?.also { mv ->
+            mv.visitCode()
+            EmitterModuleImpl(mv, configuration).registerResetMethod(getMappedClassName(), getCurrentClass().isInterface)
+            mv.visitInsn(RETURN)
+            mv.visitMaxs(-1, -1)
+            mv.visitEnd()
             setModified()
         }
     }
@@ -217,7 +201,6 @@ class ClassMutator(
         })
         if (field !== resultingField) {
             logger.trace("Field has been mutated {}", field)
-            initializers += resultingField.body
             setModified()
         }
         return super.visitField(clazz, resultingField as Member)
