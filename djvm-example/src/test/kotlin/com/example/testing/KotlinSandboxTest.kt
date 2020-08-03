@@ -22,6 +22,6 @@ class KotlinSandboxTest : TestBase(KOTLIN) {
             taskFactory.create(BadKotlinTask::class.java).apply("field")
         }
         assertThat(exception)
-            .hasMessageContaining("Disallowed reference to API; java.lang.Class.getField(String)")
+            .hasMessageContaining("Disallowed reference to API; java.lang.Class.getDeclaredField(String)")
     }
 }

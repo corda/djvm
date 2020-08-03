@@ -348,9 +348,7 @@ class SandboxClassLoader private constructor(
     }
 
     @Throws(ClassNotFoundException::class)
-    fun toSandboxClass(clazz: Class<*>): Class<*> {
-        return loadClassForSandbox(ClassSource.fromClassName(clazz.name))
-    }
+    fun toSandboxClass(clazz: Class<*>): Class<*> = toSandboxClass(clazz.name)
 
     @Throws(ClassNotFoundException::class)
     fun toSandboxClass(className: String): Class<*> = loadClassForSandbox(className)

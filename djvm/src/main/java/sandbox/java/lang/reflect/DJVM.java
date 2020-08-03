@@ -16,13 +16,13 @@ public final class DJVM {
      * we can control instead.
      * @see System#identityHashCode(java.lang.Object)
      */
-    private static final int ANNOTATION_HASH_OFFSET = 0xaced_c0de;
+    private static final int REFLECTION_HASH_OFFSET = 0xaced_c0de;
     private static final Map<java.lang.Integer, java.lang.Integer> hashCodes = new HashMap<>();
-    private static int annotationCounter;
+    private static int reflectionCounter;
 
     static int hashCodeFor(int jvmHashCode) {
         return hashCodes.computeIfAbsent(
-            jvmHashCode, hash -> ++annotationCounter + ANNOTATION_HASH_OFFSET
+            jvmHashCode, hash -> ++reflectionCounter + REFLECTION_HASH_OFFSET
         );
     }
 

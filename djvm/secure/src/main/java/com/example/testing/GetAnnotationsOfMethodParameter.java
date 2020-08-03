@@ -6,10 +6,10 @@ import java.util.function.Function;
 
 public class GetAnnotationsOfMethodParameter implements Function<String, String[][]> {
     @Override
-    public String[][] apply(String unused) {
+    public String[][] apply(String methodName) {
         Parameter[] parameters;
         try {
-            parameters = UserMethodClass.class.getMethod("action", Long.TYPE).getParameters();
+            parameters = UserMethodClass.class.getMethod(methodName, Long.TYPE).getParameters();
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

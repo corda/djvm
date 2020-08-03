@@ -49,7 +49,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
             action.accept(this)
         } finally {
             threadLocalContext.remove()
-            doPrivileged(PrivilegedAction { classLoader.close() })
+            doPrivileged(PrivilegedAction(classLoader::close))
         }
     }
 

@@ -16,6 +16,7 @@ import sandbox.java.util.LinkedHashMap;
 import sandbox.java.util.Map;
 
 import java.security.PrivilegedActionException;
+import java.util.Arrays;
 
 import static java.security.AccessController.doPrivileged;
 import static sandbox.java.util.Collections.unmodifiableMap;
@@ -30,6 +31,7 @@ import static org.objectweb.asm.Opcodes.ACC_ENUM;
  */
 @SuppressWarnings("unused")
 public final class DJVMClass {
+    private static final java.lang.String FROM_DJVM = "fromDJVM";
     private static final Map<Class<? extends Enum<?>>, Enum<?>[]> allEnums = new LinkedHashMap<>();
     private static final Map<Class<? extends Enum<?>>, Map<String, ? extends Enum<?>>> allEnumDirectories = new LinkedHashMap<>();
 
@@ -143,14 +145,33 @@ public final class DJVMClass {
         return sandbox.java.lang.reflect.DJVM.toDJVM(clazz.getEnclosingMethod());
     }
 
+    private static boolean isToString(java.lang.String name, Class<?>[] parameterTypes) {
+        return "toString".equals(name) && parameterTypes.length == 0;
+    }
+
+    private static boolean isPermittedMethod(@NotNull java.lang.reflect.Method method) {
+        java.lang.String javaName = method.getName();
+        return !FROM_DJVM.equals(javaName) && !isToString(javaName, method.getParameterTypes());
+    }
+
     public static Method getMethod(@NotNull Class<?> clazz, String methodName, Class<?>[] parameterTypes) throws NoSuchMethodException {
-        java.lang.reflect.Method method = clazz.getMethod(String.fromDJVM(methodName), parameterTypes);
+        java.lang.String javaName = String.fromDJVM(methodName);
+        if (isToString(javaName, parameterTypes)) {
+            javaName = "toDJVMString";
+        } else if (FROM_DJVM.equals(javaName)) {
+            throw new NoSuchMethodException(javaName);
+        }
+        java.lang.reflect.Method method = clazz.getMethod(javaName, parameterTypes);
         return sandbox.java.lang.reflect.DJVM.toDJVM(method);
     }
 
     @NotNull
     public static Method[] getMethods(@NotNull Class<?> clazz) {
-        return sandbox.java.lang.reflect.DJVM.toDJVM(clazz.getMethods());
+        return sandbox.java.lang.reflect.DJVM.toDJVM(
+            Arrays.stream(clazz.getMethods())
+                .filter(DJVMClass::isPermittedMethod)
+                .toArray(java.lang.reflect.Method[]::new)
+        );
     }
 
     @SuppressWarnings("RedundantThrows")
@@ -162,13 +183,14 @@ public final class DJVMClass {
         throw DJVM.failApi("java.lang.Class.getDeclaredFields()");
     }
 
-    @SuppressWarnings("RedundantThrows")
-    public static Field getField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
-        throw DJVM.failApi("java.lang.Class.getField(String)");
+    public static Field getField(@NotNull Class<?> clazz, String fieldName) throws NoSuchFieldException {
+        java.lang.reflect.Field field = clazz.getField(String.fromDJVM(fieldName));
+        return sandbox.java.lang.reflect.DJVM.toDJVM(field);
     }
 
-    public static Field[] getFields(Class<?> clazz) {
-        throw DJVM.failApi("java.lang.Class.getFields()");
+    @NotNull
+    public static Field[] getFields(@NotNull Class<?> clazz) {
+        return sandbox.java.lang.reflect.DJVM.toDJVM(clazz.getFields());
     }
 
     @Nullable

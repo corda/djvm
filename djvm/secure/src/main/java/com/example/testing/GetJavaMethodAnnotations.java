@@ -7,10 +7,10 @@ import static com.example.testing.AnnotationUtils.toStringArray;
 
 public class GetJavaMethodAnnotations implements Function<String, String[]> {
     @Override
-    public String[] apply(String s) {
+    public String[] apply(String methodName) {
         Method action;
         try {
-            action = UserMethodData.class.getMethod("action");
+            action = UserMethodData.class.getMethod(methodName);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -18,7 +18,7 @@ public class GetJavaMethodAnnotations implements Function<String, String[]> {
     }
 }
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings("unused")
 class UserMethodData {
     @JavaAnnotation(Label.ONE)
     @JavaTag("Madness")

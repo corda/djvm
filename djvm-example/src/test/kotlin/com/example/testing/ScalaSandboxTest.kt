@@ -33,6 +33,6 @@ class ScalaSandboxTest : TestBase(KOTLIN) {
             taskFactory.create(BadScalaTask::class.java).apply("name")
         }
         assertThat(ex)
-            .hasMessageContaining("Disallowed reference to API; java.lang.Class.getField(String)")
+            .hasMessageContaining("Disallowed reference to API; java.lang.Class.getDeclaredField(String)")
     }
 }

@@ -657,6 +657,58 @@ class AnnotationProxyJavaTest extends TestBase {
     }
 
     @Test
+    void testMethodAnnotationInsideSandbox() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, ReadJavaMethodAnnotation.class, "doNothing");
+                assertThat(result).isEqualTo("Hello Java Method!");
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class ReadJavaMethodAnnotation implements Function<String, String> {
+        @Override
+        public String apply(String methodName) {
+            JavaAnnotation annotation;
+            try {
+                annotation = UserJavaElements.class.getMethod(methodName).getAnnotation(JavaAnnotation.class);
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
+            return annotation == null ? null : annotation.value();
+        }
+    }
+
+    @Test
+    void testFieldAnnotationInsideSandbox() {
+        sandbox(ctx -> {
+            try {
+                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
+                String result = WithJava.run(taskFactory, ReadJavaFieldAnnotation.class, "data");
+                assertThat(result).isEqualTo("Hello Java Field!");
+            } catch (Exception e) {
+                fail(e);
+            }
+        });
+    }
+
+    public static class ReadJavaFieldAnnotation implements Function<String, String> {
+        @Override
+        public String apply(String fieldName) {
+            JavaAnnotation annotation;
+            try {
+                annotation = UserJavaElements.class.getField(fieldName).getAnnotation(JavaAnnotation.class);
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            }
+            return annotation == null ? null : annotation.value();
+        }
+    }
+
+    @Test
     void testAnnotationWithFieldInsideSandbox() {
         sandbox(ctx -> {
             try {
@@ -764,6 +816,15 @@ class AnnotationProxyJavaTest extends TestBase {
     @SuppressWarnings("WeakerAccess")
     @JavaLabel(name = "Child")
     static class InheritingJavaData extends BaseJavaData {}
+
+    @SuppressWarnings("unused")
+    static class UserJavaElements {
+        @JavaAnnotation("Hello Java Field!")
+        public String data;
+
+        @JavaAnnotation("Hello Java Method!")
+        public void doNothing() {}
+    }
 
     @SuppressWarnings("WeakerAccess")
     @JavaAnnotationWithField

@@ -76,72 +76,72 @@ public final class Field extends AccessibleObject implements Member {
         throw sandbox.java.lang.DJVM.failApi(named("getGenericType()"));
     }
 
-    public java.lang.Object get(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.failApi(named("get(Object)"));
+    public java.lang.Object get(java.lang.Object obj) throws IllegalAccessException {
+        return field.get(obj);
     }
 
     public void set(java.lang.Object obj, java.lang.Object value) {
         throw sandbox.java.lang.DJVM.failApi(named("set(Object, Object)"));
     }
 
-    public boolean getBoolean(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.failApi(named("getBoolean(Object)"));
+    public boolean getBoolean(java.lang.Object obj) throws IllegalAccessException {
+        return field.getBoolean(obj);
     }
 
     public void setBoolean(java.lang.Object obj, boolean z) {
         throw sandbox.java.lang.DJVM.failApi(named("setBoolean(Object, boolean)"));
     }
 
-    public byte getByte(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.failApi(named("getByte(Object)"));
+    public byte getByte(java.lang.Object obj) throws IllegalAccessException {
+        return field.getByte(obj);
     }
 
     public void setByte(java.lang.Object obj, byte b) {
         throw sandbox.java.lang.DJVM.failApi(named("setByte(Object, byte)"));
     }
 
-    public char getChar(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.failApi(named("getChar(Object)"));
+    public char getChar(java.lang.Object obj) throws IllegalAccessException {
+        return field.getChar(obj);
     }
 
     public void setChar(java.lang.Object obj, char c) {
         throw sandbox.java.lang.DJVM.failApi(named("setChar(Object, char)"));
     }
 
-    public short getShort(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.failApi(named("getShort(Object)"));
+    public short getShort(java.lang.Object obj) throws IllegalAccessException {
+        return field.getShort(obj);
     }
 
     public void setShort(java.lang.Object obj, short s) {
         throw sandbox.java.lang.DJVM.failApi(named("setShort(Object, short)"));
     }
 
-    public int getInt(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.failApi(named("getInt(Object)"));
+    public int getInt(java.lang.Object obj) throws IllegalAccessException {
+        return field.getInt(obj);
     }
 
     public void setInt(java.lang.Object obj, int i) {
         throw sandbox.java.lang.DJVM.failApi(named("setInt(Object, int)"));
     }
 
-    public long getLong(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.failApi(named("getLong(Object)"));
+    public long getLong(java.lang.Object obj) throws IllegalAccessException {
+        return field.getLong(obj);
     }
 
     public void setLong(java.lang.Object obj, long l) {
         throw sandbox.java.lang.DJVM.failApi(named("setLong(Object, long)"));
     }
 
-    public float getFloat(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.failApi(named("getFloat(Object)"));
+    public float getFloat(java.lang.Object obj) throws IllegalAccessException {
+        return field.getFloat(obj);
     }
 
     public void setFloat(java.lang.Object obj, float f) {
         throw sandbox.java.lang.DJVM.failApi(named("setFloat(Object, float)"));
     }
 
-    public double getDouble(java.lang.Object obj) {
-        throw sandbox.java.lang.DJVM.failApi(named("getDouble(Object)"));
+    public double getDouble(java.lang.Object obj) throws IllegalAccessException {
+        return field.getDouble(obj);
     }
 
     public void setDouble(java.lang.Object obj, double d) {

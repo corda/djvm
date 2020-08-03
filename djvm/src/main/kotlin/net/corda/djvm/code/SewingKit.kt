@@ -3,6 +3,7 @@ package net.corda.djvm.code
 
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
 import java.util.function.Consumer
 import java.util.function.Function
@@ -31,6 +32,10 @@ class AnnotationStitcher(
         accept(transform, Supplier { cv.visitAnnotation(transform.apply(descriptor), true) })
     }
 
+    fun accept(fv: FieldVisitor, transform: Function<String, String>) {
+        accept(transform, Supplier { fv.visitAnnotation(transform.apply(descriptor), true) })
+    }
+
     fun accept(mv: MethodVisitor, transform: Function<String, String>) {
         accept(transform, Supplier { mv.visitAnnotation(transform.apply(descriptor), true) })
     }
@@ -55,24 +60,24 @@ abstract class AnnotationAccumulator(api: Int, av: AnnotationVisitor) : Annotati
 
     final override fun visitArray(name: String): AnnotationVisitor? {
         val array = super.visitArray(name) ?: return null
-        return AnnotationArray(api, array, name).apply {
-            entries.add(this)
+        return AnnotationArray(api, array, name).also { aav ->
+            entries.add(aav)
         }
     }
 
     final override fun visitAnnotation(name: String?, descriptor: String): AnnotationVisitor? {
         val annotation = super.visitAnnotation(name, descriptor) ?: return null
-        return NestedAnnotation(api, annotation, name, descriptor).apply {
-            entries.add(this)
+        return NestedAnnotation(api, annotation, name, descriptor).also { nav ->
+            entries.add(nav)
         }
     }
 
     fun accept(transform: Function<String, String>, visitor: Supplier<AnnotationVisitor?>) {
-        visitor.get()?.run {
+        visitor.get()?.also { sav ->
             for (entry in entries) {
-                entry.accept(this, transform)
+                entry.accept(sav, transform)
             }
-            visitEnd()
+            sav.visitEnd()
         }
     }
 }
