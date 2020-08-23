@@ -179,6 +179,6 @@ private object ObjectWithConstants {
     const val BIG_NUMBER = 99999L
     const val NUMBER = 100
     const val CHAR = '?'
-    const val BYTE = 7f.toByte()
-    val DATA = Array(0) { "" }
+    const val BYTE = 7f.toInt().toByte()
+    val DATA = emptyArray<String>()
 }
