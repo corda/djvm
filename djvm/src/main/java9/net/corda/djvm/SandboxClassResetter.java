@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MutableCallSite;
 import java.lang.reflect.Field;
@@ -25,21 +26,18 @@ import static org.objectweb.asm.Opcodes.ACC_FINAL;
  * the work of their {@literal <clinit>} functions.
  */
 final class SandboxClassResetter {
-    private static final Field MODIFIERS_FIELD;
+    private static final MethodHandle SET_MODIFIERS;
 
     /*
-     * This approach has been blocked in Java 12 by adding Field.modifiers
-     * to a list of "banned" fields which cannot be reached via reflection.
-     * The alternative is to create a MethodHandle for this field's setter
-     * method via a private Lookup object. However, those APIs were only
-     * introduced in Java 9, which forces us to use reflection on Java 8.
+     * Create a MethodHandle for Field.modifiers' setter method.
+     * We cannot rely on reflection to access this field. This
+     * approach uses APIs introduced in Java 9.
      */
     static {
         try {
-            MODIFIERS_FIELD = doPrivileged((PrivilegedExceptionAction<Field>) () -> {
-                Field field = Field.class.getDeclaredField("modifiers");
-                field.setAccessible(true);
-                return field;
+            SET_MODIFIERS = doPrivileged((PrivilegedExceptionAction<MethodHandle>) () -> {
+                MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(Field.class, MethodHandles.lookup());
+                return lookup.findSetter(Field.class, "modifiers", Integer.TYPE);
             });
         } catch (PrivilegedActionException e) {
             Throwable cause = e.getCause();
@@ -84,7 +82,7 @@ final class SandboxClassResetter {
     @SuppressWarnings("unchecked")
     private List<Resettable> getSnapshotOfResettables() {
         // Create a snapshot of the resettables that we can iterate
-        // over without risking a concurrent modification exception. 
+        // over without risking a concurrent modification exception.
         // Cloning a LinkedList is a trivial O(1) operation, whereas
         // copy-constructing it would be O(N).
         //
@@ -96,15 +94,15 @@ final class SandboxClassResetter {
         }
     }
 
-    private void unlock(@NotNull List<Field> fields) throws IllegalAccessException {
+    private void unlock(@NotNull List<Field> fields) throws Throwable {
         for (Field field : fields) {
-            MODIFIERS_FIELD.setInt(field, field.getModifiers() & ~ACC_FINAL);
+            SET_MODIFIERS.invokeExact(field, field.getModifiers() & ~ACC_FINAL);
         }
     }
 
-    private void lock(@NotNull List<Field> fields) throws IllegalAccessException {
+    private void lock(@NotNull List<Field> fields) throws Throwable {
         for (Field field : fields) {
-            MODIFIERS_FIELD.setInt(field, field.getModifiers() | ACC_FINAL);
+            SET_MODIFIERS.invokeExact(field, field.getModifiers() | ACC_FINAL);
         }
     }
 }

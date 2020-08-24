@@ -1,4 +1,5 @@
 import aQute.bnd.gradle.Bundle
+import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
@@ -22,6 +23,22 @@ repositories {
     }
 }
 
+sourceSets {
+    java9 {
+        java {
+            srcDirs = [ 'src/main/java9' ]
+        }
+        compileClasspath += main.compileClasspath
+    }
+}
+
+tasks.named('compileJava9Java', JavaCompile) {
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = of(11)
+    }
+    options.release = 9
+}
+
 configurations {
     jdkRt
     sandboxTesting
@@ -38,6 +55,10 @@ dependencies {
     // ASM: byte code manipulation library
     implementation "org.ow2.asm:asm:$asm_version"
     implementation "org.ow2.asm:asm-commons:$asm_version"
+
+    java9Implementation files(sourceSets.main.output) {
+        builtBy tasks.named('compileJava', JavaCompile)
+    }
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
@@ -80,11 +101,20 @@ def shadowJar = tasks.named('shadowJar', Jar) {
     reproducibleFileOrder = true
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
 
+    from(sourceSets.java9.output) { CopySpec spec ->
+        spec.into 'META-INF/versions/9'
+    }
+
+    exclude { FileTreeElement f ->
+        f.name == 'module-info.class' && f.file == null
+    }
+
     // Discard the ASM library's module information.
     exclude 'module-info.class'
 
     manifest {
         attributes('Automatic-Module-Name': 'net.corda.djvm')
+        attributes('Multi-Release': true)
         attributes('Sealed': true)
     }
 
@@ -203,6 +233,8 @@ tasks.withType(Test).configureEach {
     systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir.toURI()
     systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI()
     systemProperty 'test.project.uri', projectDir.toURI()
+
+    classpath = files(sourceSets.java9.output, classpath)
 
     // https://openjdk.java.net/jeps/165
     jvmArgs '-XX:+UnlockDiagnosticVMOptions',
