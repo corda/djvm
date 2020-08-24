@@ -11,7 +11,6 @@ plugins {
     id 'net.corda.plugins.publish-utils'
     id 'com.jfrog.artifactory'
     id 'org.owasp.dependencycheck'
-    id 'com.gradle.build-scan'
     id 'base'
 }
 
@@ -133,13 +132,6 @@ tasks.register('generateApi', GenerateApi) {
 }
 
 wrapper {
-    gradleVersion = '5.6.4'
+    gradleVersion = '6.6'
     distributionType = Wrapper.DistributionType.ALL
-}
-
-gradleEnterprise {
-    buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
-    }
 }
