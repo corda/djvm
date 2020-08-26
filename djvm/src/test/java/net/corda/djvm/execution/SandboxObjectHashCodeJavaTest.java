@@ -24,7 +24,7 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 Integer result = WithJava.run(taskFactory, ArrayHashCode.class, null);
-                assertThat(result).isEqualTo(0xfed_c0de + 1);
+                assertThat(result).isEqualTo(0xfed_c0de - 1);
             } catch(Exception e) {
                 fail(e);
             }
@@ -37,7 +37,7 @@ class SandboxObjectHashCodeJavaTest extends TestBase {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 Integer result = WithJava.run(taskFactory, ObjectInArrayHashCode.class, null);
-                assertThat(result).isEqualTo(0xfed_c0de + 1);
+                assertThat(result).isEqualTo(0xfed_c0de - 1);
             } catch(Exception e) {
                 fail(e);
             }

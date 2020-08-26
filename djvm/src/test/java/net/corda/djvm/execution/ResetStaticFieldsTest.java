@@ -34,6 +34,8 @@ class ResetStaticFieldsTest extends TestBase {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
                 Function<String, String[]> hasStaticField = taskFactory.create(HasStaticFinalObject.class);
+                ctx.ready();
+
                 final String[] firstResult = hasStaticField.apply("Great Wide World!");
                 assertThat(firstResult).containsExactly("Hello Sandbox!");
                 final String[] secondResult = hasStaticField.apply(null);
@@ -66,6 +68,7 @@ class ResetStaticFieldsTest extends TestBase {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
                 Function<String, String> update = taskFactory.create(HasStaticObject.class);
+                ctx.ready();
 
                 assertNull(update.apply("one"));
                 assertEquals("one", update.apply("two"));
@@ -97,6 +100,7 @@ class ResetStaticFieldsTest extends TestBase {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
                 Function<Character, Object[]> update = taskFactory.create(HasStaticPrimitives.class);
+                ctx.ready();
 
                 final Object[] first = update.apply('?');
                 assertThat(first).containsExactly(

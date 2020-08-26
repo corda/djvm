@@ -205,7 +205,7 @@ class JavaObjectTest extends TestBase {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 Object result = WithJava.run(taskFactory, GetHashCode.class, new Object());
-                assertThat(result).isEqualTo(0xfed_c0de + 1);
+                assertThat(result).isEqualTo(0xfed_c0de - 1);
             } catch (Exception e) {
                 fail(e);
             }

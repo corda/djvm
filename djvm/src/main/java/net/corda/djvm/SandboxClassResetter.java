@@ -58,14 +58,12 @@ final class SandboxClassResetter {
     }
 
     void add(MethodHandle resetMethod, @NotNull List<Field> finalFields) {
-        synchronized(resettables) {
-            resettables.add(new Resettable(resetMethod, finalFields.isEmpty() ? emptyList() : unmodifiableList(finalFields)));
-        }
+        add(new Resettable(resetMethod, finalFields.isEmpty() ? emptyList() : unmodifiableList(finalFields)));
     }
 
-    void add(MethodHandle resetMethod) {
+    void add(Resettable resettable) {
         synchronized(resettables) {
-            resettables.add(new Resettable(resetMethod, emptyList()));
+            resettables.add(resettable);
         }
     }
 
@@ -73,8 +71,12 @@ final class SandboxClassResetter {
         for (Resettable resettable : getSnapshotOfResettables()) {
             unlock(resettable.getFinalFields());
             try {
-                resetSite.setTarget(resettable.getResetMethod());
-                resetHandle.invokeExact();
+                if (resettable.hasArgs()) {
+                    resettable.invokeWithArgs();
+                } else {
+                    resetSite.setTarget(resettable.getResetMethod());
+                    resetHandle.invokeExact();
+                }
             } finally {
                 lock(resettable.getFinalFields());
             }

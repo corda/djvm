@@ -12,6 +12,7 @@ import java.security.PrivilegedAction
 import java.security.PrivilegedActionException
 import java.security.PrivilegedExceptionAction
 import java.util.function.Consumer
+import java.util.function.Function
 
 /**
  * The context in which a sandboxed operation is run.
@@ -45,7 +46,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
 
     @CordaInternal
     internal fun addToReset(resetMethod: MethodHandle) {
-        classResetter.add(resetMethod)
+        classResetter.add(Resettable(resetMethod))
     }
 
     @CordaInternal
@@ -71,12 +72,28 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
             && field.type.name != "sandbox.java.lang.String"
     }
 
+    private var nextHashOffset: Function<in Int, out Int> = Function(::decrementHashOffset)
     private val hashCodes = mutableMapOf<Int, Int>()
     private var objectCounter: Int = 0
 
     // TODO Instead of using a magic offset below, one could take in a per-context seed
     fun getHashCodeFor(nativeHashCode: Int): Int {
-        return hashCodes.computeIfAbsent(nativeHashCode) { ++objectCounter + MAGIC_HASH_OFFSET }
+        return hashCodes.computeIfAbsent(nativeHashCode, nextHashOffset)
+    }
+
+    fun ready() {
+        nextHashOffset = Function(::incrementHashOffset)
+        objectCounter = 0
+    }
+
+    @Suppress("unused_parameter")
+    private fun incrementHashOffset(key: Int): Int {
+        return ++objectCounter + MAGIC_HASH_OFFSET
+    }
+
+    @Suppress("unused_parameter")
+    private fun decrementHashOffset(key: Int): Int {
+        return --objectCounter + MAGIC_HASH_OFFSET
     }
 
     private val internStrings = mutableMapOf<String, Any>()
@@ -86,6 +103,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
     }
 
     private fun reset() {
+        nextHashOffset = Function(::decrementHashOffset)
         objectCounter = 0
         hashCodes.clear()
         internStrings.clear()
