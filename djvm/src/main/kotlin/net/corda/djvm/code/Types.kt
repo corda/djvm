@@ -1,8 +1,8 @@
 @file:JvmName("Types")
 package net.corda.djvm.code
 
+import net.corda.djvm.api.RuleViolationError
 import net.corda.djvm.costing.ThresholdViolationError
-import net.corda.djvm.rules.RuleViolationError
 import org.objectweb.asm.Type
 import java.util.Collections.unmodifiableSet
 

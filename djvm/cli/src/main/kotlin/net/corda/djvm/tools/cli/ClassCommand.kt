@@ -5,11 +5,11 @@ import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.api.source.UserPathSource
 import net.corda.djvm.execution.*
 import net.corda.djvm.references.ClassModule
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.SourceClassLoader
-import net.corda.djvm.source.UserPathSource
 import picocli.CommandLine.Option
 import java.nio.file.Files
 import java.nio.file.Path

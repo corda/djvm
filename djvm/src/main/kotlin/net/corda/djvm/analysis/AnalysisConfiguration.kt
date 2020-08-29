@@ -1,5 +1,9 @@
 package net.corda.djvm.analysis
 
+import net.corda.djvm.api.AnalysisOptions
+import net.corda.djvm.api.source.ApiSource
+import net.corda.djvm.api.source.EmptyApi
+import net.corda.djvm.api.source.UserSource
 import net.corda.djvm.code.CLASS_CONSTRUCTOR_NAME
 import net.corda.djvm.code.CONSTRUCTOR_NAME
 import net.corda.djvm.code.DJVM_EXCEPTION_NAME
@@ -17,11 +21,8 @@ import net.corda.djvm.references.ClassModule
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MemberInformation
 import net.corda.djvm.references.MemberModule
-import net.corda.djvm.source.ApiSource
 import net.corda.djvm.source.ClassHeader
-import net.corda.djvm.source.EmptyApi
 import net.corda.djvm.source.SourceClassLoader
-import net.corda.djvm.source.UserSource
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.ACC_ABSTRACT
 import org.objectweb.asm.Opcodes.ACC_BRIDGE

@@ -1,4 +1,4 @@
-package net.corda.djvm;
+package net.corda.djvm.api;
 
 import net.corda.djvm.rewiring.ByteCode;
 import net.corda.djvm.rewiring.ByteCodeKey;

@@ -1,4 +1,4 @@
-package net.corda.djvm.analysis;
+package net.corda.djvm.api;
 
 import net.corda.djvm.messages.Severity;
 

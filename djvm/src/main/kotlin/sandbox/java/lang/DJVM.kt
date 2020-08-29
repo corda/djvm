@@ -6,9 +6,9 @@ import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_ANNOTATIONS
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_EXCEPTIONS
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSynthetic
+import net.corda.djvm.api.RuleViolationError
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.SandboxClassLoadingException
-import net.corda.djvm.rules.RuleViolationError
 import net.corda.djvm.rules.implementation.*
 import org.objectweb.asm.Type
 import sandbox.isEntryPoint

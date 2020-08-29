@@ -3,6 +3,8 @@ package net.corda.djvm.source
 import net.corda.djvm.Action
 import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.Whitelist
+import net.corda.djvm.api.source.BootstrapClassLoader
+import net.corda.djvm.api.source.UserPathSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals

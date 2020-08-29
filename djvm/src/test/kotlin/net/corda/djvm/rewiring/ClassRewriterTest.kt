@@ -6,10 +6,10 @@ import foo.bar.sandbox.Empty
 import foo.bar.sandbox.StrictFloat
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
+import net.corda.djvm.api.RuleViolationError
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.execution.ExecutionProfile
-import net.corda.djvm.rules.RuleViolationError
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
@@ -162,7 +162,7 @@ class ClassRewriterTest : TestBase(KOTLIN) {
     fun `test rule violation error cannot be loaded`() = sandbox {
         assertThatExceptionOfType(ClassNotFoundException::class.java)
             .isThrownBy { loadClass<RuleViolationError>() }
-            .withMessageContaining("Class file not found: net/corda/djvm/rules/RuleViolationError.class")
+            .withMessageContaining("Class file not found: net/corda/djvm/api/RuleViolationError.class")
     }
 
     @Test

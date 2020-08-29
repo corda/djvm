@@ -1,6 +1,8 @@
 package net.corda.djvm
 
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.api.ChildOptions
+import net.corda.djvm.api.source.UserSource
 import net.corda.djvm.code.*
 import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.execution.IsolatedTask
@@ -9,7 +11,6 @@ import net.corda.djvm.rewiring.ExternalCache
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.rules.implementation.*
 import net.corda.djvm.rules.implementation.instrumentation.*
-import net.corda.djvm.source.UserSource
 import net.corda.djvm.utilities.loggerFor
 import java.io.IOException
 import java.net.URL

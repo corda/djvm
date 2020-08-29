@@ -1,4 +1,4 @@
-package net.corda.djvm.rules
+package net.corda.djvm.api
 
 /**
  * Exception thrown when a sandbox rule is violated at runtime.

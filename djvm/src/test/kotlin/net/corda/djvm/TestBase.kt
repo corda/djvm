@@ -8,7 +8,9 @@ import net.corda.djvm.SandboxType.JAVA
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
-import net.corda.djvm.analysis.ClassAndMemberVisitor
+import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
+import net.corda.djvm.api.source.BootstrapClassLoader
+import net.corda.djvm.api.source.UserPathSource
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.Emitter
@@ -21,9 +23,7 @@ import net.corda.djvm.rewiring.ExternalCache
 import net.corda.djvm.rewiring.LoadedClass
 import net.corda.djvm.rewiring.flushAll
 import net.corda.djvm.rules.Rule
-import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.ClassSource
-import net.corda.djvm.source.UserPathSource
 import net.corda.djvm.validation.RuleValidator
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -341,7 +341,7 @@ abstract class TestBase(type: SandboxType) {
      */
     protected class Writer : ClassWriter(COMPUTE_FRAMES) {
         init {
-            assertEquals(ClassAndMemberVisitor.API_VERSION, api, "Incorrect ASM API version")
+            assertEquals(API_VERSION, api, "Incorrect ASM API version")
         }
     }
 

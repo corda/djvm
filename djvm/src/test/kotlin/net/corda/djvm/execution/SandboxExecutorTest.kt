@@ -7,8 +7,8 @@ import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.Utilities.throwRuleViolationError
 import net.corda.djvm.Utilities.throwThresholdViolationError
+import net.corda.djvm.api.RuleViolationError
 import net.corda.djvm.costing.ThresholdViolationError
-import net.corda.djvm.rules.RuleViolationError
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test

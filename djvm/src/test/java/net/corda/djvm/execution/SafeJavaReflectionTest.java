@@ -4,7 +4,7 @@ import net.corda.djvm.ExceptionalFunction;
 import net.corda.djvm.TestBase;
 import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
-import net.corda.djvm.rules.RuleViolationError;
+import net.corda.djvm.api.RuleViolationError;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;

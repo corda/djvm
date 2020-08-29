@@ -23,7 +23,7 @@ A sandbox is ultimately equivalent to an instance of `SandboxClassLoader`. We cr
 
 The DJVM reads "source" byte-code from an implementation of the DJVM's `UserSource` interface.
 ```java
-package net.corda.djvm.source;
+package net.corda.djvm.api.source;
 
 public interface Source extends AutoCloseable {
     URL findResource(String name);
@@ -36,7 +36,7 @@ public interface UserSource extends Source {}
 
 This will most likely be a descendant of `URLClassLoader` such as the DJVM's `UserPathSource` class:
 ```kotlin
-package net.corda.djvm.source
+package net.corda.djvm.api.source
 
 class UserPathSource(urls: Array<URL>) : URLClassLoader(urls, null), UserSource {
     constructor(paths: List<Path>) : this(resolvePaths(paths))
@@ -49,7 +49,7 @@ class UserPathSource(urls: Array<URL>) : URLClassLoader(urls, null), UserSource 
 Java APIs for the DJVM to use inside the sandbox are read from an implementation of `ApiSource`:
 
 ```java
-package net.corda.djvm.source;
+package net.corda.djvm.api.source;
 
 public interface ApiSource extends Source {}
 ```
@@ -59,7 +59,7 @@ to an implementation of the Java 8 APIs in this case, c.f. an instance of `Boots
 `deterministic-rt.jar`.
 
 ```kotlin
-package net.corda.djvm.source
+package net.corda.djvm.api.source
 
 class BootstrapClassLoader(bootstrapJar: Path) : URLClassLoader(resolvePaths(listOf(bootstrapJar)), null), ApiSource {
     override fun getResource(name: String): URL? = findResource(name)
@@ -183,7 +183,7 @@ The `UserSource` here would contain only the libraries that are unique to each c
 customise how the DJVM generates byte-code for these classes to a certain degree via the`ChildOptions`:
 
 ```java
-package net.corda.djvm;
+package net.corda.djvm.api;
 
 interface ChildOptions {
     void setMinimumSeverityLevel(Severity level);
