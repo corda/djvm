@@ -1,8 +1,10 @@
 import static org.gradle.api.JavaVersion.*
+import aQute.bnd.gradle.Bundle
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'com.github.johnrengelman.shadow'
+    id 'biz.aQute.bnd.builder' apply false
     id 'net.corda.plugins.publish-utils'
     id 'net.corda.plugins.api-scanner'
     id 'com.jfrog.artifactory'
@@ -35,13 +37,15 @@ if (current().java9Compatible) {
 configurations {
     jdkRt
     sandboxTesting
+    shadow.extendsFrom bundles
     testImplementation.extendsFrom shadow
 }
 
 dependencies {
-    shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    shadow "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    shadow "org.slf4j:slf4j-api:$slf4j_version"
+    bundles "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    bundles "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    bundles "org.slf4j:slf4j-api:$slf4j_version"
+    compileOnly "org.osgi:osgi.annotation:$osgi_version"
 
     // ASM: byte code manipulation library
     implementation "org.ow2.asm:asm:$asm_version"
@@ -81,15 +85,9 @@ tasks.named('javadoc', Javadoc) {
 }
 
 def shadowJar = tasks.named('shadowJar', Jar) {
-    archiveBaseName = 'corda-djvm'
     archiveClassifier = ''
     reproducibleFileOrder = true
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
-
-    manifest {
-        attributes('Automatic-Module-Name': 'net.corda.djvm')
-        attributes('Sealed': true)
-    }
 
     // Discard the ASM library's module information.
     exclude 'module-info.class'
@@ -175,6 +173,22 @@ def shadowJar = tasks.named('shadowJar', Jar) {
     exclude 'sandbox/sun/util/calendar/ZoneInfoFile.class'
 }
 
+def bundle = tasks.register('bundle', Bundle) {
+    from shadowJar.map { zipTree(it.archiveFile) }
+
+    archiveBaseName = 'corda-djvm'
+    reproducibleFileOrder = true
+    archiveClassifier = ''
+
+    manifest {
+        attributes('Bundle-SymbolicName': 'net.corda.djvm')
+        attributes('Bundle-Name': 'DJVM')
+
+        attributes('Automatic-Module-Name': 'net.corda.djvm')
+        attributes('Sealed': true)
+    }
+}
+
 def securityPolicy = file('permissive.policy')
 
 tasks.withType(Test).configureEach {
@@ -199,8 +213,9 @@ tasks.withType(Test).configureEach {
 }
 
 artifacts {
-    archives shadowJar.flatMap { it.archiveFile }
-    publish shadowJar.flatMap { it.archiveFile }
+    archives bundle.flatMap { it.archiveFile }
+    bundles bundle.flatMap { it.archiveFile }
+    publish bundle.flatMap { it.archiveFile }
 }
 
 scanApi {
@@ -211,10 +226,10 @@ scanApi {
 }
 
 publish {
-    dependenciesFrom(configurations.shadow) {
+    dependenciesFrom(configurations.bundles) {
         defaultScope = 'compile'
     }
-    name = shadowJar.flatMap { it.archiveBaseName }
+    name = bundle.flatMap { it.archiveBaseName }
 }
 
 idea {
