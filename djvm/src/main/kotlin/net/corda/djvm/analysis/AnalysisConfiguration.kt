@@ -76,11 +76,10 @@ class AnalysisConfiguration private constructor(
     val analyzeAnnotations: Boolean,
     val prefixFilters: List<String>,
     val classModule: ClassModule,
-    val memberModule: MemberModule,
-    private val memberFormatter: MemberFormatter
+    val memberModule: MemberModule
 ) {
 
-    fun formatFor(member: MemberInformation): String = memberFormatter.format(member)
+    fun formatFor(member: MemberInformation): String = MemberFormatter(classModule, memberModule).format(member)
 
     /**
      * These interfaces are modified as they are mapped into the sandbox by
@@ -147,8 +146,7 @@ class AnalysisConfiguration private constructor(
                 prefixFilters = prefixFilters,
                 classModule = classModule,
                 memberModule = memberModule,
-                supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi, supportingClassLoader),
-                memberFormatter = memberFormatter
+                supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi, supportingClassLoader)
             )
         }
     }
@@ -722,8 +720,7 @@ class AnalysisConfiguration private constructor(
                 analyzeAnnotations = analyzeAnnotations,
                 prefixFilters = prefixFilters,
                 classModule = classModule,
-                memberModule = memberModule,
-                memberFormatter = MemberFormatter(classModule, memberModule)
+                memberModule = memberModule
             )
         }
     }
