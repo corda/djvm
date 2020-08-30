@@ -8,13 +8,13 @@ import net.corda.djvm.analysis.ClassAndMemberVisitor
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSynthetic
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSyntheticOwner
 import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
+import net.corda.djvm.api.source.ClassSource
+import net.corda.djvm.api.source.CodeLocation
+import net.corda.djvm.api.source.SourceLoader
 import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.code.asResourcePath
 import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.references.ClassReference
-import net.corda.djvm.source.ClassSource
-import net.corda.djvm.source.CodeLocation
-import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.source.unversioned
 import net.corda.djvm.utilities.loggerFor
 import net.corda.djvm.validation.RuleValidator
@@ -52,7 +52,7 @@ import java.util.function.Function
 class SandboxClassLoader private constructor(
     private val analysisConfiguration: AnalysisConfiguration,
     private val analyzer: ClassAndMemberVisitor,
-    private val supportingClassLoader: SourceClassLoader,
+    private val supportingClassLoader: SourceLoader,
     private val rewriter: ClassRewriter,
     private val context: AnalysisContext,
     private val byteCodeCache: ByteCodeCache,

@@ -1,7 +1,7 @@
 package net.corda.djvm.code
 
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.source.SourceClassLoader
+import net.corda.djvm.api.source.SourceLoader
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
@@ -22,12 +22,12 @@ import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
  */
 class SandboxClassWriter(
         classReader: ClassReader,
-        private val cloader: SourceClassLoader,
+        private val cloader: SourceLoader,
         private val configuration: AnalysisConfiguration,
         options: Int
 ) : ClassWriter(classReader, options) {
 
-    override fun getClassLoader(): SourceClassLoader = cloader
+    override fun getClassLoader(): SourceLoader = cloader
 
     /**
      * Get the common super type of [type1] and [type2].

@@ -6,6 +6,7 @@ import net.corda.djvm.code.emptyAsNull
 import net.corda.djvm.code.instructions.*
 import net.corda.djvm.messages.Message
 import net.corda.djvm.references.*
+import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.*
 
 /**
@@ -54,7 +55,7 @@ open class ClassAndMemberVisitor(
      * @param origin The originating class for the analysis.
      */
     fun analyze(className: String, context: AnalysisContext, options: Int, origin: String? = null) {
-        configuration.supportingClassLoader.classReader(className, context, origin).apply {
+        (configuration.supportingClassLoader as SourceClassLoader).classReader(className, context, origin).apply {
             analyze(this, context, options)
         }
     }

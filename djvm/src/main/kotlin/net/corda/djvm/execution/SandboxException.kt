@@ -1,6 +1,6 @@
 package net.corda.djvm.execution
 
-import net.corda.djvm.source.ClassSource
+import net.corda.djvm.api.source.ClassSource
 import java.io.PrintWriter
 
 /**

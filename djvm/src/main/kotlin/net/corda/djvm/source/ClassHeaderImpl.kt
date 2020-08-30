@@ -1,5 +1,6 @@
 package net.corda.djvm.source
 
+import net.corda.djvm.api.source.ClassHeader
 import net.corda.djvm.code.ENUM_NAME
 import net.corda.djvm.code.THROWABLE_NAME
 import org.objectweb.asm.Opcodes.*
@@ -9,14 +10,14 @@ import org.objectweb.asm.Opcodes.*
  * two classes' common superclass without actually loading them.
  * It also allows us to recognise [Enum] and [Annotation] types.
  */
-class ClassHeader(
+class ClassHeaderImpl(
     val classLoader: SourceClassLoader,
-    val name: String,
-    val internalName: String,
-    val superclass: ClassHeader?,
-    val interfaces: Set<ClassHeader>,
+    override val name: String,
+    override val internalName: String,
+    override val superclass: ClassHeader?,
+    override val interfaces: Set<ClassHeader>,
     val flags: Int
-) {
+) : ClassHeader {
     private fun matchesClass(clazz: ClassHeader): Boolean {
         return clazz.internalName == internalName
     }
@@ -40,7 +41,7 @@ class ClassHeader(
         return false
     }
 
-    fun isAssignableFrom(header: ClassHeader): Boolean {
+    override fun isAssignableFrom(header: ClassHeader): Boolean {
         return if (isInterface) {
             if (header.isInterface) {
                 isAssignableFromInterface(header)
@@ -54,13 +55,13 @@ class ClassHeader(
         }
     }
 
-    val isInterface: Boolean get() = (flags and ACC_INTERFACE) != 0
+    override val isInterface: Boolean get() = (flags and ACC_INTERFACE) != 0
 
-    val isThrowable: Boolean get() = internalName == THROWABLE_NAME || (superclass != null && superclass.isThrowable)
+    override val isThrowable: Boolean get() = internalName == THROWABLE_NAME || (superclass != null && superclass.isThrowable)
 
-    val isAnnotation: Boolean get() = (flags and ACC_ANNOTATION) != 0
+    override val isAnnotation: Boolean get() = (flags and ACC_ANNOTATION) != 0
 
-    val isEnum: Boolean
+    override val isEnum: Boolean
         get() = (flags and ACC_ENUM) != 0 && (superclass != null) && (superclass.internalName == ENUM_NAME)
 
     override fun toString(): String = name

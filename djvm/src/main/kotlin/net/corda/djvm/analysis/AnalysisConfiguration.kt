@@ -2,7 +2,9 @@ package net.corda.djvm.analysis
 
 import net.corda.djvm.api.AnalysisOptions
 import net.corda.djvm.api.source.ApiSource
+import net.corda.djvm.api.source.ClassHeader
 import net.corda.djvm.api.source.EmptyApi
+import net.corda.djvm.api.source.SourceLoader
 import net.corda.djvm.api.source.UserSource
 import net.corda.djvm.code.CLASS_CONSTRUCTOR_NAME
 import net.corda.djvm.code.CONSTRUCTOR_NAME
@@ -21,7 +23,6 @@ import net.corda.djvm.references.ClassModule
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MemberInformation
 import net.corda.djvm.references.MemberModule
-import net.corda.djvm.source.ClassHeader
 import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.ACC_ABSTRACT
@@ -69,7 +70,7 @@ class AnalysisConfiguration private constructor(
     val whitelist: Whitelist,
     val stitchedAnnotations: Set<String>,
     val minimumSeverityLevel: Severity,
-    val supportingClassLoader: SourceClassLoader,
+    val supportingClassLoader: SourceLoader,
     val classResolver: ClassResolver,
     val syntheticResolver: SyntheticResolver,
     val analyzeAnnotations: Boolean,

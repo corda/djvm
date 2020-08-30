@@ -5,11 +5,11 @@ import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_DEFINITION_PROVIDERS
 import net.corda.djvm.SandboxConfiguration.Companion.ALL_RULES
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.api.source.ClassSource
+import net.corda.djvm.api.source.SourceLoader
 import net.corda.djvm.api.source.UserPathSource
 import net.corda.djvm.execution.*
 import net.corda.djvm.references.ClassModule
-import net.corda.djvm.source.ClassSource
-import net.corda.djvm.source.SourceClassLoader
 import picocli.CommandLine.Option
 import java.nio.file.Files
 import java.nio.file.Path
@@ -54,7 +54,7 @@ abstract class ClassCommand : CommandBase() {
 
     private val classModule = ClassModule()
 
-    private lateinit var classLoader: SourceClassLoader
+    private lateinit var classLoader: SourceLoader
 
     protected lateinit var executor: SandboxExecutor<Any?, Any?>
         private set
@@ -142,7 +142,7 @@ abstract class ClassCommand : CommandBase() {
     private fun findClassesInJars(filters: Array<String>): List<Class<*>> {
         return filters.filter { isJarFile(it) }.flatMap { jarFile ->
             mutableListOf<Class<*>>().apply {
-                ClassSource.fromPath(Paths.get(jarFile)).getStreamIterator().forEach {
+                ClassSource.fromPath(Paths.get(jarFile)).streamIterator.forEach {
                     val reader = ClassReader(it)
                     val className = classModule.getFormattedClassName(reader.className)
                     printVerbose("Looking up class $className in $jarFile...")

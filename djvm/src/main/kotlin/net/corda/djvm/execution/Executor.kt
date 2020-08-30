@@ -1,7 +1,7 @@
 package net.corda.djvm.execution
 
 import net.corda.djvm.SandboxConfiguration
-import net.corda.djvm.source.ClassSource
+import net.corda.djvm.api.source.ClassSource
 
 abstract class Executor<in INPUT, out OUTPUT>(protected val configuration: SandboxConfiguration) {
 

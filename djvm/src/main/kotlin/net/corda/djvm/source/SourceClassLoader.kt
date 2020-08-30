@@ -8,6 +8,9 @@ import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSyntheticOwner
 import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
 import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.api.source.ApiSource
+import net.corda.djvm.api.source.ClassHeader
+import net.corda.djvm.api.source.CodeLocation
+import net.corda.djvm.api.source.SourceLoader
 import net.corda.djvm.api.source.UserSource
 import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.code.asResourcePath
@@ -40,8 +43,8 @@ class SourceClassLoader(
     private val classResolver: ClassResolver,
     private val userSource: UserSource,
     private val bootstrap: ApiSource?,
-    parent: SourceClassLoader?
-) : ClassLoader(parent) {
+    parent: SourceLoader?
+) : SourceLoader(parent) {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
     }
@@ -56,7 +59,7 @@ class SourceClassLoader(
 
     fun getURLs(): Array<URL> = userSource.getURLs() + (bootstrap?.getURLs() ?: emptyArray())
 
-    fun getAllURLs(): Set<URL> {
+    override fun getAllURLs(): Set<URL> {
         val urls = getURLs().mapTo(LinkedHashSet()) { it }
         var next = parent as? SourceClassLoader
         while (next != null) {
@@ -70,7 +73,7 @@ class SourceClassLoader(
      * Immutable set of [CodeLocation] objects describing
      * our source classes' code-bases.
      */
-    val codeLocations: Set<CodeLocation> = unmodifiableSet(
+    override val codeLocations: Set<CodeLocation> = unmodifiableSet(
         getURLs().mapTo(LinkedHashSet(), ::CodeLocation)
     )
 
@@ -106,7 +109,7 @@ class SourceClassLoader(
      * with the specified binary name.
      */
     @Throws(ClassNotFoundException::class)
-    fun loadSourceHeader(name: String): ClassHeader {
+    override fun loadSourceHeader(name: String): ClassHeader {
         logger.trace("Loading source class for {}...", name)
         // We need the name of the equivalent class outside of the sandbox.
         // This class is expected to belong to the application classloader.
@@ -127,7 +130,7 @@ class SourceClassLoader(
      * with the specified binary name.
      */
     @Throws(ClassNotFoundException::class)
-    fun loadClassHeader(name: String): ClassHeader {
+    override fun loadClassHeader(name: String): ClassHeader {
         return try {
             doPrivileged(PrivilegedExceptionAction {
                 loadClassHeader(name, name.asResourcePath)
@@ -182,7 +185,7 @@ class SourceClassLoader(
             throw NoClassDefFoundError(internalName)
         }
 
-        return ClassHeader(
+        return ClassHeaderImpl(
             classLoader = this,
             name = name,
             internalName = internalName,
