@@ -1,4 +1,4 @@
-package net.corda.djvm.validation
+package net.corda.djvm.api.validation
 
 import net.corda.djvm.messages.MessageCollection
 import net.corda.djvm.references.ClassHierarchy

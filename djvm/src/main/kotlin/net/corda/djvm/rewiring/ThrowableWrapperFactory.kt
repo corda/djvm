@@ -34,7 +34,7 @@ class ThrowableWrapperFactory(
      * these classes implement [sandbox.java.lang.DJVMException],
      * either directly or indirectly.
      */
-    fun accept(writer: ClassWriter) = with(writer) {
+    private fun accept(writer: ClassWriter) = with(writer) {
         if (isDJVMSynthetic(superName)) {
             childClass()
         } else {

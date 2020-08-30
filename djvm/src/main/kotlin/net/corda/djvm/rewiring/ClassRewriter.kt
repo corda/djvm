@@ -17,9 +17,12 @@ import net.corda.djvm.code.emptyAsNull
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
 import net.corda.djvm.utilities.loggerFor
-import org.objectweb.asm.*
+import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
+import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ACC_ABSTRACT
 import java.security.CodeSource
 
