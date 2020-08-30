@@ -1,4 +1,4 @@
-package net.corda.djvm.source
+package net.corda.djvm.source.impl
 
 import java.io.InputStream
 import java.util.jar.JarInputStream

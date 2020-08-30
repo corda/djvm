@@ -1,6 +1,6 @@
-package net.corda.djvm.api;
+package net.corda.djvm;
 
-import net.corda.djvm.SandboxConfiguration;
+import net.corda.djvm.analysis.AnalysisOptions;
 
 /**
  * Unify {@link AnalysisOptions} and {@link ConfigurationOptions} into a single

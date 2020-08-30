@@ -1,8 +1,6 @@
 package net.corda.djvm;
 
-import net.corda.djvm.api.AnalysisOptions;
-import net.corda.djvm.api.ChildOptions;
-import net.corda.djvm.api.ConfigurationOptions;
+import net.corda.djvm.analysis.AnalysisOptions;
 import net.corda.djvm.rewiring.ByteCode;
 import net.corda.djvm.rewiring.ByteCodeKey;
 

@@ -9,9 +9,6 @@ import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
-import net.corda.djvm.api.source.BootstrapClassLoader
-import net.corda.djvm.api.source.ClassSource
-import net.corda.djvm.api.source.UserPathSource
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.Emitter
@@ -24,7 +21,10 @@ import net.corda.djvm.rewiring.ExternalCache
 import net.corda.djvm.rewiring.LoadedClass
 import net.corda.djvm.rewiring.flushAll
 import net.corda.djvm.rules.Rule
-import net.corda.djvm.validation.RuleValidator
+import net.corda.djvm.source.BootstrapClassLoader
+import net.corda.djvm.source.ClassSource
+import net.corda.djvm.source.UserPathSource
+import net.corda.djvm.validation.impl.RuleValidator
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals

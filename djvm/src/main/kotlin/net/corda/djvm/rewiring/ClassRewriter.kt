@@ -4,7 +4,6 @@ import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.analysis.SyntheticResolver
-import net.corda.djvm.api.source.SourceLoader
 import net.corda.djvm.code.ClassMutator
 import net.corda.djvm.code.DJVM_SYNTHETIC
 import net.corda.djvm.code.EmitterModule
@@ -16,6 +15,7 @@ import net.corda.djvm.code.SyntheticRemapper
 import net.corda.djvm.code.emptyAsNull
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
+import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
@@ -34,7 +34,7 @@ import java.security.CodeSource
  */
 class ClassRewriter(
     private val configuration: SandboxConfiguration,
-    private val classLoader: SourceLoader
+    private val classLoader: SourceClassLoader
 ) {
     private val analysisConfig = configuration.analysisConfiguration
     private val remapper = with(analysisConfig) { SandboxRemapper(classResolver, whitelist) }

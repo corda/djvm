@@ -1,8 +1,8 @@
-package net.corda.djvm.api.source
+package net.corda.djvm.source
 
-import net.corda.djvm.api.source.ClassSource.Companion.isClass
-import net.corda.djvm.api.source.ClassSource.Companion.isJar
-import net.corda.djvm.source.JarInputStreamIterator
+import net.corda.djvm.source.ClassSource.Companion.isClass
+import net.corda.djvm.source.ClassSource.Companion.isJar
+import net.corda.djvm.source.impl.JarInputStreamIterator
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path

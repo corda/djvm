@@ -1,7 +1,7 @@
 package net.corda.djvm.rewiring
 
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.api.source.UserPathSource
+import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test

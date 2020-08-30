@@ -1,7 +1,7 @@
 package net.corda.djvm;
 
-import net.corda.djvm.api.RuleViolationError;
 import net.corda.djvm.costing.ThresholdViolationError;
+import net.corda.djvm.rules.RuleViolationError;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;

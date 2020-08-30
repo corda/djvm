@@ -1,7 +1,7 @@
 package com.example.testing
 
 import com.example.testing.SandboxType.KOTLIN
-import net.corda.djvm.api.RuleViolationError
+import net.corda.djvm.rules.RuleViolationError
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

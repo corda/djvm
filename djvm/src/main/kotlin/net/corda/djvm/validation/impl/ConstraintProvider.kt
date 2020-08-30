@@ -1,4 +1,4 @@
-package net.corda.djvm.validation
+package net.corda.djvm.validation.impl
 
 import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.messages.Message

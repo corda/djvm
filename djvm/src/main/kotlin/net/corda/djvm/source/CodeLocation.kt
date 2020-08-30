@@ -1,11 +1,11 @@
-package net.corda.djvm.api.source
+package net.corda.djvm.source
 
 import java.net.URL
 import java.security.CodeSource
 import java.security.cert.Certificate
 
 /**
- * @property codeSource A [CodeSource] provided by [SourceLoader].
+ * @property codeSource A [CodeSource] provided by [SourceClassLoader].
  * @property location The interned [String] value of codeSource.getLocation().toString().
  */
 class CodeLocation private constructor(

@@ -8,11 +8,11 @@ import net.corda.core.serialization.DeprecatedConstructorForDeserialization
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.api.source.BootstrapClassLoader
-import net.corda.djvm.api.source.UserPathSource
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.messages.Severity.WARNING
 import net.corda.djvm.rewiring.ExternalCache
+import net.corda.djvm.source.BootstrapClassLoader
+import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.fail

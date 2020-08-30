@@ -1,5 +1,5 @@
 @file:JvmName("SourceTools")
-package net.corda.djvm.api.source
+package net.corda.djvm.source
 
 import java.io.FileNotFoundException
 import java.net.URL

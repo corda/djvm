@@ -2,8 +2,6 @@ package net.corda.djvm.execution
 
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.analysis.AnalysisContext
-import net.corda.djvm.api.source.ClassSource
-import net.corda.djvm.api.validation.ReferenceValidationSummary
 import net.corda.djvm.messages.Message
 import net.corda.djvm.references.ClassReference
 import net.corda.djvm.references.MemberReference
@@ -11,7 +9,9 @@ import net.corda.djvm.references.ReferenceWithLocation
 import net.corda.djvm.rewiring.LoadedClass
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.SandboxClassLoadingException
+import net.corda.djvm.source.ClassSource
 import net.corda.djvm.utilities.loggerFor
+import net.corda.djvm.validation.ReferenceValidationSummary
 import java.util.function.BiConsumer
 import java.util.function.Function
 

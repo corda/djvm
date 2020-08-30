@@ -1,4 +1,4 @@
 @Export
-package net.corda.djvm.analysis;
+package net.corda.djvm.source;
 
 import org.osgi.annotation.bundle.Export;

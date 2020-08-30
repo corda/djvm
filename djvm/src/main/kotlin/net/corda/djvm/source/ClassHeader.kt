@@ -1,5 +1,10 @@
-package net.corda.djvm.api.source
+package net.corda.djvm.source
 
+/**
+ * A "cut to the bone" replacement for [Class] so that we can compute
+ * two classes' common superclass without actually loading them.
+ * It also allows us to recognise [Enum] and [Annotation] types.
+ */
 interface ClassHeader {
     val name: String
     val internalName: String

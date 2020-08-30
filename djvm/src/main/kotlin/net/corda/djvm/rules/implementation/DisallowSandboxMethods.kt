@@ -3,7 +3,7 @@ package net.corda.djvm.rules.implementation
 import net.corda.djvm.code.FROM_DJVM
 import net.corda.djvm.references.ImmutableMember
 import net.corda.djvm.rules.MemberRule
-import net.corda.djvm.validation.RuleContext
+import net.corda.djvm.validation.impl.RuleContext
 
 /**
  * Disallow loading of classes that try to override methods on

@@ -1,6 +1,6 @@
 package net.corda.djvm.tools.cli
 
-import net.corda.djvm.api.source.ClassSource
+import net.corda.djvm.source.ClassSource
 import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 

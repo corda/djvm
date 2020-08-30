@@ -2,7 +2,7 @@ package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.references.ImmutableClass
 import net.corda.djvm.rules.ClassRule
-import net.corda.djvm.validation.RuleContext
+import net.corda.djvm.validation.impl.RuleContext
 
 /**
  * Disallow loading of classes that have been defined in the 'sandbox' root package.

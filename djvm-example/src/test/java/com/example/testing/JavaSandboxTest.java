@@ -1,7 +1,7 @@
 package com.example.testing;
 
 import net.corda.djvm.TypedTaskFactory;
-import net.corda.djvm.api.RuleViolationError;
+import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
 
 import static com.example.testing.SandboxType.JAVA;

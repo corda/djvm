@@ -4,7 +4,7 @@ import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import net.corda.djvm.code.instructions.TypeInstruction
 import net.corda.djvm.rules.InstructionRule
-import net.corda.djvm.validation.RuleContext
+import net.corda.djvm.validation.impl.RuleContext
 import org.objectweb.asm.Type
 
 /**

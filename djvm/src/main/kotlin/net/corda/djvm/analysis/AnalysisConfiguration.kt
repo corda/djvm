@@ -1,11 +1,5 @@
 package net.corda.djvm.analysis
 
-import net.corda.djvm.api.AnalysisOptions
-import net.corda.djvm.api.source.ApiSource
-import net.corda.djvm.api.source.ClassHeader
-import net.corda.djvm.api.source.EmptyApi
-import net.corda.djvm.api.source.SourceLoader
-import net.corda.djvm.api.source.UserSource
 import net.corda.djvm.code.CLASS_CONSTRUCTOR_NAME
 import net.corda.djvm.code.CONSTRUCTOR_NAME
 import net.corda.djvm.code.DJVM_EXCEPTION_NAME
@@ -23,7 +17,12 @@ import net.corda.djvm.references.ClassModule
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MemberInformation
 import net.corda.djvm.references.MemberModule
+import net.corda.djvm.source.ApiSource
+import net.corda.djvm.source.ClassHeader
+import net.corda.djvm.source.EmptyApi
 import net.corda.djvm.source.SourceClassLoader
+import net.corda.djvm.source.UserSource
+import net.corda.djvm.source.impl.SourceClassLoaderImpl
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.ACC_ABSTRACT
 import org.objectweb.asm.Opcodes.ACC_BRIDGE
@@ -70,7 +69,7 @@ class AnalysisConfiguration private constructor(
     val whitelist: Whitelist,
     val stitchedAnnotations: Set<String>,
     val minimumSeverityLevel: Severity,
-    val supportingClassLoader: SourceLoader,
+    val supportingClassLoader: SourceClassLoader,
     val classResolver: ClassResolver,
     val syntheticResolver: SyntheticResolver,
     val analyzeAnnotations: Boolean,
@@ -146,7 +145,7 @@ class AnalysisConfiguration private constructor(
                 prefixFilters = prefixFilters,
                 classModule = classModule,
                 memberModule = memberModule,
-                supportingClassLoader = SourceClassLoader(classResolver, userSource, EmptyApi, supportingClassLoader)
+                supportingClassLoader = SourceClassLoaderImpl(classResolver, userSource, EmptyApi, supportingClassLoader)
             )
         }
     }
@@ -714,7 +713,7 @@ class AnalysisConfiguration private constructor(
                 whitelist = actualWhitelist,
                 stitchedAnnotations = STITCHED_ANNOTATIONS.merge(visibleAnnotations),
                 minimumSeverityLevel = minimumSeverityLevel,
-                supportingClassLoader = SourceClassLoader(classResolver, userSource, bootstrapSource),
+                supportingClassLoader = SourceClassLoaderImpl(classResolver, userSource, bootstrapSource),
                 classResolver = classResolver,
                 syntheticResolver = SyntheticResolver(JVM_EXCEPTIONS, JVM_ANNOTATIONS, SANDBOX_PREFIX),
                 analyzeAnnotations = analyzeAnnotations,

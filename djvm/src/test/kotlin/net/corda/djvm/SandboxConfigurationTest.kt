@@ -4,7 +4,7 @@ import net.corda.djvm.DummyJar.Companion.putCompressedClass
 import net.corda.djvm.DummyJar.Companion.putDirectoryOf
 import net.corda.djvm.DummyJar.Companion.putUncompressedEntry
 import net.corda.djvm.SandboxType.KOTLIN
-import net.corda.djvm.api.source.UserPathSource
+import net.corda.djvm.source.UserPathSource
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

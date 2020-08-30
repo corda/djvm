@@ -3,8 +3,7 @@ package net.corda.djvm.source
 import net.corda.djvm.Action
 import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.Whitelist
-import net.corda.djvm.api.source.BootstrapClassLoader
-import net.corda.djvm.api.source.UserPathSource
+import net.corda.djvm.source.impl.SourceClassLoaderImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -29,14 +28,14 @@ class SourceClassLoaderTest {
 
     @Test
     fun `can load class from Java's lang package when no files are provided to the class loader`() {
-        val classLoader = SourceClassLoader(classResolver, UserPathSource(emptyList()))
+        val classLoader = SourceClassLoaderImpl(classResolver, UserPathSource(emptyList()))
         val clazz = classLoader.loadClassHeader("java.lang.Boolean")
         assertThat(clazz.name).isEqualTo("java.lang.Boolean")
     }
 
     @Test
     fun `cannot load arbitrary class when no files are provided to the class loader`() {
-        val classLoader = SourceClassLoader(classResolver, UserPathSource(emptyList()))
+        val classLoader = SourceClassLoaderImpl(classResolver, UserPathSource(emptyList()))
         assertThrows<ClassNotFoundException> {
             classLoader.loadClassHeader("net.foo.NonExistentClass")
         }
@@ -45,7 +44,7 @@ class SourceClassLoaderTest {
     @Test
     fun `can load class when JAR file is provided to the class loader`() {
         useTemporaryFile("jar-with-single-class.jar") {
-            val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
+            val classLoader = SourceClassLoaderImpl(classResolver, UserPathSource(this))
             val clazz = classLoader.loadClassHeader("net.foo.Bar")
             assertThat(clazz.name).isEqualTo("net.foo.Bar")
         }
@@ -54,7 +53,7 @@ class SourceClassLoaderTest {
     @Test
     fun `cannot load arbitrary class when JAR file is provided to the class loader`() {
         useTemporaryFile("jar-with-single-class.jar") {
-            val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
+            val classLoader = SourceClassLoaderImpl(classResolver, UserPathSource(this))
             assertThrows<ClassNotFoundException> {
                 classLoader.loadClassHeader("net.foo.NonExistentClass")
             }
@@ -64,7 +63,7 @@ class SourceClassLoaderTest {
     @Test
     fun `can load classes when multiple JAR files are provided to the class loader`() {
         useTemporaryFile("jar-with-single-class.jar", "jar-with-two-classes.jar") {
-            val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
+            val classLoader = SourceClassLoaderImpl(classResolver, UserPathSource(this))
             val firstClass = classLoader.loadClassHeader("com.somewhere.Test")
             assertThat(firstClass.name).isEqualTo("com.somewhere.Test")
             val secondClass = classLoader.loadClassHeader("com.somewhere.AnotherTest")
@@ -75,7 +74,7 @@ class SourceClassLoaderTest {
     @Test
     fun `cannot load arbitrary class when multiple JAR files are provided to the class loader`() {
         useTemporaryFile("jar-with-single-class.jar", "jar-with-two-classes.jar") {
-            val classLoader = SourceClassLoader(classResolver, UserPathSource(this))
+            val classLoader = SourceClassLoaderImpl(classResolver, UserPathSource(this))
             assertThrows<ClassNotFoundException> {
                 classLoader.loadClassHeader("com.somewhere.NonExistentClass")
             }
@@ -88,7 +87,7 @@ class SourceClassLoaderTest {
             val (first, second) = this
             val directory = first.parent
             UserPathSource(listOf(directory)).use { userPathSource ->
-                val classLoader = SourceClassLoader(classResolver, userPathSource)
+                val classLoader = SourceClassLoaderImpl(classResolver, userPathSource)
                 assertThat(classLoader.getURLs()).anySatisfy {
                     assertThat(it).isEqualTo(first.toUri().toURL())
                 }.anySatisfy {
@@ -101,10 +100,10 @@ class SourceClassLoaderTest {
     @Test
     fun `can load source class that is split across parent and child loaders`() {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
-            val parentLoader = SourceClassLoader(classResolver, parentSource)
+            val parentLoader = SourceClassLoaderImpl(classResolver, parentSource)
 
             UserPathSource(arrayOf(ExampleAction::class.java.protectionDomain.codeSource.location)).use { childSource ->
-                val childLoader = SourceClassLoader(classResolver, childSource, null, parentLoader)
+                val childLoader = SourceClassLoaderImpl(classResolver, childSource, null, parentLoader)
 
                 // Check that parent and child have different source locations.
                 assertThat(parentLoader.getURLs())
@@ -114,7 +113,7 @@ class SourceClassLoaderTest {
                 assertNotNull(childLoader.loadClassHeader(ExampleAction::class.java.name))
 
                 // Check that loading child without parent does fail.
-                val orphanLoader = SourceClassLoader(classResolver, childSource)
+                val orphanLoader = SourceClassLoaderImpl(classResolver, childSource)
                 assertThrows<NoClassDefFoundError> { orphanLoader.loadClassHeader(ExampleAction::class.java.name) }
             }
         }
@@ -123,7 +122,7 @@ class SourceClassLoaderTest {
     @Test
     fun `test interfaces are assignable to interfaces`() {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
-            val parentLoader = SourceClassLoader(classResolver, parentSource)
+            val parentLoader = SourceClassLoaderImpl(classResolver, parentSource)
 
             val map = parentLoader.loadClassHeader("java.util.Map")
             assertTrue(map.isInterface)
@@ -141,7 +140,7 @@ class SourceClassLoaderTest {
     @Test
     fun `test classes are assignable to classes`() {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
-            val parentLoader = SourceClassLoader(classResolver, parentSource)
+            val parentLoader = SourceClassLoaderImpl(classResolver, parentSource)
 
             val abstractMap = parentLoader.loadClassHeader("java.util.AbstractMap")
             assertFalse(abstractMap.isInterface)
@@ -159,7 +158,7 @@ class SourceClassLoaderTest {
     @Test
     fun `test classes are assignable to interfaces`() {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
-            val parentLoader = SourceClassLoader(classResolver, parentSource)
+            val parentLoader = SourceClassLoaderImpl(classResolver, parentSource)
 
             val serializable = parentLoader.loadClassHeader("java.io.Serializable")
             assertTrue(serializable.isInterface)
@@ -175,7 +174,7 @@ class SourceClassLoaderTest {
     @Test
     fun `test classes are assignable to superinterfaces`() {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
-            val parentLoader = SourceClassLoader(classResolver, parentSource)
+            val parentLoader = SourceClassLoaderImpl(classResolver, parentSource)
 
             val iterable = parentLoader.loadClassHeader("java.lang.Iterable")
             assertTrue(iterable.isInterface)
@@ -189,7 +188,7 @@ class SourceClassLoaderTest {
     @Test
     fun `test loading throwables`() {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
-            val parentLoader = SourceClassLoader(classResolver, parentSource)
+            val parentLoader = SourceClassLoaderImpl(classResolver, parentSource)
             val serializable = parentLoader.loadClassHeader("java.io.Serializable")
 
             val throwable = parentLoader.loadClassHeader("java.lang.Throwable")
@@ -224,10 +223,10 @@ class SourceClassLoaderTest {
     )
     fun `test getting resources`(resourceName: String, expected: Int) {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
-            val parentLoader = SourceClassLoader(classResolver, parentSource, apiSource)
+            val parentLoader = SourceClassLoaderImpl(classResolver, parentSource, apiSource)
 
             UserPathSource(arrayOf(ExampleAction::class.java.protectionDomain.codeSource.location)).use { childSource ->
-                val childLoader = SourceClassLoader(
+                val childLoader = SourceClassLoaderImpl(
                     classResolver,
                     childSource,
                     null,
@@ -243,13 +242,13 @@ class SourceClassLoaderTest {
     @Test
     fun `test getting all URLs`() {
         UserPathSource(arrayOf(Action::class.java.protectionDomain.codeSource.location)).use { parentSource ->
-            val parentLoader = SourceClassLoader(classResolver, parentSource, apiSource)
+            val parentLoader = SourceClassLoaderImpl(classResolver, parentSource, apiSource)
             val urlsForParent = parentLoader.getAllURLs()
             assertEquals(2, urlsForParent.size)
             assertThat(urlsForParent).containsExactly(*parentLoader.getURLs())
 
             UserPathSource(arrayOf(ExampleAction::class.java.protectionDomain.codeSource.location)).use { childSource ->
-                val childLoader = SourceClassLoader(
+                val childLoader = SourceClassLoaderImpl(
                     classResolver,
                     childSource,
                     null,
