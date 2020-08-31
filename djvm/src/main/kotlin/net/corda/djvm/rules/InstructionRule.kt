@@ -3,7 +3,7 @@ package net.corda.djvm.rules
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.references.ImmutableClass
 import net.corda.djvm.references.ImmutableMember
-import net.corda.djvm.validation.impl.RuleContext
+import net.corda.djvm.validation.RuleContext
 
 /**
  * Representation of a rule that applies to byte code instructions.

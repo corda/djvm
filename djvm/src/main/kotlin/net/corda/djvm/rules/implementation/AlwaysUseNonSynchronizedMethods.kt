@@ -5,7 +5,7 @@ import net.corda.djvm.code.MemberDefinitionProvider
 import net.corda.djvm.references.EntityWithAccessFlag
 import net.corda.djvm.references.ImmutableMember
 import net.corda.djvm.rules.MemberRule
-import net.corda.djvm.validation.impl.RuleContext
+import net.corda.djvm.validation.RuleContext
 import org.objectweb.asm.Opcodes.ACC_SYNCHRONIZED
 import java.lang.reflect.Modifier
 

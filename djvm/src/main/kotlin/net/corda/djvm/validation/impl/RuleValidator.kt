@@ -11,6 +11,7 @@ import net.corda.djvm.rules.InstructionRule
 import net.corda.djvm.rules.MemberRule
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.utilities.processEntriesOfType
+import net.corda.djvm.validation.RuleContext
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
