@@ -1,4 +1,4 @@
-package net.corda.djvm.code;
+package net.corda.djvm.code.impl;
 
 import java.util.Collections;
 import java.util.HashSet;

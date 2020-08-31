@@ -1,7 +1,7 @@
 package net.corda.djvm.analysis
 
-import net.corda.djvm.code.asPackagePath
-import net.corda.djvm.code.asResourcePath
+import net.corda.djvm.code.impl.asPackagePath
+import net.corda.djvm.code.impl.asResourcePath
 
 /**
  * Functionality for resolving the class name of a sandboxable class.

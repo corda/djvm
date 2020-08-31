@@ -1,7 +1,7 @@
 package net.corda.djvm.references
 
-import net.corda.djvm.code.CLASS_CONSTRUCTOR_NAME
-import net.corda.djvm.code.CONSTRUCTOR_NAME
+import net.corda.djvm.code.impl.CLASS_CONSTRUCTOR_NAME
+import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
 
 /**
  * Member-specific functionality.

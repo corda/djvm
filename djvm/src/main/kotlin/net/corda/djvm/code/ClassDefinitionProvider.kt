@@ -4,8 +4,8 @@ import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.references.ImmutableClass
 
 /**
- * A class definition provider is a hook for [ClassMutator], from where one can modify the name and meta-data of
- * processed classes.
+ * A class definition provider is a hook for [net.corda.djvm.code.impl.ClassMutator],
+ * from where one can modify the name and meta-data of processed classes.
  */
 interface ClassDefinitionProvider : DefinitionProvider {
 

@@ -1,7 +1,12 @@
 package net.corda.djvm
 
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.code.*
+import net.corda.djvm.code.DefinitionProvider
+import net.corda.djvm.code.Emitter
+import net.corda.djvm.code.impl.EMIT_TRACING
+import net.corda.djvm.code.impl.OBJECT_NAME
+import net.corda.djvm.code.impl.THROWABLE_NAME
+import net.corda.djvm.code.impl.asPackagePath
 import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.execution.IsolatedTask
 import net.corda.djvm.rewiring.ByteCodeCache

@@ -1,5 +1,5 @@
 @file:JvmName("SewingKit")
-package net.corda.djvm.code
+package net.corda.djvm.code.impl
 
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor

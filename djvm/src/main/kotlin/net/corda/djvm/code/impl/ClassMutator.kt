@@ -1,7 +1,14 @@
-package net.corda.djvm.code
+package net.corda.djvm.code.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.impl.ClassAndMemberVisitor
+import net.corda.djvm.code.ClassDefinitionProvider
+import net.corda.djvm.code.DefinitionProvider
+import net.corda.djvm.code.Emitter
+import net.corda.djvm.code.EmitterContext
+import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.MemberDefinitionProvider
 import net.corda.djvm.code.instructions.MethodEntry
 import net.corda.djvm.references.ClassRepresentation
 import net.corda.djvm.references.ImmutableClass
@@ -23,10 +30,10 @@ import java.util.function.Consumer
  * @param emitters A set of code emitters used to modify and instrument method bodies.
  */
 class ClassMutator(
-        classVisitor: ClassVisitor,
-        configuration: AnalysisConfiguration,
-        private val definitionProviders: List<DefinitionProvider>,
-        emitters: List<Emitter>
+    classVisitor: ClassVisitor,
+    configuration: AnalysisConfiguration,
+    private val definitionProviders: List<DefinitionProvider>,
+    emitters: List<Emitter>
 ) : ClassAndMemberVisitor(classVisitor, configuration) {
 
     /**

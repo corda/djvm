@@ -2,8 +2,8 @@
 package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.sandboxed
-import net.corda.djvm.code.CONSTRUCTOR_NAME
 import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
 import net.corda.djvm.references.Member
 import java.util.*
 

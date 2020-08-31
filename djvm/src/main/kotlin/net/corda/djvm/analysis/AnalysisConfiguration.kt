@@ -12,15 +12,15 @@ import net.corda.djvm.analysis.impl.generateJavaPackageMethods
 import net.corda.djvm.analysis.impl.generateJavaResourceBundleMethods
 import net.corda.djvm.analysis.impl.generateJavaTimeMethods
 import net.corda.djvm.analysis.impl.generateJavaUuidMethods
-import net.corda.djvm.code.CLASS_CONSTRUCTOR_NAME
-import net.corda.djvm.code.DJVM_EXCEPTION_NAME
-import net.corda.djvm.code.DJVM_NAME
-import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
-import net.corda.djvm.code.SANDBOX_CLASSLOADER_NAME
-import net.corda.djvm.code.SANDBOX_CLASS_NAME
-import net.corda.djvm.code.SANDBOX_OBJECT_NAME
-import net.corda.djvm.code.asPackagePath
-import net.corda.djvm.code.asResourcePath
+import net.corda.djvm.code.impl.CLASS_CONSTRUCTOR_NAME
+import net.corda.djvm.code.impl.DJVM_EXCEPTION_NAME
+import net.corda.djvm.code.impl.DJVM_NAME
+import net.corda.djvm.code.impl.RUNTIME_ACCOUNTER_NAME
+import net.corda.djvm.code.impl.SANDBOX_CLASSLOADER_NAME
+import net.corda.djvm.code.impl.SANDBOX_CLASS_NAME
+import net.corda.djvm.code.impl.SANDBOX_OBJECT_NAME
+import net.corda.djvm.code.impl.asPackagePath
+import net.corda.djvm.code.impl.asResourcePath
 import net.corda.djvm.formatting.MemberFormatter
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.references.ClassModule
@@ -277,7 +277,7 @@ class AnalysisConfiguration private constructor(
                 /**
                  * These annotations only target "Types", such as
                  * interfaces or annotations. We would need to modify
-                 * [net.corda.djvm.code.SandboxClassRemapper]
+                 * [net.corda.djvm.code.impl.SandboxClassRemapper]
                  * if any annotation here could also be applied to
                  * methods, method parameters or to fields.
                  */
@@ -455,7 +455,7 @@ class AnalysisConfiguration private constructor(
             /**
              * We may need to whitelist the descriptors for methods that we
              * "stitch" into sandbox classes, to protect their invocations from
-             * being remapped by [net.corda.djvm.code.SandboxClassRemapper].
+             * being remapped by [net.corda.djvm.code.impl.SandboxClassRemapper].
              */
             val whitelist = Whitelist.createWhitelist()
             val actualWhitelist = whitelist.addTextEntries(

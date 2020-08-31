@@ -1,4 +1,4 @@
-package net.corda.djvm.code
+package net.corda.djvm.code.impl
 
 import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.Whitelist

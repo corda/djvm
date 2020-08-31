@@ -2,6 +2,11 @@ package net.corda.djvm.code
 
 import net.corda.djvm.CordaInternal
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
+import net.corda.djvm.code.impl.DJVM_NAME
+import net.corda.djvm.code.impl.OBJECT_NAME
+import net.corda.djvm.code.impl.RUNTIME_ACCOUNTER_NAME
+import net.corda.djvm.code.impl.THROWABLE_NAME
 import net.corda.djvm.references.MemberInformation
 import net.corda.djvm.references.MethodBody
 import org.objectweb.asm.Label
@@ -322,8 +327,9 @@ class EmitterModule(
     }
 
     /**
-     * The ASM library uses [SandboxClassWriter.getCommonSuperClass] to compute the stack frames
-     * for the classes that it generates, c.f. [org.objectweb.asm.ClassWriter.COMPUTE_FRAMES].
+     * The ASM library uses [net.corda.djvm.code.impl.SandboxClassWriter.getCommonSuperClass]
+     * to compute the stack frames for the classes that it generates,
+     * c.f. [org.objectweb.asm.ClassWriter.COMPUTE_FRAMES].
      * We need to mirror that algorithm here so that the [sandbox.java.lang.Throwable] can be
      * assigned to the local variable defined in the method's local variable table. Unfortunately
      * the local variable table is stored after the method's byte-code, and so we cannot just

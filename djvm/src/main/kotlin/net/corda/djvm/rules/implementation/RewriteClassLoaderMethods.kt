@@ -1,13 +1,13 @@
 package net.corda.djvm.rules.implementation
 
-import net.corda.djvm.code.CLASSLOADER_NAME
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
-import net.corda.djvm.code.SANDBOX_CLASSLOADER_NAME
+import net.corda.djvm.code.impl.CLASSLOADER_NAME
+import net.corda.djvm.code.impl.SANDBOX_CLASSLOADER_NAME
+import net.corda.djvm.code.impl.isClassLoaderStaticThunk
+import net.corda.djvm.code.impl.isClassLoaderVirtualThunk
 import net.corda.djvm.code.instructions.MemberAccessInstruction
-import net.corda.djvm.code.isClassLoaderStaticThunk
-import net.corda.djvm.code.isClassLoaderVirtualThunk
 import org.objectweb.asm.Opcodes.*
 
 object RewriteClassLoaderMethods : Emitter {

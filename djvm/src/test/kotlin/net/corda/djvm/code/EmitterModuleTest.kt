@@ -3,6 +3,7 @@ package net.corda.djvm.code
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.analysis.impl.ClassAndMemberVisitor
+import net.corda.djvm.code.impl.ClassMutator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.objectweb.asm.ClassVisitor

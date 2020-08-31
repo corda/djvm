@@ -3,8 +3,8 @@
 package sandbox
 
 import net.corda.djvm.SandboxRuntimeContext
-import net.corda.djvm.code.OBJECT_NAME
-import net.corda.djvm.code.SANDBOX_OBJECT_NAME
+import net.corda.djvm.code.impl.OBJECT_NAME
+import net.corda.djvm.code.impl.SANDBOX_OBJECT_NAME
 import net.corda.djvm.costing.RuntimeCostSummary
 
 /**

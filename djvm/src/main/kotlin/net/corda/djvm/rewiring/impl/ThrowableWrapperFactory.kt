@@ -1,9 +1,9 @@
 package net.corda.djvm.rewiring.impl
 
 import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
-import net.corda.djvm.code.CONSTRUCTOR_NAME
-import net.corda.djvm.code.DJVM_EXCEPTION_NAME
-import net.corda.djvm.code.DJVM_SYNTHETIC
+import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
+import net.corda.djvm.code.impl.DJVM_EXCEPTION_NAME
+import net.corda.djvm.code.impl.DJVM_SYNTHETIC
 import net.corda.djvm.rewiring.ByteCode
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes.*

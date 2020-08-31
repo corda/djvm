@@ -7,8 +7,8 @@ import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSyntheticOwner
 import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
 import net.corda.djvm.analysis.impl.ClassAndMemberVisitor.Companion.API_VERSION
-import net.corda.djvm.code.asPackagePath
-import net.corda.djvm.code.asResourcePath
+import net.corda.djvm.code.impl.asPackagePath
+import net.corda.djvm.code.impl.asResourcePath
 import net.corda.djvm.messages.Message
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.rewiring.SandboxClassLoadingException

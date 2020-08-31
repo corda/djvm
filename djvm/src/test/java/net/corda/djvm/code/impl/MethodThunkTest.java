@@ -1,4 +1,4 @@
-package net.corda.djvm.code;
+package net.corda.djvm.code.impl;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.ExtensionContext;

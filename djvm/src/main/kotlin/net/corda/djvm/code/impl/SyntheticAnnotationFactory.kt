@@ -1,4 +1,4 @@
-package net.corda.djvm.code
+package net.corda.djvm.code.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.impl.ClassAndMemberVisitor.Companion.API_VERSION

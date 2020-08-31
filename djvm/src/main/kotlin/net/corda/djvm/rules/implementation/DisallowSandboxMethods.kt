@@ -1,6 +1,6 @@
 package net.corda.djvm.rules.implementation
 
-import net.corda.djvm.code.FROM_DJVM
+import net.corda.djvm.code.impl.FROM_DJVM
 import net.corda.djvm.references.ImmutableMember
 import net.corda.djvm.rules.MemberRule
 import net.corda.djvm.validation.RuleContext

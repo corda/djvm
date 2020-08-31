@@ -1,6 +1,6 @@
 package net.corda.djvm.references
 
-import net.corda.djvm.code.OBJECT_NAME
+import net.corda.djvm.code.impl.OBJECT_NAME
 import net.corda.djvm.utilities.loggerFor
 
 /**

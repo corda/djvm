@@ -1,6 +1,6 @@
 package net.corda.djvm.analysis
 
-import net.corda.djvm.code.asPackagePath
+import net.corda.djvm.code.impl.asPackagePath
 import net.corda.djvm.messages.MessageCollection
 import net.corda.djvm.references.ClassHierarchy
 import net.corda.djvm.references.EntityReference

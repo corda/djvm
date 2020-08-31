@@ -1,6 +1,12 @@
 package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.code.*
+import net.corda.djvm.code.impl.DJVM_NAME
+import net.corda.djvm.code.impl.EMIT_TRAPPING_EXCEPTIONS
+import net.corda.djvm.code.impl.THROWABLE_NAME
+import net.corda.djvm.code.impl.getMemberContext
+import net.corda.djvm.code.impl.ruleViolationError
+import net.corda.djvm.code.impl.thresholdViolationError
 import net.corda.djvm.code.instructions.CodeLabel
 import net.corda.djvm.code.instructions.TryCatchBlock
 import net.corda.djvm.costing.ThresholdViolationError

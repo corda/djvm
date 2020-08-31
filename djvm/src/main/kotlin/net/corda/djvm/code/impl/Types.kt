@@ -1,6 +1,8 @@
 @file:JvmName("Types")
-package net.corda.djvm.code
+package net.corda.djvm.code.impl
 
+import net.corda.djvm.code.Emitter
+import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.costing.ThresholdViolationError
 import net.corda.djvm.rules.RuleViolationError
 import org.objectweb.asm.Type

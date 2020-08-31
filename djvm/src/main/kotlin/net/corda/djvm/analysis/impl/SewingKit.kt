@@ -3,7 +3,7 @@ package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.CordaInternal
 import net.corda.djvm.code.EmitterModule
-import net.corda.djvm.code.FROM_DJVM
+import net.corda.djvm.code.impl.FROM_DJVM
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
 import org.objectweb.asm.Opcodes.ACC_BRIDGE

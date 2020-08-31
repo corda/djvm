@@ -1,9 +1,9 @@
 @file:JvmName("JavaNioBitsConfiguration")
 package net.corda.djvm.analysis.impl
 
-import net.corda.djvm.code.CLASS_CONSTRUCTOR_NAME
-import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.impl.CLASS_CONSTRUCTOR_NAME
+import net.corda.djvm.code.impl.DJVM_NAME
 import net.corda.djvm.references.Member
 import org.objectweb.asm.Opcodes.*
 

@@ -6,7 +6,7 @@ import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.Instruction
-import net.corda.djvm.code.emptyAsNull
+import net.corda.djvm.code.impl.emptyAsNull
 import net.corda.djvm.code.instructions.*
 import net.corda.djvm.messages.Message
 import net.corda.djvm.references.*

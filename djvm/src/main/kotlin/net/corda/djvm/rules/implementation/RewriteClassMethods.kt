@@ -1,13 +1,13 @@
 package net.corda.djvm.rules.implementation
 
-import net.corda.djvm.code.CLASS_NAME
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
-import net.corda.djvm.code.SANDBOX_CLASS_NAME
+import net.corda.djvm.code.impl.CLASS_NAME
+import net.corda.djvm.code.impl.SANDBOX_CLASS_NAME
+import net.corda.djvm.code.impl.isClassStaticThunk
+import net.corda.djvm.code.impl.isClassVirtualThunk
 import net.corda.djvm.code.instructions.MemberAccessInstruction
-import net.corda.djvm.code.isClassStaticThunk
-import net.corda.djvm.code.isClassVirtualThunk
 import org.objectweb.asm.Opcodes.*
 
 /**
@@ -15,7 +15,7 @@ import org.objectweb.asm.Opcodes.*
  * return [sandbox.java.lang.String] instead. Redirect their invocations to
  * "thunks" on [sandbox.java.lang.DJVMClass] that wrap the return value for us.
  * We do something similar for method references like "Class::getName" too; see
- * [net.corda.djvm.code.SandboxRemapper.mapValue].
+ * [net.corda.djvm.code.impl.SandboxRemapper.mapValue].
  *
  * The enum-related methods on [Class] all require that enums use [java.lang.Enum]
  * as their super class. So replace all their invocations with ones to equivalent

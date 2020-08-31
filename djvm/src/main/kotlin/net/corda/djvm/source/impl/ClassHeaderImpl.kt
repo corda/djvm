@@ -1,7 +1,7 @@
 package net.corda.djvm.source.impl
 
-import net.corda.djvm.code.ENUM_NAME
-import net.corda.djvm.code.THROWABLE_NAME
+import net.corda.djvm.code.impl.ENUM_NAME
+import net.corda.djvm.code.impl.THROWABLE_NAME
 import net.corda.djvm.source.ClassHeader
 import net.corda.djvm.source.SourceClassLoader
 import org.objectweb.asm.Opcodes.*
