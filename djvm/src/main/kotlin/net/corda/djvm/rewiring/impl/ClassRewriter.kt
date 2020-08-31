@@ -1,4 +1,4 @@
-package net.corda.djvm.rewiring
+package net.corda.djvm.rewiring.impl
 
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.analysis.AnalysisContext
@@ -15,6 +15,7 @@ import net.corda.djvm.code.SyntheticRemapper
 import net.corda.djvm.code.emptyAsNull
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
+import net.corda.djvm.rewiring.ByteCode
 import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.utilities.loggerFor
 import org.objectweb.asm.ClassReader

@@ -12,6 +12,8 @@ import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.code.asResourcePath
 import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.references.ClassReference
+import net.corda.djvm.rewiring.impl.ClassRewriter
+import net.corda.djvm.rewiring.impl.ThrowableWrapperFactory
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.CodeLocation
 import net.corda.djvm.source.SourceClassLoader
