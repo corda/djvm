@@ -2,7 +2,8 @@ package net.corda.djvm.analysis
 
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
-import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
+import net.corda.djvm.analysis.impl.ClassAndMemberVisitor
+import net.corda.djvm.analysis.impl.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.annotations.NonDeterministic
 import net.corda.djvm.assertions.AssertionExtensions.hasClass
 import net.corda.djvm.assertions.AssertionExtensions.hasInstruction

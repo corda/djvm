@@ -1,5 +1,5 @@
 @file:JvmName("SewingKit")
-package net.corda.djvm.analysis
+package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.CordaInternal
 import net.corda.djvm.code.EmitterModule

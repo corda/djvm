@@ -1,10 +1,20 @@
 package net.corda.djvm.analysis
 
+import net.corda.djvm.analysis.impl.X500_NAME
+import net.corda.djvm.analysis.impl.generateInterfaceBridgeMethods
+import net.corda.djvm.analysis.impl.generateJavaAnnotationMethods
+import net.corda.djvm.analysis.impl.generateJavaBaseMethods
+import net.corda.djvm.analysis.impl.generateJavaBitsMethods
+import net.corda.djvm.analysis.impl.generateJavaCalendarMethods
+import net.corda.djvm.analysis.impl.generateJavaEnumMethods
+import net.corda.djvm.analysis.impl.generateJavaMathMethods
+import net.corda.djvm.analysis.impl.generateJavaPackageMethods
+import net.corda.djvm.analysis.impl.generateJavaResourceBundleMethods
+import net.corda.djvm.analysis.impl.generateJavaTimeMethods
+import net.corda.djvm.analysis.impl.generateJavaUuidMethods
 import net.corda.djvm.code.CLASS_CONSTRUCTOR_NAME
-import net.corda.djvm.code.CONSTRUCTOR_NAME
 import net.corda.djvm.code.DJVM_EXCEPTION_NAME
 import net.corda.djvm.code.DJVM_NAME
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.RUNTIME_ACCOUNTER_NAME
 import net.corda.djvm.code.SANDBOX_CLASSLOADER_NAME
 import net.corda.djvm.code.SANDBOX_CLASS_NAME
@@ -23,28 +33,14 @@ import net.corda.djvm.source.EmptyApi
 import net.corda.djvm.source.SourceClassLoader
 import net.corda.djvm.source.UserSource
 import net.corda.djvm.source.impl.SourceClassLoaderImpl
-import org.objectweb.asm.Label
-import org.objectweb.asm.Opcodes.ACC_ABSTRACT
-import org.objectweb.asm.Opcodes.ACC_BRIDGE
-import org.objectweb.asm.Opcodes.ACC_FINAL
-import org.objectweb.asm.Opcodes.ACC_PRIVATE
-import org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.objectweb.asm.Opcodes.ACC_STATIC
-import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
-import org.objectweb.asm.Opcodes.IFNONNULL
 import org.objectweb.asm.Type
-import java.io.InputStream
 import java.lang.reflect.Modifier
-import java.nio.charset.Charset
-import java.security.SecureRandom
-import java.security.Security
 import java.util.Collections.unmodifiableList
 import java.util.Collections.unmodifiableMap
 import java.util.Collections.unmodifiableSet
 import java.util.Random
 import java.util.concurrent.CopyOnWriteArrayList
-import javax.security.auth.x500.X500Principal
-import javax.xml.datatype.DatatypeFactory
 import kotlin.Comparator
 import kotlin.collections.LinkedHashSet
 
@@ -162,7 +158,6 @@ class AnalysisConfiguration private constructor(
         const val KOTLIN_METADATA = "Lkotlin/Metadata;"
 
         private const val SHARED_SECRETS = "sandbox/sun/misc/SharedSecrets"
-        private const val X500_NAME = "sandbox/sun/security/x509/X500Name"
 
         /**
          * These annotations are duplicated into the sandbox, such
@@ -369,61 +364,13 @@ class AnalysisConfiguration private constructor(
          *
          * THIS IS ALL FOR THE BENEFIT OF [sandbox.java.lang.String]!!
          */
-        private val STITCHED_INTERFACES: Map<String, List<Member>> = unmodifiable(listOf(
-            object : MethodBuilder(
-                access = ACC_PUBLIC or ACC_SYNTHETIC or ACC_BRIDGE,
-                className = sandboxed(CharSequence::class.java),
-                memberName = "subSequence",
-                descriptor = "(II)Ljava/lang/CharSequence;"
-            ) {
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    pushObject(0)
-                    pushInteger(1)
-                    pushInteger(2)
-                    invokeInterface(className, memberName, "(II)L$className;")
-                    returnObject()
-                }
-            }.withBody()
-             .build(),
-
-            MethodBuilder(
-                access = ACC_PUBLIC or ACC_ABSTRACT,
-                className = sandboxed(CharSequence::class.java),
-                memberName = "toString",
-                descriptor = "()Ljava/lang/String;"
-            ).build(),
-
-            object : MethodBuilder(
-                access = ACC_PUBLIC or ACC_SYNTHETIC or ACC_BRIDGE,
-                className = sandboxed(Iterable::class.java),
-                memberName = "iterator",
-                descriptor = "()Ljava/util/Iterator;"
-            ) {
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    val doStart = Label()
-                    lineNumber(0, doStart)
-                    pushObject(0)
-                    invokeInterface(className, memberName, "()Lsandbox/java/util/Iterator;")
-                    val doEnd = Label()
-                    lineNumber(1, doEnd)
-                    returnObject()
-                    newLocal(
-                        name = "this",
-                        descriptor = "Lsandbox/java/lang/Iterable;",
-                        // We are assuming that this interface is declared as "Iterable<T>".
-                        signature = "Lsandbox/java/lang/Iterable<TT;>;",
-                        start = doStart,
-                        end = doEnd,
-                        index = 0
-                    )
-                }
-            }.withBody()
-             .build()
-        ).mapByClassName() + mapOf(
-            sandboxed(Comparable::class.java) to emptyList(),
-            sandboxed(Comparator::class.java) to emptyList(),
-            sandboxed(Iterator::class.java) to emptyList()
-        ))
+        private val STITCHED_INTERFACES: Map<String, List<Member>> = unmodifiable(
+            generateInterfaceBridgeMethods().mapByClassName() + mapOf(
+                sandboxed(Comparable::class.java) to emptyList(),
+                sandboxed(Comparator::class.java) to emptyList(),
+                sandboxed(Iterator::class.java) to emptyList()
+            )
+        )
 
         /**
          * These classes have methods replaced or extra ones added when mapped into the sandbox.
@@ -441,203 +388,16 @@ class AnalysisConfiguration private constructor(
             generateJavaPackageMethods() +
             generateJavaBitsMethods() +
             generateJavaMathMethods() +
+            generateJavaEnumMethods() +
+            generateJavaBaseMethods() +
 
-            object : FromDJVMBuilder(
-                className = sandboxed(Enum::class.java),
-                bridgeDescriptor = "()Ljava/lang/Enum;",
-                signature = "()Ljava/lang/Enum<*>;"
-            ) {
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    pushObject(0)
-                    invokeStatic(DJVM_NAME, "fromDJVMEnum", "(Lsandbox/java/lang/Enum;)Ljava/lang/Enum;")
-                    returnObject()
-                }
-            }.build() +
-
-        listOf(
-            deleteClassInitializerFor(Modifier::class.java),
-            deleteClassInitializerFor(Random::class.java),
-            deleteClassInitializerFor(SecurityManager::class.java),
-            deleteClassInitializerFor(CopyOnWriteArrayList::class.java),
-
-            object : MethodBuilder(
-                access = ACC_STATIC or ACC_PRIVATE,
-                className = sandboxed(Charset::class.java),
-                memberName = "providers",
-                descriptor = "()Lsandbox/java/util/Iterator;",
-                signature = "()Lsandbox/java/util/Iterator<Lsandbox/java/nio/charset/spi/CharsetProvider;>;"
-            ) {
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    invokeStatic("sandbox/java/util/Collections", "emptyIterator", descriptor)
-                    returnObject()
-                }
-            }.withBody()
-             .build(),
-
-            object : MethodBuilder(
-                access = ACC_STATIC or ACC_PRIVATE,
-                className = sandboxed(Security::class.java),
-                memberName = "initialize",
-                descriptor = "()V"
-            ) {
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    invokeStatic(DJVM_NAME, "getSecurityProviders", "()Lsandbox/java/util/Properties;")
-                    putStatic(className, "props", "Lsandbox/java/util/Properties;")
-                    returnVoid()
-                }
-            }.withBody()
-             .build(),
-
-            object : MethodBuilder(
-                access = ACC_PRIVATE or ACC_STATIC,
-                className = sandboxed(SecureRandom::class.java),
-                memberName = "getPrngAlgorithm",
-                descriptor = "()Lsandbox/java/lang/String;"
-            ) {
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    pushNull()
-                    returnObject()
-                }
-            }.withBody()
-             .build(),
-
-            object : MethodBuilder(
-                access = ACC_PRIVATE or ACC_STATIC,
-                className = "sandbox/sun/util/locale/provider/JRELocaleProviderAdapter",
-                memberName = "isNonENLangSupported",
-                descriptor = "()Z"
-            ) {
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    pushFalse()
-                    returnInteger()
-                }
-            }.withBody()
-             .build(),
-
-            // Create factory function to wrap java.io.InputStream.
-            object : MethodBuilder(
-                access = ACC_PUBLIC or ACC_STATIC,
-                className = sandboxed(InputStream::class.java),
-                memberName = "toDJVM",
-                descriptor = "(Ljava/io/InputStream;)Lsandbox/java/io/InputStream;"
-            ) {
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    val doWrap = Label()
-                    lineNumber(1)
-                    pushObject(0)
-                    jump(IFNONNULL, doWrap)
-                    pushNull()
-                    returnObject()
-
-                    lineNumber(2, doWrap)
-                    new("sandbox/java/io/DJVMInputStream")
-                    duplicate()
-                    pushObject(0)
-                    invokeSpecial("sandbox/java/io/DJVMInputStream", CONSTRUCTOR_NAME, "(Ljava/io/InputStream;)V")
-                    returnObject()
-                }
-            }.withBody()
-             .build(),
-
-            /**
-             * Create [sandbox.javax.security.auth.x500.X500Principal.unwrap] method
-             * to expose existing private [X500Principal.thisX500Name] field.
-             */
-            object : MethodBuilder(
-                access = ACC_FINAL,
-                className = sandboxed(X500Principal::class.java),
-                memberName = "unwrap",
-                descriptor = "()Lsandbox/sun/security/x509/X500Name;"
-            ) {
-                /**
-                 * Implement package private accessor.
-                 *     return thisX500Name
-                 */
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    pushObject(0)
-                    pushField(className, "thisX500Name", "Lsandbox/sun/security/x509/X500Name;")
-                    returnObject()
-                }
-            }.withBody()
-             .build(),
-
-            /**
-             * Reimplement these methods so that they don't require reflection.
-             */
-            object : MethodBuilder(
-                access = ACC_PUBLIC,
-                className = X500_NAME,
-                memberName = "asX500Principal",
-                descriptor = "()Lsandbox/javax/security/auth/x500/X500Principal;"
-            ) {
-                /**
-                 * Reimplement [sandbox.sun.security.x509.X500Name.asX500Principal] without reflection.
-                 *     return DJVM.create(this)
-                 */
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    pushObject(0)
-                    invokeStatic(
-                        owner = "sandbox/javax/security/auth/x500/DJVM",
-                        name = "create",
-                        descriptor = "(Lsandbox/sun/security/x509/X500Name;)Lsandbox/javax/security/auth/x500/X500Principal;"
-                    )
-                    returnObject()
-                }
-            }.withBody()
-             .build(),
-            object : MethodBuilder(
-                access = ACC_PUBLIC or ACC_STATIC,
-                className = X500_NAME,
-                memberName = "asX500Name",
-                descriptor = "(Lsandbox/javax/security/auth/x500/X500Principal;)Lsandbox/sun/security/x509/X500Name;"
-            ) {
-                /**
-                 * Reimplement [sandbox.sun.security.x509.X500Name.asX500Name] without reflection.
-                 *     X500Name name = DJVM.unwrap(principal)
-                 *     name.x500Principal = principal
-                 *     return name
-                 */
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    pushObject(0)
-                    invokeStatic(
-                        owner = "sandbox/javax/security/auth/x500/DJVM",
-                        name = "unwrap",
-                        descriptor = "(Lsandbox/javax/security/auth/x500/X500Principal;)Lsandbox/sun/security/x509/X500Name;"
-                    )
-                    popObject(1)
-                    pushObject(1)
-                    pushObject(0)
-                    popField(
-                        owner = className,
-                        name = "x500Principal",
-                        descriptor = "Lsandbox/javax/security/auth/x500/X500Principal;"
-                    )
-                    pushObject(1)
-                    returnObject()
-                }
-            }.withBody()
-             .build(),
-
-            object : MethodBuilder(
-                access = ACC_PUBLIC or ACC_STATIC,
-                className = sandboxed(DatatypeFactory::class.java),
-                memberName = "newInstance",
-                descriptor = "()Lsandbox/javax/xml/datatype/DatatypeFactory;"
-            ) {
-                /**
-                 * Reimplement [DatatypeFactory.newInstance] to use the JDK's basic implementation.
-                 *     return new com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl()
-                 */
-                override fun writeBody(emitter: EmitterModule) = with(emitter) {
-                    val implementationClass = "sandbox/com/sun/org/apache/xerces/internal/jaxp/datatype/DatatypeFactoryImpl"
-                    new(implementationClass)
-                    duplicate()
-                    invokeSpecial(implementationClass, CONSTRUCTOR_NAME, "()V")
-                    returnObject()
-                }
-            }.withBody()
-             .build()
-        )).mapByClassName())
+            listOf(
+                deleteClassInitializerFor(Modifier::class.java),
+                deleteClassInitializerFor(Random::class.java),
+                deleteClassInitializerFor(SecurityManager::class.java),
+                deleteClassInitializerFor(CopyOnWriteArrayList::class.java)
+            )
+        ).mapByClassName())
 
         fun sandboxed(clazz: Class<*>): String = (SANDBOX_PREFIX + Type.getInternalName(clazz)).intern()
         fun Set<Class<*>>.sandboxed(): Set<String> = mapTo(LinkedHashSet(), Companion::sandboxed)

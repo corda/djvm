@@ -1,5 +1,5 @@
 @file:JvmName("JavaCalendarConfiguration")
-package net.corda.djvm.analysis
+package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.EmitterModule

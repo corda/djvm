@@ -1,7 +1,7 @@
 package net.corda.djvm.code
 
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.analysis.ClassAndMemberVisitor
+import net.corda.djvm.analysis.impl.ClassAndMemberVisitor
 import net.corda.djvm.code.instructions.MethodEntry
 import net.corda.djvm.references.ClassRepresentation
 import net.corda.djvm.references.ImmutableClass

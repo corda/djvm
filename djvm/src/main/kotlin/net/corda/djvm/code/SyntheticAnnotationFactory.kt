@@ -1,7 +1,7 @@
 package net.corda.djvm.code
 
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
+import net.corda.djvm.analysis.impl.ClassAndMemberVisitor.Companion.API_VERSION
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor

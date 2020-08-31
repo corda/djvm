@@ -4,10 +4,10 @@ import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.TypedTaskFactory
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
-import net.corda.djvm.analysis.ClassAndMemberVisitor
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSynthetic
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSyntheticOwner
 import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
+import net.corda.djvm.analysis.impl.ClassAndMemberVisitor
 import net.corda.djvm.code.asPackagePath
 import net.corda.djvm.code.asResourcePath
 import net.corda.djvm.execution.SandboxRuntimeException

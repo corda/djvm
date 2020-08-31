@@ -1,7 +1,7 @@
 package net.corda.djvm.validation.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration
-import net.corda.djvm.analysis.ClassAndMemberVisitor
+import net.corda.djvm.analysis.impl.ClassAndMemberVisitor
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.references.ClassRepresentation

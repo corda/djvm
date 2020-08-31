@@ -1,5 +1,9 @@
-package net.corda.djvm.analysis
+package net.corda.djvm.analysis.impl
 
+import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.analysis.AnalysisContext
+import net.corda.djvm.analysis.AnalysisRuntimeContext
+import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.emptyAsNull

@@ -2,8 +2,8 @@ package net.corda.djvm.rewiring
 
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.analysis.AnalysisContext
-import net.corda.djvm.analysis.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.analysis.SyntheticResolver
+import net.corda.djvm.analysis.impl.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.code.ClassMutator
 import net.corda.djvm.code.DJVM_SYNTHETIC
 import net.corda.djvm.code.EmitterModule
