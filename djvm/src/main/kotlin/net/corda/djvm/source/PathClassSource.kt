@@ -2,6 +2,7 @@ package net.corda.djvm.source
 
 import net.corda.djvm.source.ClassSource.Companion.isClass
 import net.corda.djvm.source.ClassSource.Companion.isJar
+import net.corda.djvm.source.impl.JarInputStreamIterator
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -18,7 +19,7 @@ class PathClassSource(
      * If [path] is a class file, return a single-element iterator with the stream of said class. If [path] is a JAR
      * file, an iterator traversing over the stream for each class file in the JAR is returned.
      */
-    fun getStreamIterator(): Iterator<InputStream> {
+    val streamIterator: Iterator<InputStream> get() {
         return when {
             isClass(path) -> {
                 listOf(Files.newInputStream(path)).iterator()

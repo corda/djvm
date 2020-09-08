@@ -1,9 +1,9 @@
 package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.analysis.AnalysisRuntimeContext
-import net.corda.djvm.code.DJVM_NAME
 import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.MemberDefinitionProvider
+import net.corda.djvm.code.impl.DJVM_NAME
 import net.corda.djvm.references.ImmutableMember
 import org.objectweb.asm.Opcodes.ACC_STATIC
 

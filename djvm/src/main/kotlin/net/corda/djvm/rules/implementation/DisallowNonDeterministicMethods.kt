@@ -1,6 +1,15 @@
 package net.corda.djvm.rules.implementation
 
-import net.corda.djvm.code.*
+import net.corda.djvm.code.Emitter
+import net.corda.djvm.code.EmitterContext
+import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.impl.CLASSLOADER_NAME
+import net.corda.djvm.code.impl.CLASS_NAME
+import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
+import net.corda.djvm.code.impl.DJVM_NAME
+import net.corda.djvm.code.impl.isClassVirtualThunk
+import net.corda.djvm.code.impl.isObjectMonitor
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import org.objectweb.asm.Opcodes.*
 

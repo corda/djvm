@@ -142,7 +142,7 @@ abstract class ClassCommand : CommandBase() {
     private fun findClassesInJars(filters: Array<String>): List<Class<*>> {
         return filters.filter { isJarFile(it) }.flatMap { jarFile ->
             mutableListOf<Class<*>>().apply {
-                ClassSource.fromPath(Paths.get(jarFile)).getStreamIterator().forEach {
+                ClassSource.fromPath(Paths.get(jarFile)).streamIterator.forEach {
                     val reader = ClassReader(it)
                     val className = classModule.getFormattedClassName(reader.className)
                     printVerbose("Looking up class $className in $jarFile...")

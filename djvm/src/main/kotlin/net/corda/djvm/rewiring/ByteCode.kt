@@ -1,7 +1,7 @@
 package net.corda.djvm.rewiring
 
-import net.corda.djvm.code.DJVM_ANNOTATION
-import net.corda.djvm.code.DJVM_MODIFIED
+import net.corda.djvm.code.impl.DJVM_ANNOTATION
+import net.corda.djvm.code.impl.DJVM_MODIFIED
 import java.security.CodeSource
 
 /**

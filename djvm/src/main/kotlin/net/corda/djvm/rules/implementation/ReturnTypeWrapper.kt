@@ -1,9 +1,9 @@
 package net.corda.djvm.rules.implementation
 
-import net.corda.djvm.code.EMIT_AFTER_INVOKE
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.impl.EMIT_AFTER_INVOKE
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import org.objectweb.asm.Opcodes.INVOKESPECIAL
 import org.objectweb.asm.Opcodes.INVOKESTATIC

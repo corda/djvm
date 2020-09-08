@@ -1,6 +1,10 @@
 package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.code.*
+import net.corda.djvm.code.impl.DJVM_NAME
+import net.corda.djvm.code.impl.EMIT_HANDLING_EXCEPTIONS
+import net.corda.djvm.code.impl.THROWABLE_NAME
+import net.corda.djvm.code.impl.getMemberContext
 import net.corda.djvm.code.instructions.CodeLabel
 import net.corda.djvm.code.instructions.TryBlock
 import org.objectweb.asm.Label

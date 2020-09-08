@@ -1,6 +1,6 @@
 package net.corda.djvm.source
 
-import net.corda.djvm.code.asResourcePath
+import net.corda.djvm.code.impl.asResourcePath
 import java.nio.file.Path
 
 /**

@@ -1,7 +1,10 @@
 package net.corda.djvm.code
 
+import net.corda.djvm.code.impl.EMIT_DEFAULT
+
 /**
- * An emitter is a hook for [ClassMutator], from where one can modify the byte code of a class method.
+ * An emitter is a hook for [net.corda.djvm.code.impl.ClassMutator],
+ * from where one can modify the byte code of a class method.
  */
 interface Emitter {
 

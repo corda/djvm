@@ -1,9 +1,9 @@
 package net.corda.djvm.rules.implementation.instrumentation
 
-import net.corda.djvm.code.EMIT_TRACING
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.impl.EMIT_TRACING
 import net.corda.djvm.code.instructions.IntegerInstruction
 import net.corda.djvm.code.instructions.TypeInstruction
 import org.objectweb.asm.Opcodes.*

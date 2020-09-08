@@ -4,22 +4,22 @@ import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.TypedTaskFactory
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
-import net.corda.djvm.analysis.ClassAndMemberVisitor
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSynthetic
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSyntheticOwner
 import net.corda.djvm.analysis.SyntheticResolver.Companion.isDJVMSynthetic
-import net.corda.djvm.code.asPackagePath
-import net.corda.djvm.code.asResourcePath
+import net.corda.djvm.code.impl.asPackagePath
+import net.corda.djvm.code.impl.asResourcePath
 import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.references.ClassReference
+import net.corda.djvm.rewiring.impl.ClassRewriter
+import net.corda.djvm.rewiring.impl.ThrowableWrapperFactory
 import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.CodeLocation
 import net.corda.djvm.source.SourceClassLoader
-import net.corda.djvm.source.unversioned
+import net.corda.djvm.source.impl.unversioned
 import net.corda.djvm.utilities.loggerFor
-import net.corda.djvm.validation.RuleValidator
+import net.corda.djvm.validation.impl.RuleValidator
 import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import java.io.IOException
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
@@ -40,9 +40,13 @@ import java.util.function.Function
  * Class loader that enables registration of rewired classes.
  *
  * @property analysisConfiguration The configuration to use for the analysis.
- * @property analyzer The instance used to validate that any loaded class complies with the specified rules.
+ * @property accessor A wrapper object around two private fields:
+ *   analyzer - The instance used to validate that any loaded class complies with the specified rules.
+ *   rewriter - The re-writer to use for registered classes.
+ *   This only exists to prevent Kotlin from creating public synthetic accessor
+ *   functions for fields that have OSGi private types. And not forgetting the
+ *   parameter types for a public synthetic constructor too!
  * @property supportingClassLoader The class loader used to find classes on the extended class path.
- * @property rewriter The re-writer to use for registered classes.
  * @property context The context in which analysis and processing is performed.
  * @property byteCodeCache Precomputed class bytecode, to save us from regenerating it.
  * @property externalCache An externally-provided [ConcurrentMap] of pre-computed byte-code.
@@ -51,9 +55,8 @@ import java.util.function.Function
  */
 class SandboxClassLoader private constructor(
     private val analysisConfiguration: AnalysisConfiguration,
-    private val analyzer: ClassAndMemberVisitor,
     private val supportingClassLoader: SourceClassLoader,
-    private val rewriter: ClassRewriter,
+    private val accessor: Accessor,
     private val context: AnalysisContext,
     private val byteCodeCache: ByteCodeCache,
     private val externalCache: ExternalCache?,
@@ -121,9 +124,8 @@ class SandboxClassLoader private constructor(
      */
     fun copyEmpty(newContext: AnalysisContext) = SandboxClassLoader(
         analysisConfiguration,
-        analyzer,
         supportingClassLoader,
-        rewriter,
+        accessor,
         newContext,
         byteCodeCache,
         externalCache,
@@ -593,7 +595,7 @@ class SandboxClassLoader private constructor(
                 if (!analysisConfiguration.whitelist.matches(reader.className)) {
                     logger.trace("Class {} does not match with the whitelist", qualifiedClassName)
                     logger.trace("Analyzing class {}...", qualifiedClassName)
-                    analyzer.analyze(reader, context, SKIP_FRAMES)
+                    accessor.analyze(reader, context)
                 }
 
                 // Check if any errors were found during analysis.
@@ -603,11 +605,11 @@ class SandboxClassLoader private constructor(
                 }
 
                 // Transform the class definition and byte code in accordance with provided rules.
-                rewriter.rewrite(reader, codeLocation.codeSource, context).also {
+                accessor.rewrite(reader, codeLocation.codeSource, context).also {
                     if (it.isAnnotation && !analysisConfiguration.isJvmAnnotation(source.internalClassName)) {
                         logger.debug("Generating synthetic annotation for {}", qualifiedClassName)
                         val annotationName = getDJVMSynthetic(qualifiedClassName)
-                        loadedByteCode[annotationName] = rewriter.generateAnnotation(reader, it.source)
+                        loadedByteCode[annotationName] = accessor.generateAnnotation(reader, it.source)
                     }
                 }
             })
@@ -811,9 +813,13 @@ class SandboxClassLoader private constructor(
             return SandboxClassLoader(
                 analysisConfiguration = analysisConfiguration,
                 supportingClassLoader = supportingClassLoader,
-                analyzer = RuleValidator(rules = configuration.rules,
-                                         configuration = analysisConfiguration),
-                rewriter = ClassRewriter(configuration, supportingClassLoader),
+                accessor = Accessor(
+                    RuleValidator(
+                        rules = configuration.rules,
+                        configuration = analysisConfiguration
+                    ),
+                    ClassRewriter(configuration, supportingClassLoader)
+                ),
                 context = parentClassLoader?.context ?: AnalysisContext.fromConfiguration(analysisConfiguration),
                 byteCodeCache = byteCodeCache ?: ByteCodeCache(parentClassLoader?.byteCodeCache),
                 externalCache = configuration.externalCache,

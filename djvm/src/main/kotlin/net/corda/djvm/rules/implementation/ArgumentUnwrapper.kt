@@ -1,12 +1,12 @@
 package net.corda.djvm.rules.implementation
 
-import net.corda.djvm.code.CLASSLOADER_NAME
-import net.corda.djvm.code.CLASS_NAME
-import net.corda.djvm.code.EMIT_BEFORE_INVOKE
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
-import net.corda.djvm.code.FROM_DJVM
 import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.impl.CLASSLOADER_NAME
+import net.corda.djvm.code.impl.CLASS_NAME
+import net.corda.djvm.code.impl.EMIT_BEFORE_INVOKE
+import net.corda.djvm.code.impl.FROM_DJVM
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import java.util.Collections.unmodifiableSet
 
