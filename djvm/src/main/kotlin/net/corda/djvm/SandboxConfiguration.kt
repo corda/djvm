@@ -93,10 +93,10 @@ class SandboxConfiguration private constructor(
                  */
                 for (preloadURL in preloadURLs) {
                     log.info("Preloading classes from {}", preloadURL.path)
-                    ZipInputStream(preloadURL.openStream()).use {
+                    ZipInputStream(preloadURL.openStream().buffered()).use {
                         while (true) {
                             val entryName = (it.nextEntry ?: break).name
-                            if (entryName.endsWith(CLASS_SUFFIX)) {
+                            if (entryName.endsWith(CLASS_SUFFIX) && !entryName.startsWith("META-INF/")) {
                                 val internalClassName = entryName.dropLast(CLASS_SUFFIX.length)
                                 knownReferences.add(internalClassName)
 
@@ -124,8 +124,15 @@ class SandboxConfiguration private constructor(
         return with (analysisConfiguration.supportingClassLoader) {
             val sourceURLs = getAllURLs()
             getResources(DJVM_PRELOAD_TAG).asSequence().mapNotNullTo(LinkedHashSet()) { url ->
-                val jarPath = url.path.substringBeforeLast("!/")
-                sourceURLs.find { it.toString().endsWith(jarPath) }
+                val sourcePath = if (url.protocol == "jar") {
+                    // Extract the file: URL for the container jar.
+                    url.path.substringBeforeLast("!/")
+                } else {
+                    // Directories are not ZIPs, so we don't
+                    // need to match file: URLs for those.
+                    url.toString().substringBefore(DJVM_PRELOAD_TAG).dropLast(1)
+                }
+                sourceURLs.find { it.toString() == sourcePath }
             }
         }
     }
