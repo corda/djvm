@@ -4,9 +4,9 @@ import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.SyntheticResolver
 import net.corda.djvm.analysis.impl.ClassAndMemberVisitor.Companion.API_VERSION
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.impl.ClassMutator
 import net.corda.djvm.code.impl.DJVM_SYNTHETIC
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.code.impl.SandboxClassRemapper
 import net.corda.djvm.code.impl.SandboxClassWriter
 import net.corda.djvm.code.impl.SandboxRemapper
@@ -151,7 +151,7 @@ class ClassRewriter(
 
         private fun writeMethodBody(mv: MethodVisitor, body: List<MethodBody>) {
             mv.visitCode()
-            EmitterModule(mv, analysisConfig).writeByteCode(body)
+            EmitterModuleImpl(mv, analysisConfig).writeByteCode(body)
             mv.visitMaxs(-1, -1)
             mv.visitEnd()
         }

@@ -4,6 +4,7 @@ import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.impl.EMIT_TRACING
+import net.corda.djvm.code.impl.emit
 import net.corda.djvm.code.instructions.BranchInstruction
 
 /**

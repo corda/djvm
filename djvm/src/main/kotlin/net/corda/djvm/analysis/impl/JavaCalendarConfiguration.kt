@@ -1,8 +1,8 @@
 @file:JvmName("JavaCalendarConfiguration")
 package net.corda.djvm.analysis.impl
 
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.impl.DJVM_NAME
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.references.Member
 import org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.objectweb.asm.Opcodes.ACC_STATIC
@@ -21,7 +21,7 @@ fun generateJavaCalendarMethods(): List<Member> = listOf(
              * Replace getCalendarProperties():
              *     return DJVM.getCalendarProperties()
              */
-            override fun writeBody(emitter: EmitterModule) = with(emitter) {
+            override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
                 invokeStatic(DJVM_NAME, memberName, descriptor)
                 returnObject()
             }

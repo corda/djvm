@@ -2,9 +2,9 @@
 package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.sandboxed
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
 import net.corda.djvm.code.impl.DJVM_NAME
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.references.Member
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.ACC_FINAL
@@ -29,7 +29,7 @@ fun generateJavaBaseMethods(): List<Member> = listOf(
         descriptor = "()Lsandbox/java/util/Iterator;",
         signature = "()Lsandbox/java/util/Iterator<Lsandbox/java/nio/charset/spi/CharsetProvider;>;"
     ) {
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             invokeStatic("sandbox/java/util/Collections", "emptyIterator", descriptor)
             returnObject()
         }
@@ -42,7 +42,7 @@ fun generateJavaBaseMethods(): List<Member> = listOf(
         memberName = "initialize",
         descriptor = "()V"
     ) {
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             invokeStatic(DJVM_NAME, "getSecurityProviders", "()Lsandbox/java/util/Properties;")
             putStatic(className, "props", "Lsandbox/java/util/Properties;")
             returnVoid()
@@ -56,7 +56,7 @@ fun generateJavaBaseMethods(): List<Member> = listOf(
         memberName = "getPrngAlgorithm",
         descriptor = "()Lsandbox/java/lang/String;"
     ) {
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushNull()
             returnObject()
         }
@@ -69,7 +69,7 @@ fun generateJavaBaseMethods(): List<Member> = listOf(
         memberName = "isNonENLangSupported",
         descriptor = "()Z"
     ) {
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushFalse()
             returnInteger()
         }
@@ -83,7 +83,7 @@ fun generateJavaBaseMethods(): List<Member> = listOf(
         memberName = "toDJVM",
         descriptor = "(Ljava/io/InputStream;)Lsandbox/java/io/InputStream;"
     ) {
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             val doWrap = Label()
             lineNumber(1)
             pushObject(0)
@@ -115,7 +115,7 @@ fun generateJavaBaseMethods(): List<Member> = listOf(
          * Implement package private accessor.
          *     return thisX500Name
          */
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushObject(0)
             pushField(className, "thisX500Name", "Lsandbox/sun/security/x509/X500Name;")
             returnObject()
@@ -136,7 +136,7 @@ fun generateJavaBaseMethods(): List<Member> = listOf(
          * Reimplement [sandbox.sun.security.x509.X500Name.asX500Principal] without reflection.
          *     return DJVM.create(this)
          */
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushObject(0)
             invokeStatic(
                 owner = "sandbox/javax/security/auth/x500/DJVM",
@@ -159,7 +159,7 @@ fun generateJavaBaseMethods(): List<Member> = listOf(
          *     name.x500Principal = principal
          *     return name
          */
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushObject(0)
             invokeStatic(
                 owner = "sandbox/javax/security/auth/x500/DJVM",
@@ -190,7 +190,7 @@ fun generateJavaBaseMethods(): List<Member> = listOf(
          * Reimplement [DatatypeFactory.newInstance] to use the JDK's basic implementation.
          *     return new com.sun.org.apache.xerces.internal.jaxp.datatype.DatatypeFactoryImpl()
          */
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             val implementationClass = "sandbox/com/sun/org/apache/xerces/internal/jaxp/datatype/DatatypeFactoryImpl"
             new(implementationClass)
             duplicate()

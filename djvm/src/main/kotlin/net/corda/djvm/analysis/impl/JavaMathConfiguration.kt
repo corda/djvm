@@ -2,8 +2,8 @@
 package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.sandboxed
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.code.impl.FROM_DJVM
 import net.corda.djvm.references.Member
 
@@ -19,7 +19,7 @@ fun generateJavaMathMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements BigInteger.fromDJVM():
      *     return new java.math.BigInteger(signum(), toByteArray())
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         new("java/math/BigInteger")
         duplicate()
         pushObject(0)
@@ -37,7 +37,7 @@ fun generateJavaMathMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements BigDecimal.fromDJVM():
      *     return new java.math.BigDecimal(unscaledValue().fromDJVM(), scale())
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         new("java/math/BigDecimal")
         duplicate()
         pushObject(0)

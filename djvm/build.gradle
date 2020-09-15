@@ -85,12 +85,18 @@ tasks.named('javadoc', Javadoc) {
 }
 
 def shadowJar = tasks.named('shadowJar', Jar) {
+    archiveAppendix = "shadow"
     archiveClassifier = ''
     reproducibleFileOrder = true
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
 
     // Discard the ASM library's module information.
     exclude 'module-info.class'
+
+    manifest {
+        attributes('Automatic-Module-Name': 'net.corda.djvm')
+        attributes('Sealed': true)
+    }
 
     // These particular classes are only needed to "bootstrap"
     // the compilation of the other sandbox classes. At runtime,
@@ -180,13 +186,12 @@ def bundle = tasks.register('bundle', Bundle) {
     reproducibleFileOrder = true
     archiveClassifier = ''
 
-    manifest {
-        attributes('Bundle-SymbolicName': 'net.corda.djvm')
-        attributes('Bundle-Name': 'DJVM')
-
-        attributes('Automatic-Module-Name': 'net.corda.djvm')
-        attributes('Sealed': true)
-    }
+    bnd """\
+-include: "jar:${shadowJar.flatMap { it.archiveFile.map { it.asFile.toURI() } }.get()}!/META-INF/MANIFEST.MF"
+-fixupmessages "Classes found in the wrong directory"; restrict:=error; is:=warning
+Bundle-SymbolicName: net.corda.djvm
+Bundle-Name: DJVM
+"""
 }
 
 def securityPolicy = file('permissive.policy')

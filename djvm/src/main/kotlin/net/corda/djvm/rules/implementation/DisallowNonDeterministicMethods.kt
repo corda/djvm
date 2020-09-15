@@ -2,12 +2,13 @@ package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.impl.CLASSLOADER_NAME
 import net.corda.djvm.code.impl.CLASS_NAME
 import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
 import net.corda.djvm.code.impl.DJVM_NAME
+import net.corda.djvm.code.impl.EmitterModuleImpl
+import net.corda.djvm.code.impl.emit
 import net.corda.djvm.code.impl.isClassVirtualThunk
 import net.corda.djvm.code.impl.isObjectMonitor
 import net.corda.djvm.code.instructions.MemberAccessInstruction
@@ -46,18 +47,18 @@ object DisallowNonDeterministicMethods : Emitter {
         }
     }
 
-    private fun EmitterModule.forbid(instruction: MemberAccessInstruction) {
+    private fun EmitterModuleImpl.forbid(instruction: MemberAccessInstruction) {
         throwRuleViolationError("Disallowed reference to API; ${formatFor(instruction)}")
         preventDefault()
     }
 
-    private fun EmitterModule.initClassLoader() {
+    private fun EmitterModuleImpl.initClassLoader() {
         invokeStatic(DJVM_NAME, "getSystemClassLoader", "()Ljava/lang/ClassLoader;")
         invokeSpecial(CLASSLOADER_NAME, CONSTRUCTOR_NAME, "(Ljava/lang/ClassLoader;)V")
         preventDefault()
     }
 
-    private fun EmitterModule.djvmInstance(instruction: MemberAccessInstruction) {
+    private fun EmitterModuleImpl.djvmInstance(instruction: MemberAccessInstruction) {
         invokeVirtual(instruction.className, "djvmInstance", instruction.descriptor)
         preventDefault()
     }

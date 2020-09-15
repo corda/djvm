@@ -3,6 +3,7 @@ package net.corda.djvm.rules.implementation
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.impl.emit
 import org.objectweb.asm.Opcodes.*
 
 /**

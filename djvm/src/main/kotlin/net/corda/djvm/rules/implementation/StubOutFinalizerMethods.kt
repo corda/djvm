@@ -1,8 +1,9 @@
 package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.analysis.AnalysisRuntimeContext
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.MemberDefinitionProvider
+import net.corda.djvm.code.impl.EmitterModuleImpl
+import net.corda.djvm.code.impl.toMethodBody
 import net.corda.djvm.references.ImmutableMember
 import java.lang.reflect.Modifier
 
@@ -17,11 +18,11 @@ object StubOutFinalizerMethods : MemberDefinitionProvider {
          * Other [MemberDefinitionProvider]s are expected to append to this list
          * and not replace its contents!
          */
-        isFinalizer(member) -> member.toMutable().copy(body = listOf(::writeMethodBody))
+        isFinalizer(member) -> member.toMutable().copy(body = listOf(toMethodBody(::writeMethodBody)))
         else -> member
     }
 
-    private fun writeMethodBody(emitter: EmitterModule): Unit = with(emitter) {
+    private fun writeMethodBody(emitter: EmitterModuleImpl): Unit = with(emitter) {
         returnVoid()
     }
 

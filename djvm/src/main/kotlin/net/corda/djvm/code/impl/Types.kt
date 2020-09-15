@@ -4,9 +4,11 @@ package net.corda.djvm.code.impl
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.costing.ThresholdViolationError
+import net.corda.djvm.references.MethodBody
 import net.corda.djvm.rules.RuleViolationError
 import org.objectweb.asm.Type
 import java.util.Collections.unmodifiableSet
+import java.util.function.Consumer
 
 /**
  * These are the priorities for executing [Emitter] instances.
@@ -88,4 +90,22 @@ val String.emptyAsNull: String? get() = if (isEmpty()) null else this
 
 inline fun <reified T> Emitter.getMemberContext(context: EmitterContext): T? {
     return context.getMemberContext(this) as? T
+}
+
+/**
+ * Set up and execute an emitter block for a particular member.
+ */
+inline fun EmitterContext.emit(action: EmitterModuleImpl.() -> Unit) {
+    action((this as EmitterContextImpl).emitterModule)
+}
+
+/**
+ * This function effectively up-casts [Consumer<EmitterModuleImpl>]
+ * to [Consumer<EmitterModule>]. This is to prevent the private
+ * [EmitterModuleImpl] type from being referenced in the OSGi-exported
+ * [net.corda.djvm.references] package,
+ */
+@Suppress("unchecked_cast", "nothing_to_inline")
+inline fun toMethodBody(noinline f: (EmitterModuleImpl) -> Unit): MethodBody {
+    return Consumer(f) as MethodBody
 }

@@ -27,12 +27,6 @@ class RuleContext(
         get() = analysisContext.clazz
 
     /**
-     * The member currently being analysed, if any.
-     */
-    val member: ImmutableMember?
-        get() = analysisContext.member
-
-    /**
      * The current source location.
      */
     val location: SourceLocation
@@ -49,12 +43,6 @@ class RuleContext(
      */
     val classModule: ClassModule
         get() = configuration.classModule
-
-    /**
-     * Utilities for dealing with members.
-     */
-    val memberModule: MemberModule
-        get() = configuration.memberModule
 
     /**
      * Check whether the class has been explicitly defined in the sandbox namespace.

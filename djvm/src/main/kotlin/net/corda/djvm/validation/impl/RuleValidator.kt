@@ -2,8 +2,8 @@ package net.corda.djvm.validation.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.impl.ClassAndMemberVisitor
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.references.ClassRepresentation
 import net.corda.djvm.references.Member
 import net.corda.djvm.rules.ClassRule
@@ -74,7 +74,7 @@ class RuleValidator(
     /**
      * Apply the set of rules to the traversed instruction and record any violations.
      */
-    override fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {
+    override fun visitInstruction(method: Member, emitter: EmitterModuleImpl, instruction: Instruction) {
         if (shouldClassBeProcessed(method.className) && shouldMemberBeProcessed(method.reference)) {
             val context = RuleContext(currentAnalysisContext())
             processEntriesOfType<InstructionRule>(rules, analysisContext.messages, Consumer {

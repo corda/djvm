@@ -5,6 +5,7 @@ import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.impl.CLASSLOADER_NAME
 import net.corda.djvm.code.impl.SANDBOX_CLASSLOADER_NAME
+import net.corda.djvm.code.impl.emit
 import net.corda.djvm.code.impl.isClassLoaderStaticThunk
 import net.corda.djvm.code.impl.isClassLoaderVirtualThunk
 import net.corda.djvm.code.instructions.MemberAccessInstruction

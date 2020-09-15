@@ -2,8 +2,9 @@
 package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.CordaInternal
-import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.code.impl.FROM_DJVM
+import net.corda.djvm.code.impl.toMethodBody
 import net.corda.djvm.references.Member
 import net.corda.djvm.references.MethodBody
 import org.objectweb.asm.Opcodes.ACC_BRIDGE
@@ -24,14 +25,14 @@ open class MethodBuilder(
 ) {
     private val bodies = mutableListOf<MethodBody>()
 
-    protected open fun writeBody(emitter: EmitterModule) {}
+    protected open fun writeBody(emitter: EmitterModuleImpl) {}
 
     fun withBody(body: MethodBody): MethodBuilder {
         bodies.add(body)
         return this
     }
 
-    fun withBody() = withBody(::writeBody)
+    fun withBody() = withBody(toMethodBody(::writeBody))
 
     fun build() = Member(
         access = access,
@@ -61,17 +62,18 @@ abstract class FromDJVMBuilder(
         signature = signature
     )
 
-    protected abstract fun writeBody(emitter: EmitterModule)
+    protected abstract fun writeBody(emitter: EmitterModuleImpl)
 
     fun build(): List<Member> = listOf(
-        builder.withBody(::writeBody).build(),
+        @Suppress("unchecked_cast")
+        builder.withBody(toMethodBody(::writeBody)).build(),
         object : MethodBuilder(
             access = ACC_BRIDGE or ACC_SYNTHETIC or ACC_PROTECTED,
             className = className,
             memberName = FROM_DJVM,
             descriptor = "()Ljava/lang/Object;"
         ) {
-            override fun writeBody(emitter: EmitterModule) = with(emitter) {
+            override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
                 pushObject(0)
                 invokeVirtual(className, memberName, bridgeDescriptor)
                 returnObject()

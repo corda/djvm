@@ -4,6 +4,7 @@ import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.Instruction.Companion.OP_BREAKPOINT
+import net.corda.djvm.code.impl.emit
 
 /**
  * Rule that deletes invalid breakpoint instructions.

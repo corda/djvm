@@ -6,7 +6,6 @@ import net.corda.djvm.code.ClassDefinitionProvider
 import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.Emitter
 import net.corda.djvm.code.EmitterContext
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.MemberDefinitionProvider
 import net.corda.djvm.code.instructions.MethodEntry
@@ -104,7 +103,7 @@ class ClassMutator(
         if (initializers.isNotEmpty()) {
             classVisitor.visitMethod(ACC_STATIC, CLASS_CONSTRUCTOR_NAME, "()V", null, null)?.also { mv ->
                 mv.visitCode()
-                EmitterModule(mv, configuration).writeByteCode(initializers)
+                EmitterModuleImpl(mv, configuration).writeByteCode(initializers)
                 mv.visitInsn(RETURN)
                 mv.visitMaxs(-1, -1)
                 mv.visitEnd()
@@ -151,8 +150,8 @@ class ClassMutator(
      * Apply emitters to an instruction. This can be used to instrument a part of the code block, change behaviour of
      * an existing instruction, or strip it out completely.
      */
-    override fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {
-        val context = EmitterContext(currentAnalysisContext(), configuration, emitter)
+    override fun visitInstruction(method: Member, emitter: EmitterModuleImpl, instruction: Instruction) {
+        val context = EmitterContextImpl(currentAnalysisContext(), configuration, emitter)
         processEntriesOfType<Emitter>(emitters, analysisContext.messages, Consumer {
             it.emit(context, instruction)
         })

@@ -2,7 +2,7 @@
 package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.sandboxed
-import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.references.Member
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes.ACC_ABSTRACT
@@ -17,7 +17,7 @@ fun generateInterfaceBridgeMethods(): List<Member> = listOf(
         memberName = "subSequence",
         descriptor = "(II)Ljava/lang/CharSequence;"
     ) {
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushObject(0)
             pushInteger(1)
             pushInteger(2)
@@ -40,7 +40,7 @@ fun generateInterfaceBridgeMethods(): List<Member> = listOf(
         memberName = "iterator",
         descriptor = "()Ljava/util/Iterator;"
     ) {
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             val doStart = Label()
             lineNumber(0, doStart)
             pushObject(0)

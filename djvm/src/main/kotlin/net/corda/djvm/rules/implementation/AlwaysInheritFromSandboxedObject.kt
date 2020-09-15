@@ -8,6 +8,7 @@ import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
 import net.corda.djvm.code.impl.OBJECT_NAME
 import net.corda.djvm.code.impl.SANDBOX_OBJECT_NAME
+import net.corda.djvm.code.impl.emit
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import net.corda.djvm.code.instructions.TypeInstruction
 import net.corda.djvm.references.ImmutableClass

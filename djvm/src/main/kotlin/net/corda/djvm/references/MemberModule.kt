@@ -20,7 +20,7 @@ class MemberModule : AnnotationModule() {
     /**
      * Get member definition for class. Return `null` if the member does not exist.
      */
-    fun getFromClass(clazz: ClassRepresentation, memberName: String, descriptor: String): Member? {
+    fun getFromClass(clazz: ClassRepresentation, memberName: String, descriptor: String): MemberInformation? {
         return clazz.members[getQualifyingIdentifier(memberName, descriptor)]
     }
 

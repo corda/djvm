@@ -4,6 +4,7 @@ import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
 import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.code.impl.ClassMutator
+import net.corda.djvm.code.impl.emit
 import net.corda.djvm.references.ImmutableClass
 import net.corda.djvm.references.ImmutableMember
 import org.assertj.core.api.Assertions.assertThat

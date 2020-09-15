@@ -4,8 +4,8 @@ import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
 import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.analysis.SourceLocation
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.code.impl.emptyAsNull
 import net.corda.djvm.code.instructions.*
 import net.corda.djvm.messages.Message
@@ -125,7 +125,7 @@ open class ClassAndMemberVisitor(
     /**
      * Extract information about the traversed instruction.
      */
-    open fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {}
+    open fun visitInstruction(method: Member, emitter: EmitterModuleImpl, instruction: Instruction) {}
 
     /**
      * Get the analysis context to pass on to method and field visitors.
@@ -565,7 +565,7 @@ open class ClassAndMemberVisitor(
 
         private fun tryReplaceMethodBody() {
             if (method.body.isNotEmpty() && (mv != null)) {
-                EmitterModule(mv, configuration).writeByteCode(method.body)
+                EmitterModuleImpl(mv, configuration).writeByteCode(method.body)
                 mv.visitMaxs(-1, -1)
                 mv.visitEnd()
                 mv = null
@@ -576,7 +576,7 @@ open class ClassAndMemberVisitor(
          * Helper function used to streamline the access to an instruction and to catch any related processing errors.
          */
         private fun visit(instruction: Instruction, defaultFirst: Boolean = false, defaultAction: () -> Unit) {
-            val emitterModule = EmitterModule(mv ?: StubMethodVisitor(), configuration)
+            val emitterModule = EmitterModuleImpl(mv ?: StubMethodVisitor(), configuration)
             if (defaultFirst) {
                 defaultAction()
             }

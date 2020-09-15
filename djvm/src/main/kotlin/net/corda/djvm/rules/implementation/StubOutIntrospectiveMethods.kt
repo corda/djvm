@@ -2,6 +2,7 @@ package net.corda.djvm.rules.implementation
 
 import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.code.MemberDefinitionProvider
+import net.corda.djvm.code.impl.toMethodBody
 import net.corda.djvm.references.ImmutableMember
 import org.objectweb.asm.Opcodes.*
 
@@ -11,7 +12,7 @@ import org.objectweb.asm.Opcodes.*
 object StubOutIntrospectiveMethods : MemberDefinitionProvider {
     override fun define(context: AnalysisRuntimeContext, member: ImmutableMember): ImmutableMember = when {
         member.isMethod && isConcreteApi(member) && isIntrospective(member) && !isAllowedFor(context, member)
-             -> member.toMutable().copy(body = member.body + MemberRuleEnforcer(member)::forbidAPI)
+             -> member.toMutable().copy(body = member.body + toMethodBody(MemberRuleEnforcer(member)::forbidAPI))
         else -> member
     }
 

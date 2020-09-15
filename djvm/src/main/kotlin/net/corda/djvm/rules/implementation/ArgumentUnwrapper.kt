@@ -7,6 +7,7 @@ import net.corda.djvm.code.impl.CLASSLOADER_NAME
 import net.corda.djvm.code.impl.CLASS_NAME
 import net.corda.djvm.code.impl.EMIT_BEFORE_INVOKE
 import net.corda.djvm.code.impl.FROM_DJVM
+import net.corda.djvm.code.impl.emit
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import java.util.Collections.unmodifiableSet
 

@@ -2,8 +2,8 @@
 package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.sandboxed
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.code.impl.FROM_DJVM
 import net.corda.djvm.references.Member
 import org.objectweb.asm.Opcodes.*
@@ -22,7 +22,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements Duration.fromDJVM():
      *     return java.time.Duration.ofSeconds(seconds, nanos)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "seconds", "J")
         pushObject(0)
@@ -39,7 +39,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements Instant.fromDJVM():
      *     return java.time.Instant.ofEpochSecond(seconds, nanos)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "seconds", "J")
         pushObject(0)
@@ -56,7 +56,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements LocalDate.fromDJVM():
      *     return java.time.LocalDate.of(year, month, day)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "year", "I")
         pushObject(0)
@@ -74,7 +74,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements LocalDateTime.fromDJVM():
      *     return java.time.LocalDateTime.of(date.fromDJVM(), time.fromDJVM())
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "date", "Lsandbox/java/time/LocalDate;")
         invokeVirtual("sandbox/java/time/LocalDate", FROM_DJVM, "()Ljava/time/LocalDate;")
@@ -92,7 +92,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements LocalTime.fromDJVM():
      *     return java.time.LocalTime.of(hour, minute, second, nano)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "hour", "B")
         pushObject(0)
@@ -112,7 +112,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements MonthDay.fromDJVM():
      *     return java.time.MonthDay.of(month, day)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "month", "I")
         pushObject(0)
@@ -128,7 +128,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements OffsetDateTime.fromDJVM():
      *     return java.time.OffsetDateTime.of(dateTime, offset)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "dateTime", "Lsandbox/java/time/LocalDateTime;")
         invokeVirtual("sandbox/java/time/LocalDateTime", FROM_DJVM, "()Ljava/time/LocalDateTime;")
@@ -147,7 +147,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements OffsetTime.fromDJVM():
      *     return java.time.OffsetTime.of(time, offset)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "time", "Lsandbox/java/time/LocalTime;")
         invokeVirtual("sandbox/java/time/LocalTime", FROM_DJVM, "()Ljava/time/LocalTime;")
@@ -166,7 +166,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements Period.fromDJVM():
      *     return java.time.Period.of(years, months, days)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "years", "I")
         pushObject(0)
@@ -184,7 +184,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements Year.fromDJVM():
      *     return java.time.Year.of(year)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "year", "I")
         invokeStatic("java/time/Year", OF, "(I)Ljava/time/Year;")
@@ -198,7 +198,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements YearMonth.fromDJVM():
      *     return java.time.YearMonth.of(year, month)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "year", "I")
         pushObject(0)
@@ -214,7 +214,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements ZonedDateTime.fromDJVM():
      *     return sandbox.java.time.DJVM.zonedDateTime(dateTime, offset, zone)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         pushField(className, "dateTime", "Lsandbox/java/time/LocalDateTime;")
         pushObject(0)
@@ -232,7 +232,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements ZoneId.fromDJVM():
      *     return java.time.ZoneId.of(sandbox.java.lang.String.fromDJVM(getId()))
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
         invokeVirtual(className, "getId", "()Lsandbox/java/lang/String;")
         invokeStatic("sandbox/java/lang/String", FROM_DJVM, "(Lsandbox/java/lang/String;)Ljava/lang/String;")
@@ -247,7 +247,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements Date.fromDJVM():
      *     return java.time.Date(getTime())
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         new("java/util/Date")
         duplicate()
         pushObject(0)
@@ -266,7 +266,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         memberName = "createDJVM",
         descriptor = "(Lsandbox/java/time/LocalDateTime;Lsandbox/java/time/ZoneOffset;Lsandbox/java/time/ZoneId;)Lsandbox/java/time/ZonedDateTime;"
     ) {
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushObject(0)
             pushObject(1)
             pushObject(2)
@@ -286,7 +286,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         descriptor = "(Lsandbox/java/io/DataInputStream;)V",
         exceptions = setOf("java/lang/Exception")
     ) {
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushObject(0)
             invokeSpecial("sandbox/java/time/zone/ZoneRulesProvider", CONSTRUCTOR_NAME, "()V")
 
@@ -331,7 +331,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
          * Replace [java.util.TimeZone.getSystemTimeZoneID]:
          *     return null
          */
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushNull()
             returnObject()
         }
@@ -344,7 +344,7 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         memberName = "getSystemGMTOffsetID",
         descriptor = "()Lsandbox/java/lang/String;"
     ) {
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             /**
              * Replace [java.util.TimeZone.getSystemGMTOffsetID]:
              *     return null
