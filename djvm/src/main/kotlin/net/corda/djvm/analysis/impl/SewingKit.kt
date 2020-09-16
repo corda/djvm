@@ -65,7 +65,6 @@ abstract class FromDJVMBuilder(
     protected abstract fun writeBody(emitter: EmitterModuleImpl)
 
     fun build(): List<Member> = listOf(
-        @Suppress("unchecked_cast")
         builder.withBody(toMethodBody(::writeBody)).build(),
         object : MethodBuilder(
             access = ACC_BRIDGE or ACC_SYNTHETIC or ACC_PROTECTED,
