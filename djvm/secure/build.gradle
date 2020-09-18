@@ -76,10 +76,6 @@ dependencies {
     sandboxTesting "org.slf4j:slf4j-nop:$slf4j_version"
 }
 
-tasks.named('jar', Jar) {
-    enabled = false
-}
-
 def securityPolicy = file('targeted.policy')
 
 tasks.withType(Test).configureEach {

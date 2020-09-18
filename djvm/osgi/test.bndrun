@@ -1,0 +1,51 @@
+# Bndrun for OSGi DJVM testing
+
+-tester: biz.aQute.tester.junit-platform
+
+-runee: JavaSE-1.8
+-runfw: org.apache.felix.framework
+-resolve.effective: active
+-runpath: \
+    org.jetbrains.kotlin.osgi-bundle;version='${project.kotlin_version}',\
+    ${project.kotlinJars}
+-runsystempackages: kotlin.jdk7, kotlin.streams.jdk8
+-runproperties: \
+    org.osgi.framework.bootdelegation=sun.reflect,\
+    org.osgi.service.log.admin.loglevel=DEBUG,\
+    logback.configurationFile=${fileuri;${.}/logback.xml},\
+    deterministic-rt.path=${project.deterministicRt},\
+    sandbox-libraries.path=${project.sandboxJars}
+
+-runrequires: \
+    bnd.identity;id='junit-jupiter-engine',\
+    bnd.identity;id='junit-platform-launcher',\
+    bnd.identity;id='org.apache.felix.configadmin',\
+    bnd.identity;id='org.apache.felix.logback',\
+    bnd.identity;id='org.apache.felix.log',\
+    bnd.identity;id='net.corda.djvm.osgi.testing',\
+    bnd.identity;id='net.corda.djvm'
+
+# This will help us keep -runbundles sorted
+-runstartlevel: \
+    order=sortbynameversion,\
+    begin=-1
+
+# The version ranges will change as the versions of
+# the artifacts and/or their dependencies change.
+-runbundles: \
+	assertj-core;version='[3.16.1,3.16.2)',\
+	ch.qos.logback.classic;version='[1.2.3,1.2.4)',\
+	ch.qos.logback.core;version='[1.2.3,1.2.4)',\
+	junit-jupiter-api;version='[5.6.2,5.6.3)',\
+	junit-jupiter-engine;version='[5.6.2,5.6.3)',\
+	junit-jupiter-params;version='[5.6.2,5.6.3)',\
+	junit-platform-commons;version='[1.6.2,1.6.3)',\
+	junit-platform-engine;version='[1.6.2,1.6.3)',\
+	junit-platform-launcher;version='[1.6.2,1.6.3)',\
+	net.corda.djvm;version='[1.2.0,1.2.1)',\
+	net.corda.djvm.osgi.testing;version='[1.2.0,1.2.1)',\
+	org.apache.felix.configadmin;version='[1.9.18,1.9.19)',\
+	org.apache.felix.log;version='[1.2.2,1.2.3)',\
+	org.apache.felix.logback;version='[1.0.2,1.0.3)',\
+	org.opentest4j;version='[1.2.0,1.2.1)',\
+	slf4j.api;version='[1.7.30,1.7.31)'
