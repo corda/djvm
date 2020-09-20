@@ -70,6 +70,10 @@ subprojects {
                     '--illegal-access=warn'
         }
     }
+
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        enabled = false
+    }
 }
 
 bintrayConfig {
