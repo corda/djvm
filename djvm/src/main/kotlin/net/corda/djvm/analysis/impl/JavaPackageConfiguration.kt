@@ -2,7 +2,7 @@
 package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.sandboxed
-import net.corda.djvm.code.EmitterModule
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.references.Member
 import org.objectweb.asm.Opcodes.*
 
@@ -20,7 +20,7 @@ fun generateJavaPackageMethods(): List<Member> = listOf(
          * Disable Package.getPackage(String).
          *     return null
          */
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushNull()
             returnObject()
         }
@@ -37,7 +37,7 @@ fun generateJavaPackageMethods(): List<Member> = listOf(
          * Disable Package.getPackages().
          *     return new Package[0]
          */
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushIntegerZero()
             new(className, ANEWARRAY)
             returnObject()
@@ -56,7 +56,7 @@ fun generateJavaPackageMethods(): List<Member> = listOf(
          * Disable Package.getPackage(Class<?>).
          *     return null
          */
-        override fun writeBody(emitter: EmitterModule) = with(emitter) {
+        override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushNull()
             returnObject()
         }

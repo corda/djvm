@@ -2,8 +2,8 @@
 package net.corda.djvm.analysis.impl
 
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.sandboxed
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.impl.CONSTRUCTOR_NAME
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.references.Member
 import java.util.*
 
@@ -18,7 +18,7 @@ fun generateJavaUuidMethods(): List<Member> = object : FromDJVMBuilder(
      * Implements UUID.fromDJVM():
      *     return new java.util.UUID(mostSigBits, leastSigBits)
      */
-    override fun writeBody(emitter: EmitterModule) = with(emitter) {
+    override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         new("java/util/UUID")
         duplicate()
         pushObject(0)

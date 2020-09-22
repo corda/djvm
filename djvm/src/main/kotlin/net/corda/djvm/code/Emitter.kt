@@ -1,6 +1,8 @@
 package net.corda.djvm.code
 
+import net.corda.djvm.code.impl.emit
 import net.corda.djvm.code.impl.EMIT_DEFAULT
+import net.corda.djvm.code.impl.EmitterModuleImpl
 
 /**
  * An emitter is a hook for [net.corda.djvm.code.impl.ClassMutator],
@@ -11,11 +13,11 @@ interface Emitter {
     /**
      * Hook for providing modifications to an instruction in a method body. One can also prepend and append instructions
      * by using the [EmitterContext], and skip the default instruction altogether by invoking
-     * [EmitterModule.preventDefault] from within [EmitterContext.emit].
+     * [EmitterModuleImpl.preventDefault] from within [EmitterContext.emit].
      *
      * @param context The context from which the emitter is invoked. By calling [EmitterContext.emit], one gets access
-     * to an instance of [EmitterModule] from within the supplied closure. From there, one can emit new instructions and
-     * intercept the original instruction (for instance, modify or delete the instruction).
+     * to an instance of [EmitterModuleImpl] from within the supplied closure. From there, one can emit new instructions
+     * and intercept the original instruction (for instance, modify or delete the instruction).
      * @param instruction The instruction currently being processed.
      */
     fun emit(context: EmitterContext, instruction: Instruction)

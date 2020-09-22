@@ -75,7 +75,7 @@ class ClassHierarchy(
     /**
      * Get the implementation of a member, if defined in specified class or any of its ancestors.
      */
-    fun getMember(className: String, memberName: String, descriptor: String): Member? {
+    fun getMember(className: String, memberName: String, descriptor: String): MemberInformation? {
         if (classModule.isArray(className) && memberName == ARRAY_LENGTH) {
             // Special instruction to retrieve length of array
             return Member(0, className, memberName, descriptor, "")

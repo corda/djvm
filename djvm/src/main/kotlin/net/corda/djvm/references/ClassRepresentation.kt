@@ -16,7 +16,7 @@ import java.lang.reflect.Modifier
  * @property members The set of fields and methods implemented in the class.
  * @property annotations The set of annotations applied to the class.
  */
-data class ClassRepresentation(
+class ClassRepresentation(
         override val apiVersion: Int,
         override val access: Int,
         override val name: String,

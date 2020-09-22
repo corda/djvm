@@ -5,6 +5,7 @@ import net.corda.djvm.code.EmitterContext
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.impl.CLASS_NAME
 import net.corda.djvm.code.impl.SANDBOX_CLASS_NAME
+import net.corda.djvm.code.impl.emit
 import net.corda.djvm.code.impl.isClassStaticThunk
 import net.corda.djvm.code.impl.isClassVirtualThunk
 import net.corda.djvm.code.instructions.MemberAccessInstruction

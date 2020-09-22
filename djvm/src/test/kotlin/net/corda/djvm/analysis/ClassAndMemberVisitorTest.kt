@@ -8,8 +8,8 @@ import net.corda.djvm.annotations.NonDeterministic
 import net.corda.djvm.assertions.AssertionExtensions.hasClass
 import net.corda.djvm.assertions.AssertionExtensions.hasInstruction
 import net.corda.djvm.assertions.AssertionExtensions.hasMember
-import net.corda.djvm.code.EmitterModule
 import net.corda.djvm.code.Instruction
+import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import net.corda.djvm.code.instructions.TryFinallyBlock
 import net.corda.djvm.code.instructions.TypeInstruction
@@ -181,7 +181,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
     fun `does not traverse instructions when reading`() {
         val instructions = mutableSetOf<Pair<Member, Instruction>>()
         val visitor = object : ClassAndMemberVisitor(StubVisitor, configuration) {
-            override fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {
+            override fun visitInstruction(method: Member, emitter: EmitterModuleImpl, instruction: Instruction) {
                 instructions.add(Pair(method, instruction))
             }
         }
@@ -193,7 +193,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
     fun `can traverse instructions when writing`() {
         val instructions = mutableSetOf<Pair<Member, Instruction>>()
         val visitor = object : ClassAndMemberVisitor(Writer(), configuration) {
-            override fun visitInstruction(method: Member, emitter: EmitterModule, instruction: Instruction) {
+            override fun visitInstruction(method: Member, emitter: EmitterModuleImpl, instruction: Instruction) {
                 instructions.add(Pair(method, instruction))
             }
         }

@@ -636,7 +636,9 @@ class SandboxClassLoader private constructor(
     private fun loadUnmodifiedByteCode(internalClassName: String): ByteCode {
         return try {
             doPrivileged(PrivilegedExceptionAction {
-                val resource = getSystemResource("$internalClassName.class")
+                // The template classes stored within the DJVM's jar
+                // and so are accessible via the same classloader.
+                val resource = this::class.java.classLoader.getResource("$internalClassName.class")
                     ?: throw ClassNotFoundException(internalClassName)
                 val byteStream = try {
                     resource.openStream()

@@ -4,6 +4,7 @@ import net.corda.djvm.code.*
 import net.corda.djvm.code.impl.DJVM_NAME
 import net.corda.djvm.code.impl.OBJECT_NAME
 import net.corda.djvm.code.impl.SANDBOX_OBJECT_NAME
+import net.corda.djvm.code.impl.emit
 import net.corda.djvm.code.instructions.MemberAccessInstruction
 import net.corda.djvm.references.ImmutableClass
 import net.corda.djvm.references.MemberInformation
