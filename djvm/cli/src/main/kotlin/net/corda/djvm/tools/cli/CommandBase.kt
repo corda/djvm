@@ -18,51 +18,52 @@ import java.util.concurrent.Callable
 abstract class CommandBase : Callable<Boolean> {
 
     @Option(
-            names = ["-l", "--level"],
-            description = ["The minimum severity level to log (TRACE, DEBUG, INFO, WARNING or ERROR."],
-            converter = [SeverityConverter::class]
+        names = ["-l", "--level"],
+        description = ["The minimum severity level to log (TRACE, DEBUG, INFO, WARNING or ERROR."],
+        converter = [SeverityConverter::class]
     )
+    @JvmField
     protected var level: Severity = Severity.WARNING
 
     @Option(
-            names = ["-q", "--quiet"],
-            description = ["Only print important messages to standard output."]
+        names = ["-q", "--quiet"],
+        description = ["Only print important messages to standard output."]
     )
     private var quiet: Boolean = false
 
     @Option(
-            names = ["-v", "--verbose"],
-            description = ["Enable verbose logging."]
+        names = ["-v", "--verbose"],
+        description = ["Enable verbose logging."]
     )
     private var verbose: Boolean = false
 
     @Option(
-            names = ["--debug"],
-            description = ["Print full stack traces upon error."]
+        names = ["--debug"],
+        description = ["Print full stack traces upon error."]
     )
     private var debug: Boolean = false
 
     @Option(
-            names = ["--colors"],
-            description = ["Use colors when printing to terminal."]
+        names = ["--colors"],
+        description = ["Use colors when printing to terminal."]
     )
     private var useColors: Boolean = false
 
     @Option(
-            names = ["--no-colors"],
-            description = ["Do not use colors when printing to terminal."]
+        names = ["--no-colors"],
+        description = ["Do not use colors when printing to terminal."]
     )
     private var useNoColors: Boolean = false
 
     @Option(
-            names = ["--compact"],
-            description = ["Print compact errors and warnings."]
+        names = ["--compact"],
+        description = ["Print compact errors and warnings."]
     )
     private var compact: Boolean = false
 
     @Option(
-            names = ["--print-origins"],
-            description = ["Print origins for errors and warnings."]
+        names = ["--print-origins"],
+        description = ["Print origins for errors and warnings."]
     )
     private var printOrigins: Boolean = false
 
@@ -128,8 +129,7 @@ abstract class CommandBase : Callable<Boolean> {
             printError()
         }
         is SandboxException -> {
-            val cause = exception.cause
-            when (cause) {
+            when (val cause = exception.cause) {
                 is SandboxClassLoadingException -> {
                     printMessages(cause.messages, cause.classOrigins)
                     printError()
@@ -163,7 +163,7 @@ abstract class CommandBase : Callable<Boolean> {
                 val message = exception.message
                 when {
                     message.isNullOrBlank() -> exception.javaClass.simpleName
-                    else -> message!!
+                    else -> message
                 }
             }
         }

@@ -6,9 +6,9 @@ import picocli.CommandLine.Parameters
 import java.nio.file.Files
 
 @Command(
-        name = "inspect",
-        description = ["Inspect the transformations that are being applied to classes before they get loaded into " +
-                "the sandbox."]
+    name = "inspect",
+    description = ["Inspect the transformations that are being applied to classes before they get loaded into " +
+        "the sandbox."]
 )
 @Suppress("KDocMissingDocumentation")
 class InspectionCommand : ClassCommand() {
@@ -49,7 +49,6 @@ class InspectionCommand : ClassCommand() {
                 environment().putAll(System.getenv())
                 start().apply {
                     waitFor()
-                    exitValue()
                 }
             }
 
@@ -61,7 +60,6 @@ class InspectionCommand : ClassCommand() {
                     environment().putAll(System.getenv())
                     start().apply {
                         waitFor()
-                        exitValue()
                     }
                 }
                 Files.delete(this)
@@ -69,13 +67,12 @@ class InspectionCommand : ClassCommand() {
 
             // Generate and display the difference between the original and the transformed class
             ProcessBuilder(
-                    "git", "diff", originalClass.toString(), transformedClass.toString()
+                "git", "diff", originalClass.toString(), transformedClass.toString()
             ).apply {
                 inheritIO()
                 environment().putAll(System.getenv())
                 start().apply {
                     waitFor()
-                    exitValue()
                 }
             }
             printInfo()

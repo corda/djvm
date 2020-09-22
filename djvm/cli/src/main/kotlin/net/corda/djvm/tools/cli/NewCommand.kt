@@ -5,12 +5,12 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 @Command(
-        name = "new",
-        description = ["Create one or more new Java classes implementing the sandbox runnable interface that is " +
-                "required for execution in the deterministic sandbox. Each Java file is created using a template, " +
-                "with class name derived from the provided file name."
-        ],
-        showDefaultValues = true
+    name = "new",
+    description = ["Create one or more new Java classes implementing the sandbox runnable interface that is " +
+        "required for execution in the deterministic sandbox. Each Java file is created using a template, " +
+        "with class name derived from the provided file name."
+    ],
+    showDefaultValues = true
 )
 @Suppress("KDocMissingDocumentation")
 class NewCommand : CommandBase() {
@@ -40,10 +40,10 @@ class NewCommand : CommandBase() {
                 printVerbose("Creating file '$file'...")
                 Files.newBufferedWriter(file, *openOptions(force)).use {
                     it.append(TEMPLATE
-                            .replace("[NAME]", file.baseName)
-                            .replace("[FROM]", fromType)
-                            .replace("[TO]", toType)
-                            .replace("[RETURN]", returnValue))
+                        .replace("[NAME]", file.baseName)
+                        .replace("[FROM]", fromType)
+                        .replace("[TO]", toType)
+                        .replace("[RETURN]", returnValue))
                 }
             } catch (exception: Throwable) {
                 throw Exception("Failed to create file '$file'", exception)
@@ -54,7 +54,7 @@ class NewCommand : CommandBase() {
 
     companion object {
 
-        val TEMPLATE = """
+        private val TEMPLATE = """
             |package net.corda.sandbox;
             |
             |import java.util.function.Function;

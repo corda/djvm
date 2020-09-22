@@ -6,9 +6,9 @@ import picocli.CommandLine.Parameters
 import java.nio.file.Files
 
 @Command(
-        name = "show",
-        description = ["Show the transformed version of a class as it is prepared for execution in the deterministic " +
-                "sandbox."]
+    name = "show",
+    description = ["Show the transformed version of a class as it is prepared for execution in the deterministic " +
+        "sandbox."]
 )
 @Suppress("KDocMissingDocumentation")
 class ShowCommand : ClassCommand() {
@@ -44,7 +44,6 @@ class ShowCommand : ClassCommand() {
                     environment().putAll(System.getenv())
                     start().apply {
                         waitFor()
-                        exitValue()
                     }
                 }
                 Files.delete(this)

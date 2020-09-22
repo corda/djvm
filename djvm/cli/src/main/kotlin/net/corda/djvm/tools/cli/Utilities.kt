@@ -26,9 +26,7 @@ fun Array<Path>?.getFiles(map: (Path) -> Path = { it }) = (this ?: emptyArray())
 /**
  * Get the string representation of each expanded file name in the provided array.
  */
-fun Array<Path>?.getFileNames(map: (Path) -> Path = { it }) = this.getFiles(map).map {
-    it.toString()
-}.toTypedArray()
+fun Array<Path>?.getFileNames(map: (Path) -> Path = { it }) = this.getFiles(map).map(Any::toString).toTypedArray()
 
 /**
  * Execute inlined action if the collection is empty.
@@ -69,7 +67,7 @@ fun createCodePath(): Path {
  * Return the base name of a file (i.e., its name without extension)
  */
 val Path.baseName: String
-    get() = this.fileName.toString()
+    get() = fileName.toString()
             .replaceAfterLast('.', "")
             .removeSuffix(".")
 
@@ -94,9 +92,9 @@ val userClassPath: String = System.getProperty("java.class.path")
  */
 inline fun <reified T> find(scanSpec: String): List<Class<*>> {
     return ClassGraph()
-            .whitelistPaths(scanSpec)
-            .enableAllInfo()
-            .scan()
-            .use { it.getClassesImplementing(T::class.java.name).loadClasses(T::class.java) }
-            .filter { !isAbstract(it.modifiers) && !isStatic(it.modifiers) }
+        .whitelistPaths(scanSpec)
+        .enableAllInfo()
+        .scan()
+        .use { it.getClassesImplementing(T::class.java.name).loadClasses(T::class.java) }
+        .filter { !isAbstract(it.modifiers) && !isStatic(it.modifiers) }
 }
