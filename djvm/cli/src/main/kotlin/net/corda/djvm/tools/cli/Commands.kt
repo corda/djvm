@@ -4,19 +4,19 @@ import picocli.CommandLine
 import picocli.CommandLine.Command
 
 @Command(
-        name = "djvm",
-        versionProvider = VersionProvider::class,
-        description = ["JVM for running programs in a deterministic sandbox."],
-        mixinStandardHelpOptions = true,
-        subcommands = [
-            BuildCommand::class,
-            CheckCommand::class,
-            InspectionCommand::class,
-            NewCommand::class,
-            RunCommand::class,
-            ShowCommand::class,
-            TreeCommand::class
-        ]
+    name = "djvm",
+    versionProvider = VersionProvider::class,
+    description = ["JVM for running programs in a deterministic sandbox."],
+    mixinStandardHelpOptions = true,
+    subcommands = [
+        BuildCommand::class,
+        CheckCommand::class,
+        InspectionCommand::class,
+        NewCommand::class,
+        RunCommand::class,
+        ShowCommand::class,
+        TreeCommand::class
+    ]
 )
 @Suppress("KDocMissingDocumentation")
 class Commands : CommandBase() {

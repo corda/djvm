@@ -5,9 +5,9 @@ import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
 @Command(
-        name = "run",
-        description = ["Execute runnable in sandbox."],
-        showDefaultValues = true
+    name = "run",
+    description = ["Execute runnable in sandbox."],
+    showDefaultValues = true
 )
 @Suppress("KDocMissingDocumentation")
 class RunCommand : ClassCommand() {

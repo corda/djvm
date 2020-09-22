@@ -4,8 +4,8 @@ import picocli.CommandLine.Command
 import java.nio.file.Files
 
 @Command(
-        name = "tree",
-        description = ["Show the hierarchy of the classes that have been created with the 'new' command."]
+    name = "tree",
+    description = ["Show the hierarchy of the classes that have been created with the 'new' command."]
 )
 @Suppress("KDocMissingDocumentation")
 class TreeCommand : CommandBase() {
@@ -24,7 +24,6 @@ class TreeCommand : CommandBase() {
             directory(path.toFile())
             start().apply {
                 waitFor()
-                exitValue()
             }
         }
         return true

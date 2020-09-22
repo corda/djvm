@@ -19,8 +19,8 @@ import java.nio.file.Paths
 abstract class ClassCommand : CommandBase() {
 
     @Option(
-            names = ["-p", "--profile"],
-            description = ["The execution profile to use (DEFAULT, UNLIMITED, DISABLE_BRANCHING or DISABLE_THROWS)."]
+        names = ["-p", "--profile"],
+        description = ["The execution profile to use (DEFAULT, UNLIMITED, DISABLE_BRANCHING or DISABLE_THROWS)."]
     )
     var profile: ExecutionProfile = ExecutionProfile.DEFAULT
 

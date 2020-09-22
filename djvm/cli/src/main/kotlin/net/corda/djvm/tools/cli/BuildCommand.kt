@@ -5,9 +5,9 @@ import picocli.CommandLine.Parameters
 import java.nio.file.Path
 
 @Command(
-        name = "build",
-        description = ["Build one or more Java source files, each implementing the sandbox runnable interface " +
-                "required for execution in the deterministic sandbox."]
+    name = "build",
+    description = ["Build one or more Java source files, each implementing the sandbox runnable interface " +
+        "required for execution in the deterministic sandbox."]
 )
 @Suppress("KDocMissingDocumentation")
 class BuildCommand : CommandBase() {
@@ -21,19 +21,15 @@ class BuildCommand : CommandBase() {
         val codePath = createCodePath()
         val files = files.getFileNames { codePath.resolve(it) }
         printVerbose("Compiling ${files.joinToString(", ")}...")
-        ProcessBuilder("javac", "-cp", "tmp:$jarPath", *files).apply {
-            inheritIO()
-            environment().putAll(System.getenv())
-            start().apply {
-                waitFor()
-                return (exitValue() == 0).apply {
-                    if (this) {
-                        printInfo("Build succeeded")
-                    }
-                }
+        val process = ProcessBuilder("javac", "-cp", "tmp:$jarPath", *files).let {
+            it.inheritIO()
+            it.environment().putAll(System.getenv())
+            it.start()
+        }
+        return (process.waitFor() == 0).also { success ->
+            if (success) {
+                printInfo("Build succeeded")
             }
         }
-        return true
     }
-
 }

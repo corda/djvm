@@ -5,9 +5,9 @@ import picocli.CommandLine.Command
 import picocli.CommandLine.Parameters
 
 @Command(
-        name = "check",
-        description = ["Statically validate that a class or set of classes (and their dependencies) do not violate any " +
-                "constraints posed by the deterministic sandbox environment."]
+    name = "check",
+    description = ["Statically validate that a class or set of classes (and their dependencies) do not violate any " +
+        "constraints posed by the deterministic sandbox environment."]
 )
 @Suppress("KDocMissingDocumentation")
 class CheckCommand : ClassCommand() {
@@ -19,7 +19,7 @@ class CheckCommand : ClassCommand() {
     var classes: Array<String> = emptyArray()
 
     override fun printSuccess(classes: List<Class<*>>) {
-        for (clazz in classes.sortedBy { it.name }) {
+        for (clazz in classes.sortedBy(Class<*>::getName)) {
             printVerbose("Class ${clazz.name} validated")
         }
         printVerbose()
