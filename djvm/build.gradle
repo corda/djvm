@@ -179,6 +179,15 @@ def shadowJar = tasks.named('shadowJar', Jar) {
     exclude 'sandbox/sun/util/calendar/ZoneInfoFile.class'
 }
 
+ext {
+    // Lazy property to be invoked as a bnd macro.
+    shadowJarURI = shadowJar.flatMap { jar ->
+        jar.archiveFile.map { file ->
+            file.asFile.toURI()
+        }
+    }
+}
+
 def bundle = tasks.register('bundle', Bundle) {
     from shadowJar.map { zipTree(it.archiveFile) }
 
@@ -187,7 +196,7 @@ def bundle = tasks.register('bundle', Bundle) {
     archiveClassifier = ''
 
     bnd """\
--include: "jar:${shadowJar.flatMap { it.archiveFile.map { it.asFile.toURI() } }.get()}!/META-INF/MANIFEST.MF"
+-include: "jar:\${project.shadowJarURI}!/META-INF/MANIFEST.MF"
 -fixupmessages "Classes found in the wrong directory"; restrict:=error; is:=warning
 Bundle-SymbolicName: net.corda.djvm
 Bundle-Name: DJVM
@@ -209,7 +218,7 @@ tasks.withType(Test).configureEach {
     systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI()
     systemProperty 'test.project.uri', projectDir.toURI()
 
-    if (current().isJava9Compatible()) {
+    if (current().java9Compatible) {
         // https://openjdk.java.net/jeps/165
         jvmArgs '-XX:+UnlockDiagnosticVMOptions',
                 "-XX:CompilerDirectivesFile=$rootDir/compiler-control.json"

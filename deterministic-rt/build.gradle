@@ -19,10 +19,6 @@ plugins {
     id 'com.jfrog.artifactory'
 }
 
-ext {
-    artifactory_contextUrl = 'https://software.r3.com/artifactory'
-}
-
 /*
  * This is a nested and independent Gradle project,
  * and so has its own group and version.

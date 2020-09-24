@@ -137,5 +137,5 @@ artifacts {
 }
 
 publish {
-    name jar.flatMap { it.archiveBaseName }
+    name = jar.flatMap { it.archiveBaseName }
 }
