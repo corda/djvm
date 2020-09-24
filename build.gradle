@@ -14,10 +14,6 @@ plugins {
     id 'base'
 }
 
-ext {
-    artifactory_contextUrl = 'https://software.r3.com/artifactory'
-}
-
 version corda_djvm_version
 
 subprojects {
@@ -64,7 +60,7 @@ subprojects {
         jvmArgs '-XX:+UseG1GC'
 
         // Corda serialization needs reflective access to these packages.
-        if (current().isJava9Compatible()) {
+        if (current().java9Compatible) {
             jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED',
                     '--add-opens', 'java.base/java.time=ALL-UNNAMED',
                     '--illegal-access=warn'

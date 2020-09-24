@@ -7,10 +7,6 @@ plugins {
     id 'scala'
 }
 
-ext {
-    artifactory_contextUrl = 'https://software.r3.com/artifactory'
-}
-
 group 'com.example.djvm'
 version djvm_version
 
@@ -136,7 +132,7 @@ tasks.withType(Test).configureEach {
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 
     // Corda serialization needs reflective access to these packages.
-    if (current().isJava9Compatible()) {
+    if (current().java9Compatible) {
         jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED',
                 '--add-opens', 'java.base/java.time=ALL-UNNAMED',
                 '--illegal-access=warn'
