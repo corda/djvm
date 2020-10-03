@@ -9,12 +9,9 @@ import java.lang.invoke.MutableCallSite;
 import java.lang.reflect.Field;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.LinkedList;
 import java.util.List;
 
 import static java.security.AccessController.doPrivileged;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 
 /**
@@ -47,28 +44,16 @@ final class SandboxClassResetter {
         }
     }
 
-    private final LinkedList<Resettable> resettables;
     private final CallSite resetSite;
     private final MethodHandle resetHandle;
 
     SandboxClassResetter() {
-        resettables = new LinkedList<>();
         resetSite = new MutableCallSite(MethodType.methodType(void.class));
         resetHandle = resetSite.dynamicInvoker();
     }
 
-    void add(MethodHandle resetMethod, @NotNull List<Field> finalFields) {
-        add(new Resettable(resetMethod, finalFields.isEmpty() ? emptyList() : unmodifiableList(finalFields)));
-    }
-
-    void add(Resettable resettable) {
-        synchronized(resettables) {
-            resettables.add(resettable);
-        }
-    }
-
-    synchronized void reset() throws Throwable {
-        for (Resettable resettable : getSnapshotOfResettables()) {
+    void reset(@NotNull Resettables resettables) throws Throwable {
+        for (Resettable resettable : resettables.getResettables()) {
             unlock(resettable.getFinalFields());
             try {
                 if (resettable.hasArgs()) {
@@ -80,21 +65,6 @@ final class SandboxClassResetter {
             } finally {
                 lock(resettable.getFinalFields());
             }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<Resettable> getSnapshotOfResettables() {
-        // Create a snapshot of the resettables that we can iterate
-        // over without risking a concurrent modification exception. 
-        // Cloning a LinkedList is a trivial O(1) operation, whereas
-        // copy-constructing it would be O(N).
-        //
-        // We are assuming that the only possible modification would
-        // be some new items being added to the end. But this would
-        // only be likely during interactive debugging anyway.
-        synchronized(resettables) {
-            return (List<Resettable>) resettables.clone();
         }
     }
 

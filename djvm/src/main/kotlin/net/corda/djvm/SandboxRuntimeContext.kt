@@ -12,7 +12,6 @@ import java.security.PrivilegedAction
 import java.security.PrivilegedActionException
 import java.security.PrivilegedExceptionAction
 import java.util.function.Consumer
-import java.util.function.Function
 
 /**
  * The context in which a sandboxed operation is run.
@@ -33,7 +32,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
      */
     val runtimeCosts = RuntimeCostSummary(configuration.executionProfile ?: ExecutionProfile.UNLIMITED)
 
-    private val classResetter = SandboxClassResetter()
+    private val classResetContext = ClassResetContext()
 
     /**
      * Allow tests to reset the [SandboxRuntimeContext]. This method
@@ -41,12 +40,12 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
      */
     @CordaInternal
     internal fun accept(visitor: ResetVisitor) {
-        visitor.visit(Runnable(::reset))
+        visitor.visit(Runnable(classResetContext::reset))
     }
 
     @CordaInternal
     internal fun addToReset(resetMethod: MethodHandle) {
-        classResetter.add(Resettable(resetMethod))
+        classResetContext.add(resetMethod)
     }
 
     @CordaInternal
@@ -58,7 +57,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
                     for (field in finalFields) {
                         field.isAccessible = true
                     }
-                    classResetter.add(resetMethod, finalFields)
+                    classResetContext.add(resetMethod, finalFields)
                 }
             })
         } catch (e: PrivilegedActionException) {
@@ -72,42 +71,16 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
             && field.type.name != "sandbox.java.lang.String"
     }
 
-    private var nextHashOffset: Function<in Int, out Int> = Function(::decrementHashOffset)
-    private val hashCodes = mutableMapOf<Int, Int>()
-    private var objectCounter: Int = 0
-
-    // TODO Instead of using a magic offset below, one could take in a per-context seed
     fun getHashCodeFor(nativeHashCode: Int): Int {
-        return hashCodes.computeIfAbsent(nativeHashCode, nextHashOffset)
+        return classResetContext.getHashCodeFor(nativeHashCode)
+    }
+
+    fun intern(key: String, value: Any): Any {
+        return classResetContext.intern(key, value)
     }
 
     fun ready() {
-        nextHashOffset = Function(::incrementHashOffset)
-        objectCounter = 0
-    }
-
-    @Suppress("unused_parameter")
-    private fun incrementHashOffset(key: Int): Int {
-        return ++objectCounter + MAGIC_HASH_OFFSET
-    }
-
-    @Suppress("unused_parameter")
-    private fun decrementHashOffset(key: Int): Int {
-        return --objectCounter + MAGIC_HASH_OFFSET
-    }
-
-    private val internStrings = mutableMapOf<String, Any>()
-
-    fun intern(key: String, value: Any): Any {
-        return internStrings.computeIfAbsent(key) { value }
-    }
-
-    private fun reset() {
-        nextHashOffset = Function(::decrementHashOffset)
-        objectCounter = 0
-        hashCodes.clear()
-        internStrings.clear()
-        classResetter.reset()
+        classResetContext.ready()
     }
 
     /**
@@ -116,7 +89,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
     fun use(action: Consumer<SandboxRuntimeContext>) {
         instance = this
         try {
-            reset()
+            classResetContext.reset()
             action.accept(this)
         } finally {
             threadLocalContext.remove()
@@ -128,7 +101,6 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
         const val ACC_STATIC_FINAL: Int = ACC_STATIC or ACC_FINAL
 
         private val threadLocalContext = ThreadLocal<SandboxRuntimeContext?>()
-        private const val MAGIC_HASH_OFFSET = 0xfed_c0de
 
         /**
          * When called from within a sandbox, this returns the context for the current sandbox thread.
