@@ -10,13 +10,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaTimeZoneTest extends TestBase {
     private static final Logger LOG = LoggerFactory.getLogger(JavaTimeZoneTest.class);
+    private static final String GET_ALL_ZONE_IDS = "com.example.testing.GetAllZoneIDs";
+    private static final String GET_DEFAULT_ZONE_ID = "com.example.testing.GetDefaultZoneID";
 
     @Test
     void testAllZoneIDs() {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String[] zoneIDs = WithJava.<String, String[]>run(classLoader, "com.example.testing.GetAllZoneIDs", null);
+                String[] zoneIDs = WithJava.<String, String[]>run(classLoader, GET_ALL_ZONE_IDS, null);
                 assertThat(zoneIDs).hasSize(600);
             } catch (Exception e) {
                 LOG.error("Failed", e);
@@ -30,7 +32,7 @@ class JavaTimeZoneTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String defaultZoneID = WithJava.<String, String>run(classLoader, "com.example.testing.GetDefaultZoneID", null);
+                String defaultZoneID = WithJava.<String, String>run(classLoader, GET_DEFAULT_ZONE_ID, null);
                 assertThat(defaultZoneID).isEqualTo("UTC");
             } catch (Exception e) {
                 LOG.error("Failed", e);

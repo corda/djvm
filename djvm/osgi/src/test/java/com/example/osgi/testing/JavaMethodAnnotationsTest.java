@@ -10,13 +10,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaMethodAnnotationsTest extends TestBase {
     private static final Logger LOG = LoggerFactory.getLogger(JavaMethodAnnotationsTest.class);
+    private static final String GET_JAVA_METHOD_PARAMETER_ANNOTATIONS = "com.example.testing.GetJavaMethodParameterAnnotations";
+    private static final String GET_ANNOTATIONS_OF_METHOD_PARAMETER = "com.example.testing.GetAnnotationsOfMethodParameter";
 
     @Test
     void testMethodParameterAnnotationsInsideSandbox() {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String[][] result = WithJava.run(classLoader, "com.example.testing.GetJavaMethodParameterAnnotations", "action");
+                String[][] result = WithJava.run(classLoader, GET_JAVA_METHOD_PARAMETER_ANNOTATIONS, "action");
                 assertThat(result).hasSize(1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaParameters(value=[" +
@@ -35,7 +37,7 @@ class JavaMethodAnnotationsTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String[][] result = WithJava.run(classLoader, "com.example.testing.GetAnnotationsOfMethodParameter", "action");
+                String[][] result = WithJava.run(classLoader, GET_ANNOTATIONS_OF_METHOD_PARAMETER, "action");
                 assertThat(result).hasSize(1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaParameters(value=[" +

@@ -34,15 +34,6 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
 
     private val classResetContext = ClassResetContext()
 
-    /**
-     * Allow tests to reset the [SandboxRuntimeContext]. This method
-     * should not otherwise be usable from either Kotlin or Java.
-     */
-    @CordaInternal
-    internal fun accept(visitor: ResetVisitor) {
-        visitor.visit(Runnable(classResetContext::reset))
-    }
-
     @CordaInternal
     internal fun addToReset(resetMethod: MethodHandle) {
         classResetContext.add(resetMethod)

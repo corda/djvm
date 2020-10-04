@@ -29,24 +29,33 @@ class ResetStaticFieldsTest extends TestBase {
 
     @Test
     void resetStaticFinalObject() {
-        sandbox(ctx -> {
-            try {
-                SandboxClassLoader classLoader = ctx.getClassLoader();
-                TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
-                Function<String, String[]> hasStaticField = taskFactory.create(HasStaticFinalObject.class);
-                ctx.ready();
+        create(context -> {
+            SandboxClassLoader classLoader = context.getClassLoader();
+            sandbox(context, ctx -> {
+                try {
+                    TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                    Function<String, String[]> hasStaticField = taskFactory.create(HasStaticFinalObject.class);
+                    ctx.ready();
 
-                final String[] firstResult = hasStaticField.apply("Great Wide World!");
-                assertThat(firstResult).containsExactly("Hello Sandbox!");
-                final String[] secondResult = hasStaticField.apply(null);
-                assertThat(secondResult).containsExactly("Great Wide World!");
-                reset(ctx);
+                    final String[] firstResult = hasStaticField.apply("Great Wide World!");
+                    assertThat(firstResult).containsExactly("Hello Sandbox!");
+                    final String[] secondResult = hasStaticField.apply(null);
+                    assertThat(secondResult).containsExactly("Great Wide World!");
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
 
-                final String[] thirdResult = hasStaticField.apply(null);
-                assertThat(thirdResult).containsExactly("Hello Sandbox!");
-            } catch (Exception e) {
-                fail(e);
-            }
+            sandbox(context, ctx -> {
+                try {
+                    TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                    Function<String, String[]> hasStaticField = taskFactory.create(HasStaticFinalObject.class);
+                    final String[] thirdResult = hasStaticField.apply(null);
+                    assertThat(thirdResult).containsExactly("Hello Sandbox!");
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
         });
     }
 
@@ -63,22 +72,32 @@ class ResetStaticFieldsTest extends TestBase {
 
     @Test
     void resetStaticObject() {
-        sandbox(ctx -> {
-            try {
-                SandboxClassLoader classLoader = ctx.getClassLoader();
-                TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
-                Function<String, String> update = taskFactory.create(HasStaticObject.class);
-                ctx.ready();
+        create(context -> {
+            SandboxClassLoader classLoader = context.getClassLoader();
+            sandbox(context, ctx -> {
+                try {
+                    TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                    Function<String, String> update = taskFactory.create(HasStaticObject.class);
+                    ctx.ready();
 
-                assertNull(update.apply("one"));
-                assertEquals("one", update.apply("two"));
-                assertEquals("two", update.apply("three"));
-                reset(ctx);
-                assertNull(update.apply("four"));
-                assertEquals("four", update.apply("five"));
-            } catch (Exception e) {
-                fail(e);
-            }
+                    assertNull(update.apply("one"));
+                    assertEquals("one", update.apply("two"));
+                    assertEquals("two", update.apply("three"));
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
+
+            sandbox(context, ctx -> {
+                try {
+                    TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                    Function<String, String> update = taskFactory.create(HasStaticObject.class);
+                    assertNull(update.apply("four"));
+                    assertEquals("four", update.apply("five"));
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
         });
     }
 
@@ -95,30 +114,39 @@ class ResetStaticFieldsTest extends TestBase {
 
     @Test
     void resetStaticPrimitives() {
-        sandbox(ctx -> {
-            try {
-                SandboxClassLoader classLoader = ctx.getClassLoader();
-                TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
-                Function<Character, Object[]> update = taskFactory.create(HasStaticPrimitives.class);
-                ctx.ready();
+        create(context -> {
+            SandboxClassLoader classLoader = context.getClassLoader();
+            sandbox(context, ctx -> {
+                try {
+                    TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                    Function<Character, Object[]> update = taskFactory.create(HasStaticPrimitives.class);
+                    ctx.ready();
 
-                final Object[] first = update.apply('?');
-                assertThat(first).containsExactly(
-                    0L, 0, (short) 0, (byte) 0, '\0', false, 0.0d, 0.0f
-                );
-                final Object[] second = update.apply('*');
-                assertThat(second).containsExactly(
-                    1L, 1, (short) 1, (byte) 1, '?', true, Math.PI, 1000.0f
-                );
-                reset(ctx);
+                    final Object[] first = update.apply('?');
+                    assertThat(first).containsExactly(
+                        0L, 0, (short) 0, (byte) 0, '\0', false, 0.0d, 0.0f
+                    );
+                    final Object[] second = update.apply('*');
+                    assertThat(second).containsExactly(
+                        1L, 1, (short) 1, (byte) 1, '?', true, Math.PI, 1000.0f
+                    );
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
 
-                Object[] third = update.apply('&');
-                assertThat(third).containsExactly(
-                    0L, 0, (short) 0, (byte) 0, '\0', false, 0.0d, 0.0f
-                );
-            } catch (Exception e) {
-                fail(e);
-            }
+            sandbox(context, ctx -> {
+                try {
+                    TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                    Function<Character, Object[]> update = taskFactory.create(HasStaticPrimitives.class);
+                    Object[] third = update.apply('&');
+                    assertThat(third).containsExactly(
+                        0L, 0, (short) 0, (byte) 0, '\0', false, 0.0d, 0.0f
+                    );
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
         });
     }
 
@@ -240,23 +268,35 @@ class ResetStaticFieldsTest extends TestBase {
 
     @Test
     void testResetInterfaceField() {
-        sandbox(ctx -> {
-            try {
-                SandboxClassLoader classLoader = ctx.getClassLoader();
-                TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
-                Function<String, Integer> addToData = taskFactory.create(AddToData.class);
-                Function<String, String> getData = taskFactory.create(GetData.class);
+        create(context -> {
+            SandboxClassLoader classLoader = context.getClassLoader();
+            sandbox(context, ctx -> {
+                try {
+                    TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                    Function<String, Integer> addToData = taskFactory.create(AddToData.class);
+                    Function<String, String> getData = taskFactory.create(GetData.class);
 
-                assertEquals(1, addToData.apply("one"));
-                assertEquals(2, addToData.apply("two"));
-                assertEquals(3, addToData.apply("three"));
-                assertEquals("one,two,three", getData.apply(","));
-                reset(ctx);
-                assertEquals(1, addToData.apply("four"));
-                assertEquals("four", getData.apply(","));
-            } catch (Exception e) {
-                fail(e);
-            }
+                    assertEquals(1, addToData.apply("one"));
+                    assertEquals(2, addToData.apply("two"));
+                    assertEquals(3, addToData.apply("three"));
+                    assertEquals("one,two,three", getData.apply(","));
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
+
+            sandbox(context, ctx -> {
+                try {
+                    TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
+                    Function<String, Integer> addToData = taskFactory.create(AddToData.class);
+                    Function<String, String> getData = taskFactory.create(GetData.class);
+
+                    assertEquals(1, addToData.apply("four"));
+                    assertEquals("four", getData.apply(","));
+                } catch (Exception e) {
+                    fail(e);
+                }
+            });
         });
     }
 

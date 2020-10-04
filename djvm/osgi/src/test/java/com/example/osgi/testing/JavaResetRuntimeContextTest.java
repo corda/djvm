@@ -1,10 +1,11 @@
-package com.example.testing;
+package com.example.osgi.testing;
 
 import net.corda.djvm.SandboxRuntimeContext;
-import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.costing.RuntimeCostSummary;
 import net.corda.djvm.rewiring.SandboxClassLoader;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -15,15 +16,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaResetRuntimeContextTest extends TestBase {
+    private static final Logger LOG = LoggerFactory.getLogger(JavaResetRuntimeContextTest.class);
+    private static final String GET_STATIC_HASH_CODE = "com.example.testing.GetStaticHashCode";
+    private static final String GET_HASH_CODE = "com.example.testing.GetHashCode";
+
     @Test
     void testHashCodesSurviveReset() {
         create(context -> {
             SandboxClassLoader classLoader = context.getClassLoader();
             Consumer<SandboxRuntimeContext> operation = ctx -> {
                 try {
-                    TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
-                    Function<? super Object, Integer> getStaticHashCode = taskFactory.create(GetStaticHashCode.class);
-                    Function<? super Object, Integer> getHashCode = taskFactory.create(GetHashCode.class);
+                    Function<? super Object, Integer> getStaticHashCode = WithJava.create(classLoader, GET_STATIC_HASH_CODE);
+                    Function<? super Object, Integer> getHashCode = WithJava.create(classLoader, GET_HASH_CODE);
                     ctx.ready();
 
                     final int staticHashCode = getStaticHashCode.apply(null);
@@ -32,6 +36,7 @@ class JavaResetRuntimeContextTest extends TestBase {
                     assertThat(asList(staticHashCode, hashCode0, hashCode1))
                         .containsExactly(0xfed_c0de - 1, 0xfed_c0de + 1, 0xfed_c0de + 2);
                 } catch (Exception e) {
+                    LOG.error("Failed", e);
                     fail(e);
                 }
             };

@@ -11,13 +11,19 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaAnnotationsTest extends TestBase {
     private static final Logger LOG = LoggerFactory.getLogger(JavaAnnotationsTest.class);
+    private static final String CHECK_ANNOTATION_PRESENT = "com.example.testing.CheckAnnotationPresent";
+    private static final String GET_ALL_JAVA_ANNOTATIONS = "com.example.testing.GetAllJavaAnnotations";
+    private static final String GET_JAVA_ANNOTATION = "com.example.testing.GetJavaAnnotation";
+    private static final String GET_JAVA_ANNOTATIONS_BY_TYPE = "com.example.testing.GetJavaAnnotationsByType";
+    private static final String GET_JAVA_FIELD_ANNOTATIONS = "com.example.testing.GetJavaFieldAnnotations";
+    private static final String GET_JAVA_METHOD_ANNOTATIONS = "com.example.testing.GetJavaMethodAnnotations";
 
     @Test
     void testCheckingForAnnotation() {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                Boolean result = WithJava.run(classLoader, "com.example.testing.CheckAnnotationPresent", null);
+                Boolean result = WithJava.run(classLoader, CHECK_ANNOTATION_PRESENT, null);
                 assertTrue(result);
             } catch (Exception e) {
                 LOG.error("Failed", e);
@@ -31,7 +37,7 @@ class JavaAnnotationsTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String annotation = WithJava.run(classLoader, "com.example.testing.GetJavaAnnotation", null);
+                String annotation = WithJava.run(classLoader, GET_JAVA_ANNOTATION, null);
                 assertThat(annotation).isEqualTo(
                     "@sandbox.com.example.testing.JavaAnnotations(value=[" +
                         "@sandbox.com.example.testing.JavaAnnotation(value=ONE)" +
@@ -49,7 +55,7 @@ class JavaAnnotationsTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String[][] annotations = WithJava.run(classLoader, "com.example.testing.GetJavaAnnotationsByType", null);
+                String[][] annotations = WithJava.run(classLoader, GET_JAVA_ANNOTATIONS_BY_TYPE, null);
                 assertThat(annotations).hasSize(3);
                 assertThat(annotations[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaAnnotation(value=THREE)",
@@ -73,7 +79,7 @@ class JavaAnnotationsTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String[] annotations = WithJava.run(classLoader, "com.example.testing.GetAllJavaAnnotations", null);
+                String[] annotations = WithJava.run(classLoader, GET_ALL_JAVA_ANNOTATIONS, null);
                 assertThat(annotations).containsExactly(
                     "@sandbox.com.example.testing.JavaAnnotations(value=[" +
                         "@sandbox.com.example.testing.JavaAnnotation(value=ZERO)" +
@@ -92,7 +98,7 @@ class JavaAnnotationsTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String[] annotations = WithJava.run(classLoader, "com.example.testing.GetJavaMethodAnnotations", "action");
+                String[] annotations = WithJava.run(classLoader, GET_JAVA_METHOD_ANNOTATIONS, "action");
                 assertThat(annotations).containsExactly(
                     "@sandbox.com.example.testing.JavaAnnotation(value=ONE)",
                     "@sandbox.com.example.testing.JavaTag(value=Madness)"
@@ -109,7 +115,7 @@ class JavaAnnotationsTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String[] annotations = WithJava.run(classLoader, "com.example.testing.GetJavaFieldAnnotations", "data");
+                String[] annotations = WithJava.run(classLoader, GET_JAVA_FIELD_ANNOTATIONS, "data");
                 assertThat(annotations).containsExactly(
                     "@sandbox.com.example.testing.JavaAnnotation(value=TWO)",
                     "@sandbox.com.example.testing.JavaTag(value=Lunacy)"

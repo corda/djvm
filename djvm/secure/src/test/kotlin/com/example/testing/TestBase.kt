@@ -7,6 +7,7 @@ import net.corda.djvm.ChildOptions
 import net.corda.djvm.SandboxConfiguration
 import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration
+import net.corda.djvm.execution.ExecutionProfile.Companion.UNLIMITED
 import net.corda.djvm.messages.Severity
 import net.corda.djvm.messages.Severity.WARNING
 import net.corda.djvm.rewiring.ExternalCache
@@ -24,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import kotlin.concurrent.thread
 
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 @ExtendWith(SecurityManagement::class)
 abstract class TestBase {
     companion object {
@@ -56,7 +57,7 @@ abstract class TestBase {
             )
             parentConfiguration = SandboxConfiguration.createFor(
                 analysisConfiguration = rootConfiguration,
-                profile = null
+                profile = UNLIMITED
             )
         }
 
@@ -67,24 +68,24 @@ abstract class TestBase {
         }
     }
 
-    inline fun sandbox(crossinline action: SandboxRuntimeContext.() -> Unit) {
-        sandbox(Consumer { ctx -> action(ctx) })
+    fun sandbox(action: SandboxRuntimeContext.() -> Unit) {
+        sandbox(Consumer(action))
     }
 
     fun sandbox(action: Consumer<SandboxRuntimeContext>) {
         sandbox(WARNING, emptySet(), null, action)
     }
 
-    inline fun sandbox(externalCache: ExternalCache, crossinline action: SandboxRuntimeContext.() -> Unit) {
-        sandbox(externalCache, Consumer { ctx -> action(ctx)}) 
+    fun sandbox(externalCache: ExternalCache, action: SandboxRuntimeContext.() -> Unit) {
+        sandbox(externalCache, Consumer(action))
     }
 
     fun sandbox(externalCache: ExternalCache, action: Consumer<SandboxRuntimeContext>) {
         sandbox(WARNING, emptySet(), externalCache, action)
     }
 
-    inline fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, crossinline action: SandboxRuntimeContext.() -> Unit) {
-        sandbox(visibleAnnotations, Consumer { ctx -> action(ctx) })
+    fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit) {
+        sandbox(visibleAnnotations, Consumer(action))
     }
     
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: Consumer<SandboxRuntimeContext>) {
@@ -104,6 +105,10 @@ abstract class TestBase {
         }, Consumer { ctx ->
             sandbox(ctx, action)
         })
+    }
+
+    fun create(action: Consumer<SandboxRuntimeContext>) {
+        create(Consumer {}, action)
     }
 
     fun create(options: Consumer<ChildOptions>, action: Consumer<SandboxRuntimeContext>) {

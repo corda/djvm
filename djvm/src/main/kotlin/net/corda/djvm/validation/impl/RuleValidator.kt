@@ -38,7 +38,7 @@ class RuleValidator(
     override fun visitClass(clazz: ClassRepresentation): ClassRepresentation {
         if (shouldClassBeProcessed(clazz.name)) {
             val context = RuleContext(currentAnalysisContext())
-            processEntriesOfType<ClassRule>(rules, analysisContext.messages, Consumer {
+            processEntriesOfType(rules.filterIsInstance<ClassRule>(), analysisContext.messages, Consumer {
                 it.validate(context, clazz)
             })
         }
@@ -51,7 +51,7 @@ class RuleValidator(
     override fun visitMethod(clazz: ClassRepresentation, method: Member): Member {
         if (shouldClassBeProcessed(clazz.name) && shouldMemberBeProcessed(method.reference)) {
             val context = RuleContext(currentAnalysisContext())
-            processEntriesOfType<MemberRule>(rules, analysisContext.messages, Consumer {
+            processEntriesOfType(rules.filterIsInstance<MemberRule>(), analysisContext.messages, Consumer {
                 it.validate(context, method)
             })
         }
@@ -64,7 +64,7 @@ class RuleValidator(
     override fun visitField(clazz: ClassRepresentation, field: Member): Member {
         if (shouldClassBeProcessed(clazz.name) && shouldMemberBeProcessed(field.reference)) {
             val context = RuleContext(currentAnalysisContext())
-            processEntriesOfType<MemberRule>(rules, analysisContext.messages, Consumer {
+            processEntriesOfType(rules.filterIsInstance<MemberRule>(), analysisContext.messages, Consumer {
                 it.validate(context, field)
             })
         }
@@ -77,7 +77,7 @@ class RuleValidator(
     override fun visitInstruction(method: Member, emitter: EmitterModuleImpl, instruction: Instruction) {
         if (shouldClassBeProcessed(method.className) && shouldMemberBeProcessed(method.reference)) {
             val context = RuleContext(currentAnalysisContext())
-            processEntriesOfType<InstructionRule>(rules, analysisContext.messages, Consumer {
+            processEntriesOfType(rules.filterIsInstance<InstructionRule>(), analysisContext.messages, Consumer {
                 it.validate(context, instruction)
             })
         }

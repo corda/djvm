@@ -100,11 +100,6 @@ abstract class TestBase(type: SandboxType) {
         fun destroyRootContext() {
             bootstrapClassLoader.close()
         }
-
-        @JvmStatic
-        fun SandboxRuntimeContext.reset() {
-            accept(ResetVisitor(Runnable::run))
-        }
     }
 
     val classPaths: List<Path> = when(type) {
@@ -220,6 +215,9 @@ abstract class TestBase(type: SandboxType) {
             }
         }
         var thrownException: Throwable? = null
+        val testAction = Consumer<SandboxRuntimeContext> { ctx ->
+            assertThat(ctx.runtimeCosts).areZero()
+        }.andThen(action)
         val executionProfile = if (enableTracing) { profile } else { null }
         thread(start = false, name = "DJVM-${javaClass.name}-${threadId.getAndIncrement()}") {
             UserPathSource(classPaths).use { userSource ->
@@ -237,10 +235,7 @@ abstract class TestBase(type: SandboxType) {
                     definitionProviders.distinctBy(Any::javaClass),
                     analysisConfiguration,
                     externalCache
-                )).use(Consumer { ctx ->
-                    assertThat(ctx.runtimeCosts).areZero()
-                    ctx.action()
-                })
+                )).use(testAction)
             }
         }.apply {
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->
@@ -252,24 +247,24 @@ abstract class TestBase(type: SandboxType) {
         throw thrownException ?: return
     }
 
-    inline fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, crossinline action: SandboxRuntimeContext.() -> Unit) {
-        sandbox(visibleAnnotations, Consumer { ctx -> action(ctx) })
+    fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: SandboxRuntimeContext.() -> Unit) {
+        sandbox(visibleAnnotations, Consumer(action))
     }
 
     fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, action: Consumer<SandboxRuntimeContext>) {
         sandbox(WARNING, visibleAnnotations, null, action)
     }
 
-    inline fun sandbox(externalCache: ExternalCache, crossinline action: SandboxRuntimeContext.() -> Unit) {
-        sandbox(externalCache, Consumer { ctx -> action(ctx) })
+    fun sandbox(externalCache: ExternalCache, action: SandboxRuntimeContext.() -> Unit) {
+        sandbox(externalCache, Consumer(action))
     }
 
     fun sandbox(externalCache: ExternalCache, action: Consumer<SandboxRuntimeContext>) {
         sandbox(WARNING, emptySet(), externalCache, action)
     }
 
-    inline fun sandbox(crossinline action: SandboxRuntimeContext.() -> Unit) {
-        sandbox(Consumer { ctx -> action(ctx) })
+    fun sandbox(action: SandboxRuntimeContext.() -> Unit) {
+        sandbox(Consumer(action))
     }
 
     fun sandbox(action: Consumer<SandboxRuntimeContext>) {
@@ -282,18 +277,33 @@ abstract class TestBase(type: SandboxType) {
         externalCache: ExternalCache?,
         action: Consumer<SandboxRuntimeContext>
     ) {
+        create(options = Consumer {
+            it.setMinimumSeverityLevel(minimumSeverityLevel)
+            it.setVisibleAnnotations(visibleAnnotations)
+            it.setExternalCache(externalCache)
+        }, action = Consumer { ctx ->
+            sandbox(ctx, action)
+        })
+    }
+
+    fun create(action: SandboxRuntimeContext.() -> Unit) {
+        create(Consumer(action))
+    }
+
+    fun create(action: Consumer<SandboxRuntimeContext>) {
+        create(Consumer {}, action)
+    }
+
+    fun create(options: Consumer<ChildOptions>, action: Consumer<SandboxRuntimeContext>) {
+        UserPathSource(classPaths).use { userSource ->
+            action.accept(SandboxRuntimeContext(parentConfiguration.createChild(userSource, options)))
+        }
+    }
+
+    fun sandbox(context: SandboxRuntimeContext, action: Consumer<SandboxRuntimeContext>) {
         var thrownException: Throwable? = null
-        val testAction = Consumer<SandboxRuntimeContext> { ctx ->
-            assertThat(ctx.runtimeCosts).areZero()
-        }.andThen(action)
         thread(start = false, name = "DJVM-${javaClass.name}-${threadId.getAndIncrement()}") {
-            UserPathSource(classPaths).use { userSource ->
-                SandboxRuntimeContext(parentConfiguration.createChild(userSource, Consumer {
-                    it.setMinimumSeverityLevel(minimumSeverityLevel)
-                    it.setVisibleAnnotations(visibleAnnotations)
-                    it.setExternalCache(externalCache)
-                })).use(testAction)
-            }
+            context.use(action)
         }.apply {
             uncaughtExceptionHandler = Thread.UncaughtExceptionHandler { _, ex ->
                 thrownException = ex

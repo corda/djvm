@@ -98,7 +98,8 @@ class ClassMutator(
      * Some emitters must be executed before others. E.g. we need to apply
      * the tracing emitters before the non-tracing ones.
      */
-    private val emitters: List<Emitter> = unmodifiableList(emitters.sortedBy(Emitter::priority))
+    private val allEmitters: List<Emitter> = unmodifiableList(emitters.sortedBy(Emitter::priority))
+    private var emitters = allEmitters
     private val initializationCode = MethodNode()
     private var isResetRegistered = false
     private var isImmutable = false
@@ -123,7 +124,7 @@ class ClassMutator(
      */
     override fun visitClass(clazz: ClassRepresentation): ClassRepresentation {
         var resultingClass: ImmutableClass = clazz
-        processEntriesOfType<ClassDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
+        processEntriesOfType(definitionProviders.filterIsInstance<ClassDefinitionProvider>(), analysisContext.messages, Consumer {
             resultingClass = it.define(currentAnalysisContext(), resultingClass)
         })
         if (clazz !== resultingClass) {
@@ -134,6 +135,10 @@ class ClassMutator(
             setAnnotation()
         }
         isImmutable = configuration.isImmutable(getMappedClassName())
+        if (isImmutable) {
+            // Do not instrument immutable classes as the sandbox does not reset them.
+            emitters = allEmitters.subList(allEmitters.indexOfFirst { it.priority > EMIT_TRACING }, allEmitters.size)
+        }
         return super.visitClass(resultingClass as ClassRepresentation)
     }
 
@@ -180,7 +185,7 @@ class ClassMutator(
      */
     override fun visitMethod(clazz: ClassRepresentation, method: Member): Member {
         var resultingMethod: ImmutableMember = method
-        processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
+        processEntriesOfType(definitionProviders.filterIsInstance<MemberDefinitionProvider>(), analysisContext.messages, Consumer {
             resultingMethod = it.define(currentAnalysisContext(), resultingMethod)
         })
         if (method !== resultingMethod) {
@@ -196,7 +201,7 @@ class ClassMutator(
      */
     override fun visitField(clazz: ClassRepresentation, field: Member): Member {
         var resultingField: ImmutableMember = field
-        processEntriesOfType<MemberDefinitionProvider>(definitionProviders, analysisContext.messages, Consumer {
+        processEntriesOfType(definitionProviders.filterIsInstance<MemberDefinitionProvider>(), analysisContext.messages, Consumer {
             resultingField = it.define(currentAnalysisContext(), resultingField)
         })
         if (field !== resultingField) {
@@ -212,7 +217,7 @@ class ClassMutator(
      */
     override fun visitInstruction(method: Member, emitter: EmitterModuleImpl, instruction: Instruction) {
         val context = EmitterContextImpl(currentAnalysisContext(), configuration, emitter)
-        processEntriesOfType<Emitter>(emitters, analysisContext.messages, Consumer {
+        processEntriesOfType(emitters, analysisContext.messages, Consumer {
             it.emit(context, instruction)
         })
         if (!emitter.emitDefaultInstruction || emitter.hasEmittedCustomCode) {

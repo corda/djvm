@@ -11,20 +11,20 @@ import java.util.function.Function
  * thread.
  */
 class RuntimeCostSummary private constructor(
-        allocationCostThreshold: Long,
-        jumpCostThreshold: Long,
-        invocationCostThreshold: Long,
-        throwCostThreshold: Long
+    allocationCostThreshold: Long,
+    jumpCostThreshold: Long,
+    invocationCostThreshold: Long,
+    throwCostThreshold: Long
 ) {
 
     /**
      * Create a new runtime cost tracker based on an execution profile.
      */
     constructor(profile: ExecutionProfile) : this(
-            allocationCostThreshold = profile.allocationCostThreshold,
-            jumpCostThreshold = profile.jumpCostThreshold,
-            invocationCostThreshold = profile.invocationCostThreshold,
-            throwCostThreshold = profile.throwCostThreshold
+        allocationCostThreshold = profile.allocationCostThreshold,
+        jumpCostThreshold = profile.jumpCostThreshold,
+        invocationCostThreshold = profile.invocationCostThreshold,
+        throwCostThreshold = profile.throwCostThreshold
     )
 
     /**

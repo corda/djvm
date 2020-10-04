@@ -10,13 +10,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaConstructorAnnotationsTest extends TestBase {
     private static final Logger LOG = LoggerFactory.getLogger(JavaConstructorAnnotationsTest.class);
+    private static final String GET_CONSTRUCTOR_PARAMETER_ANNOTATIONS = "com.example.testing.GetConstructorParameterAnnotations";
+    private static final String GET_ANNOTATIONS_OF_CONSTRUCTOR_PARAMETER = "com.example.testing.GetAnnotationsOfConstructorParameter";
 
     @Test
     void testConstructorParameterAnnotationsInsideSandbox() {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String[][] result = WithJava.run(classLoader, "com.example.testing.GetConstructorParameterAnnotations", null);
+                String[][] result = WithJava.run(classLoader, GET_CONSTRUCTOR_PARAMETER_ANNOTATIONS, null);
                 assertThat(result).hasSize(1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaParameters(value=[" +
@@ -35,7 +37,7 @@ class JavaConstructorAnnotationsTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String[][] result = WithJava.run(classLoader, "com.example.testing.GetAnnotationsOfConstructorParameter", null);
+                String[][] result = WithJava.run(classLoader, GET_ANNOTATIONS_OF_CONSTRUCTOR_PARAMETER, null);
                 assertThat(result).hasSize(1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaParameters(value=[" +
