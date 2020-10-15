@@ -179,15 +179,6 @@ def shadowJar = tasks.named('shadowJar', Jar) {
     exclude 'sandbox/sun/util/calendar/ZoneInfoFile.class'
 }
 
-ext {
-    // Lazy property to be invoked as a bnd macro.
-    shadowJarURI = shadowJar.flatMap { jar ->
-        jar.archiveFile.map { file ->
-            file.asFile.toURI()
-        }
-    }
-}
-
 def bundle = tasks.register('bundle', Bundle) {
     from shadowJar.map { zipTree(it.archiveFile) }
 
@@ -195,8 +186,13 @@ def bundle = tasks.register('bundle', Bundle) {
     reproducibleFileOrder = true
     archiveClassifier = ''
 
+    bnd shadowJar.flatMap { jar ->
+        jar.archiveFile.map { file ->
+            "-include: jar:${file.asFile.toURI()}!/META-INF/MANIFEST.MF"
+        }
+    }
+
     bnd """\
--include: "jar:\${project.shadowJarURI}!/META-INF/MANIFEST.MF"
 -fixupmessages "Classes found in the wrong directory"; restrict:=error; is:=warning
 Bundle-SymbolicName: net.corda.djvm
 Bundle-Name: DJVM
