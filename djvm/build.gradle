@@ -96,7 +96,7 @@ tasks.named('javadoc', Javadoc) {
 }
 
 def shadowJar = tasks.named('shadowJar', Jar) {
-    archiveAppendix = "shadow"
+    archiveAppendix = 'shadow'
     archiveClassifier = ''
     reproducibleFileOrder = true
     relocate 'org.objectweb.asm', 'djvm.org.objectweb.asm'
