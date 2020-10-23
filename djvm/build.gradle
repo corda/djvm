@@ -67,7 +67,7 @@ dependencies {
     jdkRt "net.corda:deterministic-rt:$deterministic_rt_version"
 
     // The DJVM will need this classpath to run the unit tests.
-    sandboxTesting files(sourceSets.getByName("test").output)
+    sandboxTesting files(sourceSets.test.output)
     sandboxTesting "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     sandboxTesting "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
@@ -226,9 +226,9 @@ tasks.withType(Test).configureEach {
 }
 
 artifacts {
-    archives bundle.flatMap { it.archiveFile }
-    bundles bundle.flatMap { it.archiveFile }
-    publish bundle.flatMap { it.archiveFile }
+    archives bundle
+    bundles bundle
+    publish bundle
 }
 
 scanApi {

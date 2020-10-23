@@ -91,7 +91,7 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
 
-    sandboxTesting sourceSets.getByName('main').runtimeClasspath
+    sandboxTesting sourceSets.main.runtimeClasspath
     sandboxTesting "net.corda:corda-deserializers-djvm:$corda_version"
     sandboxTesting "org.slf4j:slf4j-nop:$slf4j_version"
 }

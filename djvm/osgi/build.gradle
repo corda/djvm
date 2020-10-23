@@ -133,7 +133,7 @@ tasks.named('check') {
 }
 
 artifacts {
-    archives testBundle.flatMap { it.archiveFile }
+    archives testBundle
 }
 
 publish {
