@@ -67,8 +67,8 @@ def shadowZip = tasks.register('shadowZip', Zip) {
 }
 
 artifacts {
-    archives shadowZip.flatMap { it.archiveFile }
-    publish shadowZip.flatMap { it.archiveFile }
+    archives shadowZip
+    publish shadowZip
 }
 
 publish {
