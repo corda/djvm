@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MutableCallSite;
 import java.lang.reflect.Field;
@@ -12,6 +12,8 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.List;
 
+import static java.lang.invoke.MethodHandles.lookup;
+import static java.lang.invoke.MethodHandles.privateLookupIn;
 import static java.security.AccessController.doPrivileged;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
 
@@ -33,8 +35,8 @@ final class SandboxClassResetter {
     static {
         try {
             SET_MODIFIERS = doPrivileged((PrivilegedExceptionAction<MethodHandle>) () -> {
-                MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(Field.class, MethodHandles.lookup());
-                return lookup.findSetter(Field.class, "modifiers", Integer.TYPE);
+                Lookup lookup = privateLookupIn(Field.class, lookup());
+                return lookup.findSetter(Field.class, "modifiers", int.class);
             });
         } catch (PrivilegedActionException e) {
             Throwable cause = e.getCause();
