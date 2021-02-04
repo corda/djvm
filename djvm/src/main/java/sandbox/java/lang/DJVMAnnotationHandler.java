@@ -125,7 +125,6 @@ final class DJVMAnnotationHandler implements InvocationHandler {
             return value;
         }
 
-        @SuppressWarnings({"unchecked", "RedundantTypeArguments"})
         @Nullable
         static java.lang.Object toDJVM(@NotNull Class<?> resultType, java.lang.Object jvmResult) {
             if (isNativeType(resultType)) {
@@ -137,7 +136,7 @@ final class DJVMAnnotationHandler implements InvocationHandler {
                 return Enum.valueOf(
                     // The byte-code stores the name value as a String.
                     // Use this to look up the actual Enum value.
-                    resultType.<Enum>asSubclass(Enum.class), String.toDJVM(java.lang.String.valueOf(jvmResult))
+                    resultType.asSubclass(Enum.class), String.toDJVM(java.lang.String.valueOf(jvmResult))
                 );
             } else if (resultType.isAnnotation()) {
                 return DJVM.createDJVMAnnotation(
