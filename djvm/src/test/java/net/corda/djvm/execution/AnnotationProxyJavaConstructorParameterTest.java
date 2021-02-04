@@ -46,7 +46,7 @@ class AnnotationProxyJavaConstructorParameterTest extends TestBase {
         public String[][] apply(String unused) {
             Annotation[][] annotations;
             try {
-                annotations = UserClass.class.getConstructor(Double.TYPE).getParameterAnnotations();
+                annotations = UserClass.class.getConstructor(double.class).getParameterAnnotations();
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e.getMessage(), e);
             }
@@ -79,7 +79,7 @@ class AnnotationProxyJavaConstructorParameterTest extends TestBase {
         public String[][] apply(String unused) {
             Parameter[] parameters;
             try {
-                parameters = UserClass.class.getConstructor(Double.TYPE).getParameters();
+                parameters = UserClass.class.getConstructor(double.class).getParameters();
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e.getMessage(), e);
             }

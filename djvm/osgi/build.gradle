@@ -110,7 +110,7 @@ Test-Cases: \${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons
 }
 
 def resolve = tasks.register('resolve', Resolve) {
-    bundles = sourceSets.test.runtimeClasspath + configurations.archives.artifacts.files
+    bundles = files(sourceSets.test.runtimeClasspath, configurations.archives.artifacts.files)
     bndrun = 'test.bndrun'
 }
 
@@ -120,7 +120,7 @@ def secureJar = project(':djvm:secure').tasks.named('jar', Jar)
 
 def testOSGi = tasks.register('testOSGi', TestOSGi) {
     dependsOn resolve, secureJar
-    bundles = sourceSets.test.runtimeClasspath + configurations.archives.artifacts.files
+    bundles = files(sourceSets.test.runtimeClasspath, configurations.archives.artifacts.files)
     bndrun = 'test.bndrun'
 }
 

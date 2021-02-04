@@ -58,7 +58,7 @@ class JavaObjectTest extends TestBase {
 
     private void validateBaseMethods(Class<?> sandboxClass, Class<?> stringClass) throws NoSuchMethodException {
         Method hashCode = sandboxClass.getMethod("hashCode");
-        assertThat(hashCode.getReturnType()).isSameAs(Integer.TYPE);
+        assertThat(hashCode.getReturnType()).isSameAs(int.class);
 
         Method toString = sandboxClass.getMethod("toString");
         assertThat(toString.getReturnType()).isSameAs(String.class);
