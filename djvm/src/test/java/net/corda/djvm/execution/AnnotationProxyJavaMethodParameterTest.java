@@ -46,7 +46,7 @@ class AnnotationProxyJavaMethodParameterTest extends TestBase {
         public String[][] apply(String unused) {
             Annotation[][] annotations;
             try {
-                annotations = UserClass.class.getMethod("action", Long.TYPE).getParameterAnnotations();
+                annotations = UserClass.class.getMethod("action", long.class).getParameterAnnotations();
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e.getMessage(), e);
             }
@@ -79,7 +79,7 @@ class AnnotationProxyJavaMethodParameterTest extends TestBase {
         public String[][] apply(String unused) {
             Parameter[] parameters;
             try {
-                parameters = UserClass.class.getMethod("action", Long.TYPE).getParameters();
+                parameters = UserClass.class.getMethod("action", long.class).getParameters();
             } catch (NoSuchMethodException e) {
                 throw new RuntimeException(e.getMessage(), e);
             }

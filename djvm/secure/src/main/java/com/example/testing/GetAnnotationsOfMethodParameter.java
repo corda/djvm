@@ -9,7 +9,7 @@ public class GetAnnotationsOfMethodParameter implements Function<String, String[
     public String[][] apply(String methodName) {
         Parameter[] parameters;
         try {
-            parameters = UserMethodClass.class.getMethod(methodName, Long.TYPE).getParameters();
+            parameters = UserMethodClass.class.getMethod(methodName, long.class).getParameters();
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

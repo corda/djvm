@@ -34,7 +34,7 @@ public final class String extends Object implements Comparable<String>, CharSequ
         public Constructor run() {
             Constructor ctor;
             try {
-                ctor = java.lang.String.class.getDeclaredConstructor(char[].class, java.lang.Boolean.TYPE);
+                ctor = java.lang.String.class.getDeclaredConstructor(char[].class, boolean.class);
                 ctor.setAccessible(true);
             } catch (NoSuchMethodException e) {
                 ctor = null;

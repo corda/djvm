@@ -27,7 +27,7 @@ class SandboxExecutorJavaTest extends TestBase {
                 Function<? super Object, ?> verifyTask = taskFactory.compose(classLoader.createSandboxFunction()).apply(ContractWrapper.class);
 
                 Class<?> sandboxClass = classLoader.toSandboxClass(Transaction.class);
-                Object sandboxTx = sandboxClass.getDeclaredConstructor(Integer.TYPE).newInstance(TX_ID);
+                Object sandboxTx = sandboxClass.getDeclaredConstructor(int.class).newInstance(TX_ID);
 
                 assertThatExceptionOfType(IllegalArgumentException.class)
                     .isThrownBy(() -> verifyTask.apply(sandboxTx))

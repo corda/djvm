@@ -9,7 +9,7 @@ public class GetAnnotationsOfConstructorParameter implements Function<String, St
     public String[][] apply(String unused) {
         Parameter[] parameters;
         try {
-            parameters = UserConstructorClass.class.getConstructor(Double.TYPE).getParameters();
+            parameters = UserConstructorClass.class.getConstructor(double.class).getParameters();
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

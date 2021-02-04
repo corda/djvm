@@ -56,21 +56,21 @@ final class DJVMAnnotationHandler implements InvocationHandler {
     ) {
         java.lang.Object result = MethodValue.toDJVM(resultType, jvmResult);
         if (result != null && resultType.isPrimitive()) {
-            if (resultType == java.lang.Integer.TYPE) {
+            if (resultType == int.class) {
                 result = Integer.valueOf((java.lang.Integer) result);
-            } else if (resultType == java.lang.Long.TYPE) {
+            } else if (resultType == long.class) {
                 result = Long.valueOf((java.lang.Long) result);
-            } else if (resultType == java.lang.Short.TYPE) {
+            } else if (resultType == short.class) {
                 result = Short.valueOf((java.lang.Short) result);
-            } else if (resultType == java.lang.Byte.TYPE) {
+            } else if (resultType == byte.class) {
                 result = Byte.valueOf((java.lang.Byte) result);
-            } else if (resultType == java.lang.Character.TYPE) {
+            } else if (resultType == char.class) {
                 result = Character.valueOf((java.lang.Character) result);
-            } else if (resultType == java.lang.Boolean.TYPE) {
+            } else if (resultType == boolean.class) {
                 result = Boolean.valueOf((java.lang.Boolean) result);
-            } else if (resultType == java.lang.Double.TYPE) {
+            } else if (resultType == double.class) {
                 result = Double.valueOf((java.lang.Double) result);
-            } else if (resultType == java.lang.Float.TYPE) {
+            } else if (resultType == float.class) {
                 result = Float.valueOf((java.lang.Float) result);
             }
         }
