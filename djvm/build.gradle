@@ -109,9 +109,6 @@ def shadowJar = tasks.named('shadowJar', Jar) {
         f.name == 'module-info.class' && f.file == null
     }
 
-    // Discard the ASM library's module information.
-    exclude 'module-info.class'
-
     manifest {
         attributes('Automatic-Module-Name': 'net.corda.djvm')
         attributes('Multi-Release': true)
