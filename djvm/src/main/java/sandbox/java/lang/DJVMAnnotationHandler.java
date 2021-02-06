@@ -125,6 +125,7 @@ final class DJVMAnnotationHandler implements InvocationHandler {
             return value;
         }
 
+        @SuppressWarnings("unchecked")
         @Nullable
         static java.lang.Object toDJVM(@NotNull Class<?> resultType, java.lang.Object jvmResult) {
             if (isNativeType(resultType)) {

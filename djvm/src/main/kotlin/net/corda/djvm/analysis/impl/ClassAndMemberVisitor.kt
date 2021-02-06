@@ -7,9 +7,22 @@ import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.code.Instruction
 import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.code.impl.emptyAsNull
-import net.corda.djvm.code.instructions.*
+import net.corda.djvm.code.instructions.BranchInstruction
+import net.corda.djvm.code.instructions.CodeLabel
+import net.corda.djvm.code.instructions.ConstantInstruction
+import net.corda.djvm.code.instructions.DynamicInvocationInstruction
+import net.corda.djvm.code.instructions.IntegerInstruction
+import net.corda.djvm.code.instructions.MemberAccessInstruction
+import net.corda.djvm.code.instructions.MethodEntry
+import net.corda.djvm.code.instructions.TableSwitchInstruction
+import net.corda.djvm.code.instructions.TryCatchBlock
+import net.corda.djvm.code.instructions.TryFinallyBlock
+import net.corda.djvm.code.instructions.TypeInstruction
 import net.corda.djvm.messages.Message
-import net.corda.djvm.references.*
+import net.corda.djvm.references.ClassReference
+import net.corda.djvm.references.ClassRepresentation
+import net.corda.djvm.references.Member
+import net.corda.djvm.references.MemberReference
 import net.corda.djvm.source.impl.SourceClassLoaderImpl
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassReader
@@ -18,7 +31,12 @@ import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.Handle
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Opcodes.ANEWARRAY
+import org.objectweb.asm.Opcodes.ASM9
+import org.objectweb.asm.Opcodes.CHECKCAST
+import org.objectweb.asm.Opcodes.IINC
+import org.objectweb.asm.Opcodes.INSTANCEOF
+import org.objectweb.asm.Opcodes.NEW
 
 /**
  * Functionality for traversing a class and its members.
@@ -498,8 +516,8 @@ open class ClassAndMemberVisitor(
         }
 
         /**
-         * Extract information about provided type instruction (e.g., [Opcodes.NEW], [Opcodes.ANEWARRAY],
-         * [Opcodes.INSTANCEOF] and [Opcodes.CHECKCAST]).
+         * Extract information about provided type instruction (e.g., [NEW], [ANEWARRAY],
+         * [INSTANCEOF] and [CHECKCAST]).
          */
         override fun visitTypeInsn(opcode: Int, type: String) {
             recordTypeReference(type)
@@ -539,7 +557,7 @@ open class ClassAndMemberVisitor(
          * Extract information about provided increment instruction.
          */
         override fun visitIincInsn(`var`: Int, increment: Int) {
-            visit(IntegerInstruction(Opcodes.IINC, increment)) {
+            visit(IntegerInstruction(IINC, increment)) {
                 super.visitIincInsn(`var`, increment)
             }
         }
@@ -616,7 +634,7 @@ open class ClassAndMemberVisitor(
         /**
          * The API version of ASM.
          */
-        const val API_VERSION: Int = Opcodes.ASM8
+        const val API_VERSION: Int = ASM9
 
     }
 

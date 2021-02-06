@@ -2,7 +2,7 @@ package net.corda.djvm.code
 
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.TestBase
-import net.corda.djvm.analysis.impl.ClassAndMemberVisitor
+import net.corda.djvm.analysis.impl.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.code.impl.ClassMutator
 import net.corda.djvm.code.impl.emit
 import org.assertj.core.api.Assertions.assertThat
@@ -17,14 +17,14 @@ class EmitterModuleTest : TestBase(KOTLIN) {
     @Test
     fun `can emit code to method body`() {
         var hasEmittedTypeInstruction = false
-        val methodVisitor = object : MethodVisitor(ClassAndMemberVisitor.API_VERSION) {
+        val methodVisitor = object : MethodVisitor(API_VERSION) {
             override fun visitTypeInsn(opcode: Int, type: String) {
                 if (opcode == NEW && type == Type.getInternalName(java.lang.String::class.java)) {
                     hasEmittedTypeInstruction = true
                 }
             }
         }
-        val visitor = object : ClassVisitor(ClassAndMemberVisitor.API_VERSION) {
+        val visitor = object : ClassVisitor(API_VERSION) {
             override fun visitMethod(
                     access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?
             ): MethodVisitor {
