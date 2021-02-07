@@ -46,7 +46,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 Annotation annotationValue = sandboxClass.getAnnotation(sandboxAnnotation);
                 assertThat(annotationValue).isNotNull();
                 assertThat(annotationValue.toString())
-                    .matches("^\\Q@sandbox.net.corda.djvm.JavaAnnotation$1DJVM(value=\\E\"?Hello Java!\"?\\)$");
+                    .matches("^\\Q@sandbox.net.corda.djvm.JavaAnnotation$1DJVM(\\E(value=)?\"?Hello Java!\"?\\)$");
             } catch (Exception e) {
                 fail(e);
             }
@@ -84,7 +84,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 Annotation annotationValue = sandboxClass.getAnnotation(sandboxAnnotation);
                 assertThat(annotationValue).isNotNull();
                 assertThat(annotationValue.toString())
-                    .matches("^\\Q@sandbox.java.lang.annotation.Retention$1DJVM(value=\\E\"?RUNTIME\"?\\)$");
+                    .matches("^\\Q@sandbox.java.lang.annotation.Retention$1DJVM(\\E(value=)?\"?RUNTIME\"?\\)$");
             } catch (Exception e) {
                 fail(e);
             }
@@ -257,7 +257,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 assertEquals(1, sandboxAnnotations.size());
                 Annotation sandboxAnnotation = sandboxAnnotations.get(0);
                 assertThat(sandboxAnnotation.toString())
-                    .startsWith("@sandbox.net.corda.djvm.JavaLabels$1DJVM(value=")
+                    .startsWith("@sandbox.net.corda.djvm.JavaLabels$1DJVM(")
                     .containsPattern("\\Q@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=\\E\"?ONE\"?\\)")
                     .containsPattern("\\Q@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=\\E\"?TWO\"?\\)")
                     .containsPattern("\\Q@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=\\E\"?FIVE\"?\\)")
@@ -267,7 +267,7 @@ class AnnotatedJavaClassTest extends TestBase {
                 assertEquals(1, javaAnnotations.size());
                 Annotation javaAnnotation = javaAnnotations.get(0);
                 assertThat(javaAnnotation.toString())
-                    .startsWith("@net.corda.djvm.JavaLabels(value=")
+                    .startsWith("@net.corda.djvm.JavaLabels(")
                     .containsPattern("\\Q@net.corda.djvm.JavaLabel(name=\\E\"?ONE\"?\\)")
                     .containsPattern("\\Q@net.corda.djvm.JavaLabel(name=\\E\"?TWO\"?\\)")
                     .containsPattern("\\Q@net.corda.djvm.JavaLabel(name=\\E\"?FIVE\"?\\)")

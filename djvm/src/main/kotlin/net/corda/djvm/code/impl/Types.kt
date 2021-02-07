@@ -86,7 +86,9 @@ val thresholdViolationError: String = Type.getInternalName(ThresholdViolationErr
 val String.asPackagePath: String get() = this.replace('/', '.')
 val String.asResourcePath: String get() = this.replace('.', '/')
 
-val String.emptyAsNull: String? get() = if (isEmpty()) null else this
+val String.emptyAsNull: String?
+    @Suppress("deprecation")
+    get() = if (isEmpty()) null else this
 
 inline fun <reified T> Emitter.getMemberContext(context: EmitterContext): T? {
     return context.getMemberContext(this) as? T

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 
+import static java.util.regex.Pattern.matches;
 import static net.corda.djvm.AnnotationUtils.removeQuotes;
 import static net.corda.djvm.AnnotationUtils.toStrings;
 import static net.corda.djvm.SandboxType.JAVA;
@@ -33,11 +34,11 @@ class AnnotatedJavaConstructorParameterTest extends TestBase {
                 Annotation[][] parameterAnnotations = sandboxClass.getConstructor(stringClass, stringClass)
                     .getParameterAnnotations();
                 assertThat(parameterAnnotations).hasSize(2);
-                assertThat(removeQuotes(toStrings(parameterAnnotations[0]))).containsExactly(
-                    "@sandbox.net.corda.djvm.JavaParameter$1DJVM(value=@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=paramA))"
+                assertThat(removeQuotes(toStrings(parameterAnnotations[0]))).allMatch(s ->
+                    matches("\\Q@sandbox.net.corda.djvm.JavaParameter$1DJVM(\\E(value=)?\\Q@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=paramA))\\E", s)
                 );
-                assertThat(removeQuotes(toStrings(parameterAnnotations[1]))).containsExactly(
-                    "@sandbox.net.corda.djvm.JavaParameter$1DJVM(value=@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=paramB))"
+                assertThat(removeQuotes(toStrings(parameterAnnotations[1]))).allMatch(s ->
+                    matches("\\Q@sandbox.net.corda.djvm.JavaParameter$1DJVM(\\E(value=)?\\Q@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=paramB))\\E", s)
                 );
             } catch (Exception e) {
                 fail(e);
@@ -49,16 +50,16 @@ class AnnotatedJavaConstructorParameterTest extends TestBase {
     void testSandboxAnnotationsForConstructorParameters() {
         sandbox(ctx -> {
             try {
-                 Class<?> sandboxClass = toSandboxClass(ctx, UserJavaClass.class);
+                Class<?> sandboxClass = toSandboxClass(ctx, UserJavaClass.class);
                 Class<?> stringClass = toSandboxClass(ctx, "sandbox.java.lang.String");
                 Parameter[] parameters = sandboxClass.getConstructor(stringClass, stringClass).getParameters();
                 assertThat(parameters).hasSize(2);
 
-                assertThat(removeQuotes(toStrings(parameters[0].getAnnotations()))).containsExactly(
-                    "@sandbox.net.corda.djvm.JavaParameter$1DJVM(value=@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=paramA))"
+                assertThat(removeQuotes(toStrings(parameters[0].getAnnotations()))).allMatch(s ->
+                    matches("\\Q@sandbox.net.corda.djvm.JavaParameter$1DJVM(\\E(value=)?\\Q@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=paramA))\\E", s)
                 );
-                assertThat(removeQuotes(toStrings(parameters[1].getAnnotations()))).containsExactly(
-                    "@sandbox.net.corda.djvm.JavaParameter$1DJVM(value=@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=paramB))"
+                assertThat(removeQuotes(toStrings(parameters[1].getAnnotations()))).allMatch(s ->
+                    matches("\\Q@sandbox.net.corda.djvm.JavaParameter$1DJVM(\\E(value=)?\\Q@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=paramB))\\E", s)
                 );
             } catch (Exception e) {
                 fail(e);
