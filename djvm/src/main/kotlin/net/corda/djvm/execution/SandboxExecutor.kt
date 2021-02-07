@@ -43,7 +43,7 @@ class SandboxExecutor<in INPUT, out OUTPUT>(
     }
 
     /**
-     * Executes a [sandbox.java.util.function.Function] implementation.
+     * Executes a [sandbox Function][sandbox.java.util.function.Function] implementation.
      *
      * @param runnableClass The entry point of the sandboxed code to run.
      * @param input The input to provide to the sandboxed environment.

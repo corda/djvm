@@ -7,9 +7,7 @@ import org.objectweb.asm.Opcodes
  *
  * @property operation The operation code, enumerated in [Opcodes].
  */
-open class Instruction(
-        val operation: Int
-) {
+open class Instruction(val operation: Int) {
 
     companion object {
 

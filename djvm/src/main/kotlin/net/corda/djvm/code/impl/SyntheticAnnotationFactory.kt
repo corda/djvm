@@ -148,8 +148,8 @@ class SyntheticAnnotationFactory(
     }
 
     /**
-     * Redirect our [java.lang.annotation.Repeatable] synthetic annotation
-     * to its synthetic container annotation.
+     * Redirect our [Repeatable][java.lang.annotation.Repeatable]
+     * synthetic annotation to its synthetic container annotation.
      */
     private inner class RepeatableAnnotationMapper(api: Int, av: AnnotationVisitor) : AnnotationVisitor(api, av) {
         override fun visit(name: String?, value: Any?) {

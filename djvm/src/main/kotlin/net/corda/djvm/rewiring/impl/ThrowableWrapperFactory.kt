@@ -31,8 +31,8 @@ class ThrowableWrapperFactory(
     }
 
     /**
-     * Write bytecode for synthetic throwable wrapper class. All of
-     * these classes implement [sandbox.java.lang.DJVMException],
+     * Write bytecode for synthetic throwable wrapper class. All of these
+     * classes implement [DJVMException][sandbox.java.lang.DJVMException],
      * either directly or indirectly.
      */
     private fun accept(writer: ClassWriter) = with(writer) {

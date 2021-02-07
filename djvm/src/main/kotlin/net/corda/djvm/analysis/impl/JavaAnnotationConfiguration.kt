@@ -4,7 +4,8 @@ package net.corda.djvm.analysis.impl
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.sandboxed
 import net.corda.djvm.code.impl.EmitterModuleImpl
 import net.corda.djvm.references.Member
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Opcodes.ACC_ABSTRACT
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
 
 /**
  * Generate [Member] objects that will be stitched into [sandbox.java.lang.annotation.Annotation].

@@ -19,8 +19,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/Duration;"
 ) {
     /**
-     * Implements Duration.fromDJVM():
+     * Implements `Duration.fromDJVM()`:
+     * ```
      *     return java.time.Duration.ofSeconds(seconds, nanos)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -36,8 +38,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/Instant;"
 ) {
     /**
-     * Implements Instant.fromDJVM():
+     * Implements `Instant.fromDJVM()`:
+     * ```
      *     return java.time.Instant.ofEpochSecond(seconds, nanos)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -53,8 +57,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/LocalDate;"
 ) {
     /**
-     * Implements LocalDate.fromDJVM():
+     * Implements `LocalDate.fromDJVM()`:
+     * ```
      *     return java.time.LocalDate.of(year, month, day)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -71,8 +77,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/LocalDateTime;"
 ) {
     /**
-     * Implements LocalDateTime.fromDJVM():
+     * Implements `LocalDateTime.fromDJVM()`:
+     * ```
      *     return java.time.LocalDateTime.of(date.fromDJVM(), time.fromDJVM())
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -89,8 +97,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/LocalTime;"
 ) {
     /**
-     * Implements LocalTime.fromDJVM():
+     * Implements `LocalTime.fromDJVM()`:
+     * ```
      *     return java.time.LocalTime.of(hour, minute, second, nano)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -109,8 +119,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/MonthDay;"
 ) {
     /**
-     * Implements MonthDay.fromDJVM():
+     * Implements `MonthDay.fromDJVM()`:
+     * ```
      *     return java.time.MonthDay.of(month, day)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -125,8 +137,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/OffsetDateTime;"
 ) {
     /**
-     * Implements OffsetDateTime.fromDJVM():
+     * Implements `OffsetDateTime.fromDJVM()`:
+     * ```
      *     return java.time.OffsetDateTime.of(dateTime, offset)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -144,8 +158,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/OffsetTime;"
 ) {
     /**
-     * Implements OffsetTime.fromDJVM():
+     * Implements `OffsetTime.fromDJVM()`:
+     * ```
      *     return java.time.OffsetTime.of(time, offset)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -163,8 +179,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/Period;"
 ) {
     /**
-     * Implements Period.fromDJVM():
+     * Implements `Period.fromDJVM()`:
+     * ```
      *     return java.time.Period.of(years, months, days)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -181,8 +199,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/Year;"
 ) {
     /**
-     * Implements Year.fromDJVM():
+     * Implements `Year.fromDJVM()`:
+     * ```
      *     return java.time.Year.of(year)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -195,8 +215,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/YearMonth;"
 ) {
     /**
-     * Implements YearMonth.fromDJVM():
+     * Implements `YearMonth.fromDJVM()`:
+     * ```
      *     return java.time.YearMonth.of(year, month)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -211,8 +233,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/ZonedDateTime;"
 ) {
     /**
-     * Implements ZonedDateTime.fromDJVM():
+     * Implements `ZonedDateTime.fromDJVM()`:
+     * ```
      *     return sandbox.java.time.DJVM.zonedDateTime(dateTime, offset, zone)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -229,8 +253,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/time/ZoneId;"
 ) {
     /**
-     * Implements ZoneId.fromDJVM():
+     * Implements `ZoneId.fromDJVM()`:
+     * ```
      *     return java.time.ZoneId.of(sandbox.java.lang.String.fromDJVM(getId()))
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         pushObject(0)
@@ -244,8 +270,10 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/util/Date;"
 ) {
     /**
-     * Implements Date.fromDJVM():
+     * Implements `Date.fromDJVM()`:
+     * ```
      *     return java.time.Date(getTime())
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         new("java/util/Date")
@@ -258,7 +286,9 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
 }.build() + listOf(
     /**
      * Create an accessor for [sandbox.java.time.ZonedDateTime.ofLenient]:
+     * ```
      *     return ofLenient(localDateTime, offset, zone)
+     * ```
      */
     object : MethodBuilder(
         access = ACC_PUBLIC or ACC_STATIC,
@@ -276,8 +306,9 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     }.withBody()
       .build(),
     /**
-     * Replace [java.time.zone.TzdbZoneRulesProvider] constructor with one that
-     * accepts a [sandbox.java.io.DataInputStream] that will be managed elsewhere.
+     * Replace [TzdbZoneRulesProvider][java.time.zone.TzdbZoneRulesProvider] constructor
+     * with one that accepts a [sandbox.java.io.DataInputStream] that will be managed
+     * elsewhere.
      */
     object : MethodBuilder(
         access = ACC_PUBLIC or ACC_STRICT,
@@ -318,8 +349,8 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     ),
 
     /**
-     * Rewrite the native methods that try to determine the system [java.util.TimeZone].
-     * Returning null forces Java to use UTC here.
+     * Rewrite the native methods that try to determine the system [TimeZone][java.util.TimeZone].
+     * Returning `null` forces Java to use UTC here.
      */
     object : MethodBuilder(
         access = ACC_PRIVATE or ACC_STATIC,
@@ -329,7 +360,9 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
     ) {
         /**
          * Replace [java.util.TimeZone.getSystemTimeZoneID]:
+         * ```
          *     return null
+         * ```
          */
         override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushNull()
@@ -347,7 +380,9 @@ fun generateJavaTimeMethods(): List<Member> = object : FromDJVMBuilder(
         override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             /**
              * Replace [java.util.TimeZone.getSystemGMTOffsetID]:
+             * ```
              *     return null
+             * ```
              */
             pushNull()
             returnObject()

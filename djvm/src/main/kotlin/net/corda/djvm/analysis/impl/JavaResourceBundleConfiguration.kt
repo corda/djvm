@@ -116,11 +116,13 @@ fun generateJavaResourceBundleMethods(): List<Member> = listOf(
         descriptor = "(Lsandbox/java/util/ResourceBundle;)V"
     ) {
         /**
-         * Implements ResourceBundle.childOf(ResourceBundle parent):
+         * Implements `ResourceBundle.childOf(ResourceBundle parent)`:
+         * ```
          *     if (this.parent == null) {
          *         this.parent = parent
          *     }
          *     return
+         * ```
          */
         override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             lineNumber(1)
@@ -146,10 +148,12 @@ fun generateJavaResourceBundleMethods(): List<Member> = listOf(
         descriptor = "(Lsandbox/java/lang/String;Lsandbox/java/util/Locale;)V"
     ) {
         /**
-         * Implements ResourceBundle.init(String name, Locale locale):
+         * Implements `ResourceBundle.init(String name, Locale locale)`:
+         * ```
          *     this.name = name
          *     this.locale = locale
          *     return
+         * ```
          */
         override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushObject(0)
@@ -184,13 +188,15 @@ private fun EmitterModuleImpl.pushDefaultLocale() {
 }
 
 private fun EmitterModuleImpl.pushDefaultControl() {
-    /*
+    /**
      * The baseName parameter is expected already to have been
-     * pushed onto the stack, just below the Locale value, so
+     * pushed onto the stack, just below the [Locale] value, so
      * emit instructions to rearrange the stack as follows:
+     * ```
      *     [W1]    [W2]
      *     [W2] -> [W1]
      *             [W2]
+     * ```
      */
     instruction(DUP2)
     pop()

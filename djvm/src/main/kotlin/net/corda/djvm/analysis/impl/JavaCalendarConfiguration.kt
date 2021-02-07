@@ -18,8 +18,10 @@ fun generateJavaCalendarMethods(): List<Member> = listOf(
             descriptor = "()Lsandbox/java/util/Properties;"
         ) {
             /**
-             * Replace getCalendarProperties():
+             * Replace `getCalendarProperties()`:
+             * ```
              *     return DJVM.getCalendarProperties()
+             * ```
              */
             override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
                 invokeStatic(DJVM_NAME, memberName, descriptor)

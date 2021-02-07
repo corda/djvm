@@ -28,7 +28,7 @@ class SandboxClassLoadingException(
     /**
      * The detailed description of the exception.
      */
-    override val message: String?
+    override val message: String
         get() = StringBuilder().apply {
             appendln(super.message)
             for (message in messages.sorted().map(Message::toString).distinct()) {

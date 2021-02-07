@@ -320,7 +320,7 @@ private fun Array<*>.toDJVMArray(): Array<*> {
 }
 
 /**
- * Replacement function for [java.lang.Object.toString], because some
+ * Replacement function for [toString][java.lang.Object.toString], because some
  * objects (i.e. arrays) cannot be replaced by [sandbox.java.lang.Object].
  */
 fun toString(obj: Any?): String {
@@ -452,7 +452,7 @@ fun getCalendarProperties(): Properties {
 }
 
 /**
- * Replacement function for Class<*>.forName(String, boolean, ClassLoader) which protects
+ * Replacement function for `Class<*>.forName(String, boolean, ClassLoader)` which protects
  * against users loading classes from outside the sandbox. Note that we ALWAYS use the
  * top-most instance of [SandboxClassLoader] here.
  */
@@ -462,7 +462,7 @@ fun classForName(className: String, initialize: kotlin.Boolean): Class<*> {
 }
 
 /**
- * Force the qualified class name into the sandbox.* namespace.
+ * Force the qualified class name into the `sandbox.*` namespace.
  * Throw [ClassNotFoundException] anyway if we wouldn't want to
  * return the resulting sandbox class. E.g. for any of our own
  * internal classes.
@@ -558,9 +558,9 @@ fun checkCatch(exception: kotlin.Throwable) {
 
 /**
  * Wraps a [java.lang.Throwable] inside a [sandbox.java.lang.Throwable].
- * This function is invoked at the beginning of a finally block, and
+ * This function is invoked at the beginning of a `finally` block, and
  * so does not need to return a reference to the equivalent sandboxed
- * exception. The finally block only needs to be able to re-throw the
+ * exception. The `finally` block only needs to be able to re-throw the
  * original exception when it finishes.
  */
 fun doFinally(t: kotlin.Throwable): Throwable {
@@ -569,7 +569,7 @@ fun doFinally(t: kotlin.Throwable): Throwable {
 
 /**
  * Converts a [java.lang.Throwable] into a [sandbox.java.lang.Throwable].
- * It is invoked at the start of each catch block.
+ * It is invoked at the start of each `catch` block.
  *
  * Note: [DisallowCatchingBlacklistedExceptions] means that we don't
  * need to handle [ThreadDeath] or [VirtualMachineError] here.
@@ -936,7 +936,7 @@ private class DJVMEnumAction(
 }
 
 private class DJVMSystemResourceAction(private val name: kotlin.String) : PrivilegedAction<DataInputStream?> {
-    override fun run(): DataInputStream? {
+    override fun run(): DataInputStream {
         return loadSystemResource(name)
     }
 }

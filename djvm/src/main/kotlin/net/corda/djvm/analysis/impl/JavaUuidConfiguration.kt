@@ -15,8 +15,10 @@ fun generateJavaUuidMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/util/UUID;"
 ) {
     /**
-     * Implements UUID.fromDJVM():
+     * Implements `UUID.fromDJVM()`:
+     * ```
      *     return new java.util.UUID(mostSigBits, leastSigBits)
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         new("java/util/UUID")

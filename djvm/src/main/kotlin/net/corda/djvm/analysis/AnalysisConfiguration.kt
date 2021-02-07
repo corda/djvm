@@ -377,7 +377,7 @@ class AnalysisConfiguration private constructor(
          * THIS IS FOR THE BENEFIT OF [sandbox.java.lang.Enum] AND [sandbox.java.nio.charset.Charset].
          *
          * The Java Security mechanisms also require some careful surgery to prevent them from
-         * trying to invoke [sun.misc.Unsafe] and other assorted native methods.
+         * trying to invoke [Unsafe][sun.misc.Unsafe] and other assorted native methods.
          */
         private val STITCHED_CLASSES: Map<String, List<Member>> = unmodifiable((
             generateJavaAnnotationMethods() +
