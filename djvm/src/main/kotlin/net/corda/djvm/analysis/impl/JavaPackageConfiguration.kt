@@ -17,8 +17,10 @@ fun generateJavaPackageMethods(): List<Member> = listOf(
         descriptor = "(Lsandbox/java/lang/String;)Lsandbox/java/lang/Package;"
     ) {
         /**
-         * Disable Package.getPackage(String).
+         * Disable `Package.getPackage(String)`:
+         * ```
          *     return null
+         * ```
          */
         override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushNull()
@@ -34,8 +36,10 @@ fun generateJavaPackageMethods(): List<Member> = listOf(
         descriptor = "()[Lsandbox/java/lang/Package;"
     ) {
         /**
-         * Disable Package.getPackages().
+         * Disable `Package.getPackages()`:
+         * ```
          *     return new Package[0]
+         * ```
          */
         override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushIntegerZero()
@@ -53,8 +57,10 @@ fun generateJavaPackageMethods(): List<Member> = listOf(
         signature = "(Ljava/lang/Class<*>;)Lsandbox/java/lang/Package;"
     ) {
         /**
-         * Disable Package.getPackage(Class<?>).
+         * Disable `Package.getPackage(Class<?>)`:
+         * ```
          *     return null
+         * ```
          */
         override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             pushNull()

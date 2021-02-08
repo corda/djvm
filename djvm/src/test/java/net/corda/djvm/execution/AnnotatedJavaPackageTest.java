@@ -24,7 +24,7 @@ class AnnotatedJavaPackageTest extends TestBase {
                 Annotation[] annotations = sandboxPackage.getAnnotations();
                 assertThat(annotations).hasSize(1);
                 assertThat(annotations[0].toString())
-                    .matches("^\\Q@sandbox.net.corda.djvm.JavaAnnotation$1DJVM(value=\\E\"?Package Level\"?\\)$");
+                    .matches("^\\Q@sandbox.net.corda.djvm.JavaAnnotation$1DJVM(\\E(value=)?\"?Package Level\"?\\)$");
             } catch (Exception e) {
                 fail(e);
             }

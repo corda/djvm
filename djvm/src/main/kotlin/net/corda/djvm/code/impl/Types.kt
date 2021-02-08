@@ -35,25 +35,26 @@ const val CONSTRUCTOR_NAME = "<init>"
 const val FROM_DJVM = "fromDJVM"
 
 /**
- * The type name of the [sandbox.java.lang.DJVM] class which contains the
+ * The type name of the [DJVM][sandbox.java.lang.DJVM] class which contains the
  * low-level support functions for running inside the sandbox.
  */
 const val DJVM_NAME = "sandbox/java/lang/DJVM"
 
 /**
- * The type name of the [RuntimeCostAccounter] class; referenced from instrumentors.
+ * The type name of the [RuntimeCostAccounter][sandbox] class;
+ * referenced from instrumentors.
  */
 const val RUNTIME_ACCOUNTER_NAME: String = "sandbox/RuntimeCostAccounter"
 
 /**
- * The internal type name of the [sandbox.java.lang.DJVMException] class.
- * Note that we cannot use [Type.getInternalName] here because that would
+ * The internal type name of the [DJVMException][sandbox.java.lang.DJVMException]
+ * class. Note that we cannot use [Type.getInternalName] here because that would
  * load our template class into the Application classloader.
  */
 const val DJVM_EXCEPTION_NAME: String = "sandbox/java/lang/DJVMException"
 
 /**
- * Flags describing contents of [net.corda.djvm.rewiring.ByteCode] objects.
+ * Flags describing contents of [ByteCode][net.corda.djvm.rewiring.ByteCode] objects.
  */
 const val DJVM_MODIFIED = 0x0001
 const val DJVM_SYNTHETIC = 0x0002
@@ -86,7 +87,9 @@ val thresholdViolationError: String = Type.getInternalName(ThresholdViolationErr
 val String.asPackagePath: String get() = this.replace('/', '.')
 val String.asResourcePath: String get() = this.replace('.', '/')
 
-val String.emptyAsNull: String? get() = if (isEmpty()) null else this
+val String.emptyAsNull: String?
+    @Suppress("deprecation") // Needed when compiling on Java 15
+    get() = if (isEmpty()) null else this
 
 inline fun <reified T> Emitter.getMemberContext(context: EmitterContext): T? {
     return context.getMemberContext(this) as? T

@@ -4,7 +4,7 @@ import net.corda.djvm.analysis.AnalysisRuntimeContext
 import net.corda.djvm.references.ImmutableMember
 
 /**
- * A member definition provider is a hook for [net.corda.djvm.code.impl.ClassMutator],
+ * A member definition provider is a hook for [ClassMutator][net.corda.djvm.code.impl.ClassMutator],
  * from where one can modify the name and meta-data of processed class members.
  */
 interface MemberDefinitionProvider : DefinitionProvider {

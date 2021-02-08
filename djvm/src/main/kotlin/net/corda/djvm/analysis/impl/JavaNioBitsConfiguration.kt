@@ -18,8 +18,10 @@ fun generateJavaBitsMethods(): List<Member> = listOf(
         descriptor = "()V"
     ) {
         /**
-         * Replace <clinit>():
+         * Replace `<clinit>()`:
+         * ```
          *     byteOrder = DJVM.getNativeOrder()
+         * ```
          */
         override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
             invokeStatic(DJVM_NAME, "getNativeOrder", "()Lsandbox/java/nio/ByteOrder;")

@@ -30,7 +30,7 @@ class AnnotatedKotlinClassTest : TestBase(KOTLIN) {
 
         val annotationValue = sandboxClass.getAnnotation(sandboxAnnotation)
         assertThat(annotationValue.toString())
-            .matches("^\\Q@sandbox.net.corda.djvm.KotlinAnnotation$1DJVM(value=\\E\"?Hello Kotlin!\"?\\)\$")
+            .matches("^\\Q@sandbox.net.corda.djvm.KotlinAnnotation$1DJVM(\\E(value=)?\"?Hello Kotlin!\"?\\)\$")
     }
 
     @Test

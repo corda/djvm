@@ -3,7 +3,7 @@ package net.corda.djvm.execution
 import kotlin.Long.Companion.MAX_VALUE
 
 /**
- * The execution profile of a [java.util.function.Function] when run in a sandbox.
+ * The execution profile of a [Function][java.util.function.Function] when run in a sandbox.
  *
  * @property allocationCostThreshold The threshold placed on allocations.
  * @property invocationCostThreshold The threshold placed on invocations.

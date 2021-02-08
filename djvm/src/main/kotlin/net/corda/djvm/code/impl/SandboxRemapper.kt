@@ -47,7 +47,7 @@ class SandboxRemapper(
         }
     }
 
-    private fun mapWhitelistHandle(handle: Handle): Handle? {
+    private fun mapWhitelistHandle(handle: Handle): Handle {
         val owner = handle.owner
         return when(handle.tag) {
             Opcodes.H_INVOKEVIRTUAL ->

@@ -8,7 +8,6 @@ import net.corda.djvm.SandboxType.JAVA
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.analysis.AnalysisConfiguration
 import net.corda.djvm.analysis.AnalysisContext
-import net.corda.djvm.analysis.impl.ClassAndMemberVisitor.Companion.API_VERSION
 import net.corda.djvm.assertions.AssertionExtensions.assertThat
 import net.corda.djvm.code.DefinitionProvider
 import net.corda.djvm.code.Emitter
@@ -27,7 +26,6 @@ import net.corda.djvm.source.UserPathSource
 import net.corda.djvm.validation.impl.RuleValidator
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
@@ -339,11 +337,7 @@ abstract class TestBase(type: SandboxType) {
     /**
      * Stub visitor.
      */
-    protected class Writer : ClassWriter(COMPUTE_FRAMES) {
-        init {
-            assertEquals(API_VERSION, api, "Incorrect ASM API version")
-        }
-    }
+    protected class Writer : ClassWriter(COMPUTE_FRAMES)
 
     @Suppress("MemberVisibilityCanBePrivate")
     protected class DJVM(private val classLoader: ClassLoader) {

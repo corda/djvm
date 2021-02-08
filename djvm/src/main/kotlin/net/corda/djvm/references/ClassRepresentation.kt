@@ -31,6 +31,7 @@ class ClassRepresentation(
         get() = Modifier.isInterface(access)
 
     override val hasObjectAsSuperclass: Boolean
+        @Suppress("deprecation") // Needed when compiling on Java 15
         get() = superClass.isEmpty() || superClass == OBJECT_NAME
 
     override fun toMutable(): Copier = Copier()

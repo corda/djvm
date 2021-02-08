@@ -29,7 +29,7 @@ class RuleValidator(
 ) : ClassAndMemberVisitor(STUB, configuration) {
     private companion object {
         @JvmField
-        val STUB = StubClassReader(API_VERSION)
+        val STUB = StubClassReader()
     }
 
     /**
@@ -88,7 +88,7 @@ class RuleValidator(
      * Provide some "stub" visitors for methods and fields so that we can apply
      * [InstructionRule] operations.
      */
-    private class StubClassReader(api: Int) : ClassVisitor(api) {
+    private class StubClassReader : ClassVisitor(API_VERSION) {
         override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor {
             return StubMethodReader(api)
         }

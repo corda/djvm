@@ -119,7 +119,7 @@ class ClassResolver(
 
     /**
      * Maps a class name to its equivalent class outside the sandbox.
-     * Needed by [net.corda.djvm.source.SourceClassLoader].
+     * Needed by [SourceClassLoader][net.corda.djvm.source.SourceClassLoader].
      */
     private fun toSource(className: String): String {
         return removeSandboxPrefix(className)

@@ -436,9 +436,9 @@ class SandboxClassLoader private constructor(
      * the synthetic wrapper's super-class needs to be.
      *
      * The same logic also applies to annotation classes because these must extend
-     * [java.lang.annotation.Annotation] in order to annotate anything. So we create
-     * synthetic annotations to store the values in the byte-code, and translate
-     * them to "annotation-like" equivalent interfaces inside the sandbox.
+     * [Annotation][java.lang.annotation.Annotation] in order to annotate anything.
+     * So we create synthetic annotations to store the values in the byte-code, and
+     * translate them to "annotation-like" equivalent interfaces inside the sandbox.
      */
     private fun loadSandboxClass(source: ClassSource, context: AnalysisContext): Class<*> {
         return if (isDJVMSynthetic(source.internalClassName)) {

@@ -16,8 +16,10 @@ fun generateJavaMathMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/math/BigInteger;"
 ) {
     /**
-     * Implements BigInteger.fromDJVM():
+     * Implements `BigInteger.fromDJVM()`:
+     * ```
      *     return new java.math.BigInteger(signum(), toByteArray())
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         new("java/math/BigInteger")
@@ -34,8 +36,10 @@ fun generateJavaMathMethods(): List<Member> = object : FromDJVMBuilder(
     bridgeDescriptor = "()Ljava/math/BigDecimal;"
 ) {
     /**
-     * Implements BigDecimal.fromDJVM():
+     * Implements `BigDecimal.fromDJVM()`:
+     * ```
      *     return new java.math.BigDecimal(unscaledValue().fromDJVM(), scale())
+     * ```
      */
     override fun writeBody(emitter: EmitterModuleImpl) = with(emitter) {
         new("java/math/BigDecimal")
