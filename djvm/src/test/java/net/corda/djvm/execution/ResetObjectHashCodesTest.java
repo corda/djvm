@@ -27,17 +27,30 @@ class ResetObjectHashCodesTest extends TestBase {
             final SandboxClassLoader classLoader = context.getClassLoader();
             Consumer<SandboxRuntimeContext> operation = ctx -> {
                 try {
+                    // Starting with a fresh context...
+                    assertResetContextFor(ctx)
+                        .withHashCodeCount(count -> assertThat(count).isZero());
+
                     TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
                     Function<? super Object, Integer> getHashCode = taskFactory.create(GetHashCode.class);
+
+                    assertResetContextFor(ctx)
+                        .withHashCodeCount(count -> assertThat(count).isZero());
 
                     final int hashCode0 = getHashCode.apply("<X>");
                     final int hashCode1 = getHashCode.apply("<Y>");
                     assertThat(asList(hashCode0, hashCode1)).containsExactly(0xfed_c0de - 1, 0xfed_c0de - 2);
+                    assertResetContextFor(ctx)
+                        .withHashCodeCount(count -> assertThat(count).isEqualTo(2));
                 } catch (Exception e) {
                     fail(e);
                 }
             };
 
+            /*
+             * Execute the operation twice. No hash
+             * codes are being persisted statically.
+             */
             sandbox(context, operation.andThen(ctx ->
                 assertThat(ctx.getRuntimeCosts())
                     .hasAllocationCost(0)
@@ -57,18 +70,31 @@ class ResetObjectHashCodesTest extends TestBase {
             final SandboxClassLoader classLoader = context.getClassLoader();
             Consumer<SandboxRuntimeContext> operation = ctx -> {
                 try {
+                    // Starting with a fresh context...
+                    assertResetContextFor(ctx)
+                        .withHashCodeCount(count -> assertThat(count).isZero());
+
                     TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
                     Function<? super Object, Integer> getHashCode = taskFactory.create(GetHashCode.class);
                     ctx.ready();
 
+                    assertResetContextFor(ctx)
+                        .withHashCodeCount(count -> assertThat(count).isZero());
+
                     final int hashCode0 = getHashCode.apply("<A>");
                     final int hashCode1 = getHashCode.apply("<B>");
                     assertThat(asList(hashCode0, hashCode1)).containsExactly(0xfed_c0de + 1, 0xfed_c0de + 2);
+                    assertResetContextFor(ctx)
+                        .withHashCodeCount(count -> assertThat(count).isEqualTo(2));
                 } catch (Exception e) {
                     fail(e);
                 }
             };
 
+            /*
+             * Execute the operation twice. No hash
+             * codes are being persisted statically.
+             */
             sandbox(context, operation.andThen(ctx ->
                 assertThat(ctx.getRuntimeCosts())
                     .hasAllocationCost(0)
@@ -78,6 +104,10 @@ class ResetObjectHashCodesTest extends TestBase {
                 assertThat(ctx.getRuntimeCosts())
                     .hasAllocationCost(0)
                     .hasInvocationCost(9)
+            ));
+            sandbox(context, operation.andThen(ctx ->
+                assertResetContextFor(ctx)
+                    .withHashCodeCount(count -> assertThat(count).isEqualTo(2))
             ));
         });
     }
@@ -110,6 +140,16 @@ class ResetObjectHashCodesTest extends TestBase {
                 }
             };
 
+            /*
+             * Execute the operation twice. The GetStaticHashCode
+             * class retains a static hash code, which should
+             * survive resetting the sandbox.
+             */
+            sandbox(context, ctx ->
+                assertResetContextFor(ctx)
+                    .withHashCodeCount(count -> assertThat(count).isZero())
+            );
+
             sandbox(context, operation.andThen(ctx ->
                 assertThat(ctx.getRuntimeCosts())
                     .hasAllocationCost(0)
@@ -120,6 +160,11 @@ class ResetObjectHashCodesTest extends TestBase {
                     .hasAllocationCost(0)
                     .hasInvocationCost(14)
             ));
+
+            sandbox(context, ctx ->
+                assertResetContextFor(ctx)
+                    .withHashCodeCount(count -> assertThat(count).isEqualTo(1))
+            );
         });
     }
 

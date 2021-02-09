@@ -11,6 +11,7 @@ import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toList;
 
 final class ClassResetContext {
     private static final int MAGIC_HASH_OFFSET = 0xfed_c0de;
@@ -41,6 +42,25 @@ final class ClassResetContext {
 
     void add(MethodHandle resetMethod) {
         current.add(new Resettable(resetMethod));
+    }
+
+    /**
+     * Debugging method.
+     * @return A {@link View} containing a snapshot of the current phase.
+     */
+    @NotNull
+    synchronized View getCurrentView() {
+        return new View(
+            unmodifiableList(current.getResettables().stream()
+                .map(Resettable::getResetMethod)
+                .map(MethodHandle::toString)
+                .collect(toList())),
+            unmodifiableList(internStrings.values().stream()
+                .map(Object::toString)
+                .sorted()
+                .collect(toList())),
+            hashCodes.size()
+        );
     }
 
     synchronized void reset() throws Throwable {
@@ -81,5 +101,33 @@ final class ClassResetContext {
 
     private int decrementHashOffset(int key) {
         return --objectCounter + MAGIC_HASH_OFFSET;
+    }
+
+    static final class View {
+        private final List<String> resetMethodHandles;
+        private final List<String> internStrings;
+        private final int hashCodeCount;
+
+        View(
+            List<String> resetMethodHandles,
+            List<String> internStrings,
+            int hashCodeCount
+        ) {
+            this.resetMethodHandles = resetMethodHandles;
+            this.internStrings = internStrings;
+            this.hashCodeCount = hashCodeCount;
+        }
+
+        List<String> getResetMethodHandles() {
+            return resetMethodHandles;
+        }
+
+        List<String> getInternStrings() {
+            return internStrings;
+        }
+
+        int getHashCodeCount() {
+            return hashCodeCount;
+        }
     }
 }

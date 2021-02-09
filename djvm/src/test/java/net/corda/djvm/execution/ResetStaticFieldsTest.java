@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -20,9 +21,15 @@ import java.util.function.Function;
 import static net.corda.djvm.SandboxType.JAVA;
 import static net.corda.djvm.code.impl.Types.CLASS_RESET_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class ResetStaticFieldsTest extends TestBase {
+    private static final String STATIC_DATA = "Hello Sandbox!";
+    private static final String TEST_MESSAGE = "Great Wide World!";
+
     ResetStaticFieldsTest() {
         super(JAVA);
     }
@@ -31,16 +38,42 @@ class ResetStaticFieldsTest extends TestBase {
     void resetStaticFinalObject() {
         create(context -> {
             SandboxClassLoader classLoader = context.getClassLoader();
+            final List<String> internStrings = new LinkedList<>();
+            final List<String> resetHandles = new LinkedList<>();
             sandbox(context, ctx -> {
                 try {
+                    // Starting with a fresh context...
+                    assertResetContextFor(ctx)
+                        .withInternStrings(strings -> assertThat(strings).isEmpty())
+                        .withResetMethodHandles(handles -> assertThat(handles).isEmpty());
+
                     TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
                     Function<String, String[]> hasStaticField = taskFactory.create(HasStaticFinalObject.class);
+
+                    // Check we have acquired our resettable classes and interned strings.
+                    assertResetContextFor(ctx)
+                        .withInternStrings(internStrings::addAll)
+                        .withResetMethodHandles(resetHandles::addAll)
+                        .withInternStrings(strings -> assertThat(strings).contains(STATIC_DATA, "", "\n", "true", "false"))
+                        .withResetMethodHandles(handles -> assertThat(handles).hasSize(2));
+
+                    // Switch from "setup" phase to "run" phase.
                     ctx.ready();
 
-                    final String[] firstResult = hasStaticField.apply("Great Wide World!");
-                    assertThat(firstResult).containsExactly("Hello Sandbox!");
+                    // Check we still have our interned strings, but no resettable classes.
+                    assertResetContextFor(ctx)
+                        .withInternStrings(strings -> assertThat(strings).isEqualTo(internStrings))
+                        .withResetMethodHandles(handles -> assertThat(handles).isEmpty());
+
+                    final String[] firstResult = hasStaticField.apply(TEST_MESSAGE);
+                    assertThat(firstResult).containsExactly(STATIC_DATA);
                     final String[] secondResult = hasStaticField.apply(null);
-                    assertThat(secondResult).containsExactly("Great Wide World!");
+                    assertThat(secondResult).containsExactly(TEST_MESSAGE);
+
+                    // Check that nothing has changed.
+                    assertResetContextFor(ctx)
+                        .withInternStrings(strings -> assertThat(strings).isEqualTo(internStrings))
+                        .withResetMethodHandles(handles -> assertThat(handles).isEmpty());
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -48,10 +81,18 @@ class ResetStaticFieldsTest extends TestBase {
 
             sandbox(context, ctx -> {
                 try {
+                    assertResetContextFor(ctx)
+                        .withResetMethodHandles(handles -> assertThat(handles).hasSameSizeAs(resetHandles))
+                        .withInternStrings(strings -> assertThat(strings).isEqualTo(internStrings));
+
                     TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
                     Function<String, String[]> hasStaticField = taskFactory.create(HasStaticFinalObject.class);
                     final String[] thirdResult = hasStaticField.apply(null);
-                    assertThat(thirdResult).containsExactly("Hello Sandbox!");
+                    assertThat(thirdResult).containsExactly(STATIC_DATA);
+
+                    assertResetContextFor(ctx)
+                        .withResetMethodHandles(handles -> assertThat(handles).hasSameSizeAs(resetHandles))
+                        .withInternStrings(strings -> assertThat(strings).isEqualTo(internStrings));
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -60,7 +101,7 @@ class ResetStaticFieldsTest extends TestBase {
     }
 
     public static class HasStaticFinalObject implements Function<String, String[]> {
-        private static final String[] MESSAGE = { "Hello Sandbox!" };
+        private static final String[] MESSAGE = { STATIC_DATA };
 
         @Override
         public String[] apply(String input) {
@@ -74,15 +115,30 @@ class ResetStaticFieldsTest extends TestBase {
     void resetStaticObject() {
         create(context -> {
             SandboxClassLoader classLoader = context.getClassLoader();
+            final List<String> resetHandles = new LinkedList<>();
             sandbox(context, ctx -> {
                 try {
+                    assertResetContextFor(ctx)
+                        .withResetMethodHandles(handles -> assertThat(handles).isEmpty());
+
                     TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
                     Function<String, String> update = taskFactory.create(HasStaticObject.class);
+
+                    assertResetContextFor(ctx)
+                        .withResetMethodHandles(handles -> assertThat(handles).hasSize(2))
+                        .withResetMethodHandles(resetHandles::addAll);
+
                     ctx.ready();
+
+                    assertResetContextFor(ctx)
+                        .withResetMethodHandles(handles -> assertThat(handles).isEmpty());
 
                     assertNull(update.apply("one"));
                     assertEquals("one", update.apply("two"));
                     assertEquals("two", update.apply("three"));
+
+                    assertResetContextFor(ctx)
+                        .withResetMethodHandles(handles -> assertThat(handles).isEmpty());
                 } catch (Exception e) {
                     fail(e);
                 }
@@ -90,10 +146,16 @@ class ResetStaticFieldsTest extends TestBase {
 
             sandbox(context, ctx -> {
                 try {
+                    assertResetContextFor(ctx)
+                        .withResetMethodHandles(handles -> assertThat(handles).hasSameSizeAs(resetHandles));
+
                     TypedTaskFactory taskFactory = classLoader.createTypedTaskFactory();
                     Function<String, String> update = taskFactory.create(HasStaticObject.class);
                     assertNull(update.apply("four"));
                     assertEquals("four", update.apply("five"));
+
+                    assertResetContextFor(ctx)
+                        .withResetMethodHandles(handles -> assertThat(handles).hasSameSizeAs(resetHandles));
                 } catch (Exception e) {
                     fail(e);
                 }

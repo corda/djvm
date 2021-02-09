@@ -19,6 +19,16 @@ class ResetKotlinObjectTest : TestBase(KOTLIN) {
             assertThat(secondResult).isEqualTo("Big Wide World!")
         })
 
+        assertResetContextFor(this)
+            .withResetMethodHandles { assertThat(it).hasSize(2) }
+            .withHashCodeCount { assertThat(it).isZero() }
+            .withInternStrings { strings ->
+                assertThat(strings)
+                    .contains("Hello Sandbox!", "", "\n", "true", "false")
+                    .doesNotContain("Big Wide World!")
+                    .hasSizeGreaterThan(4)
+            }
+
         sandbox(this, Consumer {
             val taskFactory = classLoader.createTypedTaskFactory()
             val updateExampleObject = taskFactory.create(UpdateExampleObject::class.java)

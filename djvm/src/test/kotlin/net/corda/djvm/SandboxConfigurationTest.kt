@@ -5,7 +5,7 @@ import net.corda.djvm.DummyJar.Companion.putDirectoryOf
 import net.corda.djvm.DummyJar.Companion.putUncompressedEntry
 import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.source.UserPathSource
-import org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -51,6 +51,15 @@ class SandboxConfigurationTest : TestBase(KOTLIN) {
             childConfiguration.preload()
 
             /**
+             * No `<clinit>` functions should have executed,
+             * so there should be nothing to reset either.
+             */
+            assertResetContextFor(this)
+                .withInternStrings { assertThat(it).isEmpty() }
+                .withResetMethodHandles { assertThat(it).isEmpty() }
+                .withHashCodeCount { assertThat(it).isZero() }
+
+            /**
              * Our [PreloadExample] class exists inside both the
              * configuration and its child configuration, each of
              * which has its own classloader. And we expect the
@@ -75,7 +84,10 @@ class SandboxConfigurationTest : TestBase(KOTLIN) {
         }
     }
 
-    class PreloadExample : Function<String, String> {
+    object PreloadExample : Function<String, String> {
+        @JvmField
+        var message: String = "Hello Sandbox!"
+
         override fun apply(input: String): String {
             throw IllegalArgumentException("Example says: '$input'")
         }

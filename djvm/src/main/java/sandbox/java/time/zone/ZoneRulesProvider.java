@@ -15,6 +15,7 @@ import sandbox.java.util.List;
 @SuppressWarnings({"unused", "WeakerAccess", "Convert2Lambda"})
 public abstract class ZoneRulesProvider extends sandbox.java.lang.Object {
     static {
+        // This is a dummy field that mirrors one in the actual class.
         final List<ZoneRulesProvider> loaded = new ArrayList<>();
 
         /*
@@ -24,6 +25,9 @@ public abstract class ZoneRulesProvider extends sandbox.java.lang.Object {
             public Object run() {
                 try (DataInputStream input = DJVM.loadSystemResource("tzdb.dat")) {
                     registerProvider(new TzdbZoneRulesProvider(input));
+
+                    // We expect to receive a reference to this field.
+                    // However, we do not use it.
                     loaded.clear();
                 } catch (Exception ex) {
                     Throwable t = DJVM.doCatch(ex);

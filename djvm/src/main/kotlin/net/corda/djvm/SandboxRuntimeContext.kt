@@ -56,6 +56,10 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
         }
     }
 
+    internal val currentResetView: ClassResetContext.View
+        @CordaInternal
+        get() = classResetContext.currentView
+
     private fun isStaticConstant(field: Field): Boolean {
         return (field.modifiers and ACC_STATIC_FINAL == ACC_STATIC_FINAL)
             && !field.type.isPrimitive

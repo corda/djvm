@@ -53,10 +53,20 @@ import java.security.PrivilegedExceptionAction
 private fun `djvm$reset`() {
     resourceCache.clear()
     sandboxedExceptions.clear()
+
+    /**
+     * The [String] class is immutable. Push these [String] constants
+     * back into the [SandboxRuntimeContext]'s cache of interned values.
+     */
     String.toDJVM("").intern()
     String.valueOf(true).intern()
     String.valueOf(false).intern()
-    System.lineSeparator.intern()
+    String.NEWLINE.intern()
+
+    /**
+     * The [ByteOrder] enum is also immutable, so ensure that its
+     * [String] values are also restored to the interned cache.
+     */
     ByteOrder.BIG_ENDIAN.toDJVMString().intern()
     ByteOrder.LITTLE_ENDIAN.toDJVMString().intern()
 }

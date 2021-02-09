@@ -315,6 +315,11 @@ abstract class TestBase(type: SandboxType) {
     }
 
     /**
+     * @return an [AssertResetContext] to test the current resettable phase.
+     */
+    fun assertResetContextFor(ctx: SandboxRuntimeContext) = AssertResetContext(ctx.currentResetView)
+
+    /**
      * Get a class reference from a class hierarchy based on [T].
      */
     inline fun <reified T> ClassHierarchy.get() = this[nameOf<T>()]!!

@@ -225,6 +225,9 @@ tasks.withType(Test).configureEach {
     systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
     systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 
+    // Allow MethodHandle.toString() to return useful information.
+    systemProperty 'java.lang.invoke.MethodHandle.DEBUG_NAMES', true
+
     // A security policy that allows known code-bases to do anything.
     systemProperty 'java.security.policy', "=${securityPolicy.toURI()}"
     systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir.toURI()
