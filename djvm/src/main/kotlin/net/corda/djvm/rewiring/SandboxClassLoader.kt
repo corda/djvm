@@ -172,7 +172,7 @@ class SandboxClassLoader private constructor(
         NoSuchMethodException::class
     )
     private fun createBasicTask(taskName: String): Function<in Any?, out Any?> {
-        val taskClass = loadClass(taskName)
+        val taskClass = Class.forName(taskName, false, this)
         @Suppress("unchecked_cast")
         val task = try {
             doPrivileged(PrivilegedExceptionAction { taskClass.getDeclaredConstructor() })
@@ -248,8 +248,8 @@ class SandboxClassLoader private constructor(
         NoSuchMethodException::class
     )
     private fun createTaskFactory(taskName: String): Function<in Any, out Function<in Any?, out Any?>> {
-        val taskClass = loadClass(taskName)
-        val functionClass = loadClass("sandbox.java.util.function.Function")
+        val taskClass = Class.forName(taskName, false, this)
+        val functionClass = Class.forName("sandbox.java.util.function.Function", false, this)
         val constructor = try {
             doPrivileged(PrivilegedExceptionAction {
                 @Suppress("unchecked_cast")
@@ -308,7 +308,7 @@ class SandboxClassLoader private constructor(
         NoSuchMethodException::class
     )
     fun <T> createForImport(task: Function<in T, out Any?>): Function<in T, out Any?> {
-        val taskClass = loadClass("sandbox.ImportTask")
+        val taskClass = Class.forName("sandbox.ImportTask", false, this)
         @Suppress("unchecked_cast")
         return try {
             doPrivileged(PrivilegedExceptionAction { taskClass.getDeclaredConstructor(Function::class.java) })
@@ -341,7 +341,7 @@ class SandboxClassLoader private constructor(
     }
 
     private fun loadClassForSandbox(className: String): Class<*> {
-        return loadClass(resolveName(className))
+        return Class.forName(resolveName(className), false, this)
     }
 
     @Throws(ClassNotFoundException::class)
@@ -528,7 +528,7 @@ class SandboxClassLoader private constructor(
         // Try to define the transformed class.
         val clazz: Class<*> = try {
             when {
-                classResolver.isWhitelistedClass(sourceName.asResourcePath) -> supportingClassLoader.loadClass(sourceName)
+                classResolver.isWhitelistedClass(sourceName.asResourcePath) -> Class.forName(sourceName, false, supportingClassLoader)
                 else -> defineClass(resolvedName, byteCode)
             }
         } catch (exception: SecurityException) {

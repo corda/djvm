@@ -59,6 +59,6 @@ public final class DJVMClassLoader {
 
     @NotNull
     public static Class<?> loadClass(@NotNull ClassLoader classLoader, String className) throws ClassNotFoundException {
-        return classLoader.loadClass(DJVM.toSandbox(className));
+        return Class.forName(DJVM.toSandbox(className), false, classLoader);
     }
 }

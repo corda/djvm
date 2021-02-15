@@ -29,7 +29,7 @@ class SandboxObjectTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                Class<?> sandboxParentClass = classLoader.loadClass("sandbox.java.lang.Object");
+                Class<?> sandboxParentClass = Class.forName("sandbox.java.lang.Object", false, classLoader);
                 Class<?> sandboxClass = classLoader.toSandboxClass(BaseObject.class);
                 assertAll(
                     () -> assertEquals("sandbox.com.example.testing.BaseObject", sandboxClass.getName()),
@@ -54,7 +54,7 @@ class SandboxObjectTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                Class<?> sandboxParentClass = classLoader.loadClass("sandbox.java.lang.Object");
+                Class<?> sandboxParentClass = Class.forName("sandbox.java.lang.Object", false, classLoader);
                 Class<?> sandboxClass = classLoader.toSandboxClass(GenericObject.class);
                 assertAll(
                     () -> assertEquals("sandbox.com.example.testing.GenericObject", sandboxClass.getName()),
@@ -79,7 +79,7 @@ class SandboxObjectTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                Class<?> sandboxParentClass = classLoader.loadClass("sandbox.com.example.testing.GenericObject");
+                Class<?> sandboxParentClass = Class.forName("sandbox.com.example.testing.GenericObject", false, classLoader);
                 Class<?> sandboxClass = classLoader.toSandboxClass(ConcreteObject.class);
                 assertAll(
                     () -> assertEquals("sandbox.com.example.testing.ConcreteObject", sandboxClass.getName()),

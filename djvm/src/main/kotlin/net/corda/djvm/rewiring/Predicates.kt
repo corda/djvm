@@ -20,8 +20,8 @@ import java.util.function.Predicate
     NoSuchMethodException::class
 )
 fun SandboxClassLoader.createRawPredicateFactory(): Function<in Any, out Predicate<in Any?>> {
-    val taskClass = loadClass("sandbox.PredicateTask")
-    val predicateClass = loadClass("sandbox.java.util.function.Predicate")
+    val taskClass = Class.forName("sandbox.PredicateTask", false, this)
+    val predicateClass = Class.forName("sandbox.java.util.function.Predicate", false, this)
     val constructor = try {
         doPrivileged(PrivilegedExceptionAction {
             @Suppress("unchecked_cast")
