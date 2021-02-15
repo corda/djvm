@@ -85,12 +85,20 @@ class ClassMutator(
     private inner class ClassInitVisitor(api: Int, mv: MethodVisitor, private val mappedName: String)
         : MethodBodyCopier(api, mv, initializationCode)
     {
-        override fun visitCode() {
-            super.visitCode()
-            EmitterModuleImpl(mv, configuration).apply {
-                registerResetMethod(mappedName, getCurrentClass().isInterface)
-                isResetRegistered = true
+        /**
+         * We need to register the reset method at the very end of
+         * the `<clinit>` method to ensure that the sandbox classes
+         * are reset in the same order that they were originally
+         * initialised in.
+         */
+        override fun visitInsn(opcode: Int) {
+            if (opcode == RETURN) {
+                EmitterModuleImpl(mv, configuration).apply {
+                    registerResetMethod(mappedName, getCurrentClass().isInterface)
+                    isResetRegistered = true
+                }
             }
+            super.visitInsn(opcode)
         }
     }
 

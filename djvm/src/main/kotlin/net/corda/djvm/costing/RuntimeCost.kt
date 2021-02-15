@@ -1,6 +1,7 @@
 package net.corda.djvm.costing
 
 import net.corda.djvm.utilities.loggerFor
+import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Function
 
 /**
@@ -71,12 +72,25 @@ class RuntimeCost(
      */
     fun increment() = increment(1L)
 
-    private companion object {
+    companion object {
         /**
          * A set of threads to which cost accounting will be disabled.
          */
-        private val filteredThreads: List<Thread> = emptyList()
+        private val filteredThreads: MutableSet<Thread> = ConcurrentHashMap.newKeySet()
 
         private val logger = loggerFor<RuntimeCost>()
+
+        fun uncosted(action: Runnable) {
+            val currentThread = Thread.currentThread()
+            if (filteredThreads.add(currentThread)) {
+                try {
+                    action.run()
+                } finally {
+                    filteredThreads.remove(currentThread)
+                }
+            } else {
+                throw IllegalStateException("Thread ${currentThread.name} is already running an uncosted operation")
+            }
+        }
     }
 }

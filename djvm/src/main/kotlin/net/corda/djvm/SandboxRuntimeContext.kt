@@ -1,5 +1,6 @@
 package net.corda.djvm
 
+import net.corda.djvm.costing.RuntimeCost.Companion.uncosted
 import net.corda.djvm.costing.RuntimeCostSummary
 import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.rewiring.SandboxClassLoader
@@ -44,7 +45,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
         try {
             doPrivileged(PrivilegedExceptionAction {
                 if (classLoader.contains(clazz)) {
-                    val finalFields = clazz.declaredFields.filter(::isStaticConstant)
+                    val finalFields = clazz.declaredFields.filter(::isStaticFinal)
                     for (field in finalFields) {
                         field.isAccessible = true
                     }
@@ -60,7 +61,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
         @CordaInternal
         get() = classResetContext.currentView
 
-    private fun isStaticConstant(field: Field): Boolean {
+    private fun isStaticFinal(field: Field): Boolean {
         return (field.modifiers and ACC_STATIC_FINAL == ACC_STATIC_FINAL)
             && !field.type.isPrimitive
             && field.type.name != "sandbox.java.lang.String"
@@ -84,7 +85,7 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
     fun use(action: Consumer<SandboxRuntimeContext>) {
         instance = this
         try {
-            classResetContext.reset()
+            uncosted(Runnable(classResetContext::reset))
             action.accept(this)
         } finally {
             threadLocalContext.remove()

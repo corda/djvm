@@ -7,6 +7,7 @@ import net.corda.djvm.rewiring.SandboxClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -47,19 +48,23 @@ class ResetObjectHashCodesTest extends TestBase {
                 }
             };
 
+            AtomicLong invocationCost = new AtomicLong();
+            AtomicLong allocationCost = new AtomicLong();
+
             /*
              * Execute the operation twice. No hash
              * codes are being persisted statically.
              */
             sandbox(context, operation.andThen(ctx ->
                 assertThat(ctx.getRuntimeCosts())
-                    .hasAllocationCost(0)
-                    .hasInvocationCost(9)
+                    .withAllocationCost(allocationCost::set)
+                    .withInvocationCost(invocationCost::set)
+                    .withInvocationCost(cost -> assertThat(cost).isPositive())
             ));
             sandbox(context, operation.andThen(ctx ->
                 assertThat(ctx.getRuntimeCosts())
-                    .hasAllocationCost(0)
-                    .hasInvocationCost(9)
+                    .hasAllocationCost(allocationCost.get())
+                    .hasInvocationCost(invocationCost.get())
             ));
         });
     }
@@ -91,19 +96,23 @@ class ResetObjectHashCodesTest extends TestBase {
                 }
             };
 
+            AtomicLong invocationCost = new AtomicLong();
+            AtomicLong allocationCost = new AtomicLong();
+
             /*
              * Execute the operation twice. No hash
              * codes are being persisted statically.
              */
             sandbox(context, operation.andThen(ctx ->
                 assertThat(ctx.getRuntimeCosts())
-                    .hasAllocationCost(0)
-                    .hasInvocationCost(9)
+                    .withAllocationCost(allocationCost::set)
+                    .withInvocationCost(invocationCost::set)
+                    .withInvocationCost(cost -> assertThat(cost).isPositive())
             ));
             sandbox(context, operation.andThen(ctx ->
                 assertThat(ctx.getRuntimeCosts())
-                    .hasAllocationCost(0)
-                    .hasInvocationCost(9)
+                    .hasAllocationCost(allocationCost.get())
+                    .hasInvocationCost(invocationCost.get())
             ));
             sandbox(context, operation.andThen(ctx ->
                 assertResetContextFor(ctx)
@@ -141,7 +150,7 @@ class ResetObjectHashCodesTest extends TestBase {
             };
 
             /*
-             * Execute the operation twice. The GetStaticHashCode
+             * Execute the operation. The GetStaticHashCode
              * class retains a static hash code, which should
              * survive resetting the sandbox.
              */
@@ -150,15 +159,33 @@ class ResetObjectHashCodesTest extends TestBase {
                     .withHashCodeCount(count -> assertThat(count).isZero())
             );
 
+            AtomicLong createInvocationCost = new AtomicLong();
+
+            // Execute the operation for the first time.
+            // This is likely to be the most expensive.
             sandbox(context, operation.andThen(ctx ->
                 assertThat(ctx.getRuntimeCosts())
+                    .withInvocationCost(createInvocationCost::set)
                     .hasAllocationCost(0)
                     .hasInvocationCost(14)
             ));
+
+            AtomicLong resetInvocationCost = new AtomicLong();
+            AtomicLong resetAllocationCost = new AtomicLong();
+
             sandbox(context, operation.andThen(ctx ->
                 assertThat(ctx.getRuntimeCosts())
-                    .hasAllocationCost(0)
-                    .hasInvocationCost(14)
+                    .withAllocationCost(resetAllocationCost::set)
+                    .withInvocationCost(resetInvocationCost::set)
+                    .withInvocationCost(cost ->
+                        assertThat(cost)
+                            .isLessThanOrEqualTo(createInvocationCost.get())
+                            .isPositive())
+            ));
+            sandbox(context, operation.andThen(ctx ->
+                assertThat(ctx.getRuntimeCosts())
+                    .hasAllocationCost(resetAllocationCost.get())
+                    .hasInvocationCost(resetInvocationCost.get())
             ));
 
             sandbox(context, ctx ->

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -41,15 +42,38 @@ class JavaResetRuntimeContextTest extends TestBase {
                 }
             };
 
+            AtomicLong createInvocationCost = new AtomicLong();
+            AtomicLong createAllocationCost = new AtomicLong();
+
+            // The first execution creates the sandbox.
+            // We expect these costs to be higher.
             sandbox(context, operation.andThen(ctx -> {
                 RuntimeCostSummary costs = ctx.getRuntimeCosts();
+                createAllocationCost.set(costs.getAllocationCost().getValue());
+                createInvocationCost.set(costs.getInvocationCost().getValue());
                 assertEquals(0, costs.getAllocationCost().getValue());
                 assertEquals(14, costs.getInvocationCost().getValue());
             }));
+
+            AtomicLong resetInvocationCost = new AtomicLong();
+            AtomicLong resetAllocationCost = new AtomicLong();
+
+            // Resetting and re-executing the sandbox is likely to be cheaper
+            // than recreating it from scratch.
             sandbox(context, operation.andThen(ctx -> {
                 RuntimeCostSummary costs = ctx.getRuntimeCosts();
-                assertEquals(0, costs.getAllocationCost().getValue());
-                assertEquals(14, costs.getInvocationCost().getValue());
+                assertThat(costs.getInvocationCost().getValue()).isPositive();
+                resetAllocationCost.set(costs.getAllocationCost().getValue());
+                resetInvocationCost.set(costs.getInvocationCost().getValue());
+            }));
+            sandbox(context, operation.andThen(ctx -> {
+                RuntimeCostSummary costs = ctx.getRuntimeCosts();
+                assertThat(costs.getAllocationCost().getValue())
+                    .isLessThanOrEqualTo(createAllocationCost.get())
+                    .isEqualTo(resetAllocationCost.get());
+                assertThat(costs.getInvocationCost().getValue())
+                    .isLessThanOrEqualTo(createInvocationCost.get())
+                    .isEqualTo(resetInvocationCost.get());
             }));
         });
     }
