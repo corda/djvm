@@ -154,7 +154,7 @@ abstract class ClassCommand : CommandBase() {
 
     private fun lookUpClass(className: String): Class<*> {
         return try {
-            classLoader.loadClass(className)
+            Class.forName(className, false, classLoader)
         } catch (exception: NoClassDefFoundError) {
             val reference = exception.message?.let {
                 "referenced class ${classModule.getFormattedClassName(it)} in "

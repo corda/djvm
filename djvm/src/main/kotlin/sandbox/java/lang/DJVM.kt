@@ -761,7 +761,7 @@ fun getBundle(baseName: String, locale: Locale, control: ResourceBundle.Control)
 private fun loadResourceBundle(control: ResourceBundle.Control, key: DJVMResourceKey): ResourceBundle {
     val bundleName = control.toBundleName(key.baseName, key.locale)
     val bundle = try {
-        val bundleClass = systemClassLoader.loadClass(toSandbox(bundleName.toString()))
+        val bundleClass = Class.forName(toSandbox(bundleName.toString()), false, systemClassLoader)
         if (ResourceBundle::class.java.isAssignableFrom(bundleClass)) {
             (bundleClass.getDeclaredConstructor().newInstance() as ResourceBundle).also {
                 it.init(key.baseName, key.locale)
