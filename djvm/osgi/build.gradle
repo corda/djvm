@@ -4,10 +4,7 @@ import aQute.bnd.gradle.TestOSGi
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
-    id 'net.corda.plugins.publish-utils'
-    id 'net.corda.plugins.api-scanner'
     id 'biz.aQute.bnd.builder'
-    id 'com.jfrog.artifactory'
     id 'java-library'
     id 'idea'
 }
@@ -134,8 +131,4 @@ tasks.named('check') {
 
 artifacts {
     archives testBundle
-}
-
-publish {
-    name = jar.flatMap { it.archiveBaseName }
 }
