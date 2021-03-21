@@ -1,7 +1,8 @@
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import static org.gradle.api.JavaVersion.*
+import static org.gradle.api.JavaVersion.VERSION_1_8
+import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import net.corda.plugins.apiscanner.GenerateApi
 
@@ -20,15 +21,22 @@ subprojects {
     group 'net.corda.djvm'
     version corda_djvm_version
 
-    repositories {
-        mavenCentral()
+    pluginManager.withPlugin('java') {
+        java {
+            toolchain {
+                // Compile using JDK8 by default.
+                languageVersion = of(8)
+            }
+        }
+
+        tasks.withType(JavaCompile).configureEach {
+            options.encoding = 'UTF-8'
+            options.compilerArgs << '-XDenableSunApiLintControl' << '-Werror'
+        }
     }
 
-    tasks.withType(JavaCompile).configureEach {
-        sourceCompatibility = VERSION_1_8
-        targetCompatibility = VERSION_1_8
-        options.encoding = 'UTF-8'
-        options.compilerArgs << '-XDenableSunApiLintControl' << '-Werror'
+    repositories {
+        mavenCentral()
     }
 
     tasks.withType(KotlinCompile).configureEach {
@@ -48,6 +56,10 @@ subprojects {
     }
 
     tasks.withType(Test).configureEach {
+        javaLauncher = javaToolchains.launcherFor {
+            // Test using JDK11 by default.
+            languageVersion = of(11)
+        }
         useJUnitPlatform()
 
         // Prevent the project from creating temporary files outside of the build directory.
@@ -59,12 +71,9 @@ subprojects {
         // Choose which garbage-collector to use.
         jvmArgs '-XX:+UseG1GC'
 
-        // Corda serialization needs reflective access to these packages.
-        if (current().java9Compatible) {
-            jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED',
-                    '--add-opens', 'java.base/java.time=ALL-UNNAMED',
-                    '--illegal-access=warn'
-        }
+        // DJVM needs reflective access to these packages.
+        jvmArgs '--add-opens', 'java.base/java.time=ALL-UNNAMED',
+                '--illegal-access=warn'
     }
 
     tasks.withType(GenerateModuleMetadata).configureEach {

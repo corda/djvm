@@ -1,4 +1,4 @@
-import static org.gradle.api.JavaVersion.*
+import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 import aQute.bnd.gradle.Bundle
 
 plugins {
@@ -23,17 +23,6 @@ repositories {
     }
 }
 
-if (current().java9Compatible) {
-    sourceSets {
-        // Exclude test classes which cannot be compiled for Java > 8.
-        test {
-            java {
-                exclude 'net/corda/djvm/execution/DatatypeConverterTest.java'
-            }
-        }
-    }
-}
-
 configurations {
     jdkRt
     sandboxTesting
@@ -54,6 +43,8 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+
+    testImplementation "javax.xml.bind:jaxb-api:$jaxb_api_version"
 
     // ClassGraph: classpath scanning
     testImplementation "io.github.classgraph:classgraph:$class_graph_version"
@@ -214,15 +205,13 @@ tasks.withType(Test).configureEach {
     systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI()
     systemProperty 'test.project.uri', projectDir.toURI()
 
-    if (current().java9Compatible) {
-        // https://openjdk.java.net/jeps/165
-        jvmArgs '-XX:+UnlockDiagnosticVMOptions',
-                "-XX:CompilerDirectivesFile=$rootDir/compiler-control.json"
-    } else {
-        // Disable JIT compilation of sandbox.* classes because they are discarded after use.
-        // https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
-        jvmArgs '-XX:CompileCommand=quiet', '-XX:CompileCommand=exclude,sandbox/*.*'
-    }
+    // https://openjdk.java.net/jeps/165
+    jvmArgs '-XX:+UnlockDiagnosticVMOptions',
+            "-XX:CompilerDirectivesFile=$rootDir/compiler-control.json"
+
+    // Java 8: Disable JIT compilation of sandbox.* classes because they are discarded after use.
+    // https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
+    // jvmArgs '-XX:CompileCommand=quiet', '-XX:CompileCommand=exclude,sandbox/*.*'
 }
 
 artifacts {

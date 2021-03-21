@@ -87,4 +87,7 @@ tasks.withType(Test).configureEach {
     systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir.toURI()
     systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI()
     systemProperty 'test.project.uri', projectDir.toURI()
+
+    // Corda serialization needs reflective access to these packages.
+    jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED'
 }

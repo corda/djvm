@@ -1,6 +1,7 @@
 import aQute.bnd.gradle.Bundle
 import aQute.bnd.gradle.Resolve
 import aQute.bnd.gradle.TestOSGi
+import static org.gradle.api.JavaVersion.current
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
@@ -54,7 +55,6 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
     testRuntimeOnly "org.apache.felix:org.apache.felix.framework:$felix_version"
     testRuntimeOnly "org.apache.felix:org.apache.felix.scr:$felix_scr_version"
-    testRuntimeOnly "org.osgi:org.osgi.service.cm:$osgi_cm_version"
     testRuntimeOnly "org.osgi:org.osgi.util.function:$osgi_util_function_version"
     testRuntimeOnly "org.osgi:org.osgi.util.promise:$osgi_util_promise_version"
 
@@ -84,9 +84,16 @@ ext {
     sandboxJars = provider {
         configurations.sandboxTesting.asPath
     }
+
+    jvmArgs = provider {
+        (current().java9Compatible ? [
+          '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
+          '--add-opens', 'java.base/java.net=ALL-UNNAMED'
+        ] : []).join(',')
+    }
 }
 
-def jar = tasks.named('jar', Jar) {
+tasks.named('jar', Jar) {
     archiveBaseName = 'corda-djvm-osgi'
 
     bnd """
