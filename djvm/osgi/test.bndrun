@@ -3,6 +3,7 @@
 -tester: biz.aQute.tester.junit-platform
 
 -runee: JavaSE-1.8
+-runvm: ${project.jvmArgs}
 -runfw: org.apache.felix.framework
 -resolve.effective: active
 -runpath: \
@@ -44,7 +45,7 @@
 	junit-platform-launcher;version='[1.7.1,1.7.2)',\
 	net.corda.djvm;version='[1.2.0,1.2.1)',\
 	net.corda.djvm.osgi.testing;version='[1.2.0,1.2.1)',\
-	org.apache.felix.configadmin;version='[1.9.18,1.9.19)',\
+	org.apache.felix.configadmin;version='[1.9.20,1.9.21)',\
 	org.apache.felix.log;version='[1.2.2,1.2.3)',\
 	org.apache.felix.logback;version='[1.0.2,1.0.3)',\
 	org.opentest4j;version='[1.2.0,1.2.1)',\
