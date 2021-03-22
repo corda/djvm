@@ -46,7 +46,7 @@
 	net.corda.djvm;version='[1.2.0,1.2.1)',\
 	net.corda.djvm.osgi.testing;version='[1.2.0,1.2.1)',\
 	org.apache.felix.configadmin;version='[1.9.20,1.9.21)',\
-	org.apache.felix.log;version='[1.2.2,1.2.3)',\
+	org.apache.felix.log;version='[1.2.4,1.2.5)',\
 	org.apache.felix.logback;version='[1.0.2,1.0.3)',\
 	org.opentest4j;version='[1.2.0,1.2.1)',\
 	slf4j.api;version='[1.7.30,1.7.31)'

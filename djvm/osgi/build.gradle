@@ -54,7 +54,6 @@ dependencies {
     testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junit_platform_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
     testRuntimeOnly "org.apache.felix:org.apache.felix.framework:$felix_version"
-    testRuntimeOnly "org.apache.felix:org.apache.felix.scr:$felix_scr_version"
     testRuntimeOnly "org.osgi:org.osgi.util.function:$osgi_util_function_version"
     testRuntimeOnly "org.osgi:org.osgi.util.promise:$osgi_util_promise_version"
 
@@ -86,20 +85,20 @@ ext {
     }
 
     jvmArgs = provider {
-        (current().java9Compatible ? [
+        current().java9Compatible ? [
           '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
           '--add-opens', 'java.base/java.net=ALL-UNNAMED'
-        ] : []).join(',')
+        ].join(',') : ''
     }
 }
 
 tasks.named('jar', Jar) {
     archiveBaseName = 'corda-djvm-osgi'
 
-    bnd """
+    bnd '''\
 Bundle-Name: DJVM extensions for OSGi.
 Bundle-SymbolicName: net.corda.djvm.osgi
-"""
+'''
 }
 
 def testBundle = tasks.register('testBundle', Bundle) {
@@ -107,10 +106,10 @@ def testBundle = tasks.register('testBundle', Bundle) {
     from sourceSets.test.output
     sourceSet = sourceSets.test
 
-    bnd """
+    bnd '''\
 Bundle-SymbolicName: net.corda.djvm.osgi.testing
 Test-Cases: \${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons.annotation.Testable;CONCRETE}
-"""
+'''
 }
 
 def resolve = tasks.register('resolve', Resolve) {
@@ -133,7 +132,7 @@ tasks.named('test', Test) {
 }
 
 tasks.named('check') {
-    dependsOn resolve, testOSGi
+    dependsOn testOSGi
 }
 
 artifacts {
