@@ -28,21 +28,21 @@ subprojects {
                 languageVersion = of(8)
             }
         }
-
-        tasks.withType(JavaCompile).configureEach {
-            options.encoding = 'UTF-8'
-            options.compilerArgs << '-XDenableSunApiLintControl' << '-Werror'
-        }
     }
 
     repositories {
         mavenCentral()
     }
 
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.compilerArgs << '-XDenableSunApiLintControl' << '-Werror'
+    }
+
     tasks.withType(KotlinCompile).configureEach {
         kotlinOptions {
-            languageVersion = '1.2'
             apiVersion = '1.2'
+            languageVersion = '1.2'
             jvmTarget = VERSION_1_8
             freeCompilerArgs = ['-Xjvm-default=enable']
             allWarningsAsErrors = true
