@@ -3,6 +3,7 @@ package sandbox.java.lang.reflect;
 import org.jetbrains.annotations.NotNull;
 import sandbox.java.lang.System;
 
+import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +25,16 @@ public final class DJVM {
         return hashCodes.computeIfAbsent(
             jvmHashCode, hash -> ++reflectionCounter + REFLECTION_HASH_OFFSET
         );
+    }
+
+    @SuppressWarnings("unused")
+    private static void reset() {
+        reflectionCounter = 0;
+        hashCodes.clear();
+    }
+
+    static {
+        sandbox.java.lang.DJVM.forReset(MethodHandles.lookup(), "reset");
     }
 
     public static <T> Constructor<T> toDJVM(java.lang.reflect.Constructor<T> constructor) {

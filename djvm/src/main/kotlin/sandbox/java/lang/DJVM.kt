@@ -6,6 +6,7 @@ import net.corda.djvm.SandboxRuntimeContext
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_ANNOTATIONS
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_EXCEPTIONS
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSynthetic
+import net.corda.djvm.code.impl.CLASS_RESET_NAME
 import net.corda.djvm.rewiring.SandboxClassLoader
 import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
@@ -23,6 +24,10 @@ import sandbox.java.util.Properties
 import sandbox.java.util.ResourceBundle
 import sandbox.java.util.UUID
 import java.io.IOException
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodHandles.Lookup
+import java.lang.invoke.MethodType
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Array.newInstance
 import java.lang.reflect.Constructor
@@ -37,6 +42,35 @@ import java.security.AccessController
 import java.security.PrivilegedAction
 import java.security.PrivilegedActionException
 import java.security.PrivilegedExceptionAction
+
+/**
+ * Register this class's reset method to flush any static data.
+ * We will preserve [systemClassLoader] and [sandboxThrowable]
+ * because these do not change.
+ */
+@Suppress("FunctionName")
+@JvmSynthetic
+private fun `djvm$reset`() {
+    resourceCache.clear()
+    sandboxedExceptions.clear()
+
+    /**
+     * The [String] class is immutable. Push these [String] constants
+     * back into the [SandboxRuntimeContext]'s cache of interned values.
+     */
+    String.toDJVM("").intern()
+    String.valueOf(true).intern()
+    String.valueOf(false).intern()
+    String.NEWLINE.intern()
+
+    /**
+     * The [ByteOrder] enum is also immutable, so ensure that its
+     * [String] values are also restored to the interned cache.
+     */
+    ByteOrder.BIG_ENDIAN.toDJVMString().intern()
+    ByteOrder.LITTLE_ENDIAN.toDJVMString().intern()
+}
+private val registration = forReset(MethodHandles.lookup(), CLASS_RESET_NAME)
 
 private const val SANDBOX_PREFIX = "sandbox."
 private val OBJECT_ARRAY = "^(\\[++L)([^;]++);\$".toRegex()
@@ -277,6 +311,22 @@ fun failApi(message: kotlin.String): Error {
 }
 
 internal fun unsandbox(name: kotlin.String) = name.removePrefix(SANDBOX_PREFIX)
+
+/**
+ * Add this generated class to the list of those that will
+ * need to be reset before this classloader can be reused.
+ */
+fun forReset(clazz: Class<*>, resetter: MethodHandle) {
+    SandboxRuntimeContext.instance.addToReset(clazz, resetter)
+}
+
+/**
+ * Add a hand-written class to the reset list.
+ */
+fun forReset(lookup: Lookup, resetMethod: kotlin.String) {
+    val voidType = MethodType.methodType(Void::class.javaPrimitiveType)
+    SandboxRuntimeContext.instance.addToReset(lookup.findStatic(lookup.lookupClass(), resetMethod, voidType))
+}
 
 /**
  * Use [Class.forName] so that we can also fetch classes for array types.

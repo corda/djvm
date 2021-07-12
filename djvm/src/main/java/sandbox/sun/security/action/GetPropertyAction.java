@@ -7,11 +7,18 @@ import sandbox.java.security.PrivilegedAction;
 import sandbox.java.util.LinkedHashMap;
 import sandbox.java.util.Map;
 
-@SuppressWarnings("unused")
+import java.lang.invoke.MethodHandles;
+
 public class GetPropertyAction extends sandbox.java.lang.Object implements PrivilegedAction<String> {
 
     private static Map<String, String> systemValues;
+
     static {
+        DJVM.forReset(MethodHandles.lookup(), "reset");
+        reset();
+    }
+
+    private static void reset() {
         systemValues = new LinkedHashMap<>();
         systemValues.put(DJVM.intern("file.encoding"), DJVM.intern("UTF-8"));
         systemValues.put(DJVM.intern("user.language"), DJVM.intern("en"));
@@ -29,6 +36,7 @@ public class GetPropertyAction extends sandbox.java.lang.Object implements Privi
         this.defaultValue = defaultValue;
     }
 
+    @SuppressWarnings("unused")
     public GetPropertyAction(String name) {
         this(name, null);
     }

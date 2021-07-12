@@ -42,7 +42,7 @@ interface EmitterContext {
     /**
      * Utilities for dealing with members.
      */
-    @Suppress("unused")
+    @get:Suppress("unused")
     val memberModule: MemberModule
 
     /**

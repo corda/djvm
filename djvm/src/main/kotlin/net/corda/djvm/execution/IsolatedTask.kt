@@ -15,9 +15,11 @@ import kotlin.concurrent.thread
  * Container for running a task in an isolated environment.
  */
 class IsolatedTask(
-        private val identifier: String,
-        private val configuration: SandboxConfiguration
+    private val identifier: String,
+    private val context: SandboxRuntimeContext
 ) {
+    constructor(identifier: String, configuration: SandboxConfiguration)
+        : this(identifier, SandboxRuntimeContext(configuration))
 
     /**
      * Run an action in an isolated environment.
@@ -29,7 +31,7 @@ class IsolatedTask(
         var exception: Throwable? = null
         thread(start = false, isDaemon = true, name = threadName) {
             logger.trace("Entering isolated runtime environment...")
-            SandboxRuntimeContext(configuration).use(Consumer { ctx ->
+            context.use(Consumer { ctx ->
                 output = try {
                     action.apply(ctx.classLoader)
                 } finally {

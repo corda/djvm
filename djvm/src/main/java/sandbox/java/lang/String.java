@@ -23,17 +23,26 @@ public final class String extends Object implements Comparable<String>, CharSequ
         }
     }
 
+    private static final String EMPTY = new String().intern();
     private static final String TRUE = new String("true").intern();
     private static final String FALSE = new String("false").intern();
-    private static final String EMPTY = new String().intern();
 
-    private static final Constructor SHARED = AccessController.doPrivileged(new InitAction());
+    /**
+     * This underlies {@link System#lineSeparator} and is stored here so that
+     * the {@link DJVM} class can restore it to the cache of interned strings
+     * when we reset the {@link SandboxRuntimeContext}.
+     */
+    static final String NEWLINE = new String("\n").intern();
 
-    private static class InitAction implements PrivilegedAction<Constructor> {
+    private static final Constructor<?> SHARED = AccessController.doPrivileged(new InitAction());
+
+    private static final class InitAction implements PrivilegedAction<Constructor<?>> {
+        @SuppressWarnings("JavaReflectionMemberAccess")
         @Override
-        public Constructor run() {
-            Constructor ctor;
+        public Constructor<?> run() {
+            Constructor<?> ctor;
             try {
+                // This constructor may not exist for Java 9+.
                 ctor = java.lang.String.class.getDeclaredConstructor(char[].class, boolean.class);
                 ctor.setAccessible(true);
             } catch (NoSuchMethodException e) {

@@ -5,6 +5,7 @@ import net.corda.djvm.analysis.SourceLocation
 import net.corda.djvm.messages.Message
 import net.corda.djvm.messages.MessageCollection
 import java.util.function.Consumer
+import java.util.function.Predicate
 
 /**
  * Utility for processing a set of entries in a list matching a particular type.
@@ -15,11 +16,11 @@ import java.util.function.Consumer
  * any [Message] that might get raised.
  */
 inline fun <reified T> processEntriesOfType(
-    list: List<*>,
+    list: List<T>,
     messages: MessageCollection,
     processor: Consumer<T>
 ) {
-    for (item in list.filterIsInstance<T>()) {
+    for (item in list) {
         try {
             processor.accept(item)
         } catch (exception: Throwable) {

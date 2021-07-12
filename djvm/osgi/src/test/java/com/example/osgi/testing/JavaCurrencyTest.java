@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaCurrencyTest extends TestBase {
     private static final Logger LOG = LoggerFactory.getLogger(JavaCurrencyTest.class);
+    private static final String GET_CURRENCY = "com.example.testing.GetCurrency";
 
     @ParameterizedTest
     @CsvSource({
@@ -22,7 +23,7 @@ class JavaCurrencyTest extends TestBase {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                Object[] result = WithJava.run(classLoader, "com.example.testing.GetCurrency", currencyCode);
+                Object[] result = WithJava.run(classLoader, GET_CURRENCY, currencyCode);
                 assertThat(result).isEqualTo(new Object[]{displayName, symbol, fractionDigits});
             } catch(Exception e) {
                 LOG.error("Failed", e);

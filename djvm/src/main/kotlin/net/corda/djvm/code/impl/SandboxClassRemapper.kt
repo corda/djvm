@@ -12,12 +12,13 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.TypePath
 import org.objectweb.asm.commons.ClassRemapper
+import org.objectweb.asm.commons.Remapper
 import java.util.function.Consumer
 import java.util.function.Function
 
 class SandboxClassRemapper(
     classNonMapper: ClassVisitor,
-    remapper: SandboxRemapper,
+    remapper: Remapper,
     private val configuration: AnalysisConfiguration
 ) : ClassRemapper(API_VERSION, classNonMapper, remapper) {
 

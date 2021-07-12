@@ -284,9 +284,9 @@ class SandboxStringTest extends TestBase {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 Object[] results = WithJava.run(taskFactory, ToStringTask.class, inputs);
                 assertThat(results).containsExactlyInAnyOrder(
-                    "sandbox.java.lang.Object@fedc0e0",
-                    "sandbox.java.lang.Object@fedc0e1",
-                    "sandbox.java.lang.Object@fedc0e2",
+                    "sandbox.java.lang.Object@fedc0dc",
+                    "sandbox.java.lang.Object@fedc0db",
+                    "sandbox.java.lang.Object@fedc0da",
                     HELLO_WORLD,
                     uuid.toString()
                 );

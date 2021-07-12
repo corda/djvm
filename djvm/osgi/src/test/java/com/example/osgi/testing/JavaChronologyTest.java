@@ -10,13 +10,14 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 class JavaChronologyTest extends TestBase {
     private static final Logger LOG = LoggerFactory.getLogger(JavaChronologyTest.class);
+    private static final String GET_CHRONOLOGY_NAMES = "com.example.testing.GetChronologyNames";
 
     @Test
     void testChronologyNames() {
         sandbox(ctx -> {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
-                String[] chronologies = WithJava.run(classLoader, "com.example.testing.GetChronologyNames", null);
+                String[] chronologies = WithJava.run(classLoader, GET_CHRONOLOGY_NAMES, null);
                 assertThat(chronologies).contains(
                     "Hijrah-umalqura",
                     "ISO",

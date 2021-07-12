@@ -72,7 +72,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     fun `can load and execute code that overrides object hash code`() = sandbox {
         val taskFactory = classLoader.createTypedTaskFactory()
         val result = taskFactory.create(TestObjectHashCode::class.java).apply(0)
-        assertThat(result).isEqualTo(0xfed_c0de + 2)
+        assertThat(result).isEqualTo(0xfed_c0de - 2)
     }
 
     class TestObjectHashCode : Function<Int, Int> {
@@ -89,7 +89,7 @@ class SandboxExecutorTest : TestBase(KOTLIN) {
     fun `can load and execute code that overrides object hash code when derived`() = sandbox {
         val taskFactory = classLoader.createTypedTaskFactory()
         val result = taskFactory.create(TestObjectHashCodeWithHierarchy::class.java).apply(0)
-        assertThat(result).isEqualTo(0xfed_c0de + 1)
+        assertThat(result).isEqualTo(0xfed_c0de - 1)
     }
 
     class TestObjectHashCodeWithHierarchy : Function<Int, Int> {

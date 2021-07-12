@@ -19,7 +19,7 @@ plugins {
     id 'com.gradle.enterprise'
 }
 
-rootProject.name = "deterministic-jvm-sandbox"
+rootProject.name = 'deterministic-jvm-sandbox'
 
 include 'djvm'
 include 'djvm:cli'

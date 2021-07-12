@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sandbox.java.lang.annotation.Annotation;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -43,6 +44,16 @@ final class DJVMAnnotationHandler implements InvocationHandler {
         return hashCodes.computeIfAbsent(
             jvmHashCode, hash -> ++annotationCounter + ANNOTATION_HASH_OFFSET
         );
+    }
+
+    @SuppressWarnings("unused")
+    private static void reset() {
+        hashCodes.clear();
+        annotationCounter = 0;
+    }
+
+    static {
+        DJVM.forReset(MethodHandles.lookup(), "reset");
     }
 
     /**

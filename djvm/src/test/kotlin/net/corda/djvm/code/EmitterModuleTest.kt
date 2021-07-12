@@ -11,6 +11,7 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.NEW
 import org.objectweb.asm.Type
+import org.objectweb.asm.commons.Remapper
 
 class EmitterModuleTest : TestBase(KOTLIN) {
 
@@ -41,6 +42,7 @@ class EmitterModuleTest : TestBase(KOTLIN) {
         val context = context
         val mutator = ClassMutator(
             classVisitor = visitor,
+            remapper = object : Remapper() {},
             configuration = configuration,
             definitionProviders = emptyList(),
             emitters = listOf(emitter)

@@ -20,18 +20,23 @@ import org.assertj.core.api.ThrowableAssertAlternative
  */
 object AssertionExtensions {
 
+    @JvmStatic
     fun assertThat(loadedClass: LoadedClass) =
             AssertiveClassWithByteCode(loadedClass)
 
+    @JvmStatic
     fun assertThat(costs: RuntimeCostSummary) =
             AssertiveRuntimeCostSummary(costs)
 
+    @JvmStatic
     fun assertThat(messages: MessageCollection) =
             AssertiveMessages(messages)
 
+    @JvmStatic
     fun assertThat(hierarchy: ClassHierarchy) =
             AssertiveClassHierarchy(hierarchy)
 
+    @JvmStatic
     fun assertThat(references: ReferenceMap) =
             AssertiveReferenceMap(references)
 
