@@ -8,6 +8,7 @@ plugins {
     id 'net.corda.plugins.publish-utils'
     id 'net.corda.plugins.api-scanner'
     id 'com.jfrog.artifactory'
+    id 'org.jetbrains.dokka'
     id 'java-library'
     id 'idea'
 }
@@ -93,6 +94,23 @@ tasks.named('sourceJar', Jar) {
 
 tasks.named('javadoc', Javadoc) {
     exclude 'sandbox/**'
+}
+
+def dokkaHtml = tasks.named('dokkaHtml', org.jetbrains.dokka.gradle.DokkaTask) {
+    dokkaSourceSets {
+        main {
+            perPackageOption {
+                matchingRegex.set('sandbox\\..*')
+                suppress.set(true)
+            }
+        }
+    }
+}
+
+pluginManager.withPlugin('net.corda.plugins.publish-utils') {
+    tasks.named('javadocJar', Jar) {
+        from dokkaHtml.flatMap { it.outputDirectory }
+    }
 }
 
 def shadowJar = tasks.named('shadowJar', Jar) {
