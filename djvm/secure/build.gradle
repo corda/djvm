@@ -22,8 +22,13 @@ repositories {
 }
 
 configurations {
-    jdkRt
-    sandboxTesting
+    jdkRt {
+        canBeConsumed = false
+    }
+
+    sandboxTesting {
+        canBeConsumed = false
+    }
 
     all {
         resolutionStrategy {
