@@ -142,6 +142,6 @@ tasks.register('generateApi', GenerateApi) {
 }
 
 wrapper {
-    gradleVersion = '6.7.1'
-    distributionType = Wrapper.DistributionType.ALL
+    gradleVersion = '6.9.1'
+    distributionType = Wrapper.DistributionType.BIN
 }
