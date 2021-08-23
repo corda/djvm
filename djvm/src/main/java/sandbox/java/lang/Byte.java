@@ -9,7 +9,7 @@ public final class Byte extends Number implements Comparable<Byte> {
     public static final int BYTES = java.lang.Byte.BYTES;
     public static final int SIZE = java.lang.Byte.SIZE;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static final Class<Byte> TYPE = (Class) java.lang.Byte.TYPE;
 
     private final byte value;

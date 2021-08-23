@@ -11,7 +11,7 @@ public final class Character extends Object implements Comparable<Character>, Se
     public static final char MIN_VALUE = java.lang.Character.MIN_VALUE;
     public static final char MAX_VALUE = java.lang.Character.MAX_VALUE;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static final Class<Character> TYPE = (Class) java.lang.Character.TYPE;
 
     public static final byte UNASSIGNED = java.lang.Character.UNASSIGNED;
@@ -126,7 +126,7 @@ public final class Character extends Object implements Comparable<Character>, Se
     }
 
     public static Character valueOf(char c) {
-        return (c <= 127) ? Cache.cache[(int)c] : new Character(c);
+        return (c <= 127) ? Cache.cache[c] : new Character(c);
     }
 
     public static boolean isValidCodePoint(int codePoint) {

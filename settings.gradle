@@ -11,8 +11,8 @@ pluginManagement {
         id 'com.github.johnrengelman.shadow' version shadow_plugin_version
         id 'biz.aQute.bnd.builder' version bnd_plugin_version
         id 'com.jfrog.artifactory' version artifactory_plugin_version
-        id 'org.owasp.dependencycheck' version '5.3.2.1'
-        id 'com.gradle.enterprise' version '3.6'
+        id 'org.owasp.dependencycheck' version '6.2.2'
+        id 'com.gradle.enterprise' version '3.6.4'
     }
 }
 

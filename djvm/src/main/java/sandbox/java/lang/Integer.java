@@ -1,6 +1,7 @@
 package sandbox.java.lang;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class Integer extends Number implements Comparable<Integer> {
@@ -12,7 +13,7 @@ public final class Integer extends Number implements Comparable<Integer> {
 
     static final int[] SIZE_TABLE = new int[] { 9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999, MAX_VALUE };
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static final Class<Integer> TYPE = (Class) java.lang.Integer.TYPE;
 
     private final int value;
@@ -138,10 +139,26 @@ public final class Integer extends Number implements Comparable<Integer> {
         return toDJVM(java.lang.Integer.valueOf(String.fromDJVM(s)));
     }
 
+    @NotNull
     public static Integer valueOf(int i) {
         return new Integer(i);
     }
 
+    @Nullable
+    public static Integer getInteger(String propertyName) {
+        return null;
+    }
+
+    @NotNull
+    public static Integer getInteger(String propertyName, int defaultValue) {
+        return valueOf(defaultValue);
+    }
+
+    public static Integer getInteger(String propertyName, Integer defaultValue) {
+        return defaultValue;
+    }
+
+    @NotNull
     public static Integer decode(String nm) throws NumberFormatException {
         return new Integer(java.lang.Integer.decode(String.fromDJVM(nm)));
     }

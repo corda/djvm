@@ -4,6 +4,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'com.github.johnrengelman.shadow'
     id 'net.corda.plugins.publish-utils'
+    id 'org.owasp.dependencycheck'
     id 'com.jfrog.artifactory'
 }
 

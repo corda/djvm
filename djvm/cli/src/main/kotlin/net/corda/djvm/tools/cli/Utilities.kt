@@ -92,7 +92,7 @@ val userClassPath: String = System.getProperty("java.class.path")
  */
 inline fun <reified T> find(scanSpec: String): List<Class<*>> {
     return ClassGraph()
-        .whitelistPaths(scanSpec)
+        .acceptPaths(scanSpec)
         .enableAllInfo()
         .scan()
         .use { it.getClassesImplementing(T::class.java.name).loadClasses(T::class.java) }

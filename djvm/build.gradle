@@ -7,6 +7,7 @@ plugins {
     id 'biz.aQute.bnd.builder' apply false
     id 'net.corda.plugins.publish-utils'
     id 'net.corda.plugins.api-scanner'
+    id 'org.owasp.dependencycheck'
     id 'com.jfrog.artifactory'
     id 'org.jetbrains.dokka'
     id 'java-library'
@@ -249,17 +250,19 @@ Import-Package: \
 def securityPolicy = file('permissive.policy')
 
 tasks.withType(Test).configureEach {
-    systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
-    systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
+    doFirst {
+        systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
+        systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 
-    // Allow MethodHandle.toString() to return useful information.
-    systemProperty 'java.lang.invoke.MethodHandle.DEBUG_NAMES', true
+        // Allow MethodHandle.toString() to return useful information.
+        systemProperty 'java.lang.invoke.MethodHandle.DEBUG_NAMES', true
 
-    // A security policy that allows known code-bases to do anything.
-    systemProperty 'java.security.policy', "=${securityPolicy.toURI()}"
-    systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir.toURI()
-    systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI()
-    systemProperty 'test.project.uri', projectDir.toURI()
+        // A security policy that allows known code-bases to do anything.
+        systemProperty 'java.security.policy', "=${securityPolicy.toURI()}"
+        systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir.toURI()
+        systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI()
+        systemProperty 'test.project.uri', projectDir.toURI()
+    }
 
     classpath = files(sourceSets.java9.output, classpath)
 

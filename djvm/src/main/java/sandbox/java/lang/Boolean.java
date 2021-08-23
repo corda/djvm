@@ -10,7 +10,7 @@ public final class Boolean extends Object implements Comparable<Boolean>, Serial
     public static final Boolean TRUE = new Boolean(true);
     public static final Boolean FALSE = new Boolean(false);
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static final Class<Boolean> TYPE = (Class) java.lang.Boolean.TYPE;
 
     private final boolean value;
@@ -64,6 +64,10 @@ public final class Boolean extends Object implements Comparable<Boolean>, Serial
 
     public static int compare(boolean x, boolean y) {
         return java.lang.Boolean.compare(x, y);
+    }
+
+    public static boolean getBoolean(String s) {
+        return false;
     }
 
     public static boolean parseBoolean(String s) {

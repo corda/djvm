@@ -15,7 +15,7 @@ public final class Double extends Number implements Comparable<Double> {
     public static final int BYTES = java.lang.Double.BYTES;
     public static final int SIZE = java.lang.Double.SIZE;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static final Class<Double> TYPE = (Class) java.lang.Double.TYPE;
 
     private final double value;

@@ -11,7 +11,6 @@ plugins {
     id 'net.corda.plugins.api-scanner' apply false
     id 'net.corda.plugins.publish-utils'
     id 'com.jfrog.artifactory'
-    id 'org.owasp.dependencycheck'
     id 'base'
 }
 
@@ -62,11 +61,13 @@ subprojects {
         }
         useJUnitPlatform()
 
-        // Prevent the project from creating temporary files outside of the build directory.
-        systemProperty 'java.io.tmpdir', buildDir.absolutePath
+        doFirst {
+            // Prevent the project from creating temporary files outside of the build directory.
+            systemProperty 'java.io.tmpdir', buildDir.absolutePath
 
-        // Configure the host timezone to match the DJVM's.
-        systemProperty 'user.timezone', 'UTC'
+            // Configure the host timezone to match the DJVM's.
+            systemProperty 'user.timezone', 'UTC'
+        }
 
         // Choose which garbage-collector to use.
         jvmArgs '-XX:+UseG1GC'

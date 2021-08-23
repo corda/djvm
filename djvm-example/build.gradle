@@ -83,7 +83,6 @@ dependencies {
     implementation "net.corda:corda-serialization:$corda_version"
 
     testImplementation "com.r3.corda.lib.tokens:tokens-workflows:$corda_tokens_version"
-    testImplementation "com.r3.corda.lib.tokens:tokens-money:$corda_tokens_version"
     testImplementation "net.corda:corda-serialization-djvm:$corda_version"
     testImplementation "net.corda:corda-core-test-utils:$corda_version"
     testImplementation "net.corda.djvm:corda-djvm:$djvm_version"
@@ -96,7 +95,9 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
 
-    sandboxTesting sourceSets.main.runtimeClasspath
+    sandboxTesting files(sourceSets.main.runtimeClasspath) {
+        builtBy tasks.named('classes')
+    }
     sandboxTesting "net.corda:corda-deserializers-djvm:$corda_version"
     sandboxTesting "org.slf4j:slf4j-nop:$slf4j_version"
 }
@@ -133,8 +134,11 @@ def djvmProject = gradle.includedBuilds.find { it.name == 'deterministic-jvm-san
 
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
-    systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
-    systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
+
+    doFirst {
+        systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
+        systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
+    }
 
     // The DJVM and Corda serialization need reflective access to these packages.
     if (current().java9Compatible) {

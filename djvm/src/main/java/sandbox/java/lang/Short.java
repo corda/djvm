@@ -9,7 +9,7 @@ public final class Short extends Number implements Comparable<Short> {
     public static final int BYTES = java.lang.Short.BYTES;
     public static final int SIZE = java.lang.Short.SIZE;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static final Class<Short> TYPE = (Class) java.lang.Short.TYPE;
 
     private final short value;

@@ -1,6 +1,7 @@
 package sandbox.java.lang;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public final class Long extends Number implements Comparable<Long> {
@@ -10,7 +11,7 @@ public final class Long extends Number implements Comparable<Long> {
     public static final int BYTES = java.lang.Long.BYTES;
     public static final int SIZE = java.lang.Long.SIZE;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static final Class<Long> TYPE = (Class) java.lang.Long.TYPE;
 
     private final long value;
@@ -140,8 +141,23 @@ public final class Long extends Number implements Comparable<Long> {
         return toDJVM(java.lang.Long.valueOf(String.fromDJVM(s)));
     }
 
+    @NotNull
     public static Long valueOf(long l) {
         return new Long(l);
+    }
+
+    @Nullable
+    public static Long getLong(String propertyName) {
+        return null;
+    }
+
+    @NotNull
+    public static Long getLong(String propertyName, long defaultValue) {
+        return valueOf(defaultValue);
+    }
+
+    public static Long getLong(String propertyName, Long defaultValue) {
+        return defaultValue;
     }
 
     public static Long decode(String s) throws NumberFormatException {
