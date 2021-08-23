@@ -209,5 +209,5 @@ publishing {
 }
 
 tasks.register('install') {
-    dependsOn publishToMavenLocal
+    dependsOn 'publishToMavenLocal'
 }

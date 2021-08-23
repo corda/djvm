@@ -2,6 +2,8 @@ import aQute.bnd.gradle.Bundle
 import aQute.bnd.gradle.Resolve
 import aQute.bnd.gradle.TestOSGi
 import static org.gradle.api.JavaVersion.current
+import static org.gradle.api.attributes.LibraryElements.JAR
+import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
@@ -11,8 +13,6 @@ plugins {
 }
 
 description 'OSGi extensions for DJVM'
-
-evaluationDependsOn(':djvm:secure')
 
 repositories {
     maven {
@@ -24,10 +24,20 @@ repositories {
 }
 
 configurations {
-    jdkRt
-    sandboxTesting
+    jdkRt {
+        canBeConsumed = false
+    }
+
+    sandboxTesting {
+        canBeConsumed = false
+
+        attributes {
+            attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, JAR))
+        }
+    }
 
     kotlinJar {
+        canBeConsumed = false
         transitive = false
     }
 
@@ -117,12 +127,8 @@ def resolve = tasks.register('resolve', Resolve) {
     bndrun = 'test.bndrun'
 }
 
-// Use test cases from this project, as we're only really
-// interested in the DJVM's behaviour under OSGi here.
-def secureJar = project(':djvm:secure').tasks.named('jar', Jar)
-
 def testOSGi = tasks.register('testOSGi', TestOSGi) {
-    dependsOn resolve, secureJar
+    dependsOn resolve, configurations.sandboxTesting.buildDependencies,
     bundles = files(sourceSets.test.runtimeClasspath, configurations.archives.artifacts.files)
     bndrun = 'test.bndrun'
 }
