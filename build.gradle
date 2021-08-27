@@ -9,7 +9,6 @@ import net.corda.plugins.apiscanner.GenerateApi
 plugins {
     id 'org.jetbrains.kotlin.jvm' apply false
     id 'net.corda.plugins.api-scanner' apply false
-    id 'net.corda.plugins.publish-utils'
     id 'com.jfrog.artifactory'
     id 'base'
 }
@@ -77,36 +76,6 @@ subprojects {
                 '--add-opens', 'java.base/java.time=ALL-UNNAMED',
                 '--illegal-access=warn'
     }
-
-    tasks.withType(GenerateModuleMetadata).configureEach {
-        enabled = false
-    }
-}
-
-bintrayConfig {
-    user = System.getenv('CORDA_BINTRAY_USER')
-    key = System.getenv('CORDA_BINTRAY_KEY')
-    repo = 'corda'
-    org = 'r3'
-    licenses = ['GPLv2+CE']
-    vcsUrl = 'https://github.com/corda/djvm'
-    projectUrl = 'https://github.com/corda/djvm'
-    gpgSign = true
-    gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
-    publications = [
-        'corda-djvm',
-        'corda-djvm-cli'
-    ]
-    license {
-        name = 'GPLv2+CE'
-        url = 'https://openjdk.java.net/legal/gplv2+ce.html'
-        distribution = 'repo'
-    }
-    developer {
-        id = 'R3'
-        name = 'R3'
-        email = 'dev@corda.net'
-    }
 }
 
 artifactory {
@@ -127,13 +96,6 @@ artifactory {
             repoKey = 'corda-dependencies-dev'
             username = credentials.getProperty('artifactory.username', System.getenv('CORDA_ARTIFACTORY_USERNAME'))
             password = credentials.getProperty('artifactory.apikey', System.getenv('CORDA_ARTIFACTORY_APIKEY'))
-        }
-
-        defaults {
-            // The root project has applied 'publish-utils' but has nothing to publish.
-            if (project != rootProject) {
-                publications(project.extensions.publish.name())
-            }
         }
     }
 }

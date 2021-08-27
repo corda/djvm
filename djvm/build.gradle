@@ -5,16 +5,19 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'com.github.johnrengelman.shadow'
     id 'biz.aQute.bnd.builder' apply false
-    id 'net.corda.plugins.publish-utils'
     id 'net.corda.plugins.api-scanner'
     id 'org.owasp.dependencycheck'
     id 'com.jfrog.artifactory'
     id 'org.jetbrains.dokka'
-    id 'java-library'
+    id 'djvm-publish'
     id 'idea'
 }
 
 description 'Corda deterministic JVM sandbox'
+
+java {
+    withSourcesJar()
+}
 
 repositories {
     maven {
@@ -50,7 +53,9 @@ configurations {
         canBeConsumed = false
     }
 
-    bundles
+    bundles {
+        canBeResolved = false
+    }
     shadow.extendsFrom bundles
     testImplementation.extendsFrom shadow
 }
@@ -96,31 +101,6 @@ dependencies {
 
 tasks.named('jar', Jar) {
     enabled = false
-}
-
-tasks.named('sourceJar', Jar) {
-    exclude 'sandbox/**'
-}
-
-tasks.named('javadoc', Javadoc) {
-    exclude 'sandbox/**'
-}
-
-def dokkaHtml = tasks.named('dokkaHtml', org.jetbrains.dokka.gradle.DokkaTask) {
-    dokkaSourceSets {
-        main {
-            perPackageOption {
-                matchingRegex.set('sandbox\\..*')
-                suppress.set(true)
-            }
-        }
-    }
-}
-
-pluginManager.withPlugin('net.corda.plugins.publish-utils') {
-    tasks.named('javadocJar', Jar) {
-        from dokkaHtml.flatMap { it.outputDirectory }
-    }
 }
 
 def shadowJar = tasks.named('shadowJar', Jar) {
@@ -278,7 +258,6 @@ tasks.withType(Test).configureEach {
 artifacts {
     archives bundle
     bundles bundle
-    publish bundle
 }
 
 scanApi {
@@ -288,11 +267,45 @@ scanApi {
     ]
 }
 
-publish {
-    dependenciesFrom(configurations.bundles) {
-        defaultScope = 'compile'
+def sourcesJar = tasks.named('sourcesJar', Jar) {
+    exclude 'sandbox/**'
+}
+
+tasks.named('javadoc', Javadoc) {
+    exclude 'sandbox/**'
+}
+
+def dokkaHtml = tasks.named('dokkaHtml', org.jetbrains.dokka.gradle.DokkaTask) {
+    dokkaSourceSets {
+        main {
+            perPackageOption {
+                matchingRegex.set('sandbox\\..*')
+                suppress.set(true)
+            }
+        }
     }
-    name = bundle.flatMap { it.archiveBaseName }
+}
+
+def javadocJar = tasks.register('javadocJar', Jar) {
+    from dokkaHtml.flatMap { it.outputDirectory }
+    archiveClassifier = 'javadoc'
+}
+
+publishing {
+    publications {
+        djvm(MavenPublication) {
+            artifactId 'corda-djvm'
+            artifact bundle
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml(new MavenDependencies(configurations, configurations.bundles))
+        }
+    }
+}
+
+artifactoryPublish {
+    publications('djvm')
 }
 
 idea {

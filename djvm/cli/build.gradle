@@ -3,9 +3,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'com.github.johnrengelman.shadow'
-    id 'net.corda.plugins.publish-utils'
     id 'org.owasp.dependencycheck'
     id 'com.jfrog.artifactory'
+    id 'djvm-publish'
 }
 
 description 'Corda deterministic JVM sandbox command-line tool'
@@ -69,12 +69,21 @@ def shadowZip = tasks.register('shadowZip', Zip) {
 
 artifacts {
     archives shadowZip
-    publish shadowZip
 }
 
-publish {
-    dependenciesFrom configurations.shadow
-    publishSources = false
-    publishJavadoc = false
-    name = shadowZip.flatMap { it.archiveBaseName }
+publishing {
+    publications {
+        djvmCli(MavenPublication) {
+            artifactId djvmName
+            artifact shadowZip
+
+            pom {
+                name = 'DJVM Command Line Tool'
+            }
+        }
+    }
+}
+
+artifactoryPublish {
+    publications('djvmCli')
 }
