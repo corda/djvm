@@ -76,7 +76,9 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
 
-    sandboxTesting sourceSets.main.runtimeClasspath
+    sandboxTesting files(sourceSets.main.runtimeClasspath) {
+        builtBy tasks.named('classes')
+    }
     sandboxTesting "net.corda:corda-deserializers-djvm:$corda_version"
     sandboxTesting "org.slf4j:slf4j-nop:$slf4j_version"
 }
@@ -84,14 +86,16 @@ dependencies {
 def securityPolicy = file('targeted.policy')
 
 tasks.withType(Test).configureEach {
-    systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
-    systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
+    doFirst {
+        systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
+        systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
 
-    // A security policy that grants no privileges to user code.
-    systemProperty 'java.security.policy', "=${securityPolicy.toURI()}"
-    systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir.toURI()
-    systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI()
-    systemProperty 'test.project.uri', projectDir.toURI()
+        // A security policy that grants no privileges to user code.
+        systemProperty 'java.security.policy', "=${securityPolicy.toURI()}"
+        systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir.toURI()
+        systemProperty 'test.gradle.home', gradle.gradleHomeDir.toURI()
+        systemProperty 'test.project.uri', projectDir.toURI()
+    }
 
     // Corda serialization needs reflective access to these packages.
     jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED'

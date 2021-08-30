@@ -15,7 +15,7 @@ public final class Float extends Number implements Comparable<Float> {
     public static final int BYTES = java.lang.Float.BYTES;
     public static final int SIZE = java.lang.Float.SIZE;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static final Class<Float> TYPE = (Class) java.lang.Float.TYPE;
 
     private final float value;

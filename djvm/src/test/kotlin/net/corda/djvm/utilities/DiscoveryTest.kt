@@ -24,11 +24,11 @@ class DiscoveryTest {
      */
     private inline fun <reified T> find(): List<Class<T>> {
         return ClassGraph()
-                .whitelistPaths("net/corda/djvm")
-                .enableAllInfo()
-                .scan()
-                .use { it.getClassesImplementing(T::class.java.name).loadClasses(T::class.java) }
-                .filter { it.modifiers and FORBIDDEN_CLASS_MASK == 0 }
+            .acceptPaths("net/corda/djvm")
+            .enableAllInfo()
+            .scan()
+            .use { it.getClassesImplementing(T::class.java.name).loadClasses(T::class.java) }
+            .filter { it.modifiers and FORBIDDEN_CLASS_MASK == 0 }
     }
 
     @Test

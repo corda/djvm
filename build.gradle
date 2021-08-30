@@ -9,9 +9,7 @@ import net.corda.plugins.apiscanner.GenerateApi
 plugins {
     id 'org.jetbrains.kotlin.jvm' apply false
     id 'net.corda.plugins.api-scanner' apply false
-    id 'net.corda.plugins.publish-utils'
     id 'com.jfrog.artifactory'
-    id 'org.owasp.dependencycheck'
     id 'base'
 }
 
@@ -62,11 +60,13 @@ subprojects {
         }
         useJUnitPlatform()
 
-        // Prevent the project from creating temporary files outside of the build directory.
-        systemProperty 'java.io.tmpdir', buildDir.absolutePath
+        doFirst {
+            // Prevent the project from creating temporary files outside of the build directory.
+            systemProperty 'java.io.tmpdir', buildDir.absolutePath
 
-        // Configure the host timezone to match the DJVM's.
-        systemProperty 'user.timezone', 'UTC'
+            // Configure the host timezone to match the DJVM's.
+            systemProperty 'user.timezone', 'UTC'
+        }
 
         // Choose which garbage-collector to use.
         jvmArgs '-XX:+UseG1GC'
@@ -75,36 +75,6 @@ subprojects {
         jvmArgs '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
                 '--add-opens', 'java.base/java.time=ALL-UNNAMED',
                 '--illegal-access=warn'
-    }
-
-    tasks.withType(GenerateModuleMetadata).configureEach {
-        enabled = false
-    }
-}
-
-bintrayConfig {
-    user = System.getenv('CORDA_BINTRAY_USER')
-    key = System.getenv('CORDA_BINTRAY_KEY')
-    repo = 'corda'
-    org = 'r3'
-    licenses = ['GPLv2+CE']
-    vcsUrl = 'https://github.com/corda/djvm'
-    projectUrl = 'https://github.com/corda/djvm'
-    gpgSign = true
-    gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
-    publications = [
-        'corda-djvm',
-        'corda-djvm-cli'
-    ]
-    license {
-        name = 'GPLv2+CE'
-        url = 'https://openjdk.java.net/legal/gplv2+ce.html'
-        distribution = 'repo'
-    }
-    developer {
-        id = 'R3'
-        name = 'R3'
-        email = 'dev@corda.net'
     }
 }
 
@@ -127,13 +97,6 @@ artifactory {
             username = credentials.getProperty('artifactory.username', System.getenv('CORDA_ARTIFACTORY_USERNAME'))
             password = credentials.getProperty('artifactory.apikey', System.getenv('CORDA_ARTIFACTORY_APIKEY'))
         }
-
-        defaults {
-            // The root project has applied 'publish-utils' but has nothing to publish.
-            if (project != rootProject) {
-                publications(project.extensions.publish.name())
-            }
-        }
     }
 }
 
@@ -142,6 +105,6 @@ tasks.register('generateApi', GenerateApi) {
 }
 
 wrapper {
-    gradleVersion = '6.7.1'
-    distributionType = Wrapper.DistributionType.ALL
+    gradleVersion = '6.9.1'
+    distributionType = Wrapper.DistributionType.BIN
 }
