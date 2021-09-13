@@ -268,6 +268,7 @@ scanApi {
 }
 
 def sourcesJar = tasks.named('sourcesJar', Jar) {
+    archiveBaseName = bundle.flatMap { it.archiveBaseName }
     exclude 'sandbox/**'
 }
 
@@ -288,6 +289,7 @@ def dokkaHtml = tasks.named('dokkaHtml', org.jetbrains.dokka.gradle.DokkaTask) {
 
 def javadocJar = tasks.register('javadocJar', Jar) {
     from dokkaHtml.flatMap { it.outputDirectory }
+    archiveBaseName = bundle.flatMap { it.archiveBaseName }
     archiveClassifier = 'javadoc'
 }
 
