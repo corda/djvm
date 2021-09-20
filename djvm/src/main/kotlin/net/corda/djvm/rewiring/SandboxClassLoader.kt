@@ -85,7 +85,9 @@ class SandboxClassLoader private constructor(
             checkPermission(RuntimePermission("closeClassLoader"))
         }
         (parentClassLoader as? SandboxClassLoader)?.close()
-        byteCodeCache.update(loadedByteCode)
+        if (!externalCaching) {
+            byteCodeCache.update(loadedByteCode)
+        }
     }
 
     /**

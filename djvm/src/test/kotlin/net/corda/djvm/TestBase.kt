@@ -17,9 +17,11 @@ import net.corda.djvm.messages.Severity
 import net.corda.djvm.messages.Severity.INFORMATIONAL
 import net.corda.djvm.messages.Severity.WARNING
 import net.corda.djvm.references.ClassHierarchy
+import net.corda.djvm.rewiring.ByteCode
 import net.corda.djvm.rewiring.ExternalCache
 import net.corda.djvm.rewiring.LoadedClass
 import net.corda.djvm.rewiring.flushAll
+import net.corda.djvm.rewiring.updateWith
 import net.corda.djvm.rules.Rule
 import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.ClassSource
@@ -138,6 +140,10 @@ abstract class TestBase(type: SandboxType) {
 
     fun flushInternalCache() {
         parentConfiguration.byteCodeCache.flushAll()
+    }
+
+    fun updateInternalCache(entries: Map<String, ByteCode>) {
+        parentConfiguration.byteCodeCache.updateWith(entries)
     }
 
     /**

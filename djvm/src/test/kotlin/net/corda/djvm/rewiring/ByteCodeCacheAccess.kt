@@ -13,3 +13,5 @@ fun ByteCodeCache.flushAll() {
         cache = cache.parent ?: break
     } while (true)
 }
+
+fun ByteCodeCache.updateWith(entries: Map<String, ByteCode>) = update(entries)
