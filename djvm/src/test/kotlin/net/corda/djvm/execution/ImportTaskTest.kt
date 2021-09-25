@@ -28,13 +28,12 @@ class ImportTaskTest : TestBase(KOTLIN) {
         val createStream = classLoader.createForImport(
             CreateInputStream().andThen(classLoader.createBasicInput())
         )
-        val pipelineTask = taskFactory.apply(createStream)
-            .andThen(taskFactory.apply(readStream))
+        val pipelineTask = createStream.andThen(taskFactory.apply(readStream))
         val result = pipelineTask.apply(MESSAGE) ?: fail("Result is missing!")
         assertEquals("sandbox.java.lang.String", result::class.java.name)
         assertEquals(MESSAGE, result.toString())
 
-        // And check that we're handling nulls correctly too.
+        // And check that we're handling nulls correctly too.
         assertNull(pipelineTask.apply(null), "Pipeline does not handle null correctly.")
     }
 
@@ -57,8 +56,7 @@ class ImportTaskTest : TestBase(KOTLIN) {
         val importTask = classLoader.createForImport(
             ShowFailingInputStream().andThen(classLoader.createBasicInput())
         )
-        val sandboxTask = classLoader.createRawTaskFactory().apply(importTask)
-        val ex = assertThrows<RuntimeException> { sandboxTask.apply(MESSAGE.byteInputStream()) }
+        val ex = assertThrows<RuntimeException> { importTask.apply(MESSAGE.byteInputStream()) }
         assertThat(ex)
             .isExactlyInstanceOf(RuntimeException::class.java)
             .hasMessage("java.io.NotSerializableException -> Corrupt stream!")

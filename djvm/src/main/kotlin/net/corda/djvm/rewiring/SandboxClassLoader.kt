@@ -35,6 +35,7 @@ import java.util.Enumeration
 import java.util.LinkedList
 import java.util.concurrent.ConcurrentMap
 import java.util.function.Function
+import java.util.function.Supplier
 
 /**
  * Class loader that enables registration of rewired classes.
@@ -315,6 +316,27 @@ class SandboxClassLoader private constructor(
         } catch (e: PrivilegedActionException) {
             throw e.cause ?: e
         }.newInstance(task) as Function<in T, out Any?>
+    }
+
+    /**
+     * Wraps an instance of [Supplier] inside a task that implements
+     * both [Supplier] and [sandbox.java.util.function.Supplier].
+     */
+    @Throws(
+        ClassNotFoundException::class,
+        IllegalAccessException::class,
+        InstantiationException::class,
+        InvocationTargetException::class,
+        NoSuchMethodException::class
+    )
+    fun createForImport(task: Supplier<out Any?>): Supplier<out Any?> {
+        val taskClass = Class.forName("sandbox.ImportSupplierTask", false, this)
+        @Suppress("unchecked_cast")
+        return try {
+            doPrivileged(PrivilegedExceptionAction { taskClass.getDeclaredConstructor(Supplier::class.java) })
+        } catch (e: PrivilegedActionException) {
+            throw e.cause ?: e
+        }.newInstance(task) as Supplier<out Any?>
     }
 
     /**

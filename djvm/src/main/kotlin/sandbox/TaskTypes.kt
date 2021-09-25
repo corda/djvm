@@ -12,9 +12,11 @@ import java.util.Collections.unmodifiableSet
 
 import java.util.function.Function
 import java.util.function.Predicate
+import java.util.function.Supplier
 
 typealias SandboxFunction<INPUT, OUTPUT> = sandbox.java.util.function.Function<INPUT, OUTPUT>
 typealias SandboxPredicate<INPUT> = sandbox.java.util.function.Predicate<INPUT>
+typealias SandboxSupplier<OUTPUT> = sandbox.java.util.function.Supplier<OUTPUT>
 
 fun isEntryPoint(elt: StackTraceElement): Boolean {
     return elt.methodName == "apply" && isTaskClass(elt.className)
@@ -35,7 +37,7 @@ private fun isTaskClass(className: String): Boolean {
 
 class Task(private val function: SandboxFunction<in Any?, out Any?>?) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
-     * This function runs inside the sandbox. It marshalls the input
+     * This [function] runs inside the sandbox. It marshalls the [input]
      * object to its sandboxed equivalent, executes the user's code
      * and then marshalls the result out again.
      *
@@ -52,10 +54,10 @@ class Task(private val function: SandboxFunction<in Any?, out Any?>?) : SandboxF
     }
 }
 
-class RawTask(private val function: SandboxFunction<Any?, Any?>?) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
+class RawTask(private val function: SandboxFunction<in Any?, out Any?>?) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
-     * This function runs inside the sandbox, and performs NO marshalling
-     * of the input and output objects. This must be done by the caller.
+     * This [function] runs inside the sandbox, and performs NO marshalling
+     * of the [input] and output objects. This must be done by the caller.
      */
     override fun apply(input: Any?): Any? {
         return try {
@@ -88,7 +90,7 @@ class BasicOutput : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     }
 }
 
-class ImportTask(private val function: Function<Any?, Any?>) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
+class ImportTask(private val function: Function<in Any?, out Any?>) : SandboxFunction<Any?, Any?>, Function<Any?, Any?> {
     /**
      * This allows [function] to be executed inside the sandbox.
      * !!! USE WITH EXTREME CARE !!!
@@ -105,10 +107,27 @@ class ImportTask(private val function: Function<Any?, Any?>) : SandboxFunction<A
     }
 }
 
-class PredicateTask(private val predicate: SandboxPredicate<Any?>) : SandboxPredicate<Any?>, Predicate<Any?> {
+class ImportSupplierTask(private val supplier: Supplier<out Any?>) : SandboxSupplier<Any?>, Supplier<Any?> {
     /**
-     * This predicate runs inside the sandbox, and performs NO marshalling
-     * of the input object. This must be done by the caller.
+     * This allows [supplier] to be executed inside the sandbox.
+     * !!! USE WITH EXTREME CARE !!!
+     */
+    override fun get(): Any? {
+        return try {
+            supplier.get()
+        } catch (e: Exception) {
+            throw e.toRuntimeException()
+        } catch (t: Throwable) {
+            checkCatch(t)
+            throw t.toRuleViolationError()
+        }
+    }
+}
+
+class PredicateTask(private val predicate: SandboxPredicate<in Any?>) : SandboxPredicate<Any?>, Predicate<Any?> {
+    /**
+     * This [predicate] runs inside the sandbox, and performs NO marshalling
+     * of the [input] object. This must be done by the caller.
      */
     override fun test(input: Any?): Boolean {
         return try {
