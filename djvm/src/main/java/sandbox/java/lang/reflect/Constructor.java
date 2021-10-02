@@ -3,10 +3,7 @@ package sandbox.java.lang.reflect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sandbox.java.lang.String;
-import sandbox.java.lang.Throwable;
 import sandbox.java.lang.annotation.Annotation;
-
-import java.lang.reflect.InvocationTargetException;
 
 @SuppressWarnings("unused")
 public final class Constructor<T> extends Executable {
@@ -128,11 +125,6 @@ public final class Constructor<T> extends Executable {
         throw sandbox.java.lang.DJVM.failApi(named("getAnnotatedReceiverType()"));
     }
 
-    @NotNull
-    public T newInstance(java.lang.Object... args) {
-        throw sandbox.java.lang.DJVM.failApi(named("newInstance(Object...)"));
-    }
-
     /**
      * We still need to invoke {@link java.lang.reflect.Constructor#newInstance}
      * occasionally.
@@ -142,13 +134,9 @@ public final class Constructor<T> extends Executable {
      * @throws java.lang.Exception in case anything goes wrong
      */
     @NotNull
-    public T djvmInstance(java.lang.Object[] args) throws java.lang.Exception {
-        try {
-            return constructor.newInstance(args);
-        } catch (InvocationTargetException e) {
-            Throwable t = sandbox.java.lang.DJVM.doCatch(e);
-            throw (Exception) sandbox.java.lang.DJVM.fromDJVM(t);
-        }
+    public T newInstance(java.lang.Object... args) throws java.lang.Exception {
+        // Every exception thrown here is listed in [AnalysisConfiguration.JVM_EXCEPTIONS].
+        return constructor.newInstance(args);
     }
 
     @Override

@@ -121,7 +121,7 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
     }
 
     class FailingNewInstance : Function<String, String?> {
-        override fun apply(className: String): String? {
+        override fun apply(className: String): String {
             try {
                 /**
                  * [Class.newInstance] has been deprecated for Java 9+.
@@ -142,7 +142,7 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
     }
 
     class FailingConstructorNewInstance : Function<String, String?> {
-        override fun apply(className: String): String? {
+        override fun apply(className: String): String {
             try {
                 return newInstance(javaClass.classLoader.loadClass(className)).toString()
             } catch (e: InvocationTargetException) {
@@ -159,7 +159,7 @@ class NewInstanceFailureTest : TestBase(KOTLIN) {
     }
 
     class ConstructNewInstance : Function<String, String?> {
-        override fun apply(className: String): String? {
+        override fun apply(className: String): String {
             return newInstance(javaClass.classLoader.loadClass(className)).toString()
         }
     }

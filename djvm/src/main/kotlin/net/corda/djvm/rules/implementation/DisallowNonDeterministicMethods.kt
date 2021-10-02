@@ -21,25 +21,17 @@ import org.objectweb.asm.Opcodes.*
 object DisallowNonDeterministicMethods : Emitter {
 
     private val CLASSLOADING_METHODS = setOf("defineClass", "findClass")
-    private val NEW_INSTANCE_CLASSES = setOf(
-        "java/security/Provider\$Service",
-        "sun/security/x509/CertificateExtensions",
-        "sun/security/x509/CRLExtensions",
-        "sun/security/x509/OtherName"
-    )
 
     override fun emit(context: EmitterContext, instruction: Instruction) = context.emit {
-        val className = (context.member ?: return).className
         if (instruction is MemberAccessInstruction && instruction.isMethod) {
             when (instruction.operation) {
                 INVOKEVIRTUAL, INVOKESPECIAL ->
                     if (isObjectMonitor(instruction)) {
                         forbid(instruction)
                     } else {
-                        when (Enforcer(instruction).runFor(className)) {
+                        when (Enforcer(instruction).run()) {
                             Choice.FORBID -> forbid(instruction)
                             Choice.INIT_CLASSLOADER -> initClassLoader()
-                            Choice.NEW_INSTANCE -> djvmInstance(instruction)
                             else -> Unit
                         }
                     }
@@ -58,18 +50,12 @@ object DisallowNonDeterministicMethods : Emitter {
         preventDefault()
     }
 
-    private fun EmitterModuleImpl.djvmInstance(instruction: MemberAccessInstruction) {
-        invokeVirtual(instruction.className, "djvmInstance", instruction.descriptor)
-        preventDefault()
-    }
-
     private fun isObjectMonitor(instruction: MemberAccessInstruction): Boolean
         = isObjectMonitor(instruction.memberName, instruction.descriptor)
 
     private enum class Choice {
         FORBID,
         INIT_CLASSLOADER,
-        NEW_INSTANCE,
         PASS
     }
 
@@ -81,28 +67,18 @@ object DisallowNonDeterministicMethods : Emitter {
             && instruction.descriptor.contains("Ljava/lang/reflect/")
             && !isClassVirtualThunk(instruction.memberName)
 
-        private val isNewInstance: Boolean get() = instruction.className == "java/lang/reflect/Constructor"
-            && instruction.memberName == "newInstance"
+        fun run(): Choice = when {
+            isClassLoader && instruction.memberName == CONSTRUCTOR_NAME ->
+                if (instruction.descriptor == "()V") {
+                    Choice.INIT_CLASSLOADER
+                } else {
+                    Choice.FORBID
+                }
 
-        fun runFor(className: String): Choice = when {
-            isClassLoader && instruction.memberName == CONSTRUCTOR_NAME -> if (instruction.descriptor == "()V") {
-                Choice.INIT_CLASSLOADER
-            } else {
-                Choice.FORBID
-            }
-
-            // Are we allowed to invoke Constructor.newInstance()?
-            isNewInstance -> forbidNewInstance(className)
-
-            // Forbid reflection otherwise.
+            // Forbid any reflection on Class<*> we cannot handle.
             hasClassReflection -> Choice.FORBID
 
             else -> allowLoadClass()
-        }
-
-        private fun forbidNewInstance(className: String): Choice = when(className) {
-            in NEW_INSTANCE_CLASSES -> Choice.NEW_INSTANCE
-            else -> Choice.FORBID
         }
 
         private fun allowLoadClass(): Choice = when {

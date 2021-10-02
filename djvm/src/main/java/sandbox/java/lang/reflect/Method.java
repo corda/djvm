@@ -155,8 +155,9 @@ public final class Method extends Executable {
         throw sandbox.java.lang.DJVM.failApi(named("getAnnotatedReturnValue()"));
     }
 
-    public java.lang.Object invoke(java.lang.Object obj, java.lang.Object... args) {
-        throw sandbox.java.lang.DJVM.failApi(named("invoke(Object, Object...)"));
+    public java.lang.Object invoke(java.lang.Object obj, java.lang.Object... args) throws Exception {
+        // Every exception thrown here is listed in [AnalysisConfiguration.JVM_EXCEPTIONS].
+        return method.invoke(obj, args);
     }
 
     @Override

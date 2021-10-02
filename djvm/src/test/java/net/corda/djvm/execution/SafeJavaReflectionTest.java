@@ -4,6 +4,7 @@ import net.corda.djvm.ExceptionalFunction;
 import net.corda.djvm.TestBase;
 import net.corda.djvm.TypedTaskFactory;
 import net.corda.djvm.WithJava;
+import net.corda.djvm.rewiring.SandboxClassLoader;
 import net.corda.djvm.rules.RuleViolationError;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,6 +18,7 @@ import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
@@ -24,6 +26,8 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 
 class SafeJavaReflectionTest extends TestBase {
+    private static final String DATA = "Hello Sandbox Reflection!";
+
     SafeJavaReflectionTest() {
         super(JAVA);
     }
@@ -63,12 +67,14 @@ class SafeJavaReflectionTest extends TestBase {
     void testInvokingConstructor() {
         sandbox(ctx -> {
             try {
-                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                RuleViolationError ex = assertThrows(RuleViolationError.class,
-                    () -> WithJava.run(taskFactory, InvokeConstructor.class, null));
-                assertThat(ex)
-                    .hasMessage("Disallowed reference to API; java.lang.reflect.Constructor.newInstance(Object[])")
-                    .hasNoCause();
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                Function<? super String, ?> invokeConstructor = classLoader.createRawTaskFactory()
+                    .compose(classLoader.createSandboxFunction())
+                    .apply(InvokeConstructor.class)
+                    .compose(classLoader.createBasicInput());
+                Object result = invokeConstructor.apply(DATA);
+                assertEquals(DATA, result.toString());
+                assertEquals("sandbox.java.lang.String", result.getClass().getName());
             } catch(Exception e) {
                 fail(e);
             }
@@ -119,12 +125,14 @@ class SafeJavaReflectionTest extends TestBase {
     void testInvokingNewInstanceByReference() {
         sandbox(ctx -> {
             try {
-                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                RuleViolationError ex = assertThrows(RuleViolationError.class,
-                    () -> WithJava.run(taskFactory, InvokeNewInstanceByReference.class, null));
-                assertThat(ex)
-                    .hasMessage("Disallowed reference to API; java.lang.reflect.Constructor.newInstance(Object...)")
-                    .hasNoCause();
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                Function<? super String, ?> invokeNewInstance = classLoader.createRawTaskFactory()
+                    .compose(classLoader.createSandboxFunction())
+                    .apply(InvokeNewInstanceByReference.class)
+                    .compose(classLoader.createBasicInput());
+                Object result = invokeNewInstance.apply(DATA);
+                assertEquals(DATA, result.toString());
+                assertEquals("sandbox.java.lang.String", result.getClass().getName());
             } catch(Exception e) {
                 fail(e);
             }
@@ -150,12 +158,14 @@ class SafeJavaReflectionTest extends TestBase {
     void testInvokingMethod() {
         sandbox(ctx -> {
             try {
-                TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                RuleViolationError ex = assertThrows(RuleViolationError.class,
-                     () -> WithJava.run(taskFactory, InvokeMethod.class, null));
-                assertThat(ex)
-                    .hasMessage("Disallowed reference to API; java.lang.reflect.Method.invoke(Object, Object...)")
-                    .hasNoCause();
+                SandboxClassLoader classLoader = ctx.getClassLoader();
+                Function<? super String, ?> invokeMethod = classLoader.createRawTaskFactory()
+                    .compose(classLoader.createSandboxFunction())
+                    .apply(InvokeMethod.class)
+                    .compose(classLoader.createBasicInput());
+                Object result = invokeMethod.apply(DATA);
+                assertEquals("Invoked: " + DATA, result.toString());
+                assertEquals("sandbox.java.lang.String", result.getClass().getName());
             } catch(Exception e) {
                 fail(e);
             }
@@ -163,14 +173,14 @@ class SafeJavaReflectionTest extends TestBase {
     }
 
     public static class InvokeMethod implements Function<String, String> {
-        public String getMessage() {
-            return "Invoked!";
+        public String getMessage(String msg) {
+            return "Invoked: " + msg;
         }
 
         @Override
-        public String apply(String unused) {
+        public String apply(String input) {
             try {
-                return (String)getClass().getMethod("getMessage").invoke(this);
+                return (String)getClass().getMethod("getMessage", String.class).invoke(this, input);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage(), e);
             }
@@ -322,7 +332,7 @@ class SafeJavaReflectionTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Constructor result = WithJava.run(taskFactory, WithEnclosingConstructor.class, null);
+                Constructor<?> result = WithJava.run(taskFactory, WithEnclosingConstructor.class, null);
                 assertThat(result).isNotNull();
             } catch(Exception e) {
                 fail(e);
@@ -350,7 +360,7 @@ class SafeJavaReflectionTest extends TestBase {
         sandbox(ctx -> {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
-                Constructor result = WithJava.run(taskFactory, WithoutEnclosingConstructor.class, null);
+                Constructor<?> result = WithJava.run(taskFactory, WithoutEnclosingConstructor.class, null);
                 assertThat(result).isNull();
             } catch(Exception e) {
                 fail(e);
