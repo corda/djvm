@@ -32,6 +32,7 @@ public final class ZonedDateTime extends sandbox.java.lang.Object implements Ser
         return dateTime;
     }
 
+    @NotNull
     private static ZonedDateTime ofLenient(LocalDateTime localDateTime, ZoneOffset offset, ZoneId zone) {
         return new ZonedDateTime(localDateTime, offset, zone);
     }

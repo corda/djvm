@@ -114,6 +114,7 @@ public final class Short extends Number implements Comparable<Short> {
         return toDJVM(java.lang.Short.valueOf(String.fromDJVM(s)));
     }
 
+    @NotNull
     public static Short valueOf(short s) {
         return new Short(s);
     }

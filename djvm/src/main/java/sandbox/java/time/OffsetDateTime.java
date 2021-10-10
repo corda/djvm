@@ -32,6 +32,7 @@ public class OffsetDateTime extends sandbox.java.lang.Object implements Serializ
         return java.time.OffsetDateTime.of(dateTime.fromDJVM(), (java.time.ZoneOffset) offset.fromDJVM());
     }
 
+    @NotNull
     public static OffsetDateTime of(LocalDateTime dateTime, ZoneOffset offset) {
         return new OffsetDateTime(dateTime, offset);
     }

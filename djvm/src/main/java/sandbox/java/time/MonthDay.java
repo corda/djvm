@@ -32,6 +32,7 @@ public final class MonthDay extends sandbox.java.lang.Object implements Serializ
         return java.time.MonthDay.of(month, day);
     }
 
+    @NotNull
     public static MonthDay of(int month, int dayOfMonth) {
         return new MonthDay(month, dayOfMonth);
     }

@@ -22,11 +22,16 @@ import org.junit.jupiter.api.Test;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -73,7 +78,7 @@ class AnnotationProxyJavaTest extends TestBase {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 String[][] result = WithJava.run(taskFactory, ReadInheritedAnnotations.class, null);
-                assertThat(result).hasSize(2);
+                assertEquals(2, result.length);
                 assertThat(result[0]).containsExactlyInAnyOrder(
                     "@sandbox.net.corda.djvm.JavaLabel(name=Child)"
                 );

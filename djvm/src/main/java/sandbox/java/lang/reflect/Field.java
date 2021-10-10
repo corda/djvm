@@ -45,10 +45,12 @@ public final class Field extends AccessibleObject implements Member {
     }
 
     @Override
+    @NotNull
     public Class<?> getDeclaringClass() {
         return field.getDeclaringClass();
     }
 
+    @NotNull
     public Class<?> getType() {
         return field.getType();
     }

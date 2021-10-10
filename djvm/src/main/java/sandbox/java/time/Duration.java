@@ -34,6 +34,7 @@ public final class Duration extends sandbox.java.lang.Object implements Serializ
         return java.time.Duration.ofSeconds(seconds, nanos);
     }
 
+    @NotNull
     public static Duration ofSeconds(long seconds, long nanoAdjustment) {
         int nanos = (int)Math.floorMod(nanoAdjustment, NANOS_PER_SECOND);
         return new Duration(seconds, nanos);

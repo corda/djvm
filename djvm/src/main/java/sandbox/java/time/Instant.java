@@ -34,6 +34,7 @@ public final class Instant extends sandbox.java.lang.Object implements Serializa
         return java.time.Instant.ofEpochSecond(seconds, nanos);
     }
 
+    @NotNull
     public static Instant ofEpochSecond(long epochSecond, long nanoAdjustment) {
         int nanos = (int)Math.floorMod(nanoAdjustment, NANOS_PER_SECOND);
         return new Instant(epochSecond, nanos);

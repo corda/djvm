@@ -1,5 +1,6 @@
 package sandbox.java.time;
 
+import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -9,6 +10,7 @@ public final class DJVM {
 
     private static final class InitAction implements PrivilegedAction<Method> {
         @Override
+        @NotNull
         public Method run() {
             try {
                 Method ofLenient = java.time.ZonedDateTime.class.getDeclaredMethod(

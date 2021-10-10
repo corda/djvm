@@ -26,6 +26,7 @@ public final class Year extends sandbox.java.lang.Object implements Serializable
         return java.time.Year.of(year);
     }
 
+    @NotNull
     public static Year of(int year) {
         return new Year(year);
     }

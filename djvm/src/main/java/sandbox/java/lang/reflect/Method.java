@@ -60,6 +60,7 @@ public final class Method extends Executable {
     }
 
     @Override
+    @NotNull
     public Class<?> getDeclaringClass() {
         return method.getDeclaringClass();
     }
@@ -97,11 +98,13 @@ public final class Method extends Executable {
         return method.isVarArgs();
     }
 
+    @NotNull
     public Class<?> getReturnType() {
         return method.getReturnType();
     }
 
     @Override
+    @NotNull
     public Class<?>[] getParameterTypes() {
         return method.getParameterTypes();
     }
@@ -118,6 +121,7 @@ public final class Method extends Executable {
     }
 
     @Override
+    @NotNull
     public Class<?>[] getExceptionTypes() {
         return method.getExceptionTypes();
     }

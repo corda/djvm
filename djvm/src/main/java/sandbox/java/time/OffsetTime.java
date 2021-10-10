@@ -32,6 +32,7 @@ public final class OffsetTime extends sandbox.java.lang.Object implements Serial
         return java.time.OffsetTime.of(time.fromDJVM(), (java.time.ZoneOffset) offset.fromDJVM());
     }
 
+    @NotNull
     public static OffsetTime of(LocalTime time, ZoneOffset offset) {
         return new OffsetTime(time, offset);
     }

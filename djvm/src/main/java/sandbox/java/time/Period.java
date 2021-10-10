@@ -38,6 +38,7 @@ public final class Period extends sandbox.java.lang.Object implements Serializab
         return java.time.Period.of(years, months, days);
     }
 
+    @NotNull
     public static Period of(int years, int months, int days) {
         return new Period(years, months, days);
     }

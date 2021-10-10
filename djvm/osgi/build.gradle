@@ -4,6 +4,7 @@ import aQute.bnd.gradle.TestOSGi
 import static org.gradle.api.JavaVersion.current
 import static org.gradle.api.attributes.LibraryElements.JAR
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
+import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
@@ -106,10 +107,12 @@ ext {
 tasks.named('jar', Jar) {
     archiveBaseName = 'corda-djvm-osgi'
 
-    bnd '''\
+    bundle {
+        bnd '''\
 Bundle-Name: DJVM extensions for OSGi.
 Bundle-SymbolicName: net.corda.djvm.osgi
 '''
+    }
 }
 
 def testBundle = tasks.register('testBundle', Bundle) {
@@ -117,21 +120,26 @@ def testBundle = tasks.register('testBundle', Bundle) {
     from sourceSets.test.output
     sourceSet = sourceSets.test
 
-    bnd '''\
+    bundle {
+        bnd '''\
 Bundle-SymbolicName: net.corda.djvm.osgi.testing
 Test-Cases: \${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons.annotation.Testable;CONCRETE}
 '''
+    }
 }
 
 def resolve = tasks.register('resolve', Resolve) {
     bundles = files(sourceSets.test.runtimeClasspath, configurations.archives.artifacts.files)
-    bndrun = 'test.bndrun'
+    bndrun = file('test.bndrun')
 }
 
 def testOSGi = tasks.register('testOSGi', TestOSGi) {
-    dependsOn resolve, configurations.sandboxTesting.buildDependencies,
+    dependsOn configurations.sandboxTesting.buildDependencies
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = of(test_java_version)
+    }
     bundles = files(sourceSets.test.runtimeClasspath, configurations.archives.artifacts.files)
-    bndrun = 'test.bndrun'
+    bndrun = resolve.flatMap { it.outputBndrun }
 }
 
 tasks.named('test', Test) {

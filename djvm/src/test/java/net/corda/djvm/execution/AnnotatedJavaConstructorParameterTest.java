@@ -25,7 +25,7 @@ class AnnotatedJavaConstructorParameterTest extends TestBase {
     @Test
     void testSandboxConstructorParameterAnnotations() throws NoSuchMethodException {
         assertThat(UserJavaClass.class.getConstructor(String.class, String.class).getParameterAnnotations())
-            .hasSize(2);
+            .hasDimensions(2, 1);
 
         sandbox(ctx -> {
             try {
@@ -33,7 +33,7 @@ class AnnotatedJavaConstructorParameterTest extends TestBase {
                 Class<?> stringClass = toSandboxClass(ctx, "sandbox.java.lang.String");
                 Annotation[][] parameterAnnotations = sandboxClass.getConstructor(stringClass, stringClass)
                     .getParameterAnnotations();
-                assertThat(parameterAnnotations).hasSize(2);
+                assertThat(parameterAnnotations).hasDimensions(2, 1);
                 assertThat(removeQuotes(toStrings(parameterAnnotations[0]))).allMatch(s ->
                     matches("\\Q@sandbox.net.corda.djvm.JavaParameter$1DJVM(\\E(value=)?\\Q@sandbox.net.corda.djvm.JavaLabel$1DJVM(name=paramA))\\E", s)
                 );

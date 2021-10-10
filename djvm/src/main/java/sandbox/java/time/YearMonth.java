@@ -32,6 +32,7 @@ public final class YearMonth extends sandbox.java.lang.Object implements Seriali
         return java.time.YearMonth.of(year, month);
     }
 
+    @NotNull
     public static YearMonth of(int year, int month) {
         return new YearMonth(year, month);
     }
