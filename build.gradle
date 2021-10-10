@@ -55,8 +55,7 @@ subprojects {
 
     tasks.withType(Test).configureEach {
         javaLauncher = javaToolchains.launcherFor {
-            // Test using JDK11 by default.
-            languageVersion = of(11)
+            languageVersion = of(test_java_version)
         }
         useJUnitPlatform()
 

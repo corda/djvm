@@ -13,7 +13,7 @@ class JavaConstructorAnnotationsTest extends TestBase {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 String[][] result = WithJava.run(taskFactory, GetConstructorParameterAnnotations.class, null);
-                assertThat(result).hasSize(1);
+                assertThat(result).hasDimensions(1, 1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaParameters(value=[" +
                         "@sandbox.com.example.testing.JavaParameter(value=@sandbox.com.example.testing.JavaTag(value=Huge Number))" +
@@ -31,7 +31,7 @@ class JavaConstructorAnnotationsTest extends TestBase {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 String[][] result = WithJava.run(taskFactory, GetAnnotationsOfConstructorParameter.class, null);
-                assertThat(result).hasSize(1);
+                assertThat(result).hasDimensions(1, 1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaParameters(value=[" +
                         "@sandbox.com.example.testing.JavaParameter(value=@sandbox.com.example.testing.JavaTag(value=Huge Number))" +

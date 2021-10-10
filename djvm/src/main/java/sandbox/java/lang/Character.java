@@ -201,6 +201,7 @@ public final class Character extends Object implements Comparable<Character>, Se
         return java.lang.Character.toChars(codePoint, dst, dstIndex);
     }
 
+    @NotNull
     public static char[] toChars(int codePoint) {
         return java.lang.Character.toChars(codePoint);
     }

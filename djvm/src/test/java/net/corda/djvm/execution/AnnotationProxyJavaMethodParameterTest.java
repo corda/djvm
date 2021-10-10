@@ -29,7 +29,7 @@ class AnnotationProxyJavaMethodParameterTest extends TestBase {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 String[][] result = WithJava.run(taskFactory, GetMethodParameterAnnotations.class, null);
-                assertThat(result).hasSize(1);
+                assertThat(result).hasDimensions(1, 1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.net.corda.djvm.JavaParameters(value=[" +
                         "@sandbox.net.corda.djvm.JavaParameter(value=@sandbox.net.corda.djvm.JavaLabel(name=Big Number))" +
@@ -62,7 +62,7 @@ class AnnotationProxyJavaMethodParameterTest extends TestBase {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 String[][] result = WithJava.run(taskFactory, GetAnnotationsOfMethodParameter.class, null);
-                assertThat(result).hasSize(1);
+                assertThat(result).hasDimensions(1, 1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.net.corda.djvm.JavaParameters(value=[" +
                         "@sandbox.net.corda.djvm.JavaParameter(value=@sandbox.net.corda.djvm.JavaLabel(name=Big Number))" +

@@ -19,7 +19,7 @@ class JavaConstructorAnnotationsTest extends TestBase {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 String[][] result = WithJava.run(classLoader, GET_CONSTRUCTOR_PARAMETER_ANNOTATIONS, null);
-                assertThat(result).hasSize(1);
+                assertThat(result).hasDimensions(1, 1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaParameters(value=[" +
                         "@sandbox.com.example.testing.JavaParameter(value=@sandbox.com.example.testing.JavaTag(value=Huge Number))" +
@@ -38,7 +38,7 @@ class JavaConstructorAnnotationsTest extends TestBase {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 String[][] result = WithJava.run(classLoader, GET_ANNOTATIONS_OF_CONSTRUCTOR_PARAMETER, null);
-                assertThat(result).hasSize(1);
+                assertThat(result).hasDimensions(1, 1);
                 assertThat(result[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaParameters(value=[" +
                         "@sandbox.com.example.testing.JavaParameter(value=@sandbox.com.example.testing.JavaTag(value=Huge Number))" +

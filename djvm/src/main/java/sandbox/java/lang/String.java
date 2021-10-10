@@ -62,7 +62,7 @@ public final class String extends Object implements Comparable<String>, CharSequ
         this.value = "";
     }
 
-    public String(String str) {
+    public String(@NotNull String str) {
         this.value = str.value;
     }
 
@@ -114,11 +114,11 @@ public final class String extends Object implements Comparable<String>, CharSequ
         this.value = new java.lang.String(bytes);
     }
 
-    public String(StringBuffer buffer) {
+    public String(@NotNull StringBuffer buffer) {
         this.value = buffer.toString();
     }
 
-    public String(StringBuilder builder) {
+    public String(@NotNull StringBuilder builder) {
         this.value = builder.toString();
     }
 
@@ -177,14 +177,17 @@ public final class String extends Object implements Comparable<String>, CharSequ
         value.getBytes(srcBegin, srcEnd, dst, dstBegin);
     }
 
+    @NotNull
     public byte[] getBytes(String charsetName) throws UnsupportedEncodingException {
         return value.getBytes(fromDJVM(charsetName));
     }
 
+    @NotNull
     public byte[] getBytes(Charset charset) {
         return value.getBytes(fromDJVM(charset));
     }
 
+    @NotNull
     public byte[] getBytes() {
         return value.getBytes();
     }
@@ -361,8 +364,10 @@ public final class String extends Object implements Comparable<String>, CharSequ
         return toDJVM(value.trim());
     }
 
+    @NotNull
     public String intern() { return (String) SandboxRuntimeContext.getInstance().intern(value, this); }
 
+    @NotNull
     public char[] toCharArray() {
         return value.toCharArray();
     }

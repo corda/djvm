@@ -4,6 +4,7 @@ import net.corda.djvm.TypedTaskFactory;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -44,7 +45,7 @@ class JavaAnnotationsTest extends TestBase {
             try {
                 TypedTaskFactory taskFactory = ctx.getClassLoader().createTypedTaskFactory();
                 String[][] annotations = WithJava.run(taskFactory, GetJavaAnnotationsByType.class, null);
-                assertThat(annotations).hasSize(3);
+                assertEquals(3, annotations.length);
                 assertThat(annotations[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaAnnotation(value=THREE)",
                     "@sandbox.com.example.testing.JavaAnnotation(value=FOUR)",

@@ -55,6 +55,7 @@ public class Object {
         }
     }
 
+    @NotNull
     private static Class<?> fromDJVM(Class<?> type) {
         try {
             return DJVM.fromDJVMType(type);

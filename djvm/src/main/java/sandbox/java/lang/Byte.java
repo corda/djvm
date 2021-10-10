@@ -91,6 +91,7 @@ public final class Byte extends Number implements Comparable<Byte> {
         return Integer.toString(b);
     }
 
+    @NotNull
     public static Byte valueOf(byte b) {
         return new Byte(b);
     }

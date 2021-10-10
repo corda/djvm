@@ -86,7 +86,7 @@ public class Throwable extends Object implements Serializable {
     public String toDJVMString() {
         java.lang.String s = getClass().getName();
         String localized = getLocalizedMessage();
-        return String.valueOf((localized != null) ? (s + ": " + localized.toString()) : s);
+        return String.valueOf((localized != null) ? (s + ": " + localized) : s);
     }
 
     public StackTraceElement[] getStackTrace() {
@@ -154,7 +154,7 @@ public class Throwable extends Object implements Serializable {
         }
     }
 
-    private static boolean isConstructorFor(java.lang.StackTraceElement elt, java.lang.String className) {
+    private static boolean isConstructorFor(@NotNull java.lang.StackTraceElement elt, java.lang.String className) {
         return elt.getClassName().equals(className) && elt.getMethodName().equals("<init>");
     }
 

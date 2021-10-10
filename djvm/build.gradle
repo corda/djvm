@@ -211,20 +211,22 @@ def bundle = tasks.register('bundle', Bundle) {
     reproducibleFileOrder = true
     archiveClassifier = ''
 
-    bnd shadowJar.flatMap { jar ->
-        jar.archiveFile.map { file ->
-            "-include: jar:${file.asFile.toURI()}!/META-INF/MANIFEST.MF"
+    bundle {
+        bnd shadowJar.flatMap { jar ->
+            jar.archiveFile.map { file ->
+                "-include: jar:${file.asFile.toURI()}!/META-INF/MANIFEST.MF"
+            }
         }
-    }
 
-    bnd """\
+        bnd '''\
 -fixupmessages "Classes found in the wrong directory"; restrict:=error; is:=warning
 Bundle-SymbolicName: net.corda.djvm
 Bundle-Name: DJVM
 Import-Package: \
   !sandbox.*,\
   *
-"""
+'''
+    }
 }
 
 def securityPolicy = file('permissive.policy')

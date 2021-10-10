@@ -109,6 +109,7 @@ public final class Float extends Number implements Comparable<Float> {
         return toDJVM(java.lang.Float.valueOf(String.fromDJVM(s)));
     }
 
+    @NotNull
     public static Float valueOf(float f) {
         return new Float(f);
     }

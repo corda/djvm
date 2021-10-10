@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -56,7 +57,7 @@ class JavaAnnotationsTest extends TestBase {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 String[][] annotations = WithJava.run(classLoader, GET_JAVA_ANNOTATIONS_BY_TYPE, null);
-                assertThat(annotations).hasSize(3);
+                assertEquals(3, annotations.length);
                 assertThat(annotations[0]).containsExactly(
                     "@sandbox.com.example.testing.JavaAnnotation(value=THREE)",
                     "@sandbox.com.example.testing.JavaAnnotation(value=FOUR)",

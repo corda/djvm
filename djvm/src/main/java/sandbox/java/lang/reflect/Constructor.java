@@ -50,6 +50,7 @@ public final class Constructor<T> extends Executable {
     }
 
     @Override
+    @NotNull
     public Class<?> getDeclaringClass() {
         return constructor.getDeclaringClass();
     }
@@ -80,6 +81,7 @@ public final class Constructor<T> extends Executable {
     }
 
     @Override
+    @NotNull
     public Class<?>[] getParameterTypes() {
         return constructor.getParameterTypes();
     }
@@ -96,6 +98,7 @@ public final class Constructor<T> extends Executable {
     }
 
     @Override
+    @NotNull
     public Class<?>[] getExceptionTypes() {
         return constructor.getExceptionTypes();
     }

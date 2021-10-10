@@ -38,6 +38,7 @@ public final class LocalDate extends sandbox.java.lang.Object implements Seriali
         return java.time.LocalDate.of(year, month, day);
     }
 
+    @NotNull
     public static LocalDate of(int year, int month, int dayOfMonth) {
         return new LocalDate(year, month, dayOfMonth);
     }

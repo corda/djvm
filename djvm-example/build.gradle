@@ -1,5 +1,6 @@
 import static org.gradle.api.JavaVersion.current
 import static org.gradle.api.JavaVersion.VERSION_1_8
+import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -9,6 +10,13 @@ plugins {
 
 group 'com.example.djvm'
 version djvm_version
+
+java {
+    toolchain {
+        // Compile using JDK8 by default.
+        languageVersion = of(8)
+    }
+}
 
 repositories {
     maven {
@@ -103,8 +111,6 @@ dependencies {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    sourceCompatibility = VERSION_1_8
-    targetCompatibility = VERSION_1_8
     options.compilerArgs << '-parameters' << '-Werror'
     options.encoding = 'UTF-8'
 }
@@ -133,6 +139,9 @@ tasks.withType(ScalaCompile).configureEach {
 def djvmProject = gradle.includedBuilds.find { it.name == 'deterministic-jvm-sandbox' }
 
 tasks.withType(Test).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = of(test_java_version)
+    }
     useJUnitPlatform()
 
     doFirst {
@@ -141,13 +150,11 @@ tasks.withType(Test).configureEach {
     }
 
     // The DJVM and Corda serialization need reflective access to these packages.
-    if (current().java9Compatible) {
-        jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.time=ALL-UNNAMED',
-                '--illegal-access=warn'
-    }
+    jvmArgs '--add-opens', 'java.base/java.io=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
+            '--add-opens', 'java.base/java.time=ALL-UNNAMED',
+            '--illegal-access=warn'
 
     if (djvmProject) {
         dependsOn djvmProject.task(':djvm:bootstrap:assemble')

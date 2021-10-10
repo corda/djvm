@@ -46,6 +46,7 @@ public final class LocalTime extends sandbox.java.lang.Object implements Seriali
         return java.time.LocalTime.of(hour, minute, second, nano);
     }
 
+    @NotNull
     public static LocalTime of(int hour, int minute, int second, int nanoOfSecond) {
         return new LocalTime(hour, minute, second, nanoOfSecond);
     }

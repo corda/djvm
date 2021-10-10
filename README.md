@@ -337,7 +337,7 @@ execute your tasks using the DJVM's `RawTask` wrapper:
 package sandbox
 
 class RawTask(
-    private val function: sandbox.java.util.function.Function<Any?, Any?>?
+    private val function: sandbox.java.util.function.Function<in Any?, out Any?>?
 ) : sandbox.java.util.function.Function<Any?, Any?>, java.util.function.Function<Any?, Any?> {
     /**
      * This function runs inside the sandbox, and performs NO marshalling
@@ -396,7 +396,7 @@ In some rare cases, you may need to call a non-sandbox function from within
 sandbox code. For example, to deserialize lazily instances of complex sandbox
 objects, or to avoid transforming a `java.io.ByteArrayInputStream` object
 into a `sandbox.java.io.ByteArrayInputStream` before it can be consumed. To
-do this, you would wrap your code as a `Function` and pass it to this method:
+do this, you can wrap your code as a `Function` and pass it to this method:
 ```java
 package net.corda.djvm.rewiring;
 
@@ -412,7 +412,7 @@ where `ImportTask` is defined as:
 package sandbox
 
 class ImportTask(
-    private val function: java.util.function.Function<Any?, Any?>
+    private val function: java.util.function.Function<in Any?, out Any?>
 ) : sandbox.java.util.function.Function<Any?, Any?>, java.util.function.Function<Any?, Any?> {
     /**
      * This allows [function] to be executed inside the sandbox.
@@ -479,6 +479,41 @@ anything assignable to `java.lang.Exception` with an instance of
 `java.lang.RuntimeException`, and any other `Throwable` with an uncatchable
 `RuleViolationError`.
 
+The DJVM can also import an instance of `java.util.function.Supplier<?>`:
+```java
+package net.corda.djvm.rewiring;
+
+import java.util.function.Supplier;
+
+public class SandboxClassLoader {
+    public Supplier<?> createForImport(Supplier<?> supplier);
+}
+```
+This function wraps the `Supplier<?>` inside a `sandbox.ImportSupplierTask` object, which is
+assignable to both `java.util.function.Supplier` and `sandbox.java.util.function.Supplier`:
+```kotlin
+package sandbox
+
+class ImportSupplierTask(
+  private val supplier: java.util.function.Supplier<out Any?>
+) : sandbox.java.util.function.Supplier<Any?>, java.util.function.Supplier<Any?> {
+    /**
+     * This allows [supplier] to be executed inside the sandbox.
+     * !!! USE WITH EXTREME CARE !!!
+     */
+    override fun get(): Any? {
+        return try {
+            supplier.get()
+        } catch (e: Exception) {
+            throw e.toRuntimeException()
+        } catch (t: Throwable) {
+            checkCatch(t)
+            throw t.toRuleViolationError()
+        }
+    }
+}
+```
+
 ### Running a Predicate<T> inside the sandbox.
 
 The DJVM also supports executing `Predicate<T>` inside the sandbox via the `PredicateTask`:
@@ -486,7 +521,7 @@ The DJVM also supports executing `Predicate<T>` inside the sandbox via the `Pred
 package sandbox
 
 class PredicateTask(
-    private val predicate: sandbox.java.util.function.Predicate<Any?>
+    private val predicate: sandbox.java.util.function.Predicate<in Any?>
 ) : sandbox.java.util.function.Predicate<Any?>, java.util.function.Predicate<Any?> {
     /**
      * This predicate runs inside the sandbox, and performs NO marshalling

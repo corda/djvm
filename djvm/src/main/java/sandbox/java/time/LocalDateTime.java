@@ -32,6 +32,7 @@ public class LocalDateTime extends sandbox.java.lang.Object implements Serializa
         return java.time.LocalDateTime.of(date.fromDJVM(), time.fromDJVM());
     }
 
+    @NotNull
     public static LocalDateTime of(LocalDate date, LocalTime time) {
         return new LocalDateTime(date, time);
     }
