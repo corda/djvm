@@ -403,7 +403,7 @@ class SandboxClassLoader private constructor(
      * @return The resulting <tt>Class</tt> object.
      */
     @Throws(ClassNotFoundException::class)
-    override fun loadClass(name: String, resolve: Boolean): Class<*> {
+    override fun loadClass(name: String, resolve: Boolean): Class<*>? {
         synchronized(getClassLoadingLock(name)) {
             var clazz = findLoadedClass(name)
             if (clazz == null) {
@@ -441,7 +441,7 @@ class SandboxClassLoader private constructor(
      * @return The resulting [Class] object.
      */
     @Throws(ClassNotFoundException::class)
-    override fun findClass(name: String): Class<*> {
+    override fun findClass(name: String): Class<*>? {
         val source = ClassSource.fromClassName(name)
         if (classResolver.isSandboxClass(source.internalClassName)) {
             return loadSandboxClass(source, context)
@@ -462,7 +462,7 @@ class SandboxClassLoader private constructor(
      * So we create synthetic annotations to store the values in the byte-code, and
      * translate them to "annotation-like" equivalent interfaces inside the sandbox.
      */
-    private fun loadSandboxClass(source: ClassSource, context: AnalysisContext): Class<*> {
+    private fun loadSandboxClass(source: ClassSource, context: AnalysisContext): Class<*>? {
         return if (isDJVMSynthetic(source.internalClassName)) {
             /**
              * We need to load the owner class before we can create its synthetic friend class.

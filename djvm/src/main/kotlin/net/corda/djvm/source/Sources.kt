@@ -14,8 +14,8 @@ import kotlin.streams.toList
  * Base interface for API and user sources.
  */
 interface Source : AutoCloseable {
-    fun findResource(name: String): URL?
-    fun findResources(name: String): Enumeration<URL>
+    fun findResource(name: String?): URL?
+    fun findResources(name: String?): Enumeration<URL>
     fun getURLs(): Array<URL>
 }
 
@@ -39,12 +39,12 @@ class BootstrapClassLoader(bootstrapJar: Path)
     /**
      * Only search our own jar for the given resource.
      */
-    override fun getResource(name: String): URL? = findResource(name)
+    override fun getResource(name: String?): URL? = findResource(name)
 
     /**
      * Only search our own jar for the given resources.
      */
-    override fun getResources(name: String): Enumeration<URL> = findResources(name)
+    override fun getResources(name: String?): Enumeration<URL> = findResources(name)
 }
 
 /**
@@ -56,14 +56,14 @@ object EmptyApi : ClassLoader(null), ApiSource {
     override fun getURLs(): Array<URL> {
         return empty
     }
-    override fun findResource(name: String): URL? {
+    override fun findResource(name: String?): URL? {
         return super.findResource(name)
     }
-    override fun findResources(name: String): Enumeration<URL> {
+    override fun findResources(name: String?): Enumeration<URL> {
         return super.findResources(name)
     }
-    override fun getResource(name: String): URL? = findResource(name)
-    override fun getResources(name: String): Enumeration<URL> = findResources(name)
+    override fun getResource(name: String?): URL? = findResource(name)
+    override fun getResources(name: String?): Enumeration<URL> = findResources(name)
     override fun close() {}
 }
 

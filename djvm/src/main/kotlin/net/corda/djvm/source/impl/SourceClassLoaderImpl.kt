@@ -28,9 +28,11 @@ import java.net.URL
 import java.security.AccessController.doPrivileged
 import java.security.PrivilegedActionException
 import java.security.PrivilegedExceptionAction
-import java.util.*
+import java.util.Collections
 import java.util.Collections.emptyEnumeration
 import java.util.Collections.unmodifiableSet
+import java.util.Enumeration
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Customizable class loader that allows the user to specify explicitly additional JARs and directories to scan.
@@ -47,9 +49,13 @@ class SourceClassLoaderImpl(
 ) : SourceClassLoader(parent) {
     private companion object {
         private val logger = loggerFor<SourceClassLoader>()
+
+        init {
+            registerAsParallelCapable()
+        }
     }
 
-    private val headers = mutableMapOf<String, ClassHeader>()
+    private val headers = ConcurrentHashMap<String, ClassHeader>()
 
     // Java-friendly constructors
     constructor(classResolver: ClassResolver, userSource: UserSource, bootstrap: ApiSource?)
@@ -141,23 +147,21 @@ class SourceClassLoaderImpl(
     }
 
     private fun loadClassHeader(name: String, internalName: String): ClassHeader {
-        synchronized(getClassLoadingLock(name)) {
-            return headers[internalName] ?: run {
-                (parent as? SourceClassLoaderImpl)?.run {
-                    try {
-                        loadClassHeader(name, internalName)
-                    } catch (_: ClassNotFoundException) {
-                        null
-                    }
-                } ?: loadBootstrapClassHeader(name, internalName)
-                  ?: findClassHeader(name, internalName)
-            }
+        return synchronized(getClassLoadingLock(name)) {
+            headers[internalName] ?: (parent as? SourceClassLoaderImpl)?.let { parentClassLoader ->
+                try {
+                    parentClassLoader.loadClassHeader(name, internalName)
+                } catch (_: ClassNotFoundException) {
+                    null
+                }
+            } ?: loadBootstrapClassHeader(name, internalName)
+              ?: findClassHeader(name, internalName)
         }
     }
 
     private fun loadBootstrapClassHeader(name: String, internalName: String): ClassHeader? {
-        return findBootstrapResource("$internalName.class")?.let {
-            defineHeader(name, internalName, it)
+        return findBootstrapResource("$internalName.class")?.let { url ->
+            defineHeader(name, internalName, url)
         }
     }
 
@@ -204,8 +208,8 @@ class SourceClassLoaderImpl(
                 }
             },
             flags = visitor.access
-        ).apply {
-            headers[internalName] = this
+        ).also { header ->
+            headers[internalName] = header
         }
     }
 
