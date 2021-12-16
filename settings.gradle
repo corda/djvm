@@ -11,7 +11,7 @@ pluginManagement {
         id 'biz.aQute.bnd.builder' version bnd_plugin_version
         id 'com.jfrog.artifactory' version artifactory_plugin_version
         id 'org.owasp.dependencycheck' version '6.2.2'
-        id 'com.gradle.enterprise' version '3.6.4'
+        id 'com.gradle.enterprise' version '3.7.2'
     }
 }
 
