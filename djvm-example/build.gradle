@@ -162,6 +162,6 @@ tasks.withType(Test).configureEach {
 }
 
 wrapper {
-    gradleVersion = '6.9.1'
+    gradleVersion = '6.9.2'
     distributionType = Wrapper.DistributionType.BIN
 }
