@@ -15,6 +15,8 @@ import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.fail
 import java.io.File
 import java.nio.file.Files.exists
@@ -25,46 +27,46 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import kotlin.concurrent.thread
 
-@Suppress("unused", "MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate")
+@TestInstance(PER_CLASS)
 abstract class TestBase(type: SandboxType) {
     companion object {
         private val threadId = AtomicInteger(0)
 
         @JvmField
         val DETERMINISTIC_RT: Path = Paths.get(
-            System.getProperty("deterministic-rt.path") ?: fail("deterministic-rt.path property not set"))
+            System.getProperty("deterministic-rt.path") ?: fail("deterministic-rt.path property not set")
+        )
 
         @JvmField
         val TESTING_LIBRARIES: List<Path> = (System.getProperty("sandbox-libraries.path") ?: fail("sandbox-libraries.path property not set"))
                 .split(File.pathSeparator).map { Paths.get(it) }.filter { exists(it) }
+    }
 
-        private lateinit var bootstrapSource: BootstrapClassLoader
-        private lateinit var parentConfiguration: SandboxConfiguration
+    private lateinit var bootstrapSource: BootstrapClassLoader
+    private lateinit var parentConfiguration: SandboxConfiguration
 
-        @BeforeAll
-        @JvmStatic
-        fun setupClassLoader() {
-            bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
-            val rootConfiguration = AnalysisConfiguration.createRoot(
-                userSource = UserPathSource(emptyList()),
-                visibleAnnotations = setOf(
-                    CordaSerializable::class.java,
-                    ConstructorForDeserialization::class.java,
-                    DeprecatedConstructorForDeserialization::class.java
-                ),
-                bootstrapSource = bootstrapSource
-            )
-            parentConfiguration = SandboxConfiguration.createFor(
-                analysisConfiguration = rootConfiguration,
-                profile = null
-            )
-        }
+    @BeforeAll
+    fun setupClassLoader() {
+        bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
+        val rootConfiguration = AnalysisConfiguration.createRoot(
+            userSource = UserPathSource(emptyList()),
+            visibleAnnotations = setOf(
+                CordaSerializable::class.java,
+                ConstructorForDeserialization::class.java,
+                DeprecatedConstructorForDeserialization::class.java
+            ),
+            bootstrapSource = bootstrapSource
+        )
+        parentConfiguration = SandboxConfiguration.createFor(
+            analysisConfiguration = rootConfiguration,
+            profile = null
+        )
+    }
 
-        @AfterAll
-        @JvmStatic
-        fun destroyRootContext() {
-            bootstrapSource.close()
-        }
+    @AfterAll
+    fun destroyRootContext() {
+        bootstrapSource.close()
     }
 
     val classPaths: List<Path> = when(type) {
@@ -80,6 +82,7 @@ abstract class TestBase(type: SandboxType) {
         sandbox(WARNING, emptySet(), null, action)
     }
 
+    @Suppress("unused")
     inline fun sandbox(externalCache: ExternalCache, crossinline action: SandboxRuntimeContext.() -> Unit) {
         sandbox(externalCache, Consumer { ctx -> action(ctx)}) 
     }
@@ -88,6 +91,7 @@ abstract class TestBase(type: SandboxType) {
         sandbox(WARNING, emptySet(), externalCache, action)
     }
 
+    @Suppress("unused")
     inline fun sandbox(visibleAnnotations: Set<Class<out Annotation>>, crossinline action: SandboxRuntimeContext.() -> Unit) {
         sandbox(visibleAnnotations, Consumer { ctx -> action(ctx) })
     }

@@ -26,8 +26,9 @@ import net.corda.djvm.source.ClassSource
 import net.corda.djvm.source.UserPathSource
 import net.corda.djvm.validation.impl.RuleValidator
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import org.objectweb.asm.ClassReader
@@ -45,8 +46,9 @@ import java.util.function.Consumer
 import kotlin.concurrent.thread
 import kotlin.reflect.jvm.jvmName
 
-@Suppress("unused", "MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate")
 @ExtendWith(SecurityManagement::class)
+@TestInstance(PER_CLASS)
 abstract class TestBase(type: SandboxType) {
     companion object {
         private val threadId = AtomicInteger(0)
@@ -63,7 +65,7 @@ abstract class TestBase(type: SandboxType) {
 
         @JvmField
         val TESTING_LIBRARIES: List<Path> = (System.getProperty("sandbox-libraries.path") ?: fail("sandbox-libraries.path property not set"))
-            .split(File.pathSeparator).map { Paths.get(it) }.filter { exists(it) }
+                .split(File.pathSeparator).map { Paths.get(it) }.filter { exists(it) }
 
         /**
          * This class does not belong to the sandbox package space
@@ -72,34 +74,33 @@ abstract class TestBase(type: SandboxType) {
         @JvmField
         val TEST_OVERRIDES = setOf(Utilities::class.java.name)
 
-        private lateinit var parentConfiguration: SandboxConfiguration
-        private lateinit var bootstrapClassLoader: BootstrapClassLoader
-
         /**
          * Get the full name of type [T].
          */
         inline fun <reified T> nameOf(prefix: String = "") = "$prefix${Type.getInternalName(T::class.java)}"
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setupRootClassLoader() {
-            bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
-            val rootConfiguration = AnalysisConfiguration.createRoot(
-                userSource = UserPathSource(emptyList()),
-                bootstrapSource = bootstrapClassLoader,
-                overrideClasses = TEST_OVERRIDES
-            )
-            parentConfiguration = SandboxConfiguration.createFor(
-                analysisConfiguration = rootConfiguration,
-                profile = ExecutionProfile.UNLIMITED
-            )
-        }
+    private lateinit var parentConfiguration: SandboxConfiguration
+    private lateinit var bootstrapClassLoader: BootstrapClassLoader
 
-        @AfterAll
-        @JvmStatic
-        fun destroyRootContext() {
-            bootstrapClassLoader.close()
-        }
+    @BeforeAll
+    fun setupRootClassLoader() {
+        bootstrapClassLoader = BootstrapClassLoader(DETERMINISTIC_RT)
+        val rootConfiguration = AnalysisConfiguration.createRoot(
+            userSource = UserPathSource(emptyList()),
+            bootstrapSource = bootstrapClassLoader,
+            overrideClasses = TEST_OVERRIDES
+        )
+        parentConfiguration = SandboxConfiguration.createFor(
+            analysisConfiguration = rootConfiguration,
+            profile = ExecutionProfile.UNLIMITED
+        )
+    }
+
+    @AfterAll
+    fun destroyRootContext() {
+        bootstrapClassLoader.close()
+        userSource.close()
     }
 
     val classPaths: List<Path> = when(type) {
@@ -116,11 +117,13 @@ abstract class TestBase(type: SandboxType) {
     /**
      * Default analysis configuration.
      */
-    val configuration = AnalysisConfiguration.createRoot(
-        userSource = userSource,
-        bootstrapSource = bootstrapClassLoader,
-        overrideClasses = TEST_OVERRIDES
-    )
+    val configuration by lazy {
+        AnalysisConfiguration.createRoot(
+            userSource = userSource,
+            bootstrapSource = bootstrapClassLoader,
+            overrideClasses = TEST_OVERRIDES
+        )
+    }
 
     val remapper: SandboxRemapper
         get() = with(configuration) { SandboxRemapper(classResolver, whitelist) }
@@ -130,11 +133,6 @@ abstract class TestBase(type: SandboxType) {
      */
     val context: AnalysisContext
         get() = AnalysisContext.fromConfiguration(configuration)
-
-    @AfterEach
-    fun destroy() {
-        userSource.close()
-    }
 
     fun flushInternalCache() {
         parentConfiguration.byteCodeCache.flushAll()
@@ -185,6 +183,7 @@ abstract class TestBase(type: SandboxType) {
         )
     }
 
+    @Suppress("unused")
     fun customSandbox(action: SandboxRuntimeContext.() -> Unit) = customSandbox(emptySet(), action)
 
     fun customSandbox(

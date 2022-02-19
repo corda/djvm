@@ -12,6 +12,8 @@ import net.corda.djvm.source.BootstrapClassLoader
 import net.corda.djvm.source.UserPathSource
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.fail
 import java.io.File
 import java.nio.file.Files
@@ -22,40 +24,40 @@ import java.util.function.Consumer
 import kotlin.concurrent.thread
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
+@TestInstance(PER_CLASS)
 abstract class TestBase {
     companion object {
         private val threadId = AtomicInteger(0)
 
         @JvmField
         val DETERMINISTIC_RT: Path = Paths.get(
-            System.getProperty("deterministic-rt.path") ?: fail("deterministic-rt.path property not set"))
+            System.getProperty("deterministic-rt.path") ?: fail("deterministic-rt.path property not set")
+        )
 
         @JvmField
         val TESTING_LIBRARIES: List<Path> = (System.getProperty("sandbox-libraries.path") ?: fail("sandbox-libraries.path property not set"))
-            .split(File.pathSeparator).map { Paths.get(it) }.filter { Files.exists(it) }
+                .split(File.pathSeparator).map { Paths.get(it) }.filter { Files.exists(it) }
+    }
 
-        private lateinit var bootstrapSource: BootstrapClassLoader
-        private lateinit var parentConfiguration: SandboxConfiguration
+    private lateinit var bootstrapSource: BootstrapClassLoader
+    private lateinit var parentConfiguration: SandboxConfiguration
 
-        @BeforeAll
-        @JvmStatic
-        fun setupClassLoader() {
-            bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
-            val rootConfiguration = AnalysisConfiguration.createRoot(
-                userSource = UserPathSource(emptyList()),
-                bootstrapSource = bootstrapSource
-            )
-            parentConfiguration = SandboxConfiguration.createFor(
-                analysisConfiguration = rootConfiguration,
-                profile = UNLIMITED
-            )
-        }
+    @BeforeAll
+    fun setupClassLoader() {
+        bootstrapSource = BootstrapClassLoader(DETERMINISTIC_RT)
+        val rootConfiguration = AnalysisConfiguration.createRoot(
+            userSource = UserPathSource(emptyList()),
+            bootstrapSource = bootstrapSource
+        )
+        parentConfiguration = SandboxConfiguration.createFor(
+            analysisConfiguration = rootConfiguration,
+            profile = UNLIMITED
+        )
+    }
 
-        @AfterAll
-        @JvmStatic
-        fun destroyRootContext() {
-            bootstrapSource.close()
-        }
+    @AfterAll
+    fun destroyRootContext() {
+        bootstrapSource.close()
     }
 
     fun sandbox(action: SandboxRuntimeContext.() -> Unit) {
