@@ -14,25 +14,21 @@ import java.util.function.Function
 import java.util.zip.Deflater.NO_COMPRESSION
 
 class SandboxConfigurationTest : TestBase(KOTLIN) {
-    companion object {
-        private lateinit var testJar: DummyJar
+    private lateinit var testJar: DummyJar
 
-        @Suppress("unused")
-        @JvmStatic
-        @BeforeAll
-        fun setup(@TempDir testProjectDir: Path) {
-            testJar = DummyJar(testProjectDir, "sandbox-configuration").build(JarWriter { jar, _ ->
-                jar.setLevel(NO_COMPRESSION)
-                jar.setComment("Test jar tagged for preloading")
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testJar = DummyJar(testProjectDir, "sandbox-configuration").build(JarWriter { jar, _ ->
+            jar.setLevel(NO_COMPRESSION)
+            jar.setComment("Test jar tagged for preloading")
 
-                // Add the tag for the DJVM to find.
-                jar.putUncompressedEntry("META-INF/DJVM-preload", byteArrayOf())
+            // Add the tag for the DJVM to find.
+            jar.putUncompressedEntry("META-INF/DJVM-preload", byteArrayOf())
 
-                // Add the class to be preloaded.
-                jar.putDirectoryOf(PreloadExample::class.java)
-                jar.putCompressedClass(PreloadExample::class.java)
-            })
-        }
+            // Add the class to be preloaded.
+            jar.putDirectoryOf(PreloadExample::class.java)
+            jar.putCompressedClass(PreloadExample::class.java)
+        })
     }
 
     @Test

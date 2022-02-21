@@ -5,7 +5,7 @@
 -runee: JavaSE-1.8
 -runvm: ${project.jvmArgs}
 -runfw: org.apache.felix.framework
--resolve.effective: active
+-resolve.effective: resolve,active
 -runpath: \
     org.jetbrains.kotlin.osgi-bundle;version=${project.kotlin_version},\
     ${project.kotlinJars}
@@ -26,7 +26,6 @@
 -runrequires: \
     bnd.identity;id='junit-jupiter-engine',\
     bnd.identity;id='junit-platform-launcher',\
-    bnd.identity;id='org.apache.felix.configadmin',\
     bnd.identity;id='org.apache.felix.logback',\
     bnd.identity;id='org.apache.felix.log',\
     bnd.identity;id='net.corda.djvm.osgi.testing',\
@@ -41,8 +40,8 @@
 # the artifacts and/or their dependencies change.
 -runbundles: \
 	assertj-core;version='[3.20.2,3.20.3)',\
-	ch.qos.logback.classic;version='[1.2.6,1.2.7)',\
-	ch.qos.logback.core;version='[1.2.6,1.2.7)',\
+	ch.qos.logback.classic;version='[1.2.10,1.2.11)',\
+	ch.qos.logback.core;version='[1.2.10,1.2.11)',\
 	junit-jupiter-api;version='[5.8.2,5.8.3)',\
 	junit-jupiter-engine;version='[5.8.2,5.8.3)',\
 	junit-jupiter-params;version='[5.8.2,5.8.3)',\
@@ -55,4 +54,4 @@
 	org.apache.felix.log;version='[1.2.4,1.2.5)',\
 	org.apache.felix.logback;version='[1.0.2,1.0.3)',\
 	org.opentest4j;version='[1.2.0,1.2.1)',\
-	slf4j.api;version='[1.7.32,1.7.33)'
+	slf4j.api;version='[1.7.36,1.7.37)'
