@@ -3,6 +3,7 @@ package net.corda.djvm.assertions
 import net.corda.djvm.messages.MessageCollection
 import net.corda.djvm.messages.Severity
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.ThrowingConsumer
 
 @Suppress("unused")
 class AssertiveMessages(private val messages: MessageCollection) {
@@ -48,9 +49,9 @@ class AssertiveMessages(private val messages: MessageCollection) {
     fun withMessage(message: String): AssertiveMessages {
         assertThat(messages.sorted())
                 .`as`("Has message: $message")
-                .anySatisfy {
+                .anySatisfy(ThrowingConsumer {
                     assertThat(it.message).contains(message)
-                }
+                })
         return this
     }
 

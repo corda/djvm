@@ -16,6 +16,7 @@ import net.corda.djvm.code.instructions.TypeInstruction
 import net.corda.djvm.references.ClassRepresentation
 import net.corda.djvm.references.Member
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.ThrowingConsumer
 import org.junit.jupiter.api.Test
 import org.objectweb.asm.ClassVisitor
 
@@ -35,12 +36,12 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
         }
 
         visitor.analyze<TestClass>(context)
-        assertThat(classesVisited)
+        assertThat(classesVisited as Iterable<ClassRepresentation>)
             .hasSize(1)
             .hasClass<TestClass>()
 
         visitor.analyze<AnotherTestClass>(context)
-        assertThat(classesVisited)
+        assertThat(classesVisited as Iterable<ClassRepresentation>)
             .hasSize(2)
             .hasClass<TestClass>()
             .hasClass<AnotherTestClass>()
@@ -60,7 +61,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
             }
         }
         visitor.analyze<TestClassWithFields>(context)
-        assertThat(membersVisited)
+        assertThat(membersVisited as Iterable<Member>)
             .hasSize(3)
             .hasMember("one", "Z")
             .hasMember("two", "Ljava/lang/String;")
@@ -90,7 +91,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
             }
         }
         visitor.analyze<TestClassWithMethods>(context)
-        assertThat(membersVisited)
+        assertThat(membersVisited as Iterable<Member>)
             .hasSize(3)
             .hasMember("<init>", "()V")
             .hasMember("foo", "()Ljava/lang/String;")
@@ -114,7 +115,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
             }
         }
         visitor.analyze<TestClassWithAnnotations>(context)
-        assertThat(annotations)
+        assertThat(annotations as Iterable<String>)
             .hasSize(2)
             .contains("Lkotlin/Metadata;")
             .contains("Lnet/corda/djvm/annotations/NonDeterministic;")
@@ -144,7 +145,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
             }
         }
         visitor.analyze<TestClassWithMemberAnnotations>(context)
-        assertThat(annotations)
+        assertThat(annotations as Iterable<String>)
             .hasSize(2)
             .contains("field\$annotations:Lnet/corda/djvm/annotations/NonDeterministic;")
             .contains("method:Lnet/corda/djvm/annotations/NonDeterministic;")
@@ -171,10 +172,10 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
         }
         visitor.analyze<TestClass>(context)
         val expectedSource = ".*ClassAndMemberVisitorTest.kt"
-        assertThat(sources)
+        assertThat(sources as Iterable<String>)
             .hasSize(1)
             .`as`("HasSource($expectedSource)")
-            .anySatisfy { assertThat(it).containsPattern(expectedSource) }
+            .anySatisfy(ThrowingConsumer { assertThat(it).containsPattern(expectedSource) })
     }
 
     @Test
@@ -198,7 +199,7 @@ class ClassAndMemberVisitorTest : TestBase(KOTLIN) {
             }
         }
         visitor.analyze<TestClassWithCode>(context)
-        assertThat(instructions)
+        assertThat(instructions as Iterable<Pair<Member, Instruction>>)
             .isNotEmpty
             .hasInstruction<TypeInstruction>(
                     "foo", "sandbox/java/lang/Object"

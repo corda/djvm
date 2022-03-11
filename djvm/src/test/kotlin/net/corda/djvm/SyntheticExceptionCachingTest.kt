@@ -28,7 +28,7 @@ class SyntheticExceptionCachingTest : TestBase(KOTLIN) {
         // Check that the byte-code has also been cached correctly.
         // The synthetic exception class is cheap to create and so is not cached.
         val classNames = externalCache.keys.mapTo(LinkedHashSet(), ByteCodeKey::className)
-        assertThat(classNames)
+        assertThat(classNames as Iterable<String>)
             .doesNotContain(syntheticClassName)
             .contains(exceptionName)
 
