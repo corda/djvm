@@ -48,10 +48,10 @@ import org.objectweb.asm.Opcodes.NEW
  */
 @Suppress("LeakingThis")
 open class ClassAndMemberVisitor(
-        private val basicVisitor: ClassVisitor,
-        @JvmField
-        protected val configuration: AnalysisConfiguration,
-        vararg specialiseArgs: Any?
+    private val basicVisitor: ClassVisitor,
+    @JvmField
+    protected val configuration: AnalysisConfiguration,
+    vararg specialiseArgs: Any?
 ) {
     private val classVisitor: ClassVisitor = specialise(basicVisitor, specialiseArgs)
 
@@ -161,11 +161,11 @@ open class ClassAndMemberVisitor(
      */
     protected fun currentAnalysisContext(): AnalysisRuntimeContext {
         return AnalysisRuntimeContext(
-                currentClass!!,
-                currentMember,
-                sourceLocation,
-                analysisContext.messages,
-                configuration
+            currentClass!!,
+            currentMember,
+            sourceLocation,
+            analysisContext.messages,
+            configuration
         )
     }
 
@@ -187,9 +187,9 @@ open class ClassAndMemberVisitor(
      * Extract information about the traversed member annotation.
      */
     private fun visitMemberAnnotation(
-            descriptor: String,
-            referencedClass: ClassRepresentation? = null,
-            referencedMember: Member? = null
+        descriptor: String,
+        referencedClass: ClassRepresentation? = null,
+        referencedMember: Member? = null
     ) {
         val clazz = (referencedClass ?: currentClass) ?: return
         val member = (referencedMember ?: currentMember) ?: return
@@ -261,8 +261,8 @@ open class ClassAndMemberVisitor(
          * Extract information about the traversed class.
          */
         override fun visit(
-                version: Int, access: Int, name: String, signature: String?, superName: String?,
-                interfaces: Array<String>?
+            version: Int, access: Int, name: String, signature: String?, superName: String?,
+            interfaces: Array<String>?
         ) {
             val superClassName = superName ?: ""
             val interfaceNames = interfaces?.toList() ?: emptyList()
@@ -421,8 +421,8 @@ open class ClassAndMemberVisitor(
      * Visitor used to traverse and analyze a method.
      */
     private inner class MethodVisitorImpl(
-            targetVisitor: MethodVisitor,
-            private val method: Member
+        targetVisitor: MethodVisitor,
+        private val method: Member
     ) : MethodVisitor(API_VERSION, targetVisitor) {
 
         /**
@@ -624,9 +624,8 @@ open class ClassAndMemberVisitor(
     /**
      * Visitor used to traverse and analyze a field.
      */
-    private inner class FieldVisitorImpl(
-            targetVisitor: FieldVisitor
-    ) : FieldVisitor(API_VERSION, targetVisitor) {
+    private inner class FieldVisitorImpl(targetVisitor: FieldVisitor)
+        : FieldVisitor(API_VERSION, targetVisitor) {
 
         /**
          * Extract information about provided annotations.

@@ -219,7 +219,6 @@ def bundle = tasks.register('bundle', Bundle) {
         }
 
         bnd '''\
--fixupmessages "Classes found in the wrong directory"; restrict:=error; is:=warning
 Bundle-SymbolicName: net.corda.djvm
 Bundle-Name: DJVM
 Import-Package: \

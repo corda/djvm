@@ -338,6 +338,7 @@ class ResetStaticFieldsTest extends TestBase {
                     Function<String, Integer> addToData = taskFactory.create(AddToData.class);
                     Function<String, String> getData = taskFactory.create(GetData.class);
 
+                    assertEquals("", getData.apply(","));
                     assertEquals(1, addToData.apply("one"));
                     assertEquals(2, addToData.apply("two"));
                     assertEquals(3, addToData.apply("three"));
@@ -353,6 +354,7 @@ class ResetStaticFieldsTest extends TestBase {
                     Function<String, Integer> addToData = taskFactory.create(AddToData.class);
                     Function<String, String> getData = taskFactory.create(GetData.class);
 
+                    assertEquals("", getData.apply(","));
                     assertEquals(1, addToData.apply("four"));
                     assertEquals("four", getData.apply(","));
                 } catch (Exception e) {

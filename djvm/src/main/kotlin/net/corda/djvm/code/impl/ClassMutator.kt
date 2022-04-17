@@ -20,7 +20,20 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Opcodes.ACC_ABSTRACT
+import org.objectweb.asm.Opcodes.ACC_ANNOTATION
+import org.objectweb.asm.Opcodes.ACC_FINAL
+import org.objectweb.asm.Opcodes.ACC_PRIVATE
+import org.objectweb.asm.Opcodes.ACC_STATIC
+import org.objectweb.asm.Opcodes.ACC_STRICT
+import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
+import org.objectweb.asm.Opcodes.ACONST_NULL
+import org.objectweb.asm.Opcodes.DCONST_0
+import org.objectweb.asm.Opcodes.FCONST_0
+import org.objectweb.asm.Opcodes.ICONST_0
+import org.objectweb.asm.Opcodes.LCONST_0
+import org.objectweb.asm.Opcodes.PUTSTATIC
+import org.objectweb.asm.Opcodes.RETURN
 import org.objectweb.asm.commons.Remapper
 import org.objectweb.asm.tree.MethodNode
 import java.util.Collections.unmodifiableList
@@ -166,7 +179,7 @@ class ClassMutator(
     }
 
     private fun writeClassResetter(classVisitor: ClassVisitor) {
-        classVisitor.visitMethod(CLASS_RESET_ACCESS, CLASS_RESET_NAME, "()V", null, null)?.also { mv ->
+        classVisitor.visitMethod(CLASS_RESET_ACCESS, CLASS_RESET_NAME, CLASS_RESET_DESCRIPTOR, null, null)?.also { mv ->
             initializationCode.visitMaxs(-1, -1)
             if (initializationCode.instructions.last.opcode != RETURN) {
                 initializationCode.visitInsn(RETURN)
