@@ -71,8 +71,7 @@ subprojects {
         jvmArgs '-XX:+UseG1GC'
 
         // DJVM needs reflective access to these packages.
-        jvmArgs '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
-                '--add-opens', 'java.base/java.time=ALL-UNNAMED',
+        jvmArgs '--add-opens', 'java.base/java.time=ALL-UNNAMED',
                 '--illegal-access=warn'
     }
 }

@@ -3,13 +3,11 @@ package net.corda.djvm;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 
@@ -34,10 +32,6 @@ final class ClassResetContext {
         internStrings = new HashMap<>();
         nextHashOffset = this::decrementHashOffset;
         current = setupPhase;
-    }
-
-    void add(MethodHandle resetMethod, @NotNull List<Field> finalFields) {
-        current.add(new Resettable(resetMethod, finalFields.isEmpty() ? emptyList() : unmodifiableList(finalFields)));
     }
 
     void add(MethodHandle resetMethod) {

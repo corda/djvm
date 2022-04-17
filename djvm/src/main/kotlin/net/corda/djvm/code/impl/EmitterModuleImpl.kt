@@ -368,9 +368,8 @@ class EmitterModuleImpl(
      * Write invocation to register this class for resetting.
      */
     fun registerResetMethod(className: String, isInterface: Boolean) {
-        loadConstant(Type.getObjectType(className))
-        loadConstant(Handle(H_INVOKESTATIC, className, CLASS_RESET_NAME, "()V", isInterface))
-        invokeStatic(DJVM_NAME, REGISTER_RESET_NAME, "(Ljava/lang/Class;Ljava/lang/invoke/MethodHandle;)V")
+        loadConstant(Handle(H_INVOKESTATIC, className, CLASS_RESET_NAME, CLASS_RESET_DESCRIPTOR, isInterface))
+        invokeStatic(DJVM_NAME, REGISTER_RESET_NAME, "(Ljava/lang/invoke/MethodHandle;)V")
     }
 
     /**

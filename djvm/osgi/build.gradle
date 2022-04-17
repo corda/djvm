@@ -96,8 +96,7 @@ ext {
     }
 
     jvmArgs = provider {
-        current().java9Compatible ? [
-          '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
+        JavaVersion.toVersion(test_java_version).java9Compatible ? [
           '--add-opens', 'java.base/java.net=ALL-UNNAMED',
           '--illegal-access=warn'
         ].join(',') : ''
@@ -131,6 +130,7 @@ Test-Cases: \${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons
 def resolve = tasks.register('resolve', Resolve) {
     bundles = files(sourceSets.test.runtimeClasspath, configurations.archives.artifacts.files)
     bndrun = file('test.bndrun')
+    outputBndrun = layout.buildDirectory.file('resolved-test.bndrun')
 }
 
 def testOSGi = tasks.register('testOSGi', TestOSGi) {

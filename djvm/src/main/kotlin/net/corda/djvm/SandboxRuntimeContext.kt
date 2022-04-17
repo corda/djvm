@@ -4,14 +4,9 @@ import net.corda.djvm.costing.RuntimeCost.Companion.uncosted
 import net.corda.djvm.costing.RuntimeCostSummary
 import net.corda.djvm.execution.ExecutionProfile
 import net.corda.djvm.rewiring.SandboxClassLoader
-import org.objectweb.asm.Opcodes.ACC_FINAL
-import org.objectweb.asm.Opcodes.ACC_STATIC
 import java.lang.invoke.MethodHandle
-import java.lang.reflect.Field
 import java.security.AccessController.doPrivileged
 import java.security.PrivilegedAction
-import java.security.PrivilegedActionException
-import java.security.PrivilegedExceptionAction
 import java.util.function.Consumer
 
 /**
@@ -40,32 +35,9 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
         classResetContext.add(resetMethod)
     }
 
-    @CordaInternal
-    internal fun addToReset(clazz: Class<*>, resetMethod: MethodHandle) {
-        try {
-            doPrivileged(PrivilegedExceptionAction {
-                if (classLoader.contains(clazz)) {
-                    val finalFields = clazz.declaredFields.filter(::isStaticFinal)
-                    for (field in finalFields) {
-                        field.isAccessible = true
-                    }
-                    classResetContext.add(resetMethod, finalFields)
-                }
-            })
-        } catch (e: PrivilegedActionException) {
-            throw e.cause ?: e
-        }
-    }
-
     internal val currentResetView: ClassResetContext.View
         @CordaInternal
         get() = classResetContext.currentView
-
-    private fun isStaticFinal(field: Field): Boolean {
-        return (field.modifiers and ACC_STATIC_FINAL == ACC_STATIC_FINAL)
-            && !field.type.isPrimitive
-            && field.type.name != "sandbox.java.lang.String"
-    }
 
     fun getHashCodeFor(nativeHashCode: Int): Int {
         return classResetContext.getHashCodeFor(nativeHashCode)
@@ -94,8 +66,6 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
     }
 
     companion object {
-        const val ACC_STATIC_FINAL: Int = ACC_STATIC or ACC_FINAL
-
         private val threadLocalContext = ThreadLocal<SandboxRuntimeContext?>()
 
         /**

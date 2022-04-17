@@ -36,7 +36,8 @@ import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Member
 import java.lang.reflect.Method
-import java.lang.reflect.Modifier.*
+import java.lang.reflect.Modifier.isPrivate
+import java.lang.reflect.Modifier.isPublic
 import java.lang.reflect.Proxy
 import java.security.AccessController
 import java.security.PrivilegedAction
@@ -316,8 +317,8 @@ internal fun unsandbox(name: kotlin.String) = name.removePrefix(SANDBOX_PREFIX)
  * Add this generated class to the list of those that will
  * need to be reset before this classloader can be reused.
  */
-fun forReset(clazz: Class<*>, resetter: MethodHandle) {
-    SandboxRuntimeContext.instance.addToReset(clazz, resetter)
+fun forReset(resetter: MethodHandle) {
+    SandboxRuntimeContext.instance.addToReset(resetter)
 }
 
 /**
@@ -529,7 +530,7 @@ private fun toSandbox(className: kotlin.String): kotlin.String {
     val matchName = className.removePrefix(SANDBOX_PREFIX)
     val (actualName, sandboxName) = OBJECT_ARRAY.matchEntire(matchName)?.let {
         it.groupValues[2] to it.groupValues[1] + SANDBOX_PREFIX + it.groupValues[2] + ';'
-    } ?: matchName to SANDBOX_PREFIX + matchName
+    } ?: (matchName to SANDBOX_PREFIX + matchName)
 
     if (bannedClasses.any { it.matches(actualName) }) {
         throw ClassNotFoundException(className).sanitise(1)
