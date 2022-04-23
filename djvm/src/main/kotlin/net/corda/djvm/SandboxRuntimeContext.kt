@@ -31,8 +31,8 @@ class SandboxRuntimeContext(val configuration: SandboxConfiguration) {
     private val classResetContext = ClassResetContext()
 
     @CordaInternal
-    internal fun addToReset(resetMethod: MethodHandle) {
-        classResetContext.add(resetMethod)
+    internal fun addToReset(clazz: Class<*>, resetMethod: MethodHandle) {
+        classResetContext.add(clazz, resetMethod)
     }
 
     internal val currentResetView: ClassResetContext.View

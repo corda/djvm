@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static net.corda.djvm.SandboxType.JAVA;
@@ -258,7 +259,7 @@ class ResetStaticFieldsTest extends TestBase {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 Class<?> sandboxClass = classLoader.toSandboxClass(clazz);
-                assertThrows(NoSuchMethodException.class, () -> sandboxClass.getDeclaredMethod(CLASS_RESET_NAME));
+                assertThrows(NoSuchMethodException.class, () -> sandboxClass.getDeclaredMethod(CLASS_RESET_NAME, BiConsumer.class));
             } catch (Exception e) {
                 fail(e);
             }
@@ -272,7 +273,7 @@ class ResetStaticFieldsTest extends TestBase {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 Class<?> sandboxClass = classLoader.toSandboxClass(className);
-                assertThrows(NoSuchMethodException.class, () -> sandboxClass.getDeclaredMethod(CLASS_RESET_NAME));
+                assertThrows(NoSuchMethodException.class, () -> sandboxClass.getDeclaredMethod(CLASS_RESET_NAME, BiConsumer.class));
             } catch (Exception e) {
                 fail(e);
             }
@@ -286,9 +287,9 @@ class ResetStaticFieldsTest extends TestBase {
             try {
                 SandboxClassLoader classLoader = ctx.getClassLoader();
                 Class<?> sandboxClass = classLoader.toSandboxClass(clazz);
-                Method resetMethod = sandboxClass.getDeclaredMethod(CLASS_RESET_NAME);
+                Method resetMethod = sandboxClass.getDeclaredMethod(CLASS_RESET_NAME, BiConsumer.class);
                 resetMethod.setAccessible(true);
-                resetMethod.invoke(null);
+                resetMethod.invoke(null, (BiConsumer<Object, String>)(value, name) -> {});
             } catch (Exception e) {
                 fail(e);
             }

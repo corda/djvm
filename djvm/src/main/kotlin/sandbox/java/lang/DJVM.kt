@@ -7,8 +7,8 @@ import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_ANNOTATIONS
 import net.corda.djvm.analysis.AnalysisConfiguration.Companion.JVM_EXCEPTIONS
 import net.corda.djvm.analysis.SyntheticResolver.Companion.getDJVMSynthetic
 import net.corda.djvm.code.impl.CLASS_RESET_NAME
+import net.corda.djvm.execution.SandboxRuntimeException
 import net.corda.djvm.rewiring.SandboxClassLoader
-import net.corda.djvm.rewiring.SandboxClassLoadingException
 import net.corda.djvm.rules.RuleViolationError
 import net.corda.djvm.rules.implementation.*
 import org.objectweb.asm.Type
@@ -43,6 +43,7 @@ import java.security.AccessController
 import java.security.PrivilegedAction
 import java.security.PrivilegedActionException
 import java.security.PrivilegedExceptionAction
+import java.util.function.BiConsumer
 
 /**
  * Register this class's reset method to flush any static data.
@@ -51,9 +52,9 @@ import java.security.PrivilegedExceptionAction
  */
 @Suppress("FunctionName")
 @JvmSynthetic
-private fun `djvm$reset`() {
-    resourceCache.clear()
-    sandboxedExceptions.clear()
+private fun `djvm$reset`(resetter: BiConsumer<Any?, kotlin.String>) {
+    resetter.accept(mutableMapOf<DJVMResourceKey, ResourceBundle>(), "resourceCache")
+    resetter.accept(mutableMapOf<kotlin.Throwable, Throwable>(), "sandboxedExceptions")
 
     /**
      * The [String] class is immutable. Push these [String] constants
@@ -317,16 +318,17 @@ internal fun unsandbox(name: kotlin.String) = name.removePrefix(SANDBOX_PREFIX)
  * Add this generated class to the list of those that will
  * need to be reset before this classloader can be reused.
  */
-fun forReset(resetter: MethodHandle) {
-    SandboxRuntimeContext.instance.addToReset(resetter)
+fun forReset(clazz: Class<*>, resetter: MethodHandle) {
+    SandboxRuntimeContext.instance.addToReset(clazz, resetter)
 }
 
 /**
  * Add a hand-written class to the reset list.
  */
 fun forReset(lookup: Lookup, resetMethod: kotlin.String) {
-    val voidType = MethodType.methodType(Void::class.javaPrimitiveType)
-    SandboxRuntimeContext.instance.addToReset(lookup.findStatic(lookup.lookupClass(), resetMethod, voidType))
+    val resetType = MethodType.methodType(Void::class.javaPrimitiveType, BiConsumer::class.java)
+    val resetClass = lookup.lookupClass()
+    SandboxRuntimeContext.instance.addToReset(resetClass, lookup.findStatic(resetClass, resetMethod, resetType))
 }
 
 /**
@@ -626,7 +628,7 @@ fun doFinally(t: kotlin.Throwable): Throwable {
  * need to handle [ThreadDeath] or [VirtualMachineError] here.
  */
 fun doCatch(t: kotlin.Throwable): Throwable {
-    if (t is SandboxClassLoadingException) {
+    if (t is SandboxRuntimeException) {
         // Don't interfere with sandbox failures!
         throw t
     }

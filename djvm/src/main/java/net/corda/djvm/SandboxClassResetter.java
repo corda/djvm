@@ -6,6 +6,7 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MutableCallSite;
+import java.util.function.BiConsumer;
 
 /**
  * Classes that contain static fields need to have these fields
@@ -19,14 +20,14 @@ final class SandboxClassResetter {
     private final MethodHandle resetHandle;
 
     SandboxClassResetter() {
-        resetSite = new MutableCallSite(MethodType.methodType(void.class));
+        resetSite = new MutableCallSite(MethodType.methodType(void.class, BiConsumer.class));
         resetHandle = resetSite.dynamicInvoker();
     }
 
     void reset(@NotNull Resettables resettables) throws Throwable {
         for (Resettable resettable : resettables.getResettables()) {
             resetSite.setTarget(resettable.getResetMethod());
-            resetHandle.invokeExact();
+            resetHandle.invokeExact((BiConsumer<Object, String>)resettable::reset);
         }
     }
 }

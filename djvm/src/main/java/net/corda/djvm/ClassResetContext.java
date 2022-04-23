@@ -34,8 +34,8 @@ final class ClassResetContext {
         current = setupPhase;
     }
 
-    void add(MethodHandle resetMethod) {
-        current.add(new Resettable(resetMethod));
+    void add(Class<?> resetClass, MethodHandle resetMethod) {
+        current.add(new Resettable(resetClass, resetMethod));
     }
 
     /**

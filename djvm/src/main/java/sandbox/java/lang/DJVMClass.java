@@ -18,6 +18,7 @@ import sandbox.java.util.Map;
 import java.lang.invoke.MethodHandles;
 import java.security.PrivilegedActionException;
 import java.util.Arrays;
+import java.util.function.BiConsumer;
 
 import static java.security.AccessController.doPrivileged;
 import static sandbox.java.util.Collections.unmodifiableMap;
@@ -39,9 +40,9 @@ public final class DJVMClass {
     private DJVMClass() {}
 
     @SuppressWarnings("unused")
-    private static void reset() {
-        allEnumDirectories.clear();
-        allEnums.clear();
+    private static void reset(BiConsumer<java.lang.Object, java.lang.String> resetter) {
+        resetter.accept(new LinkedHashMap<>(), "allEnumDirectories");
+        resetter.accept(new LinkedHashMap<>(), "allEnums");
     }
 
     static {
