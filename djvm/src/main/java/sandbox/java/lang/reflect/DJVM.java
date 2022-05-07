@@ -6,6 +6,7 @@ import sandbox.java.lang.System;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public final class DJVM {
     private DJVM() {}
@@ -28,9 +29,9 @@ public final class DJVM {
     }
 
     @SuppressWarnings("unused")
-    private static void reset() {
+    private static void reset(BiConsumer<Object, String> resetter) {
+        resetter.accept(new HashMap<>(), "hashCodes");
         reflectionCounter = 0;
-        hashCodes.clear();
     }
 
     static {

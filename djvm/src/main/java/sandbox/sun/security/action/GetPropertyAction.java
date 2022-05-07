@@ -8,23 +8,29 @@ import sandbox.java.util.LinkedHashMap;
 import sandbox.java.util.Map;
 
 import java.lang.invoke.MethodHandles;
+import java.util.function.BiConsumer;
 
 public class GetPropertyAction extends sandbox.java.lang.Object implements PrivilegedAction<String> {
 
-    private static Map<String, String> systemValues;
+    private static final Map<String, String> systemValues = createSystemProperties();
 
     static {
         DJVM.forReset(MethodHandles.lookup(), "reset");
-        reset();
     }
 
-    private static void reset() {
-        systemValues = new LinkedHashMap<>();
-        systemValues.put(DJVM.intern("file.encoding"), DJVM.intern("UTF-8"));
-        systemValues.put(DJVM.intern("user.language"), DJVM.intern("en"));
-        systemValues.put(DJVM.intern("user.timezone"), DJVM.intern("UTC"));
-        systemValues.put(DJVM.intern("line.separator"), System.lineSeparator);
-        systemValues.put(DJVM.intern("path.separator"), DJVM.intern(":"));
+    private static Map<String, String> createSystemProperties() {
+        Map<String, String> properties = new LinkedHashMap<>();
+        properties.put(DJVM.intern("file.encoding"), DJVM.intern("UTF-8"));
+        properties.put(DJVM.intern("user.language"), DJVM.intern("en"));
+        properties.put(DJVM.intern("user.timezone"), DJVM.intern("UTC"));
+        properties.put(DJVM.intern("line.separator"), System.lineSeparator);
+        properties.put(DJVM.intern("path.separator"), DJVM.intern(":"));
+        return properties;
+    }
+
+    @SuppressWarnings("unused")
+    private static void reset(BiConsumer<Object, java.lang.String> resetter) {
+        resetter.accept(createSystemProperties(), "systemValues");
     }
 
     private final String name;

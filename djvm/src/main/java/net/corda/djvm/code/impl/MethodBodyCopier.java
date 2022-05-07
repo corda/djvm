@@ -8,10 +8,12 @@ import org.objectweb.asm.tree.MethodNode;
 
 class MethodBodyCopier extends MethodVisitor {
     private final MethodNode node;
+    private final int parameterOffset;
 
-    MethodBodyCopier(int api, MethodVisitor mv, MethodNode node) {
+    MethodBodyCopier(int api, MethodVisitor mv, MethodNode node, int parameterOffset) {
         super(api, mv);
         this.node = node;
+        this.parameterOffset = parameterOffset;
     }
 
     @Override
@@ -41,7 +43,7 @@ class MethodBodyCopier extends MethodVisitor {
     @Override
     public void visitIincInsn(int varIdx, int increment) {
         super.visitIincInsn(varIdx, increment);
-        node.visitIincInsn(varIdx, increment);
+        node.visitIincInsn(varIdx + parameterOffset, increment);
     }
 
     @Override
@@ -89,7 +91,7 @@ class MethodBodyCopier extends MethodVisitor {
     @Override
     public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int index) {
         super.visitLocalVariable(name, descriptor, signature, start, end, index);
-        node.visitLocalVariable(name, descriptor, signature, start, end, index);
+        node.visitLocalVariable(name, descriptor, signature, start, end, index + parameterOffset);
     }
 
     @Override
@@ -131,7 +133,7 @@ class MethodBodyCopier extends MethodVisitor {
     @Override
     public void visitVarInsn(int opcode, int varIdx) {
         super.visitVarInsn(opcode, varIdx);
-        node.visitVarInsn(opcode, varIdx);
+        node.visitVarInsn(opcode, varIdx + parameterOffset);
     }
 
     @Override

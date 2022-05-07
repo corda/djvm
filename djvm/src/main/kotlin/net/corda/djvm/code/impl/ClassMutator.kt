@@ -28,12 +28,17 @@ import org.objectweb.asm.Opcodes.ACC_STATIC
 import org.objectweb.asm.Opcodes.ACC_STRICT
 import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import org.objectweb.asm.Opcodes.ACONST_NULL
+import org.objectweb.asm.Opcodes.ALOAD
 import org.objectweb.asm.Opcodes.DCONST_0
 import org.objectweb.asm.Opcodes.FCONST_0
 import org.objectweb.asm.Opcodes.ICONST_0
+import org.objectweb.asm.Opcodes.INVOKEINTERFACE
 import org.objectweb.asm.Opcodes.LCONST_0
+import org.objectweb.asm.Opcodes.POP
+import org.objectweb.asm.Opcodes.POP2
 import org.objectweb.asm.Opcodes.PUTSTATIC
 import org.objectweb.asm.Opcodes.RETURN
+import org.objectweb.asm.Opcodes.SWAP
 import org.objectweb.asm.commons.Remapper
 import org.objectweb.asm.tree.MethodNode
 import java.util.Collections.unmodifiableList
@@ -55,7 +60,6 @@ class ClassMutator(
     private val definitionProviders: List<DefinitionProvider>,
     emitters: List<Emitter>
 ) : ClassAndMemberVisitor(classVisitor, configuration, remapper) {
-
     override fun specialise(cv: ClassVisitor, args: Array<out Any?>): ClassVisitor {
         return SandboxClassRemapper(
             ExceptionRemapper(SandboxStitcher(ResetVisitor(cv), configuration), configuration.syntheticResolver),
@@ -69,6 +73,8 @@ class ClassMutator(
     }
 
     private inner class ResetVisitor(classVisitor: ClassVisitor) : ClassVisitor(API_VERSION, classVisitor) {
+        private val constantFields = mutableSetOf<String>()
+
         override fun visitField(access: Int, name: String, descriptor: String, signature: String?, value: Any?): FieldVisitor {
             if (access and ACC_STATIC_FINAL == ACC_STATIC && !isImmutable) {
                 val zeroOpcode = when (descriptor) {
@@ -80,6 +86,8 @@ class ClassMutator(
                 }
                 initializationCode.visitInsn(zeroOpcode)
                 initializationCode.visitFieldInsn(PUTSTATIC, getMappedClassName(), name, descriptor)
+            } else if (access and ACC_STATIC_FINAL == ACC_STATIC_FINAL) {
+                constantFields += name
             }
             return super.visitField(access, name, descriptor, signature, value)
         }
@@ -87,7 +95,7 @@ class ClassMutator(
         override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
             return super.visitMethod(access, name, descriptor, signature, exceptions)?.let { mv ->
                 if (name == CLASS_CONSTRUCTOR_NAME && descriptor == "()V" && !isImmutable) {
-                    ClassInitVisitor(api, mv, getMappedClassName())
+                    ClassInitVisitor(api, mv, getMappedClassName(), constantFields)
                 } else {
                     mv
                 }
@@ -95,9 +103,11 @@ class ClassMutator(
         }
     }
 
-    private inner class ClassInitVisitor(api: Int, mv: MethodVisitor, private val mappedName: String)
-        : MethodBodyCopier(api, mv, initializationCode)
-    {
+    private inner class ClassInitVisitor(
+        api: Int, mv: MethodVisitor,
+        private val mappedName: String,
+        private val constantFields: Set<String>
+    ) : MethodBodyCopier(api, mv, initializationCode, CLASS_RESET_PARAMETER_COUNT) {
         /**
          * We need to register the reset method at the very end of
          * the `<clinit>` method to ensure that the sandbox classes
@@ -112,6 +122,37 @@ class ClassMutator(
                 }
             }
             super.visitInsn(opcode)
+        }
+
+        /**
+         * The JVM forbids us from modifying static final fields by default.
+         * We must therefore use "unsafe" methods to reset them.
+         */
+        override fun visitFieldInsn(opcode: Int, owner: String?, name: String?, descriptor: String) {
+            mv.visitFieldInsn(opcode, owner, name, descriptor)
+            if ((opcode == PUTSTATIC) && (owner == mappedName) && (name in constantFields)) {
+                when (descriptor[0]) {
+                    'L', '[' ->
+                        with(initializationCode) {
+                            visitVarInsn(ALOAD, 0)
+                            visitInsn(SWAP)
+                            visitLdcInsn(name)
+                            visitMethodInsn(
+                                INVOKEINTERFACE,
+                                "java/util/function/BiConsumer",
+                                "accept",
+                                "(Ljava/lang/Object;Ljava/lang/Object;)V",
+                                true
+                            )
+                        }
+                    'D', 'J' ->
+                        initializationCode.visitInsn(POP2)
+                    else ->
+                        initializationCode.visitInsn(POP)
+                }
+            } else {
+                initializationCode.visitFieldInsn(opcode, owner, name, descriptor)
+            }
         }
     }
 
@@ -251,6 +292,7 @@ class ClassMutator(
         private val logger = loggerFor<ClassMutator>()
         private const val ACC_STATIC_FINAL: Int = ACC_STATIC or ACC_FINAL
         private const val CLASS_RESET_ACCESS: Int = ACC_PRIVATE or ACC_STATIC or ACC_SYNTHETIC or ACC_STRICT
+        private const val CLASS_RESET_PARAMETER_COUNT = 1
     }
 }
 

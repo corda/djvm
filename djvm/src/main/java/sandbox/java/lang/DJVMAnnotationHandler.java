@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.function.BiConsumer;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableMap;
@@ -47,8 +48,8 @@ final class DJVMAnnotationHandler implements InvocationHandler {
     }
 
     @SuppressWarnings("unused")
-    private static void reset() {
-        hashCodes.clear();
+    private static void reset(BiConsumer<java.lang.Object, java.lang.String> resetter) {
+        resetter.accept(new HashMap<>(), "hashCodes");
         annotationCounter = 0;
     }
 
