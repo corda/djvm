@@ -60,6 +60,12 @@ configurations {
     testImplementation.extendsFrom shadow
 }
 
+components.named('djvm') {
+    addVariantsFromConfiguration(configurations.bundles) {
+        mapToMavenScope('compile')
+    }
+}
+
 dependencies {
     bundles "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     bundles "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
@@ -298,11 +304,10 @@ publishing {
     publications {
         djvm(MavenPublication) {
             artifactId 'corda-djvm'
-            artifact bundle
+
+            from components.djvm
             artifact sourcesJar
             artifact javadocJar
-
-            pom.withXml(new MavenDependencies(configurations, configurations.bundles))
         }
     }
 }
