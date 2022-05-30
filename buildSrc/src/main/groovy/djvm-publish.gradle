@@ -1,8 +1,12 @@
+import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
+import javax.inject.Inject
 
 plugins {
     id 'maven-publish'
 }
+
+pluginManager.apply(DJVMPublishPlugin)
 
 tasks.withType(GenerateModuleMetadata).configureEach {
     enabled = false
@@ -40,94 +44,18 @@ publishing {
     }
 }
 
-final class MavenDependencies implements Action<XmlProvider> {
-    private final DependencySet compileOnly
-    private final DependencySet apiElements
-    private final DependencySet runtimeElements
-    private final MavenMapper compileMapper
-    private final MavenMapper runtimeMapper
-    private final Configuration publication
+@CompileStatic
+@PackageScope
+final class DJVMPublishPlugin implements Plugin<Project> {
+    private final SoftwareComponentFactory factory
 
-    MavenDependencies(
-        ConfigurationContainer configurations,
-        Configuration publication
-    ) {
-        this.compileOnly = configurations.compileOnly.allDependencies
-        this.apiElements = configurations.apiElements.allDependencies
-        this.runtimeElements = configurations.runtimeElements.allDependencies
-        this.compileMapper = new MavenMapper(
-            configurations.compileClasspath.resolvedConfiguration,
-            'compile'
-        )
-        this.runtimeMapper = new MavenMapper(
-            configurations.runtimeClasspath.resolvedConfiguration,
-            'runtime'
-        )
-        this.publication = publication
+    @Inject
+    DJVMPublishPlugin(SoftwareComponentFactory factory) {
+        this.factory = factory
     }
 
     @Override
-    void execute(XmlProvider xml) {
-        DependencySet publishDependencies = publication.allDependencies
-        if (publishDependencies.isEmpty()) {
-            return
-        }
-
-        Node dependencies = xml.asNode().appendNode('dependencies')
-        publishDependencies.forEach { dep ->
-            final ResolvedDependency compile = compileMapper.resolveFor(dep)
-            if (compile && hasCompileScope(dep)) {
-                // This dependency is on the compile classpath and
-                // has been identified as having "compile" scope.
-                compileMapper.append(dependencies, compile)
-            } else {
-                final ResolvedDependency runtime = runtimeMapper.resolveFor(dep)
-                if (runtime) {
-                    // This dependency is on the runtime classpath and
-                    // hasn't been claimed by the "compile" scope.
-                    runtimeMapper.append(dependencies, runtime)
-                }
-            }
-        }
-    }
-
-    private boolean hasCompileScope(Dependency dep) {
-        // We assign "compile" scope to those dependencies which have:
-        //    EITHER been declared as an "api" element (c.f. java-library plugin)
-        //    OR not been declared as either "compileOnly" or a "runtime" element.
-        return dep in apiElements || !(dep in runtimeElements || dep in compileOnly)
-    }
-}
-
-@PackageScope
-final class MavenMapper {
-    private final ResolvedConfiguration resolved
-    private final String scope
-    private final Map<ModuleVersionIdentifier, String> artifactNames
-
-    @PackageScope
-    MavenMapper(ResolvedConfiguration resolved, String scope) {
-        this.resolved = resolved
-        this.scope = scope
-
-        // Ensure that we use these artifacts' resolved names, because
-        // these aren't necessarily the same as their module names.
-        this.artifactNames = resolved.resolvedArtifacts.collectEntries {
-            [ (it.moduleVersion.id):it.name ]
-        }.asUnmodifiable()
-    }
-
-    @PackageScope
-    ResolvedDependency resolveFor(Dependency dep) {
-        return resolved.getFirstLevelModuleDependencies { it.contentEquals(dep) }[0]
-    }
-
-    @PackageScope
-    void append(Node dependencies, ResolvedDependency res) {
-        Node dependency = dependencies.appendNode('dependency')
-        dependency.appendNode('groupId', res.moduleGroup)
-        dependency.appendNode('artifactId', artifactNames[res.module.id])
-        dependency.appendNode('version', res.moduleVersion)
-        dependency.appendNode('scope', scope)
+    void apply(Project project) {
+        project.components.add(factory.adhoc('djvm'))
     }
 }
