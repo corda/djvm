@@ -5,6 +5,7 @@ import net.corda.djvm.analysis.ClassResolver
 import net.corda.djvm.analysis.Whitelist
 import net.corda.djvm.source.impl.SourceClassLoaderImpl
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.ThrowingConsumer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -88,11 +89,11 @@ class SourceClassLoaderTest {
             val directory = first.parent
             UserPathSource(listOf(directory)).use { userPathSource ->
                 val classLoader = SourceClassLoaderImpl(classResolver, userPathSource)
-                assertThat(classLoader.getURLs()).anySatisfy {
+                assertThat(classLoader.getURLs()).anySatisfy(ThrowingConsumer {
                     assertThat(it).isEqualTo(first.toUri().toURL())
-                }.anySatisfy {
+                }).anySatisfy(ThrowingConsumer {
                     assertThat(it).isEqualTo(second.toUri().toURL())
-                }
+                })
             }
         }
     }

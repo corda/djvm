@@ -2,7 +2,9 @@ package net.corda.djvm.assertions
 
 import net.corda.djvm.references.ClassRepresentation
 import net.corda.djvm.references.ClassHierarchy
+import net.corda.djvm.references.Member
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.ThrowingConsumer
 
 open class AssertiveClassHierarchyWithClass(
         hierarchy: ClassHierarchy,
@@ -32,12 +34,12 @@ open class AssertiveClassHierarchyWithClass(
     }
 
     fun withMember(name: String, descriptor: String): AssertiveClassHierarchyWithClassAndMember {
-        assertThat(clazz.members.values)
+        assertThat(clazz.members.values as Iterable<Member>)
                 .`as`("Member($className.$name:$descriptor")
-                .anySatisfy {
+                .anySatisfy(ThrowingConsumer {
                     assertThat(it.memberName).isEqualTo(name)
                     assertThat(it.descriptor).isEqualTo(descriptor)
-                }
+                })
         val member = clazz.members.values.first {
             it.memberName == name && it.descriptor == descriptor
         }

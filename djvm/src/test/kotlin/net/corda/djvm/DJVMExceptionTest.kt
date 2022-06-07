@@ -4,6 +4,7 @@ import net.corda.djvm.SandboxType.KOTLIN
 import net.corda.djvm.assertions.AssertionExtensions.assertThatDJVM
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
+import org.assertj.core.api.ThrowingConsumer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.EmptyStackException
@@ -22,7 +23,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
         assertThat(result.cause).isNull()
         assertThat(result.stackTrace)
             .hasSize(2)
-            .allSatisfy { it is StackTraceElement && it.className == result.javaClass.name }
+            .allSatisfy(ThrowingConsumer { it is StackTraceElement && it.className == result.javaClass.name })
     }
 
     @Test
@@ -37,7 +38,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
         assertThat(result.cause).isInstanceOf(Throwable::class.java)
         assertThat(result.stackTrace)
             .hasSize(2)
-            .allSatisfy { it is StackTraceElement && it.className == result.javaClass.name }
+            .allSatisfy(ThrowingConsumer { it is StackTraceElement && it.className == result.javaClass.name })
         val resultLineNumbers = result.stackTrace.toLineNumbers()
 
         val firstCause = result.cause as Throwable
@@ -45,7 +46,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
         assertThat(firstCause.cause).isInstanceOf(Throwable::class.java)
         assertThat(firstCause.stackTrace)
             .hasSize(2)
-            .allSatisfy { it is StackTraceElement && it.className == result.javaClass.name }
+            .allSatisfy(ThrowingConsumer { it is StackTraceElement && it.className == result.javaClass.name })
         val firstCauseLineNumbers = firstCause.stackTrace.toLineNumbers()
 
         val rootCause = firstCause.cause as Throwable
@@ -53,7 +54,7 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
         assertThat(rootCause.cause).isNull()
         assertThat(rootCause.stackTrace)
             .hasSize(2)
-            .allSatisfy { it is StackTraceElement && it.className == result.javaClass.name }
+            .allSatisfy(ThrowingConsumer { it is StackTraceElement && it.className == result.javaClass.name })
         val rootCauseLineNumbers = rootCause.stackTrace.toLineNumbers()
 
         // These stack traces should share one line number and have one distinct line number each.
@@ -160,13 +161,13 @@ class DJVMExceptionTest : TestBase(KOTLIN) {
 }
 
 class SingleExceptionTask : Function<Any?, Throwable?> {
-    override fun apply(input: Any?): Throwable? {
+    override fun apply(input: Any?): Throwable {
         return Throwable(input as? String)
     }
 }
 
 class MultipleExceptionsTask : Function<Any?, Throwable?> {
-    override fun apply(input: Any?): Throwable? {
+    override fun apply(input: Any?): Throwable {
         val root = Throwable(input as? String)
         val nested = Throwable(root.message + "(1)", root)
         return Throwable(nested.message + "(2)", nested)

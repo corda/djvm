@@ -5,22 +5,22 @@ import org.assertj.core.api.Assertions.assertThat
 class AssertiveDJVMObject(private val djvmObj: Any) {
 
     fun hasClassName(className: String): AssertiveDJVMObject {
-        assertThat(djvmObj.javaClass.name).isEqualTo(className)
+        assertThat(djvmObj::class.java.name).isEqualTo(className)
         return this
     }
 
     fun isAssignableFrom(clazz: Class<*>): AssertiveDJVMObject {
-        assertThat(djvmObj.javaClass.isAssignableFrom(clazz))
+        assertThat(djvmObj::class.java.isAssignableFrom(clazz))
         return this
     }
 
     fun hasGetterValue(methodName: String, value: Any): AssertiveDJVMObject {
-        assertThat(djvmObj.javaClass.getMethod(methodName).invoke(djvmObj)).isEqualTo(value)
+        assertThat(djvmObj::class.java.getMethod(methodName).invoke(djvmObj)).isEqualTo(value)
         return this
     }
 
     fun hasGetterNullValue(methodName: String): AssertiveDJVMObject {
-        assertThat(djvmObj.javaClass.getMethod(methodName).invoke(djvmObj)).isNull()
+        assertThat(djvmObj::class.java.getMethod(methodName).invoke(djvmObj)).isNull()
         return this
     }
 }

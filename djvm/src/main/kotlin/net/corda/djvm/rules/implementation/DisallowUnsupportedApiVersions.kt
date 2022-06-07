@@ -31,7 +31,8 @@ object DisallowUnsupportedApiVersions : ClassDefinitionProvider, ClassRule() {
         V1_1 to "1.1", V1_2 to "1.2", V1_3 to "1.3", V1_4 to "1.4",
         V1_5 to "1.5", V1_6 to "1.6", V1_7 to "1.7", V1_8 to "1.8",
         V9 to "9", V10 to "10", V11 to "11", V12 to "12", V13 to "13",
-        V14 to "14", V15 to "15", V16 to "16", V17 to "17", V18 to "18"
+        V14 to "14", V15 to "15", V16 to "16", V17 to "17", V18 to "18",
+        V19 to "19"
     )
 
     private fun versionString(version: Int) = versionMap.getOrDefault(version, "unknown")
