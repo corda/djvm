@@ -147,6 +147,8 @@ tasks.withType(Test).configureEach {
     doFirst {
         systemProperty 'deterministic-rt.path', configurations.jdkRt.asPath
         systemProperty 'sandbox-libraries.path', configurations.sandboxTesting.asPath
+        systemProperty 'java.util.logging.manager', 'org.jboss.logmanager.LogManager'
+
     }
 
     // The DJVM and Corda serialization need reflective access to these packages.
