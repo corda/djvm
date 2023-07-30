@@ -91,7 +91,7 @@ artifactory {
 
         contextUrl = artifactory_contextUrl
         repository {
-            repoKey = 'corda-dependencies-dev'
+            repoKey = System.getenv('CORDA_ARTIFACTORY_REPOKEY') ?: 'corda-dependencies-dev'
             username = credentials.getProperty('artifactory.username', System.getenv('CORDA_ARTIFACTORY_USERNAME'))
             password = credentials.getProperty('artifactory.apikey', System.getenv('CORDA_ARTIFACTORY_APIKEY'))
         }
