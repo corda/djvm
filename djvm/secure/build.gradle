@@ -4,7 +4,7 @@ plugins {
 
 repositories {
     maven {
-        url "$artifactory_contextUrl/corda-dev"
+        url "$publicArtifactURL/corda-dependencies-dev"
         content {
             includeGroup 'net.corda'
         }
@@ -13,10 +13,13 @@ repositories {
         }
     }
     maven {
-        url "$artifactory_contextUrl/corda"
+        url "$publicArtifactURL/corda-dependencies"
         content {
             includeGroup 'net.corda'
             includeModule 'co.paralleluniverse', 'quasar-core'
+        }
+        mavenContent {
+            releasesOnly()
         }
     }
 }
@@ -30,7 +33,7 @@ configurations {
         canBeConsumed = false
     }
 
-    all {
+    configureEach {
         resolutionStrategy {
             dependencySubstitution {
                 substitute module('net.corda.djvm:corda-djvm') with project(':djvm:bootstrap')

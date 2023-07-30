@@ -36,6 +36,10 @@ pipeline {
 
     environment {
         ARTIFACTORY_BUILD_NAME = "DJVM / Publish / ${isSnapshot ? "Snapshot /":""} Publish to Artifactory".replaceAll("/", "::")
+        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
+        CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
+        CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
+        CORDA_ARTIFACTORY_REPOKEY = "${isRelease ? 'corda-dependencies' : 'corda-dependencies-dev'}"
     }
 
     stages {

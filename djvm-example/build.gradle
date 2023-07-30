@@ -20,7 +20,7 @@ java {
 
 repositories {
     maven {
-        url "$artifactory_contextUrl/corda-dev"
+        url "$publicArtifactURL/corda-dependencies-dev"
         content {
             includeGroupByRegex 'net\\.corda(\\..*)?'
         }
@@ -29,14 +29,24 @@ repositories {
         }
     }
     maven {
-        url "$artifactory_contextUrl/corda"
+        url "$publicArtifactURL/corda-dependencies"
         content {
-            includeGroupByRegex 'net.corda(\\..*)?'
             includeModule 'co.paralleluniverse', 'quasar-core'
+            includeGroupByRegex 'net.corda(\\..*)?'
+        }
+        mavenContent {
+            releasesOnly()
         }
     }
     maven {
         url "$artifactory_contextUrl/corda-lib"
+        authentication {
+            basic(BasicAuthentication)
+        }
+        credentials {
+            username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+            password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+        }
         content {
             includeGroup 'com.r3.corda.lib.tokens'
         }
@@ -53,7 +63,7 @@ configurations {
         canBeConsumed = false
     }
 
-    all {
+    configureEach {
         resolutionStrategy {
             dependencySubstitution {
                 substitute module('net.corda.djvm:corda-djvm') with module("net.corda.djvm:corda-djvm:$djvm_version")
